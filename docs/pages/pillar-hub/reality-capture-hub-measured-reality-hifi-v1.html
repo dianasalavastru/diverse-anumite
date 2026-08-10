@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reality Capture — pilon · diverse anumite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* =========================================================================
+     REALITY CAPTURE — PILLAR HUB  (sister of the Architecture & Design Hub)
+     Same design system as Homepage v3 + Architecture Hub v1. Same tokens, palette,
+     Pixelify voice, coordinate rail, section markers, reveals, focus carousel and
+     footer — REUSED, not redesigned. The atmosphere shifts: calmer, more precise,
+     observational. Where Architecture is warm/material, this is measured/technical
+     — expressed through subtle coordinate grids, registration targets, measured
+     annotations, a before/after comparison and the point cloud, NOT a new language.
+     ========================================================================= */
+  :root{
+    --paper:#ffffff;
+    --ink:#1b1712;
+    --ink-60:#6f675d;
+    --ink-40:#8f887e;
+    --hair:#e8e4dc;
+    --hair-2:#f1ede6;
+    --blue:#2b2be6;
+    --blue-08:rgba(43,43,230,.08);
+    --pixel:"Pixelify Sans",monospace;
+    --mono:"Space Mono",monospace;
+    --read:"Inter",-apple-system,sans-serif;
+    --ease:cubic-bezier(.2,0,0,1);
+    --slow:cubic-bezier(.16,1,.3,1);
+    --pad-quiet:clamp(110px,17vh,230px);
+    --pad-loud:clamp(64px,10vh,120px);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth;overflow-x:hidden}
+  body{background:var(--paper);color:var(--ink);font-family:var(--read);font-size:16px;line-height:1.66;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+  img{display:block;max-width:100%}
+  .mono{font-family:var(--mono)}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-40)}
+  .measure{font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--ink-40)}
+
+  .rv{opacity:0;transform:translateY(20px);transition:opacity 1s var(--slow),transform 1s var(--slow),clip-path 1s var(--slow)}
+  .rv.in{opacity:1;transform:none}
+  .rv-img{opacity:0;clip-path:inset(0 0 100% 0);transition:opacity 1.1s var(--slow),clip-path 1.2s var(--slow)}
+  .rv-img.in{opacity:1;clip-path:inset(0 0 0 0)}
+  @media (prefers-reduced-motion:reduce){.rv,.rv-img{opacity:1!important;transform:none!important;clip-path:none!important;transition:none!important}html{scroll-behavior:auto}}
+
+  /* coordinate rail */
+  .rail{position:fixed;left:26px;top:0;bottom:0;width:44px;z-index:40;display:flex;flex-direction:column;justify-content:center;gap:20px;pointer-events:none}
+  .rail .st{font-family:var(--pixel);font-size:12px;color:var(--ink-40);opacity:.5;display:flex;align-items:center;gap:8px;transition:opacity .4s,color .4s}
+  .rail .st .tick{width:10px;height:1px;background:var(--ink-40);transition:all .4s var(--ease)}
+  .rail .st.active{opacity:1;color:var(--blue)}
+  .rail .st.active .tick{width:24px;height:2px;background:var(--blue)}
+  @media (max-width:960px){.rail{display:none}}
+
+  /* header (+ pillar indicator, reused pattern) */
+  header{position:fixed;top:0;left:0;right:0;height:66px;z-index:60;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(20px,5vw,64px);transition:background .4s var(--ease),border-color .4s var(--ease);border-bottom:1px solid transparent}
+  header.solid{background:rgba(255,255,255,.9);backdrop-filter:blur(8px);border-bottom:1px solid var(--hair)}
+  .brand{display:flex;align-items:baseline;gap:14px}
+  .wm{font-family:var(--pixel);font-size:20px;letter-spacing:.02em;color:var(--ink)}
+  .ctx{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--ink-40);padding-left:14px;border-left:1px solid var(--hair)}
+  .ctx b{color:var(--blue);font-weight:400}
+  @media (max-width:720px){.ctx{display:none}}
+  nav{display:flex;gap:26px;align-items:center}
+  nav a{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);position:relative;padding:4px 0}
+  nav a::after{content:"";position:absolute;left:0;right:100%;bottom:0;height:1.5px;background:var(--blue);transition:right .3s var(--ease)}
+  nav a:hover::after{right:0}
+  nav a.en{color:var(--ink-40)}
+  .menu{display:none;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;background:none;border:none;cursor:pointer}
+  @media (max-width:720px){nav{display:none}.menu{display:block}}
+
+  main{padding-left:clamp(20px,7vw,120px);padding-right:clamp(20px,5vw,64px)}
+  .mv{position:relative}
+  .bleed{margin-left:calc(-1 * clamp(20px,7vw,120px));margin-right:calc(-1 * clamp(20px,5vw,64px))}
+
+  .smark{display:flex;align-items:baseline;gap:16px;border-top:1px solid var(--hair);padding-top:clamp(24px,3vh,36px);margin-bottom:clamp(40px,6vh,72px)}
+  .smark .no{font-family:var(--pixel);font-size:13px;color:var(--blue)}
+  .smark .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink)}
+  .smark .co{margin-left:auto;font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--ink-40)}
+
+  /* subtle coordinate grid + registration target (this Hub's technical overlay) */
+  .gridlay{position:absolute;inset:0;pointer-events:none;z-index:2;
+    background-image:linear-gradient(var(--blue-08) 1px,transparent 1px),linear-gradient(90deg,var(--blue-08) 1px,transparent 1px);
+    background-size:44px 44px}
+  .target{position:absolute;width:20px;height:20px;z-index:3;pointer-events:none}
+  .target::before,.target::after{content:"";position:absolute;background:var(--blue)}
+  .target::before{left:50%;top:0;bottom:0;width:1px;transform:translateX(-.5px)}
+  .target::after{top:50%;left:0;right:0;height:1px;transform:translateY(-.5px)}
+  .target i{position:absolute;inset:4px;border:1px solid var(--blue);border-radius:50%}
+
+  /* ---------- I · ARRIVAL — asymmetric layered (mirrors Arch Hub, cooler) ---------- */
+  .arrival{padding:clamp(96px,13vh,150px) 0 var(--pad-loud);position:relative}
+  .arrival .kick{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--blue);margin-bottom:clamp(20px,4vh,40px)}
+  .arr-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(24px,4vw,64px);align-items:end}
+  .arr-l{position:relative;z-index:2;padding-bottom:clamp(10px,4vh,50px)}
+  .arr-l h1{font-family:var(--pixel);font-weight:500;font-size:clamp(46px,8.5vw,132px);line-height:.92;letter-spacing:.01em}
+  .arr-l h1 .sm{display:block;font-size:.52em;color:var(--ink)}
+  .arr-l .thesis{margin-top:clamp(22px,3.5vh,40px);font-family:var(--read);font-weight:600;font-size:clamp(20px,2.3vw,30px);line-height:1.16;letter-spacing:-.02em;max-width:22ch}
+  .arr-l .thesis .b{color:var(--blue)}
+  .arr-r{position:relative;height:clamp(380px,64vh,660px)}
+  .arr-main{position:absolute;inset:0;overflow:hidden;background:#cbc6bc}
+  .arr-main img{width:100%;height:100%;object-fit:cover;filter:grayscale(.5) contrast(1.05)}
+  .arr-main .scan{position:absolute;top:0;bottom:0;left:0;width:2px;background:var(--blue);opacity:0;box-shadow:0 0 16px 3px rgba(43,43,230,.6);z-index:4}
+  html.ready .arr-main .scan{animation:scan 1.6s var(--slow) .6s both}
+  @keyframes scan{0%{left:0;opacity:0}12%{opacity:.9}88%{opacity:.6}100%{left:100%;opacity:0}}
+  .arr-sub{position:absolute;left:-16%;bottom:-9%;width:46%;aspect-ratio:3/4;overflow:hidden;background:#1b1712;box-shadow:0 30px 60px -30px rgba(27,23,18,.5);z-index:3}
+  .arr-sub img{width:100%;height:100%;object-fit:cover}
+  .arr-sub .tag{position:absolute;left:10px;bottom:10px;font-family:var(--mono);font-size:10px;color:#fff;letter-spacing:.05em;z-index:2}
+  .arr-dim{position:absolute;right:8px;top:-26px;font-family:var(--mono);font-size:11px;color:var(--blue);z-index:5}
+  .arr-lead{margin-top:clamp(40px,7vh,90px);max-width:62ch;display:grid;grid-template-columns:auto 1fr;gap:clamp(20px,3vw,44px)}
+  .arr-lead .ln{width:1px;background:var(--blue);opacity:.5}
+  .arr-lead p{color:var(--ink-60);font-size:clamp(16px,1.5vw,18px)}
+  @media (max-width:820px){.arr-grid{grid-template-columns:1fr;gap:0}.arr-r{height:60vh;margin-top:30px}.arr-sub{width:44%;left:0;bottom:-6%}.arr-lead{grid-template-columns:1fr}.arr-lead .ln{display:none}}
+
+  /* ---------- II · MANIFESTO — the central question ---------- */
+  .manifesto{padding:var(--pad-quiet) 0 var(--pad-loud)}
+  .manifesto .lead-q{font-family:var(--read);font-weight:600;font-size:clamp(26px,3.9vw,54px);line-height:1.1;letter-spacing:-.025em;max-width:24ch}
+  .manifesto .lead-q .b{color:var(--blue)}
+  .manifesto .body{margin-top:clamp(40px,6vh,72px);display:grid;grid-template-columns:1fr 1fr;gap:clamp(30px,5vw,80px);max-width:112ch}
+  .manifesto .body p{color:var(--ink);font-size:clamp(16px,1.4vw,18px);line-height:1.7}
+  .manifesto .body p+p{margin-top:18px}
+  .manifesto .body .col2{color:var(--ink-60)}
+  @media (max-width:820px){.manifesto .body{grid-template-columns:1fr;gap:20px}}
+
+  /* immersive pause with coordinate overlay (drone / observation) */
+  .pause{position:relative;margin:clamp(70px,11vh,150px) 0;height:min(94vh,860px);overflow:hidden;background:#1b1712}
+  .pause img{width:100%;height:100%;object-fit:cover;filter:grayscale(.45) contrast(1.05);transform:scale(1.06);transition:transform 2s var(--slow)}
+  .pause.in img{transform:scale(1)}
+  .pause .cap{position:absolute;left:clamp(20px,7vw,120px);bottom:clamp(30px,5vh,54px);color:#fff;z-index:4}
+  .pause .cap .t{font-family:var(--read);font-weight:500;font-size:16px}
+  .pause .cap .m{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.75);letter-spacing:.05em;margin-top:5px}
+  .pause .ov{position:absolute;right:clamp(20px,7vw,120px);top:clamp(90px,12vh,120px);color:#fff;text-align:right;font-family:var(--mono);font-size:11px;letter-spacing:.06em;opacity:.85;z-index:4}
+
+  /* ---------- III · METHOD ---------- */
+  .method{padding:var(--pad-loud) 0}
+  .method .intro{max-width:46ch;color:var(--ink-60);font-size:clamp(16px,1.5vw,18px);margin-bottom:clamp(30px,5vh,56px)}
+  .steps{border-top:1px solid var(--ink)}
+  .step{display:grid;grid-template-columns:8ch 1.1fr 1.3fr;gap:clamp(18px,3vw,54px);align-items:baseline;padding:clamp(22px,3.4vh,38px) 0;border-bottom:1px solid var(--hair);transition:padding-left .5s var(--slow)}
+  .step:hover{padding-left:14px}
+  .step .n{font-family:var(--pixel);font-size:clamp(20px,2.2vw,30px);color:var(--blue)}
+  .step .t{font-family:var(--read);font-weight:600;font-size:clamp(18px,1.9vw,24px);letter-spacing:-.01em}
+  .step .d{color:var(--ink-60);font-size:15.5px}
+  @media (max-width:720px){.step{grid-template-columns:1fr;gap:6px}.step .n{font-size:22px}}
+
+  /* ---------- COMPARISON — realitate ↔ măsurat (signature interaction) ---------- */
+  .compare-wrap{padding:var(--pad-loud) 0}
+  .compare{position:relative;aspect-ratio:16/9;overflow:hidden;background:#cbc6bc;user-select:none;touch-action:pan-y}
+  .compare img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .c-base img{filter:contrast(1.03)}
+  .c-over{position:absolute;inset:0;clip-path:inset(0 50% 0 0)}
+  .c-over img{filter:grayscale(1) contrast(1.06) brightness(1.02)}
+  .c-over .gridlay{background-size:52px 52px}
+  .c-annot{position:absolute;font-family:var(--mono);font-size:11px;color:var(--blue);z-index:4;letter-spacing:.04em;white-space:nowrap}
+  .c-dim{position:absolute;z-index:4;height:0;border-top:1px solid var(--blue)}
+  .c-dim::before,.c-dim::after{content:"";position:absolute;top:-4px;width:1px;height:8px;background:var(--blue)}
+  .c-dim::before{left:0}.c-dim::after{right:0}
+  .c-handle{position:absolute;top:0;bottom:0;left:50%;width:2px;background:var(--blue);z-index:6;cursor:ew-resize;transform:translateX(-1px)}
+  .c-handle .knob{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;border:1.5px solid var(--blue);border-radius:50%;background:rgba(255,255,255,.85);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;color:var(--blue)}
+  .c-lbl{position:absolute;top:16px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;z-index:5;padding:5px 9px;background:rgba(255,255,255,.75);color:var(--ink)}
+  .c-lbl.l{left:16px}.c-lbl.r{right:16px;background:rgba(27,23,18,.6);color:#fff}
+  .compare-cap{font-family:var(--mono);font-size:11px;color:var(--ink-40);margin-top:14px;letter-spacing:.04em}
+
+  /* ---------- IV · FOCUS CAROUSEL — reused verbatim, only content changes ---------- */
+  .focus{padding:var(--pad-loud) 0 var(--pad-quiet);position:relative}
+  .focus .head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:clamp(28px,4vh,48px)}
+  .focus .head h2{font-family:var(--pixel);font-size:clamp(26px,3.2vw,44px);line-height:1}
+  .focus .head .sub{color:var(--ink-60);font-size:15px;max-width:36ch;margin-top:10px}
+  .focus .track{display:flex;gap:clamp(20px,2.4vw,40px);overflow-x:auto;scroll-snap-type:x mandatory;padding:20px calc(50% - min(36vw,380px)) 40px;scrollbar-width:none;cursor:grab}
+  .focus .track::-webkit-scrollbar{display:none}
+  .focus .track:active{cursor:grabbing}
+  .card{flex:0 0 auto;width:min(72vw,720px);scroll-snap-align:center;transform-origin:center bottom;will-change:transform,opacity}
+  .card .im{position:relative;aspect-ratio:16/10;overflow:hidden;background:#cbc6bc}
+  .card .im img{width:100%;height:100%;object-fit:cover;filter:grayscale(.6) contrast(1.04);transition:filter 1s var(--slow)}
+  .card.focus-on .im img{filter:grayscale(0) contrast(1.05)}
+  .card .mk{position:absolute;left:16px;top:16px;width:0;height:2px;background:var(--blue);transition:width .6s var(--slow);z-index:2}
+  .card.focus-on .mk{width:44px}
+  .card .coord{position:absolute;right:14px;bottom:14px;font-family:var(--mono);font-size:10px;color:#fff;mix-blend-mode:difference;letter-spacing:.05em;opacity:0;transition:opacity .6s var(--slow)}
+  .card.focus-on .coord{opacity:1}
+  .card .meta{margin-top:18px;display:grid;grid-template-columns:1fr auto;gap:6px 20px;opacity:.35;transition:opacity .6s var(--slow)}
+  .card.focus-on .meta{opacity:1}
+  .card .meta .t{font-family:var(--pixel);font-size:clamp(20px,2.2vw,28px);grid-column:1;line-height:1}
+  .card .meta .d{font-family:var(--mono);font-size:11px;color:var(--ink-40);letter-spacing:.04em;grid-column:2;text-align:right;align-self:center}
+  .card .meta .note{grid-column:1/-1;color:var(--ink-60);font-size:14.5px;max-width:48ch;max-height:0;opacity:0;overflow:hidden;transition:max-height .7s var(--slow),opacity .7s var(--slow)}
+  .card.focus-on .meta .note{max-height:70px;opacity:1}
+  .focus .ui{display:flex;align-items:center;gap:16px;margin-top:8px}
+  .focus .ui .idx{font-family:var(--mono);font-size:12px;color:var(--ink-40);letter-spacing:.08em}
+  .focus .ui .idx b{color:var(--blue);font-weight:400}
+  .focus .ui .btns{display:flex;gap:10px;margin-left:auto}
+  .focus .ui button{font-family:var(--mono);font-size:14px;width:44px;height:40px;border:1px solid var(--hair);background:none;cursor:pointer;transition:.3s;color:var(--ink)}
+  .focus .ui button:hover{border-color:var(--blue);color:var(--blue)}
+  .focus .prog{height:2px;background:var(--hair);margin-top:16px;position:relative}
+  .focus .prog i{position:absolute;left:0;top:0;bottom:0;background:var(--blue);width:16%;transition:left .6s var(--slow),width .6s var(--slow)}
+  @media (max-width:720px){.card{width:82vw}.focus .track{padding-left:9vw;padding-right:9vw}}
+
+  /* ---------- V · APPLICATION spreads + digital twin (point cloud) ---------- */
+  .thread{padding:var(--pad-loud) 0}
+  .spread{display:grid;grid-template-columns:1fr 1fr;gap:clamp(30px,5vw,90px);align-items:center;padding:clamp(30px,6vh,80px) 0}
+  .spread.flip .fig{order:2}
+  .spread .fig{position:relative;overflow:hidden;background:#cbc6bc;aspect-ratio:4/5}
+  .spread .fig img{width:100%;height:100%;object-fit:cover;filter:grayscale(.5) contrast(1.04);transition:transform 1.4s var(--slow),filter 1s var(--slow)}
+  .spread .fig:hover img{transform:scale(1.03);filter:grayscale(.15)}
+  .spread .fig figcaption{position:absolute;left:12px;bottom:12px;font-family:var(--mono);font-size:11px;color:#fff;mix-blend-mode:difference;letter-spacing:.04em}
+  /* measured-drawing figure (inline SVG) */
+  .fig.draw{background:linear-gradient(180deg,#fbfaf8,#fff);border:1px solid var(--hair)}
+  .fig.draw svg{width:100%;height:100%}
+  .fig.draw .ln{stroke:var(--ink);stroke-width:1.3;fill:none}
+  .fig.draw .thin{stroke:var(--ink-40);stroke-width:.7;fill:none}
+  .fig.draw .grid{stroke:#e8e4dc;stroke-width:.5}
+  .fig.draw .dim{stroke:var(--blue);stroke-width:1;fill:none}
+  .fig.draw text{font-family:'Space Mono',monospace;fill:var(--ink-40);font-size:9px}
+  .fig.draw text.b{fill:var(--blue)}
+  .spread .txt{max-width:44ch}
+  .spread .txt .n{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);margin-bottom:16px}
+  .spread .txt h3{font-family:var(--read);font-weight:600;font-size:clamp(24px,3vw,40px);line-height:1.1;letter-spacing:-.02em;margin-bottom:16px}
+  .spread .txt p{color:var(--ink-60);font-size:clamp(15.5px,1.4vw,17px)}
+  @media (max-width:820px){.spread,.spread.flip{grid-template-columns:1fr;gap:22px}.spread.flip .fig{order:0}.spread .fig{aspect-ratio:4/3}}
+
+  /* point cloud — digital twin centerpiece (reused component) */
+  .twin{position:relative;margin-top:clamp(50px,8vh,110px);padding:clamp(26px,4vh,44px) clamp(20px,5vw,64px);background:linear-gradient(180deg,#fbfaf8,#fff);border-top:1px solid var(--hair);border-bottom:1px solid var(--hair)}
+  .twin .cap-l{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+  .twin .scanlbl{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-60)}
+  .twin .stat{font-family:var(--mono);font-size:11px;color:var(--ink-40);letter-spacing:.06em}
+  .twin .stat b{color:var(--blue);font-weight:400}
+  .twin canvas{width:100%;height:min(66vh,580px);display:block;cursor:grab;touch-action:none}
+  .twin canvas:active{cursor:grabbing}
+  .twin .hint{position:absolute;right:clamp(20px,5vw,64px);bottom:clamp(20px,4vh,32px);color:var(--blue);font-family:var(--mono);font-size:11px;letter-spacing:.08em}
+
+  /* ---------- VI · MEASURED ---------- */
+  .measured{padding:var(--pad-loud) 0}
+  .measured .mnote{font-family:var(--mono);font-size:11px;color:var(--ink-40);letter-spacing:.04em;margin-top:20px}
+  .measured .row{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,48px);border-top:1px solid var(--ink);padding-top:clamp(26px,3.5vh,44px)}
+  .measured .f .v{font-family:var(--pixel);font-size:clamp(32px,4.4vw,60px);line-height:.9}
+  .measured .f .v .u{font-family:var(--mono);font-size:12px;color:var(--ink-40);margin-left:6px}
+  .measured .f .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-60);margin-top:12px;max-width:22ch}
+  @media (max-width:640px){.measured .row{grid-template-columns:1fr 1fr;gap:30px}}
+
+  /* ---------- VII · CONTINUATION ---------- */
+  .doors{padding:var(--pad-loud) 0 var(--pad-quiet)}
+  .doors .frame{font-family:var(--read);font-weight:600;font-size:clamp(22px,2.7vw,36px);letter-spacing:-.02em;max-width:24ch;margin-bottom:clamp(36px,5vh,64px)}
+  .doors .frame .b{color:var(--blue)}
+  .door-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2vw,30px);border-top:1px solid var(--ink)}
+  .door{padding:clamp(28px,4vh,48px) 0;border-bottom:1px solid var(--hair);position:relative;display:block;transition:padding-left .5s var(--slow)}
+  .door:hover{padding-left:14px}
+  .door .k{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-40)}
+  .door h3{font-family:var(--pixel);font-size:clamp(24px,2.8vw,38px);margin:14px 0 10px;line-height:1;display:inline-flex;align-items:center;gap:14px}
+  .door h3 .ar{color:var(--blue);transition:transform .4s var(--slow)}
+  .door:hover h3 .ar{transform:translateX(10px)}
+  .door p{color:var(--ink-60);font-size:14.5px;max-width:30ch}
+  @media (max-width:820px){.door-grid{grid-template-columns:1fr;border-top:none}.door{border-top:1px solid var(--hair)}}
+
+  footer{padding:var(--pad-loud) clamp(20px,5vw,64px) 46px clamp(20px,7vw,120px);border-top:1px solid var(--hair);display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:40px;align-items:end}
+  footer .big .wm{font-size:34px;display:block;margin-bottom:14px}
+  footer .big p{color:var(--ink-60);max-width:32ch;font-size:13.5px}
+  footer .col h4{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-40);margin-bottom:12px}
+  footer .col a{display:block;font-family:var(--mono);font-size:13px;padding:5px 0;width:fit-content;position:relative}
+  footer .col a::after{content:"";position:absolute;left:0;right:100%;bottom:2px;height:1.5px;background:var(--blue);transition:right .3s var(--ease)}
+  footer .col a:hover::after{right:0}
+  footer .eu{grid-column:1/-1;margin-top:30px;padding-top:18px;border-top:1px solid var(--hair);display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px}
+  footer .eu p{font-family:var(--mono);font-size:11px;color:var(--ink-40);max-width:52ch;line-height:1.5}
+  footer .eu .fl{display:inline-block;width:22px;height:15px;background:var(--blue);vertical-align:middle;margin-right:8px}
+  @media (max-width:820px){footer{grid-template-columns:1fr 1fr}}
+
+  html.preload .arr-main img,html.preload .arr-sub img{clip-path:inset(0 0 100% 0)}
+  .arr-main img,.arr-sub img{transition:clip-path 1.3s var(--slow)}
+  html.ready .arr-main img{clip-path:inset(0 0 0 0)}
+  html.ready .arr-sub img{clip-path:inset(0 0 0 0);transition-delay:.25s}
+  @media (prefers-reduced-motion:reduce){.arr-main img,.arr-sub img,.pause img{clip-path:none!important;transform:none!important;transition:none!important}.arr-main .scan{display:none}}
+</style>
+</head>
+<body>
+<script>(function(){try{if(!matchMedia('(prefers-reduced-motion:reduce)').matches)document.documentElement.classList.add('preload');}catch(e){}})();</script>
+
+<div class="rail" id="rail" aria-hidden="true">
+  <div class="st" data-st="1"><span class="tick"></span>01</div>
+  <div class="st" data-st="2"><span class="tick"></span>02</div>
+  <div class="st" data-st="3"><span class="tick"></span>03</div>
+  <div class="st" data-st="4"><span class="tick"></span>04</div>
+  <div class="st" data-st="5"><span class="tick"></span>05</div>
+  <div class="st" data-st="6"><span class="tick"></span>06</div>
+  <div class="st" data-st="7"><span class="tick"></span>07</div>
+</div>
+
+<header id="hd">
+  <div class="brand">
+    <a class="wm" href="#">diverse anumite</a>
+    <span class="ctx" aria-label="Sunteți în pilonul Reality Capture">Pilon · <b>Reality Capture</b></span>
+  </div>
+  <nav>
+    <a href="#">Despre</a><a href="#">Servicii</a><a href="#">Proiecte</a><a href="#">Contact</a><a href="#" class="en">EN</a>
+  </nav>
+  <button class="menu">Meniu</button>
+</header>
+
+<main>
+
+  <!-- I · ARRIVAL — Observation -->
+  <section class="mv arrival" data-station="1">
+    <div class="kick rv">Pilon 02 · Capabilitate — 46.77°N 23.59°E</div>
+    <div class="arr-grid">
+      <div class="arr-l">
+        <h1 class="rv">Reality<span class="sm">Capture</span></h1>
+        <div class="thesis rv">Nu desenăm ce credem că e acolo. <span class="b">Măsurăm</span> ce este.</div>
+      </div>
+      <div class="arr-r rv">
+        <span class="arr-dim measure">2 mm · 46.77°N</span>
+        <div class="arr-main">
+          <img src="https://images.unsplash.com/photo-1717518215150-dbee9416a940?auto=format&fit=crop&w=1600&q=80" alt="Sit istoric, documentat">
+          <div class="gridlay" aria-hidden="true"></div>
+          <span class="target" style="left:22%;top:32%"><i></i></span>
+          <span class="target" style="left:68%;top:58%"><i></i></span>
+          <span class="scan" aria-hidden="true"></span>
+        </div>
+        <div class="arr-sub">
+          <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Geo-Referenced_Point_Cloud.JPG?width=1000" alt="Nor de puncte">
+          <span class="tag">nor de puncte · 3D</span>
+        </div>
+      </div>
+    </div>
+    <div class="arr-lead rv">
+      <div class="ln" aria-hidden="true"></div>
+      <p>Scanare 3D, fotogrametrie și relevee. Transformăm clădiri, situri și peisaje reale în măsurători precise — nori de puncte, ortofotografii și desene pe care se poate lua o decizie. Nu o interpretare a locului, ci locul însuși, la scară 1:1.</p>
+    </div>
+  </section>
+
+  <!-- II · MANIFESTO — the central question -->
+  <section class="mv manifesto" data-station="2">
+    <div class="smark rv"><span class="no">02</span><span class="lbl">Întrebarea</span><span class="co">observație · măsurare</span></div>
+    <div class="lead-q rv">Ce ne lasă măsurarea reală să înțelegem, ce un releveu obișnuit nu <span class="b">poate</span>?</div>
+    <div class="body">
+      <div class="col1 rv">
+        <p>Un releveu clasic notează ce a decis cineva să măsoare. O scanare notează tot — fiecare tasare de zid, fiecare perete care nu e drept, fiecare centimetru pe care ochiul l-ar rotunji. Realitatea nu se rotunjește.</p>
+        <p>De aici pornesc decizii mai bune: unde se poate interveni, cât material lipsește, dacă o structură s-a mișcat, cum arăta ceva înainte să dispară.</p>
+      </div>
+      <div class="col2 rv">
+        <p>Măsurarea nu e un scop. Este primul strat al proiectului — cel pe care arhitectura se poate sprijini fără să ghicească.</p>
+        <p>Reality capture nu înlocuiește privirea profesionistului. O înarmează cu o realitate pe care nimeni nu o poate contesta: coordonate, nu impresii.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- immersive pause — drone / observation -->
+  <figure class="pause bleed rv-img" id="pause1">
+    <img src="https://images.unsplash.com/photo-1758304481470-033144637e03?auto=format&fit=crop&w=2400&q=85" alt="Sit documentat din dronă">
+    <figcaption class="cap"><div class="t">Un sit întreg, ridicat din aer</div><div class="m">fotogrametrie din dronă · ortofoto · GSD 1.2 cm/px</div></figcaption>
+    <div class="ov">zbor · 78 m<br>1.240 imagini</div>
+  </figure>
+
+  <!-- III · METHOD — Measurement -->
+  <section class="mv method" data-station="3">
+    <div class="smark rv"><span class="no">03</span><span class="lbl">Cum captăm</span><span class="co">cinci pași, măsurați</span></div>
+    <p class="intro rv">De la teren la livrabil, cam fiecare proiect trece prin aceiași pași. Precizia se stabilește la primul, nu la ultimul.</p>
+    <div class="steps">
+      <div class="step rv"><span class="n">01</span><span class="t">Planificăm</span><span class="d">Stații de scanare, trasee de zbor și ținte de referință, alese înainte de a atinge terenul.</span></div>
+      <div class="step rv"><span class="n">02</span><span class="t">Captăm</span><span class="d">Scanare laser terestră și zbor cu drona. Aceeași realitate, din două unghiuri complementare.</span></div>
+      <div class="step rv"><span class="n">03</span><span class="t">Înregistrăm</span><span class="d">Alinierem stațiile pe ținte comune, la milimetru — norul devine un singur sistem de coordonate.</span></div>
+      <div class="step rv"><span class="n">04</span><span class="t">Curățăm</span><span class="d">Eliminăm zgomotul și ce nu ține de subiect. Rămâne doar clădirea, măsurabilă.</span></div>
+      <div class="step rv"><span class="n">05</span><span class="t">Livrăm</span><span class="d">Ortofoto, plan, secțiune, model sau geamăn digital — în formatul pe care decizia îl cere.</span></div>
+    </div>
+  </section>
+
+  <!-- COMPARISON — realitate ↔ măsurat -->
+  <section class="mv compare-wrap" data-station="4">
+    <div class="smark rv"><span class="no">04·a</span><span class="lbl">Realitate ↔ măsurat</span><span class="co">trageți pentru a alinia</span></div>
+    <div class="compare rv-img" id="cmp" role="slider" aria-label="Comparație realitate și măsurat" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0">
+      <div class="c-base"><img src="https://images.unsplash.com/photo-1654773385632-eed60e7a8fe6?auto=format&fit=crop&w=1600&q=82" alt="Fațadă, fotografie"></div>
+      <div class="c-over" id="cOver">
+        <img src="https://images.unsplash.com/photo-1654773385632-eed60e7a8fe6?auto=format&fit=crop&w=1600&q=82" alt="Fațadă, releveu măsurat">
+        <div class="gridlay" aria-hidden="true"></div>
+        <span class="target" style="left:60%;top:24%"><i></i></span>
+        <span class="target" style="left:82%;top:60%"><i></i></span>
+        <span class="target" style="left:70%;top:80%"><i></i></span>
+        <span class="c-dim" style="left:60%;top:20%;width:26%"></span>
+        <span class="c-annot" style="left:63%;top:12%">3.84 m</span>
+        <span class="c-annot" style="left:86%;top:50%">h 2.71 m</span>
+      </div>
+      <div class="c-lbl l">realitate</div>
+      <div class="c-lbl r">măsurat</div>
+      <div class="c-handle" id="cHandle"><span class="knob">↔</span></div>
+    </div>
+    <div class="compare-cap rv">Aceeași fațadă: fotografia (stânga) și releveul măsurat, cu ținte de referință și cote pe teren (dreapta). Imagini reprezentative.</div>
+  </section>
+
+  <!-- IV · FOCUS CAROUSEL — Interpretation (identical interaction) -->
+  <section class="mv focus" data-station="4">
+    <div class="smark rv"><span class="no">04·b</span><span class="lbl">Documentări în focus</span><span class="co">06 · de la biserică la pod</span></div>
+    <div class="head rv">
+      <div>
+        <h2>Șase situri, aceeași precizie</h2>
+        <div class="sub">Fiecare documentare intră pe rând în focus. Trageți lateral sau folosiți săgețile.</div>
+      </div>
+    </div>
+    <div class="track" id="track" tabindex="0" role="group" aria-roledescription="carusel de documentări" aria-label="Documentări în focus — folosiți săgețile pentru a naviga">
+      <article class="card">
+        <div class="im"><span class="mk"></span><img src="https://images.unsplash.com/photo-1763569967176-908970bbebc6?auto=format&fit=crop&w=1500&q=80" alt="Biserică de lemn"><span class="coord">RC—001 · releveu</span></div>
+        <div class="meta"><span class="t">Biserică de lemn</span><span class="d">2024 · patrimoniu · Maramureș</span><span class="note">Releveu 3D complet al unei structuri de lemn — geometrie pe care desenul manual nu o putea prinde.</span></div>
+      </article>
+      <article class="card">
+        <div class="im"><span class="mk"></span><img src="https://images.unsplash.com/photo-1522258493909-bf27c8ebd64a?auto=format&fit=crop&w=1500&q=80" alt="Hală industrială"><span class="coord">RC—002 · scanare</span></div>
+        <div class="meta"><span class="t">Hală industrială</span><span class="d">2024 · releveu existent · Cluj</span><span class="note">Scanare a unei hale înainte de reconversie — structura reală, cu toate abaterile ei.</span></div>
+      </article>
+      <article class="card">
+        <div class="im"><span class="mk"></span><img src="https://images.unsplash.com/photo-1687825372830-d2fc1d6b76e0?auto=format&fit=crop&w=1500&q=80" alt="Sit arheologic"><span class="coord">RC—003 · dronă</span></div>
+        <div class="meta"><span class="t">Sit arheologic</span><span class="d">2023 · fotogrametrie · Alba</span><span class="note">Ridicare din dronă a unui sit în săpătură — o stare care se schimbă săptămână de săptămână.</span></div>
+      </article>
+      <article class="card">
+        <div class="im"><span class="mk"></span><img src="https://images.unsplash.com/photo-1625390711106-3728815ebcd9?auto=format&fit=crop&w=1500&q=80" alt="Bloc interbelic"><span class="coord">RC—004 · BIM</span></div>
+        <div class="meta"><span class="t">Bloc interbelic</span><span class="d">2023 · scan-to-BIM · Timișoara</span><span class="note">Din nor de puncte în model BIM — o bază onestă pentru un proiect de reabilitare.</span></div>
+      </article>
+      <article class="card">
+        <div class="im"><span class="mk"></span><img src="https://images.unsplash.com/photo-1760306303936-25e063617109?auto=format&fit=crop&w=1500&q=80" alt="Piață publică"><span class="coord">RC—005 · ortofoto</span></div>
+        <div class="meta"><span class="t">Piață publică</span><span class="d">2022 · dronă · Sibiu</span><span class="note">Ortofoto de mare rezoluție a unei piețe centrale, ca bază pentru un concurs de amenajare.</span></div>
+      </article>
+      <article class="card">
+        <div class="im"><span class="mk"></span><img src="https://images.unsplash.com/photo-1778940454589-2284853818b1?auto=format&fit=crop&w=1500&q=80" alt="Pod de piatră"><span class="coord">RC—006 · geamăn</span></div>
+        <div class="meta"><span class="t">Pod de piatră</span><span class="d">2022 · geamăn digital · Bistrița</span><span class="note">Scanare a unui pod istoric pentru monitorizare — un reper măsurat, de comparat în timp.</span></div>
+      </article>
+    </div>
+    <div class="ui rv">
+      <span class="idx"><b id="cIdx">01</b> · 06</span>
+      <div class="btns"><button id="cPrev" aria-label="Documentarea anterioară">←</button><button id="cNext" aria-label="Documentarea următoare">→</button></div>
+    </div>
+    <div class="prog" aria-hidden="true"><i id="cProg"></i></div>
+  </section>
+
+  <!-- V · APPLICATION -->
+  <section class="mv thread" data-station="5">
+    <div class="smark rv"><span class="no">05</span><span class="lbl">Ce face posibil</span><span class="co">restaurare · model · geamăn</span></div>
+
+    <div class="spread">
+      <figure class="fig rv-img"><img src="https://images.unsplash.com/photo-1655658738987-cb154cc56c4a?auto=format&fit=crop&w=1400&q=82" alt="Detaliu de piatră, pentru restaurare"><figcaption>patrimoniu · stare actuală</figcaption></figure>
+      <div class="txt rv">
+        <div class="n">01 — restaurare</div>
+        <h3>O bază onestă pentru restaurare.</h3>
+        <p>Înainte de a atinge un monument, măsurăm exact ce a mai rămas: fisuri, deformări, piese lipsă. Restaurarea pornește de la starea reală, nu de la o presupunere — și rămâne un martor măsurat al a ceea ce a fost, dacă ceva se pierde.</p>
+      </div>
+    </div>
+
+    <div class="spread flip">
+      <figure class="fig draw rv-img" aria-label="Elevație măsurată, generată din scanare">
+        <svg viewBox="0 0 800 520" preserveAspectRatio="xMidYMid meet">
+          <g opacity=".7">
+            <line class="grid" x1="120" y1="60" x2="120" y2="470"/><line class="grid" x1="300" y1="60" x2="300" y2="470"/><line class="grid" x1="480" y1="60" x2="480" y2="470"/><line class="grid" x1="660" y1="60" x2="660" y2="470"/>
+            <line class="grid" x1="90" y1="160" x2="710" y2="160"/><line class="grid" x1="90" y1="300" x2="710" y2="300"/><line class="grid" x1="90" y1="440" x2="710" y2="440"/>
+          </g>
+          <line class="ln" x1="120" y1="440" x2="680" y2="440"/>
+          <path class="ln" d="M170 440 L170 180 L400 110 L630 180 L630 440"/>
+          <line class="thin" x1="170" y1="180" x2="630" y2="180"/>
+          <rect class="thin" x="220" y="250" width="80" height="120"/><rect class="thin" x="360" y="250" width="80" height="120"/><rect class="thin" x="500" y="250" width="80" height="120"/>
+          <line class="dim" x1="170" y1="470" x2="630" y2="470"/>
+          <line class="dim" x1="170" y1="464" x2="170" y2="476"/><line class="dim" x1="630" y1="464" x2="630" y2="476"/>
+          <text class="b" x="378" y="486">12.40 m</text>
+          <line class="dim" x1="700" y1="180" x2="700" y2="440"/>
+          <text class="b" x="706" y="316">h 8.10 m</text>
+          <text x="150" y="96">ELEVAȚIE · generată din nor de puncte · 1:100</text>
+          <text class="b" x="392" y="150">± 2 mm</text>
+        </svg>
+        <figcaption>desen măsurat · scan-to-CAD</figcaption>
+      </figure>
+      <div class="txt rv">
+        <div class="n">02 — model</div>
+        <h3>Desene care nu inventează nimic.</h3>
+        <p>Din nor de puncte extragem planuri, secțiuni și elevații — și, unde e nevoie, un model BIM complet. Fiecare linie are o coordonată în spate. Arhitectul primește un fundal exact, nu o schiță aproximativă, și câștigă săptămâni la începutul proiectului.</p>
+      </div>
+    </div>
+
+    <!-- digital twin — point cloud centerpiece (reused component) -->
+    <div class="twin bleed rv">
+      <div class="cap-l"><span class="scanlbl">05·c — geamăn digital · nor de puncte explorabil</span><span class="stat">≈ <b id="ptcount">— puncte</b> · acuratețe 2&nbsp;mm · Leica RTC360 + dronă</span></div>
+      <canvas id="cloud"></canvas>
+      <span class="hint">trageți pentru a inspecta →</span>
+    </div>
+    <div class="spread" style="padding-top:clamp(28px,4vh,52px)">
+      <div class="txt rv" style="max-width:60ch">
+        <div class="n">03 — geamăn digital</div>
+        <h3>Realitatea, păstrată în timp.</h3>
+        <p>Un geamăn digital este starea exactă a unei clădiri la o dată anume. Peste ani, o nouă scanare se suprapune peste el și arată ce s-a mișcat, ce s-a degradat, ce s-a schimbat — la milimetru. Nu o amintire, ci o măsurătoare care poate fi recitită oricând.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- VI · MEASURED -->
+  <section class="mv measured" data-station="6">
+    <div class="smark rv"><span class="no">06</span><span class="lbl">Măsurat</span><span class="co">disciplina, pe scurt</span></div>
+    <div class="row rv">
+      <div class="f"><div class="v">2<span class="u">mm</span></div><div class="k">acuratețe tipică pe teren</div></div>
+      <div class="f"><div class="v">1:1</div><div class="k">scară — realitatea, nu o interpretare</div></div>
+      <div class="f"><div class="v">7</div><div class="k">tipuri de sit documentate</div></div>
+      <div class="f"><div class="v">2</div><div class="k">metode: scanare laser + dronă</div></div>
+    </div>
+    <div class="mnote rv">Valori reprezentative pentru acest prototip — conținut de prezentare, nu date finale.</div>
+  </section>
+
+  <!-- VII · CONTINUATION -->
+  <section class="mv doors" data-station="7">
+    <div class="smark rv"><span class="no">07</span><span class="lbl">Continuare</span><span class="co">de la măsurătoare la decizie</span></div>
+    <div class="frame rv">Am măsurat realitatea. <span class="b">Continuați</span> cum vreți.</div>
+    <div class="door-grid">
+      <a class="door rv" href="#">
+        <div class="k">Documentări</div>
+        <h3>Vezi proiectele <span class="ar">→</span></h3>
+        <p>Situri și clădiri documentate, releveu cu releveu.</p>
+      </a>
+      <a class="door rv" href="#">
+        <div class="k">Arhitectură</div>
+        <h3>Cum se leagă <span class="ar">→</span></h3>
+        <p>Felul în care măsurarea hrănește proiectul de arhitectură.</p>
+      </a>
+      <a class="door rv" href="#">
+        <div class="k">Contact</div>
+        <h3>O conversație <span class="ar">→</span></h3>
+        <p>Aveți un sit sau o clădire de măsurat? Scrieți-ne.</p>
+      </a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="big">
+    <a class="wm" href="#">diverse anumite</a>
+    <p>Arhitectură, design și reality capture — un singur atelier, de la schiță la nor de puncte.</p>
+  </div>
+  <div class="col"><h4>Atelier</h4><a href="#">Despre</a><a href="#">Servicii</a><a href="#">Proiecte</a><a href="#">Contact</a></div>
+  <div class="col"><h4>Urmăriți</h4><a href="#">Instagram</a><a href="#">LinkedIn</a><a href="#">Behance</a><a href="#">RO / EN</a></div>
+  <div class="eu">
+    <p><span class="fl"></span>Echipament de scanare 3D și fotogrametrie achiziționat printr-un proiect cofinanțat din fonduri europene.</p>
+    <p class="measure">© diverse anumite · 46.77°N 23.59°E</p>
+  </div>
+</footer>
+
+<script>
+const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+if(document.documentElement.classList.contains('preload')){
+  addEventListener('load',()=>requestAnimationFrame(()=>document.documentElement.classList.add('ready')));
+  setTimeout(()=>document.documentElement.classList.add('ready'),1000);
+}else{document.documentElement.classList.add('ready');}
+
+/* reveals */
+(function(){
+  const items=[...document.querySelectorAll('.rv,.rv-img')];
+  if(reduce){items.forEach(e=>e.classList.add('in'));return;}
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:.14,rootMargin:'0px 0px -8% 0px'});
+  items.forEach(e=>io.observe(e));
+})();
+
+/* header solid + rail active station */
+const hd=document.getElementById('hd');
+const sections=[...document.querySelectorAll('[data-station]')];
+const stEls=[...document.querySelectorAll('.rail .st')];
+function onScroll(){
+  hd.classList.toggle('solid',scrollY>window.innerHeight*.6);
+  let cur=1;const mid=scrollY+innerHeight*.5;
+  sections.forEach(s=>{if(s.offsetTop<=mid)cur=+s.dataset.station;});
+  stEls.forEach(e=>e.classList.toggle('active',+e.dataset.st===cur));
+}
+addEventListener('scroll',onScroll,{passive:true});addEventListener('resize',onScroll);onScroll();
+
+/* ---------- COMPARISON slider — realitate ↔ măsurat ---------- */
+(function(){
+  const cmp=document.getElementById('cmp');if(!cmp)return;
+  const over=document.getElementById('cOver');const handle=document.getElementById('cHandle');
+  let pos=50,drag=false;
+  function set(p){pos=Math.max(0,Math.min(100,p));over.style.clipPath='inset(0 0 0 '+pos+'%)';handle.style.left=pos+'%';cmp.setAttribute('aria-valuenow',Math.round(pos));}
+  set(50);
+  function fromX(clientX){const r=cmp.getBoundingClientRect();set((clientX-r.left)/r.width*100);}
+  cmp.addEventListener('pointerdown',e=>{drag=true;cmp.setPointerCapture(e.pointerId);fromX(e.clientX);});
+  cmp.addEventListener('pointermove',e=>{if(drag)fromX(e.clientX);});
+  cmp.addEventListener('pointerup',()=>drag=false);
+  cmp.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){e.preventDefault();set(pos+4);}else if(e.key==='ArrowLeft'){e.preventDefault();set(pos-4);}});
+})();
+
+/* ---------- FOCUS CAROUSEL — reused verbatim from the Architecture Hub ---------- */
+(function(){
+  const track=document.getElementById('track');if(!track)return;
+  const cards=[...track.querySelectorAll('.card')];
+  const idxEl=document.getElementById('cIdx');const prog=document.getElementById('cProg');
+  let ticking=false,centerIdx=0;
+  function update(){
+    const r=track.getBoundingClientRect();const cx=r.left+r.width/2;
+    let best=0,bd=1e9;
+    cards.forEach((c,i)=>{
+      const cr=c.getBoundingClientRect();const d=(cr.left+cr.width/2)-cx;const ad=Math.abs(d);
+      const t=Math.max(0,1-ad/(r.width*0.62));
+      if(!reduce){const scale=0.9+0.15*t;const op=0.45+0.55*t;c.style.transform='scale('+scale.toFixed(4)+')';c.style.opacity=op.toFixed(3);}
+      if(ad<bd){bd=ad;best=i;}
+    });
+    cards.forEach((c,i)=>c.classList.toggle('focus-on',i===best));
+    if(best!==centerIdx){centerIdx=best;idxEl.textContent=String(best+1).padStart(2,'0');prog.style.left=(best/cards.length*100)+'%';prog.style.width=(100/cards.length)+'%';}
+  }
+  function onScrollT(){if(!ticking){requestAnimationFrame(()=>{update();ticking=false;});ticking=true;}}
+  track.addEventListener('scroll',onScrollT,{passive:true});
+  addEventListener('resize',()=>requestAnimationFrame(update));
+  function go(dir){const w=cards[0].getBoundingClientRect().width+parseFloat(getComputedStyle(track).gap||'32');track.scrollBy({left:dir*w,behavior:reduce?'auto':'smooth'});}
+  document.getElementById('cNext').addEventListener('click',()=>go(1));
+  document.getElementById('cPrev').addEventListener('click',()=>go(-1));
+  track.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){e.preventDefault();go(1);}else if(e.key==='ArrowLeft'){e.preventDefault();go(-1);}});
+  let down=false,sx=0,sl=0,moved=false;
+  track.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse')return;down=true;moved=false;sx=e.clientX;sl=track.scrollLeft;track.style.scrollSnapType='none';});
+  track.addEventListener('pointermove',e=>{if(!down)return;const dx=e.clientX-sx;if(Math.abs(dx)>3)moved=true;track.scrollLeft=sl-dx;});
+  const end=()=>{if(!down)return;down=false;track.style.scrollSnapType='';if(!reduce){const w=cards[0].getBoundingClientRect().width+parseFloat(getComputedStyle(track).gap||'32');const target=Math.round(track.scrollLeft/w)*w;track.scrollTo({left:target,behavior:'smooth'});}};
+  track.addEventListener('pointerup',end);track.addEventListener('pointerleave',end);
+  track.addEventListener('click',e=>{if(moved)e.preventDefault();},true);
+  requestAnimationFrame(update);addEventListener('load',()=>requestAnimationFrame(update));
+})();
+
+/* ---------- POINT CLOUD — reused component (digital twin) ---------- */
+(function(){
+  const cv=document.getElementById('cloud');if(!cv)return;
+  const ctx=cv.getContext('2d');const DPR=Math.min(devicePixelRatio||1,2);let W=0,H=0;
+  const pts=[];const rnd=(a,b)=>a+Math.random()*(b-a);
+  for(let i=0;i<2600;i++){const s=(Math.random()*4)|0;const y=rnd(-1,1);
+    if(s===0)pts.push([rnd(-1,1),y,-1]);else if(s===1)pts.push([rnd(-1,1),y,1]);else if(s===2)pts.push([-1,y,rnd(-1,1)]);else pts.push([1,y,rnd(-1,1)]);}
+  for(let i=0;i<1500;i++){const t=Math.random();const x=rnd(-1,1);const side=Math.random()<.5?-1:1;pts.push([x,1+t*0.95,side*(1-t)]);}
+  for(let i=0;i<700;i++)pts.push([rnd(-1.7,1.7),-1,rnd(-1.7,1.7)]);
+  for(let i=0;i<220;i++)pts.push([rnd(-1,1),1.95,0]);
+  const N=pts.length;const pc=document.getElementById('ptcount');if(pc)pc.textContent=(N*1600).toLocaleString('ro-RO')+' puncte';
+  let yaw=.6,pitch=-.16,tyaw=.6,tpitch=-.16,drag=false,px,py,auto=!reduce,assemble=reduce?1:0,running=false;
+  function resize(){W=cv.clientWidth;H=cv.clientHeight;cv.width=Math.max(1,Math.round(W*DPR));cv.height=Math.max(1,Math.round(H*DPR));ctx.setTransform(DPR,0,0,DPR,0,0);}
+  function frame(){if(auto&&!drag)tyaw+=0.0018;yaw+=(tyaw-yaw)*.08;pitch+=(tpitch-pitch)*.08;if(assemble<1)assemble=Math.min(1,assemble+0.018);
+    ctx.clearRect(0,0,W,H);const cx=W*.5,cy=H*.56,sc=Math.min(W*.42,H*.62);
+    const cyaw=Math.cos(yaw),syaw=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);const scanY=Math.sin(yaw*0.9)*1.1;const shown=Math.floor(N*assemble);
+    for(let i=0;i<shown;i++){const p=pts[i];let x=p[0],y=p[1],z=p[2];
+      const x1=x*cyaw+z*syaw,z1=-x*syaw+z*cyaw;const y1=y*cp-z1*sp,z2=y*sp+z1*cp;const sx=cx+x1*sc,sy=cy-y1*sc;const depth=(z2+2)/4;const r=0.8+depth*1.9;
+      const isBlue=Math.abs(y-scanY)<0.11||i%17===0;ctx.fillStyle=isBlue?'rgba(43,43,230,'+(0.55+depth*0.4)+')':'rgba(27,23,18,'+(0.24+depth*0.5)+')';ctx.fillRect(sx,sy,r,r);}}
+  function loop(){frame();if(running&&!reduce)requestAnimationFrame(loop);}
+  new ResizeObserver(()=>{resize();if(!running)frame();}).observe(cv);resize();frame();
+  cv.addEventListener('pointerdown',e=>{drag=true;auto=false;px=e.clientX;py=e.clientY;cv.setPointerCapture(e.pointerId);});
+  cv.addEventListener('pointermove',e=>{if(!drag)return;tyaw+=(e.clientX-px)*.008;tpitch+=(e.clientY-py)*.006;tpitch=Math.max(-.6,Math.min(.45,tpitch));px=e.clientX;py=e.clientY;});
+  cv.addEventListener('pointerup',()=>{drag=false;});
+  if(reduce){frame();return;}
+  new IntersectionObserver(es=>{const v=es[0].isIntersecting;if(v&&!running){running=true;loop();}else if(!v){running=false;}},{threshold:.02}).observe(cv);
+})();
+</script>
+</body>
+</html>
