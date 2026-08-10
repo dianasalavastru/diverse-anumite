@@ -4,6 +4,8 @@
 
 Level: **Design Process**. Status: **authoritative**.
 
+> **Governance note (Decision Log Batch 20, 2026-08-10):** Visual language is now governed by `VISUAL_DIRECTION_v2.0.md` (“measured reality”). Any reference to `VISUAL_DIRECTION.md` below is the **superseded** v1 direction (“architectural publication”); this document remains **structurally authoritative**.
+
 **Governing rule:** every wireframe is a **realization** of the architecture, not an **exploration** of it. Wireframes may solve *layout* problems; they may not solve *architecture* problems. **If a wireframe suggests changing responsibilities, journeys, modules, or content ownership, the architecture — not the wireframe — must be revisited.**
 
 ---

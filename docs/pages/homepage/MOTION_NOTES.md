@@ -1,5 +1,7 @@
 # MOTION_NOTES — Homepage animated prototype
 
+> **Migration note (2026-08-10):** Homepage motion companion. The named companion file `homepage-measured-reality-animated.html` is the **archived pre-v3 prototype** (`../../archive/superseded/`); the owner-approved current Homepage HiFi is `homepage-measured-reality-animated-v3.html` in this folder, which carries this motion system. Confirm the pointer at build time (U3).
+
 **Companion to `homepage-measured-reality-animated.html`.** Documents the motion layer added on top of the static HiFi, and records the two carousel focus prototypes (A and B) so they can be compared. Validation prototype, not production.
 
 **Source of truth.** The static `homepage-measured-reality(-photo).html` is unchanged in IA, order, layout, typography, spacing, colour, hierarchy, carousel concept, identity, and responsive structure. The animated file adds *only* a motion layer — plus one intentional composition change requested separately: the **hero wordmark** (below).

@@ -4,6 +4,8 @@
 
 Level: **Low-Fidelity Wireframe**. Status: **authoritative** (template for both pillar hubs).
 
+> **Governance note (Decision Log Batch 20, 2026-08-10):** Visual language is now governed by `VISUAL_DIRECTION_v2.0.md` (“measured reality”). Any reference to `VISUAL_DIRECTION.md` below is the **superseded** v1 direction (“architectural publication”); this document remains **structurally authoritative**.
+
 Derived exclusively from: `HUB_PAGE_IA.md`, `PAGE_IA_INDEX.md`, `COMPONENT_INVENTORY.md`, `WIREFRAMING_GUIDELINES.md`, `VISUAL_DIRECTION.md`, `CONTENT_MODEL.md`.
 
 **Inherits** the system-wide conventions (narrative density, visual emphasis hierarchy, spatial-composition terminology — `WIREFRAMING_GUIDELINES.md` §7–§9) and the **Central Design Principle** (`VISUAL_DIRECTION.md`); it applies them, it does not redefine them.

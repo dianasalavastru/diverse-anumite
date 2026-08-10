@@ -4,6 +4,8 @@
 
 Level: **Low-Fidelity Wireframe**. Status: **authoritative**.
 
+> **Governance note (Decision Log Batch 20, 2026-08-10):** Visual language is now governed by `VISUAL_DIRECTION_v2.0.md` (“measured reality”). Any reference to `VISUAL_DIRECTION.md` below is the **superseded** v1 direction (“architectural publication”); this document remains **structurally authoritative**.
+
 Derived exclusively from: `HOMEPAGE_PAGE_IA.md`, `PAGE_IA_INDEX.md`, `INFORMATION_ARCHITECTURE.md`, `CONTENT_MODEL.md`, `NAV_DECISION_RECORD.md`, `WIREFRAME_PRINCIPLES.md`, `COMPONENT_INVENTORY.md`, `WIREFRAMING_GUIDELINES.md`, `VISUAL_DIRECTION.md`.
 
 **This page inherits the system-wide conventions** (narrative density, visual emphasis hierarchy, spatial-composition terminology) from `WIREFRAMING_GUIDELINES.md` and the Central Design Principle from `VISUAL_DIRECTION.md`; it does not redefine them — it only applies them.

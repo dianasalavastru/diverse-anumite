@@ -1,5 +1,7 @@
 # Archive — Implementation Notes
 
+> **Migration note (2026-08-10):** This document is **authoritative for Work Archive production behaviour**. Where it touches taxonomy, filters, or metadata dimensions, those details **reconcile to — and never override —** the frozen `../../product/CONTENT_MODEL.md` and locked `../../product/INFORMATION_ARCHITECTURE.md`; any genuine conflict resolves in favour of those upstream docs (U12).
+
 | Field | Value |
 | --- | --- |
 | **Status** | AUTHORITATIVE |

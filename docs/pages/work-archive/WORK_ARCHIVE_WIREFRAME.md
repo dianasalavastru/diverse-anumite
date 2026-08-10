@@ -6,6 +6,8 @@
 
 Level: **Low-Fidelity Wireframe**. Status: **authoritative**.
 
+> **Governance note (Decision Log Batch 20, 2026-08-10):** Visual language is now governed by `VISUAL_DIRECTION_v2.0.md` (“measured reality”). Any reference to `VISUAL_DIRECTION.md` below is the **superseded** v1 direction (“architectural publication”); this document remains **structurally authoritative**.
+
 Derived exclusively from: `WORK_ARCHIVE_PAGE_IA.md`, `PAGE_IA_INDEX.md`, `COMPONENT_INVENTORY.md`, `WIREFRAMING_GUIDELINES.md`, `VISUAL_DIRECTION.md`, `CONTENT_MODEL.md`.
 
 **Inherits (applies, does not restate):** Central Design Principle · Narrative Density · Visual Emphasis Hierarchy · Spatial-Composition terminology · editorial pacing · responsive principles.
