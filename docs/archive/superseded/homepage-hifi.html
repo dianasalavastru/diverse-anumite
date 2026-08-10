@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atelier — Homepage (High-Fidelity)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Color — architectural neutrality (Pass 2.4) */
+    --paper:#F5F3EF; --surface:#FBFAF8; --ink:#1A1917; --ink-60:#6B6862;
+    --hairline:#E3DFD7; --signal:#9C6B4F;
+    /* Type families */
+    --serif:"Fraunces",Georgia,serif; --grotesque:"Inter",-apple-system,sans-serif;
+    /* Spacing base 8 (Pass 2.2) */
+    --mx:clamp(20px,6vw,120px);
+    --rhythm:clamp(72px,12vw,160px);
+    --rhythm-contact:clamp(88px,15vw,200px);
+    --ease:cubic-bezier(0.2,0,0,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--paper);color:var(--ink);font-family:var(--grotesque);
+    font-size:17px;line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  img{display:block;max-width:100%}
+  a{color:inherit;text-decoration:none}
+
+  /* ---- Type tokens (Pass 2.1) ---- */
+  .display-xl{font-family:var(--serif);font-weight:400;font-size:clamp(40px,6.2vw,72px);
+    line-height:1.05;letter-spacing:-0.02em}
+  .display-l{font-family:var(--serif);font-weight:400;font-size:clamp(32px,4vw,48px);
+    line-height:1.1;letter-spacing:-0.015em}
+  .heading{font-family:var(--serif);font-weight:500;font-size:clamp(26px,3vw,32px);
+    line-height:1.2;letter-spacing:-0.01em}
+  .subhead{font-family:var(--serif);font-weight:400;font-size:clamp(20px,2.2vw,24px);
+    line-height:1.35}
+  .lead{font-size:clamp(18px,2vw,20px);line-height:1.6;color:var(--ink)}
+  .body{font-size:17px;line-height:1.65}
+  .detail{font-size:14px;line-height:1.45;color:var(--ink-60);letter-spacing:0.01em}
+  .label{font-size:12px;line-height:1.4;letter-spacing:0.10em;text-transform:uppercase;
+    font-weight:500;color:var(--ink-60)}
+
+  .wrap{padding-left:var(--mx);padding-right:var(--mx);max-width:1440px;margin:0 auto}
+
+  /* ---- Reveal motion (Pass 2.6) ---- */
+  .reveal{opacity:0;transform:translateY(14px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+  .reveal.in{opacity:1;transform:none}
+  @media (prefers-reduced-motion:reduce){
+    .reveal{opacity:1;transform:none;transition:none}
+    html{scroll-behavior:auto}
+  }
+
+  /* ---- Global Header (persistent, never shape-shifts) ---- */
+  header.site{position:fixed;top:0;left:0;right:0;z-index:50;
+    transition:background .3s var(--ease),border-color .3s var(--ease);
+    border-bottom:1px solid transparent}
+  header.site .bar{display:flex;align-items:center;justify-content:space-between;
+    height:72px;padding-left:var(--mx);padding-right:var(--mx);max-width:1440px;margin:0 auto}
+  header.site.solid{background:var(--paper);border-bottom:1px solid var(--hairline)}
+  .wordmark{font-family:var(--serif);font-size:19px;letter-spacing:0.02em;color:#fff;transition:color .3s}
+  header.site.solid .wordmark{color:var(--ink)}
+  nav.primary{display:flex;align-items:center;gap:32px}
+  nav.primary a{font-size:12px;letter-spacing:0.10em;text-transform:uppercase;font-weight:500;
+    color:#fff;opacity:.9;position:relative;padding:6px 0;transition:color .3s}
+  header.site.solid nav.primary a{color:var(--ink)}
+  nav.primary a::after{content:"";position:absolute;left:0;right:100%;bottom:0;height:1px;
+    background:var(--signal);transition:right .24s var(--ease)}
+  nav.primary a:hover::after{right:0}
+  nav.primary .en{padding-left:24px;margin-left:8px;border-left:1px solid rgba(255,255,255,.35)}
+  header.site.solid nav.primary .en{border-left-color:var(--hairline)}
+  .menu-btn{display:none;background:none;border:none;color:#fff;font-size:12px;
+    letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+  header.site.solid .menu-btn{color:var(--ink)}
+
+  /* ---- M-1 Identity hero ---- */
+  .hero{position:relative;min-height:88vh;display:flex;align-items:flex-end;
+    color:#fff;overflow:hidden}
+  .hero .img{position:absolute;inset:0;
+    background:
+      linear-gradient(180deg,rgba(20,18,16,0) 45%,rgba(20,18,16,.55) 100%),
+      linear-gradient(115deg,#8d8477 0%,#b3a998 38%,#6f665a 72%,#4c463d 100%)}
+  .hero .inner{position:relative;padding:0 var(--mx) clamp(56px,8vw,96px);max-width:1180px;width:100%;margin:0 auto}
+  .hero .eyebrow{color:rgba(255,255,255,.85);margin-bottom:20px}
+  .hero h1{max-width:15ch}
+  .hero .pos{margin-top:24px;max-width:46ch;color:rgba(255,255,255,.92)}
+  .hero .about{display:inline-block;margin-top:28px;color:#fff;position:relative;
+    font-size:12px;letter-spacing:.10em;text-transform:uppercase;font-weight:500}
+  .hero .about::after{content:"";position:absolute;left:0;right:0;bottom:-4px;height:1px;
+    background:rgba(255,255,255,.4);transition:background .24s}
+  .hero .about:hover::after{background:var(--signal)}
+  .scrollcue{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);
+    color:rgba(255,255,255,.6);font-size:11px;letter-spacing:.2em;text-transform:uppercase}
+
+  /* section scaffolding */
+  section{padding-top:var(--rhythm)}
+  .eyebrow{margin-bottom:16px}
+  .sec-title{margin-bottom:24px}
+  .intro-line{max-width:52ch;color:var(--ink-60)}
+
+  /* ---- M-2 Pillar branch ---- */
+  .branch .pair{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:48px}
+  .gateway{position:relative;display:block;aspect-ratio:3/2;overflow:hidden;
+    background:#ccc}
+  .gateway .g-img{position:absolute;inset:0;transition:transform .6s var(--ease)}
+  .gateway:hover .g-img{transform:scale(1.02)}
+  .gateway.ad .g-img{background:linear-gradient(120deg,#a99e8c,#7d7768 60%,#5b5449)}
+  .gateway.rc .g-img{background:linear-gradient(120deg,#9aa2a3,#767f81 55%,#4f5658)}
+  .gateway .scrim{position:absolute;inset:0;
+    background:linear-gradient(180deg,rgba(20,18,16,0) 40%,rgba(20,18,16,.5) 100%)}
+  .gateway .g-inner{position:absolute;left:0;bottom:0;padding:clamp(20px,3vw,36px);color:#fff}
+  .gateway .g-eyebrow{color:rgba(255,255,255,.85);margin-bottom:10px}
+  .gateway .g-name{position:relative;display:inline-block}
+  .gateway .g-name::after{content:"";position:absolute;left:0;right:100%;bottom:-6px;height:1px;
+    background:var(--signal);transition:right .28s var(--ease)}
+  .gateway:hover .g-name::after{right:0}
+  .gateway .caret{margin-top:14px;font-size:13px;letter-spacing:.1em;text-transform:uppercase;
+    opacity:0;transform:translateX(-6px);transition:opacity .3s,transform .3s;color:#fff}
+  .gateway:hover .caret{opacity:.9;transform:none}
+
+  /* ---- M-3 Credibility ---- */
+  .cred{background:var(--surface);margin-top:var(--rhythm);padding-top:var(--rhythm);
+    padding-bottom:var(--rhythm);border-top:1px solid var(--hairline);border-bottom:1px solid var(--hairline)}
+  .cred section{padding-top:0}
+  .cred .prose{max-width:60ch}
+  .cred .prose p{margin-top:18px;color:var(--ink)}
+  .cred .stats{display:flex;flex-wrap:wrap;gap:clamp(32px,6vw,80px);margin-top:64px}
+  .cred .stat .v{font-family:var(--serif);font-size:clamp(28px,3.4vw,40px);line-height:1;letter-spacing:-.01em}
+  .cred .stat .l{margin-top:10px}
+  .textlink{position:relative;display:inline-block;margin-top:40px;
+    font-size:12px;letter-spacing:.10em;text-transform:uppercase;font-weight:500;color:var(--ink)}
+  .textlink::after{content:"";position:absolute;left:0;right:100%;bottom:-4px;height:1px;
+    background:var(--signal);transition:right .24s var(--ease)}
+  .textlink:hover::after{right:0}
+
+  /* ---- M-4 Pillar sections ---- */
+  .pillar-sec + .pillar-sec{padding-top:var(--rhythm)}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:48px}
+  .card{display:block}
+  .card .c-img{aspect-ratio:3/4;overflow:hidden;background:#ccc;position:relative}
+  .card .c-img i{position:absolute;inset:0;transition:transform .6s var(--ease)}
+  .card:hover .c-img i{transform:scale(1.02)}
+  .card .c-meta{margin-top:14px}
+  .card .c-title{font-family:var(--serif);font-size:20px;line-height:1.3;margin-top:6px;
+    position:relative;display:inline-block}
+  .card .c-title::after{content:"";position:absolute;left:0;right:100%;bottom:-3px;height:1px;
+    background:var(--signal);transition:right .24s var(--ease)}
+  .card:hover .c-title::after{right:0}
+  .module-cta{margin-top:48px}
+  .module-cta a{position:relative;font-size:12px;letter-spacing:.10em;text-transform:uppercase;
+    font-weight:500;color:var(--ink)}
+  .module-cta a .arw{display:inline-block;transition:transform .3s var(--ease);margin-left:8px}
+  .module-cta a:hover .arw{transform:translateX(4px)}
+  .module-cta a::after{content:"";position:absolute;left:0;right:100%;bottom:-4px;height:1px;
+    background:var(--signal);transition:right .24s var(--ease)}
+  .module-cta a:hover::after{right:0}
+
+  /* work card placeholder tones */
+  .t1{background:linear-gradient(130deg,#b7ad9b,#8f8879)}
+  .t2{background:linear-gradient(130deg,#a8a094,#736c60)}
+  .t3{background:linear-gradient(130deg,#c2b8a6,#867e6f)}
+  .t4{background:linear-gradient(130deg,#9ba1a0,#6b7271)}
+  .t5{background:linear-gradient(130deg,#8f9694,#5c6362)}
+  .t6{background:linear-gradient(130deg,#a6aa a8,#727877)}
+  .t6{background:linear-gradient(130deg,#a6aaa8,#727877)}
+
+  /* ---- M-5 Curated views ---- */
+  .curated .pair{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:48px}
+  .cv{display:block}
+  .cv .cv-img{aspect-ratio:3/2;overflow:hidden;position:relative;background:#ccc}
+  .cv .cv-img i{position:absolute;inset:0;transition:transform .6s var(--ease)}
+  .cv:hover .cv-img i{transform:scale(1.02)}
+  .cv.comp .cv-img i{background:linear-gradient(120deg,#b0a691,#837c6c)}
+  .cv.prof .cv-img i{background:linear-gradient(120deg,#9a9f9d,#6d7371)}
+  .cv .cv-title{margin-top:18px;position:relative;display:inline-block}
+  .cv .cv-title::after{content:"";position:absolute;left:0;right:100%;bottom:-4px;height:1px;
+    background:var(--signal);transition:right .28s var(--ease)}
+  .cv:hover .cv-title::after{right:0}
+  .cv .cv-desc{margin-top:8px;max-width:40ch}
+
+  /* ---- M-6 Contact invitation ---- */
+  .contact{padding-top:var(--rhythm-contact);padding-bottom:var(--rhythm-contact);text-align:center}
+  .contact .inv{max-width:20ch;margin:0 auto}
+  .contact .btn{display:inline-block;margin-top:40px;background:var(--ink);color:var(--paper);
+    font-size:12px;letter-spacing:.10em;text-transform:uppercase;font-weight:500;
+    padding:16px 30px;transition:background .3s var(--ease)}
+  .contact .btn .arw{display:inline-block;margin-left:10px;transition:transform .3s var(--ease)}
+  .contact .btn:hover{background:#000}
+  .contact .btn:hover .arw{transform:translateX(4px)}
+
+  /* ---- M-7 Footer ---- */
+  footer.site{background:#EDEAE3;border-top:1px solid var(--hairline);
+    padding-top:clamp(48px,7vw,80px);padding-bottom:40px;margin-top:var(--rhythm)}
+  .f-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1.4fr;gap:32px}
+  .f-word{font-family:var(--serif);font-size:22px}
+  .f-tag{margin-top:12px;max-width:34ch}
+  .f-col h4{margin-bottom:14px}
+  .f-col a{display:block;color:var(--ink-60);font-size:14px;padding:5px 0;position:relative;width:fit-content}
+  .f-col a::after{content:"";position:absolute;left:0;right:100%;bottom:2px;height:1px;
+    background:var(--signal);transition:right .24s var(--ease)}
+  .f-col a:hover::after{right:0}
+  .f-col a:hover{color:var(--ink)}
+  .eu{margin-top:6px}
+  .eu .badge{display:flex;gap:14px;align-items:flex-start}
+  .eu .flag{width:40px;height:27px;flex:0 0 auto;background:#0d2f8f;position:relative;border-radius:2px}
+  .eu .flag::before{content:"★★★★★★★★★★★★";position:absolute;inset:0;color:#ffcc00;
+    font-size:7px;line-height:9px;letter-spacing:1px;text-align:center;padding:3px;word-spacing:1px}
+  .eu p{font-size:12px;line-height:1.5;color:var(--ink-60);max-width:30ch}
+  .f-base{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;
+    margin-top:56px;padding-top:24px;border-top:1px solid var(--hairline)}
+  .f-base .soc{display:flex;gap:22px}
+
+  /* ---- Responsive (Pass 2.3 / 3 responsive intents) ---- */
+  @media (max-width:1000px){
+    .cards{grid-template-columns:repeat(2,1fr)}
+    .f-grid{grid-template-columns:1fr 1fr}
+  }
+  @media (max-width:760px){
+    nav.primary{display:none}
+    .menu-btn{display:block}
+    .branch .pair{grid-template-columns:1fr}
+    .curated .pair{grid-template-columns:1fr}
+    .cards{grid-template-columns:1fr}
+    .f-grid{grid-template-columns:1fr}
+    .hero{min-height:82vh}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ GLOBAL HEADER (persistent, task-first, never shape-shifts) ============ -->
+<header class="site" id="siteHeader">
+  <div class="bar">
+    <a class="wordmark" href="#">Atelier</a>
+    <nav class="primary">
+      <a href="#">Despre</a>
+      <a href="#">Servicii</a>
+      <a href="#">Proiecte</a>
+      <a href="#">Contact</a>
+      <a href="#" class="en">EN</a>
+    </nav>
+    <button class="menu-btn" aria-label="Meniu">Meniu</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- ============ M-1 · IDENTITY (Stage A — one practice) ============ -->
+  <section class="hero" style="padding-top:0">
+    <div class="img" aria-hidden="true"></div>
+    <div class="inner">
+      <div class="eyebrow label reveal">Studio de arhitectură &amp; reality capture</div>
+      <h1 class="display-xl reveal">Un singur atelier. Două capacități complementare.</h1>
+      <p class="pos lead reveal">Arhitectură și design, alături de scanare 3D și fotogrametrie cu dronă — o singură practică, o singură voce, aceeași grijă pentru precizie.</p>
+      <a href="#" class="about reveal">Despre atelier →</a>
+    </div>
+    <div class="scrollcue" aria-hidden="true">scroll</div>
+  </section>
+
+  <!-- ============ M-2 · PILLAR BRANCH (Stage B — two co-equal capabilities) ============ -->
+  <section class="branch wrap">
+    <div class="eyebrow label reveal">Două capacități</div>
+    <h2 class="sec-title heading reveal">Alegeți direcția potrivită proiectului dumneavoastră.</h2>
+    <p class="intro-line body reveal">Ambele capacități aparțin aceleiași practici și sunt prezentate la aceeași greutate — alegeți liber.</p>
+    <div class="pair">
+      <a class="gateway ad reveal" href="#">
+        <div class="g-img" aria-hidden="true"></div><div class="scrim"></div>
+        <div class="g-inner">
+          <div class="g-eyebrow label">Capacitate</div>
+          <div class="g-name display-l">Arhitectură &amp; Design</div>
+          <div class="caret">Explorează →</div>
+        </div>
+      </a>
+      <a class="gateway rc reveal" href="#">
+        <div class="g-img" aria-hidden="true"></div><div class="scrim"></div>
+        <div class="g-inner">
+          <div class="g-eyebrow label">Capacitate</div>
+          <div class="g-name display-l">Reality Capture</div>
+          <div class="caret">Explorează →</div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ============ M-3 · PRACTICE CREDIBILITY (Stage C — pillar-neutral trust) ============ -->
+  <div class="cred">
+    <section class="wrap">
+      <div class="eyebrow label reveal">Atelierul</div>
+      <div class="prose reveal">
+        <h2 class="heading">Precizie construită pe experiență și pe echipament profesional.</h2>
+        <p class="body">Peste un deceniu de practică în arhitectură și design, extinsă printr-un program finanțat cu fonduri europene către scanare 3D și fotogrametrie cu dronă de nivel profesional. Aceeași rigoare, aplicată de la concept la documentare.</p>
+      </div>
+      <div class="stats reveal">
+        <div class="stat"><div class="v">12+</div><div class="l label">Ani de practică</div></div>
+        <div class="stat"><div class="v">EU</div><div class="l label">Echipament cofinanțat</div></div>
+        <div class="stat"><div class="v">2 mm</div><div class="l label">Acuratețe scanare</div></div>
+      </div>
+      <a href="#" class="textlink reveal">Povestea completă →</a>
+    </section>
+  </div>
+
+  <!-- ============ M-4 · PILLAR SECTION ×2 (Stage D — preview & proof, equal weight) ============ -->
+  <section class="pillar-sec wrap">
+    <div class="eyebrow label reveal">Arhitectură &amp; Design</div>
+    <h2 class="sec-title heading reveal">Spații gândite pentru felul în care sunt locuite.</h2>
+    <p class="intro-line body reveal">O selecție de lucrări — suficient cât să decideți dacă merită continuat către capacitate.</p>
+    <div class="cards">
+      <a class="card reveal" href="#"><div class="c-img"><i class="t1"></i></div>
+        <div class="c-meta detail">Proiect de design · 2024</div><div class="c-title">Casă în pantă, Brașov</div></a>
+      <a class="card reveal" href="#"><div class="c-img"><i class="t2"></i></div>
+        <div class="c-meta detail">Interior · 2023</div><div class="c-title">Apartament, Cluj</div></a>
+      <a class="card reveal" href="#"><div class="c-img"><i class="t3"></i></div>
+        <div class="c-meta detail">Concept / studiu · 2023</div><div class="c-title">Pavilion cultural</div></a>
+    </div>
+    <div class="module-cta reveal"><a href="#">Vezi capacitatea Arhitectură &amp; Design <span class="arw">→</span></a></div>
+  </section>
+
+  <section class="pillar-sec wrap">
+    <div class="eyebrow label reveal">Reality Capture</div>
+    <h2 class="sec-title heading reveal">Realitatea, măsurată cu exactitate.</h2>
+    <p class="intro-line body reveal">Scanare 3D și fotogrametrie — livrabile precise pentru arhitecți, ingineri și patrimoniu.</p>
+    <div class="cards">
+      <a class="card reveal" href="#"><div class="c-img"><i class="t4"></i></div>
+        <div class="c-meta detail">Documentare · 2024</div><div class="c-title">Releveu biserică de lemn</div></a>
+      <a class="card reveal" href="#"><div class="c-img"><i class="t5"></i></div>
+        <div class="c-meta detail">Fotogrametrie dronă · 2024</div><div class="c-title">Sit industrial, Reșița</div></a>
+      <a class="card reveal" href="#"><div class="c-img"><i class="t6"></i></div>
+        <div class="c-meta detail">Scanare 3D · 2023</div><div class="c-title">Fațadă istorică</div></a>
+    </div>
+    <div class="module-cta reveal"><a href="#">Vezi capacitatea Reality Capture <span class="arw">→</span></a></div>
+  </section>
+
+  <!-- ============ M-5 · CURATED VIEWS (Stage E — Competitions; Professional Experience) ============ -->
+  <section class="curated wrap">
+    <div class="eyebrow label reveal">Explorare</div>
+    <h2 class="sec-title heading reveal">Corpuri de lucru care traversează arhiva.</h2>
+    <div class="pair">
+      <a class="cv comp reveal" href="#">
+        <div class="cv-img"><i></i></div>
+        <h3 class="cv-title display-l">Concursuri</h3>
+        <p class="cv-desc detail">Idei și ambiție — proiecte de concurs prezentate ca un corp distinct de gândire.</p>
+      </a>
+      <a class="cv prof reveal" href="#">
+        <div class="cv-img"><i></i></div>
+        <h3 class="cv-title display-l">Experiență profesională</h3>
+        <p class="cv-desc detail">Lucrări realizate în cadrul birourilor, creditate transparent, grupate după angajator.</p>
+      </a>
+    </div>
+  </section>
+
+  <!-- ============ M-6 · CONTACT INVITATION (Stage F — single primary action, last) ============ -->
+  <section class="contact wrap">
+    <h2 class="inv heading reveal">Dacă un proiect prinde contur, haideți să vorbim.</h2>
+    <a href="#" class="btn reveal">Începe o conversație <span class="arw">→</span></a>
+  </section>
+</main>
+
+<!-- ============ M-7 · FOOTER (Stage G — orientation, compliance, EU-funding) ============ -->
+<footer class="site">
+  <div class="wrap">
+    <div class="f-grid">
+      <div>
+        <div class="f-word">Atelier</div>
+        <p class="f-tag detail">Arhitectură, design și reality capture — o singură practică.</p>
+      </div>
+      <div class="f-col">
+        <h4 class="label">Navigare</h4>
+        <a href="#">Despre</a><a href="#">Servicii</a><a href="#">Proiecte</a><a href="#">Contact</a>
+      </div>
+      <div class="f-col">
+        <h4 class="label">Explorare</h4>
+        <a href="#">Concursuri</a><a href="#">Experiență profesională</a><a href="#">Arhitectură &amp; Design</a><a href="#">Reality Capture</a>
+      </div>
+      <div class="f-col eu">
+        <h4 class="label">Cofinanțare</h4>
+        <div class="badge">
+          <div class="flag" aria-hidden="true"></div>
+          <p>Echipament de scanare 3D și fotogrametrie achiziționat printr-un proiect cofinanțat din fonduri europene.</p>
+        </div>
+      </div>
+    </div>
+    <div class="f-base detail">
+      <div class="soc"><a href="#">Instagram</a><a href="#">LinkedIn</a><a href="#">Behance</a></div>
+      <div><a href="#">Confidențialitate</a> · <a href="#">Termeni</a> · <a href="#">RO / EN</a></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Header solid state after hero (single quiet state change — never shape-shift)
+  var header=document.getElementById('siteHeader');
+  var hero=document.querySelector('.hero');
+  var io=new IntersectionObserver(function(e){
+    header.classList.toggle('solid',!e[0].isIntersecting);
+  },{rootMargin:"-72px 0px 0px 0px"});
+  io.observe(hero);
+
+  // Scroll-in reveals (once), respecting reduced motion
+  var reduce=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if(reduce){document.querySelectorAll('.reveal').forEach(function(n){n.classList.add('in')});}
+  else{
+    var ro=new IntersectionObserver(function(entries){
+      entries.forEach(function(en,i){
+        if(en.isIntersecting){en.target.classList.add('in');ro.unobserve(en.target);}
+      });
+    },{threshold:0.12});
+    document.querySelectorAll('.reveal').forEach(function(n){ro.observe(n)});
+  }
+</script>
+</body>
+</html>

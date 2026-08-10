@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>diverse anumite — homepage (measured reality)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#ffffff;
+    --ink:#1b1712;           /* warm near-black, never cold */
+    --ink-40:#8f887e;
+    --hair:#e8e4dc;
+    --blue:#2b2be6;          /* electric blue — activation & measurement only */
+    --pixel:"Pixelify Sans",monospace;
+    --mono:"Space Mono",monospace;
+    --read:"Inter",-apple-system,sans-serif;
+    --ease:cubic-bezier(.2,0,0,1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--paper);color:var(--ink);font-family:var(--read);
+    font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+  .mono{font-family:var(--mono)}
+  .pixel{font-family:var(--pixel)}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-40)}
+  .measure{font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--ink-40)}
+
+  /* reveal */
+  .rv{opacity:0;transform:translateY(16px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+  .rv.in{opacity:1;transform:none}
+  @media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}}
+
+  /* ---------- coordinate rail (blue measurement thread + survey stations) ---------- */
+  .rail{position:fixed;left:26px;top:0;bottom:0;width:40px;z-index:40;
+    display:flex;flex-direction:column;justify-content:center;gap:20px;pointer-events:none;mix-blend-mode:normal}
+  .rail .st{font-family:var(--pixel);font-size:12px;color:var(--ink-40);opacity:.5;
+    display:flex;align-items:center;gap:8px;transition:opacity .4s,color .4s}
+  .rail .st .tick{width:10px;height:1px;background:var(--ink-40);transition:all .4s var(--ease)}
+  .rail .st.active{opacity:1;color:var(--blue)}
+  .rail .st.active .tick{width:22px;height:2px;background:var(--blue)}
+  @media (max-width:900px){.rail{display:none}}
+
+  /* ---------- header (persistent, task-first, never shape-shifts) ---------- */
+  header{position:fixed;top:0;left:0;right:0;height:66px;z-index:50;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 clamp(20px,5vw,64px);transition:background .4s var(--ease),border-color .4s var(--ease);
+    border-bottom:1px solid transparent}
+  header.solid{background:rgba(255,255,255,.9);backdrop-filter:blur(8px);border-bottom:1px solid var(--hair)}
+  .wm{font-family:var(--pixel);font-size:20px;letter-spacing:.02em;color:var(--ink)}
+  nav{display:flex;gap:26px;align-items:center}
+  nav a{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);position:relative;padding:4px 0}
+  nav a::after{content:"";position:absolute;left:0;right:100%;bottom:0;height:1.5px;background:var(--blue);transition:right .3s var(--ease)}
+  nav a:hover::after{right:0}
+  nav a.en{color:var(--ink-40)}
+  .menu{display:none;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;background:none;border:none;cursor:pointer}
+  @media (max-width:720px){nav{display:none}.menu{display:block}}
+
+  main{padding-left:clamp(20px,7vw,110px);padding-right:clamp(20px,5vw,64px)}
+  .mv{position:relative}
+
+  /* ---------- I · Arrival — the wordmark IS the opening composition (identity before projects) ---------- */
+  .arrival{min-height:100vh;display:flex;flex-direction:column;justify-content:center;gap:clamp(30px,6vh,64px);padding-top:96px;padding-bottom:6vh}
+  .heromark{position:relative;width:100%}
+  .hero-img{position:absolute;top:-9%;bottom:-9%;left:29%;width:40%;z-index:0;
+    background:#cbc6bc url('https://loremflickr.com/1200/800/architecture,concrete,facade?lock=21') center/cover no-repeat;filter:grayscale(.4)}
+  .hw{position:relative;z-index:2;display:block;font-family:var(--pixel);font-weight:500;color:var(--blue);
+    font-size:clamp(30px,8.6vw,132px);line-height:.9;letter-spacing:.02em;white-space:nowrap}
+  .hero-scan{position:absolute;z-index:3;top:-9%;bottom:-9%;left:0;width:2px;background:var(--blue);opacity:0;box-shadow:0 0 12px 2px rgba(43,43,230,.5)}
+  .hero-base{position:absolute;z-index:2;left:0;bottom:-16px;height:2px;width:46%;background:var(--blue)}
+  .hero-coord{position:absolute;z-index:2;left:0;bottom:-38px;color:var(--ink-40)}
+  .hero-dim{position:absolute;z-index:2;right:1%;top:-9%;color:var(--blue)}
+  .arrival .lead{max-width:60ch}
+  .arrival .lead h1{font-family:var(--read);font-weight:500;font-size:clamp(22px,2.8vw,34px);line-height:1.14;letter-spacing:-.02em;margin:0 0 16px;max-width:24ch}
+  .arrival .lead h1 .b{color:var(--blue)}
+  .arrival .lead p{color:var(--ink-40);max-width:48ch;font-size:15px}
+  .arrival .lead .cue{margin-top:32px;display:flex;align-items:center;gap:12px}
+  .arrival .lead .cue .ln{width:1px;height:46px;background:var(--blue);opacity:.5}
+  .mascot{width:44px;height:auto}
+  .mascot rect{fill:var(--ink)}
+
+  /* ---------- II · Two capabilities (counterpoint) ---------- */
+  .caps{min-height:96vh;position:relative;padding:8vh 0}
+  .cap{position:relative;width:min(52%,620px);cursor:pointer}
+  .cap.ad{margin-left:0}
+  .cap.rc{margin-left:auto;margin-top:10vh}
+  .cap .cimg{position:relative;aspect-ratio:4/3;background:#c9c4ba;filter:grayscale(1) opacity(.62);transition:filter .6s var(--ease),transform .6s var(--ease);transform-origin:center}
+  .cap:hover .cimg,.cap:focus-visible .cimg{filter:grayscale(0) opacity(1);transform:scale(1.03)}
+  .cap .cmark{position:absolute;left:14px;top:14px;width:0;height:2px;background:var(--blue);transition:width .5s var(--ease)}
+  .cap:hover .cmark,.cap:focus-visible .cmark{width:38px}
+  .cap .cname{font-family:var(--pixel);font-size:clamp(22px,3vw,34px);margin-top:16px;display:inline-block;position:relative}
+  .cap .cname::after{content:"";position:absolute;left:0;right:100%;bottom:-4px;height:2px;background:var(--blue);transition:right .4s var(--ease)}
+  .cap:hover .cname::after,.cap:focus-visible .cname::after{right:0}
+  .cap .csub{margin-top:8px}
+  .cap .mvar{position:absolute;right:-6px;top:-30px;width:38px;opacity:0;transform:translateY(6px);transition:.5s var(--ease)}
+  .cap:hover .mvar,.cap:focus-visible .mvar{opacity:1;transform:none}
+  .caps .rulepix{position:absolute;left:50%;top:12%;font-family:var(--pixel);font-size:11px;color:var(--ink-40);transform:translateX(-50%);writing-mode:vertical-rl;letter-spacing:.2em}
+
+  /* ---------- III · Practice, measured ---------- */
+  .cred{min-height:70vh;display:grid;grid-template-columns:1.1fr 1fr;gap:60px;align-items:center;padding:6vh 0}
+  .cred h2{font-family:var(--read);font-weight:500;font-size:clamp(22px,2.6vw,30px);line-height:1.25;max-width:20ch;letter-spacing:-.01em}
+  .cred h2 .b{color:var(--blue)}
+  .readouts{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--hair)}
+  .ro{display:flex;justify-content:space-between;align-items:baseline;padding:16px 0;border-bottom:1px solid var(--hair)}
+  .ro .v{font-family:var(--pixel);font-size:clamp(22px,2.6vw,30px)}
+  .ro .v .u{font-family:var(--mono);font-size:12px;color:var(--ink-40);margin-left:6px}
+  .ro .k{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-40);text-align:right;max-width:16ch}
+  .ro .dot{width:5px;height:5px;background:var(--blue);border-radius:0;display:inline-block;margin-right:8px;opacity:0;transition:opacity .5s}
+  .ro.lit .dot{opacity:1}
+
+  /* ---------- IV · Work in focus ---------- */
+  .work{padding:6vh 0}
+  .worktitle{display:flex;align-items:baseline;gap:16px;margin-bottom:8px}
+  .worktitle .n{font-family:var(--pixel);font-size:12px;color:var(--ink-40)}
+  .worktitle h2{font-family:var(--pixel);font-size:clamp(20px,2.4vw,28px)}
+  .work .intro{color:var(--ink-40);max-width:40ch;font-size:14px;margin-bottom:30px}
+  .traverse{display:flex;gap:26px;overflow-x:auto;scroll-snap-type:x mandatory;padding:20px 40vw 30px 0;scrollbar-width:none}
+  .traverse::-webkit-scrollbar{display:none}
+  .proj{flex:0 0 auto;width:min(46vw,440px);scroll-snap-align:center;transition:transform .6s var(--ease),opacity .6s var(--ease)}
+  .proj .pimg{aspect-ratio:3/2;background:#cac5bb;position:relative;filter:grayscale(1) opacity(.5);transition:filter .6s var(--ease)}
+  .proj .pmark{position:absolute;left:12px;top:12px;width:0;height:2px;background:var(--blue);transition:width .5s var(--ease)}
+  .proj .meta{display:flex;justify-content:space-between;margin-top:12px;opacity:.4;transition:opacity .6s}
+  .proj .meta .t{font-family:var(--read);font-weight:500;font-size:15px}
+  .proj .meta .d{font-family:var(--mono);font-size:11px;color:var(--ink-40);letter-spacing:.04em}
+  .proj.focused{transform:scale(1.05)}
+  .proj.focused .pimg{filter:grayscale(0) opacity(1)}
+  .proj.focused .pmark{width:40px}
+  .proj.focused .meta{opacity:1}
+  .tnav{display:flex;gap:10px;margin-top:10px}
+  .tnav button{font-family:var(--mono);font-size:13px;border:1px solid var(--hair);background:none;width:38px;height:34px;cursor:pointer;transition:border-color .3s}
+  .tnav button:hover{border-color:var(--blue);color:var(--blue)}
+  .modcta{margin-top:26px}
+  .modcta a{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;position:relative}
+  .modcta a .ar{color:var(--blue);margin-left:8px;display:inline-block;transition:transform .3s var(--ease)}
+  .modcta a:hover .ar{transform:translateX(5px)}
+
+  /* point cloud centrepiece */
+  .cloud{margin:9vh 0;position:relative}
+  .cloud .cap-l{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+  .cloud canvas{width:100%;height:min(64vh,560px);display:block;cursor:grab;touch-action:none}
+  .cloud canvas:active{cursor:grabbing}
+  .cloud .hint{position:absolute;right:0;bottom:-24px;color:var(--blue);font-family:var(--mono);font-size:11px;letter-spacing:.08em}
+  .cloud .scanlbl{font-family:var(--mono);font-size:11px;color:var(--ink-40);letter-spacing:.1em}
+
+  /* ---------- V · Curated ---------- */
+  .curated{min-height:80vh;position:relative;padding:8vh 0}
+  .comp{width:min(58%,640px)}
+  .comp h3,.prof h3{font-family:var(--pixel);font-size:clamp(20px,2.4vw,30px);margin-bottom:18px;display:inline-block;position:relative}
+  .comp h3::after,.prof h3::after{content:"";position:absolute;left:0;right:100%;bottom:-4px;height:2px;background:var(--blue);transition:right .4s var(--ease)}
+  .comp:hover h3::after,.prof:hover h3::after{right:0}
+  .idx{border-top:1px solid var(--hair)}
+  .idx .row{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--hair);font-family:var(--mono);font-size:13px;transition:color .3s,padding-left .4s var(--ease);cursor:pointer}
+  .idx .row:hover{color:var(--blue);padding-left:12px}
+  .idx .row .y{color:var(--ink-40)}
+  .prof{width:min(46%,470px);margin-left:auto;margin-top:-4vh}
+  .prof .pimg{aspect-ratio:4/5;background:#c6c1b7;filter:grayscale(1) opacity(.7);transition:filter .6s var(--ease)}
+  .prof:hover .pimg{filter:grayscale(0) opacity(1)}
+  .prof .note{margin-top:10px}
+
+  /* ---------- VI · Invitation ---------- */
+  .invite{min-height:92vh;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:10vh 0}
+  .invite .q{font-family:var(--read);font-weight:500;font-size:clamp(26px,4vw,50px);line-height:1.1;letter-spacing:-.02em;max-width:18ch}
+  .invite .act{margin-top:44px;font-family:var(--pixel);font-size:clamp(20px,2.4vw,30px);color:var(--blue);position:relative;display:inline-flex;align-items:center;gap:14px}
+  .invite .act .box{width:12px;height:12px;background:var(--blue)}
+  .invite .act .ar{transition:transform .4s var(--ease)}
+  .invite .act:hover .ar{transform:translateX(8px)}
+
+  /* ---------- VII · Close ---------- */
+  footer{padding:8vh clamp(20px,5vw,64px) 46px clamp(20px,7vw,110px);border-top:1px solid var(--hair);margin-top:4vh;
+    display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:40px;align-items:end}
+  footer .big .wm{font-size:34px;display:block;margin-bottom:14px}
+  footer .big p{color:var(--ink-40);max-width:30ch;font-size:13px}
+  footer .fmascot{width:70px;margin-bottom:18px}
+  footer .col h4{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-40);margin-bottom:12px}
+  footer .col a{display:block;font-family:var(--mono);font-size:13px;padding:5px 0;width:fit-content;position:relative}
+  footer .col a::after{content:"";position:absolute;left:0;right:100%;bottom:2px;height:1.5px;background:var(--blue);transition:right .3s var(--ease)}
+  footer .col a:hover::after{right:0}
+  footer .eu{grid-column:1/-1;margin-top:30px;padding-top:18px;border-top:1px solid var(--hair);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px}
+  footer .eu p{font-family:var(--mono);font-size:11px;color:var(--ink-40);max-width:48ch;line-height:1.5}
+  footer .eu .fl{display:inline-block;width:22px;height:15px;background:var(--blue);vertical-align:middle;margin-right:8px}
+
+  @media (max-width:820px){
+    .arrival{min-height:auto;padding-top:110px;gap:28px}
+    .hw{white-space:normal;font-size:clamp(34px,15vw,72px)}
+    .hero-img{left:0;width:100%;top:-4%;bottom:-4%;filter:grayscale(.5) opacity(.55)}
+    .hero-dim{display:none}
+    .hero-base{width:40%}
+    .cap,.cap.rc{width:100%;margin:0 0 40px}
+    .cred{grid-template-columns:1fr;gap:34px}
+    .comp,.prof{width:100%;margin:0 0 40px}
+    footer{grid-template-columns:1fr 1fr}
+    .proj{width:78vw}
+    .traverse{padding-right:16vw}
+  }
+
+  /* ===================== MOCK PHOTOGRAPHY (visual validation only) =====================
+     Keyword-fetched stand-in images (LoremFlickr) fill the SAME boxes — no layout, spacing,
+     type or interaction changed. Each slot keeps its fallback background-color so nothing
+     breaks if an image fails to load. These are NOT final assets; they exist purely to judge
+     composition, rhythm, image hierarchy, and the balance of photography vs typography.
+     Production replaces every image with commissioned studio photography. Note: coherence is
+     approximate (multiple photographers) — the design's greyscale-context / colour-on-focus
+     logic does most of the unifying; a final commissioned set would feel like one author. */
+  .plate .ph,.cap .cimg,.proj .pimg,.prof .pimg{background-size:cover;background-position:center;background-repeat:no-repeat}
+
+  /* IMG · Arrival hero — contemporary building exterior, restrained concrete facade, measured
+     frontal framing. The single full-colour photograph on load; sets the measured-reality tone.
+     PROD → the commissioned hero image of the featured project (coord PT—001). */
+  .plate .ph{background-image:url('https://loremflickr.com/1400/1100/architecture,concrete,facade?lock=21')}
+
+  /* IMG · Architecture & Design capability — minimal residential architecture, natural light,
+     timber + concrete. Shown as greyscale context until focused. PROD → curated key image of the A&D hub. */
+  .cap.ad .cimg{background-image:url('https://loremflickr.com/1000/800/architecture,minimal,house?lock=34')}
+
+  /* IMG · Reality Capture capability — heritage stone facade, a genuine documentation subject.
+     PROD → a signature point-cloud still or drone frame from the capture pillar. */
+  .cap.rc .cimg{background-image:url('https://loremflickr.com/1000/800/architecture,heritage,facade?lock=47')}
+
+  /* IMG · Professional experience — interior architecture, natural light, concrete. Represents
+     studio-attributed work. PROD → a representative professional-experience photograph. */
+  .prof .pimg{background-image:url('https://loremflickr.com/900/1100/architecture,interior,concrete?lock=88')}
+
+  /* ============================ MOTION LAYER (validation prototype) ============================
+     Adds ONLY motion. No IA / order / layout / spacing / colour / interaction concept changed.
+     (The single intentional composition change — the hero wordmark — was requested separately.)
+     Stack: CSS transitions + keyframes, IntersectionObserver for reveals, one rAF loop for the
+     point cloud. No animation library (none needed). Fully removable. Honours reduced-motion. */
+  :root{ --t-micro:.18s; --t-state:.36s; --t-rev:.66s; --t-major:1s; }
+
+  /* reveal family — typed by content, runs once (no uniform fade-up) */
+  .rv{opacity:0;transform:none;transition:opacity var(--t-rev) var(--ease),transform var(--t-rev) var(--ease),clip-path var(--t-rev) var(--ease)}
+  .rv.in{opacity:1}
+  .rv--head{clip-path:inset(0 0 108% 0)}            .rv--head.in{clip-path:inset(0 0 -8% 0)}
+  .rv--img{clip-path:inset(0 103% 0 0);transition-delay:.06s}   .rv--img.in{clip-path:inset(0 0 0 0)}
+  .rv--meta{transform:translateY(10px);transition-delay:.18s}   .rv--meta.in{transform:none}
+
+  /* initial load sequence: markers -> hero wordmark -> copy -> navigation (non-blocking) */
+  html.anim-load .rail{opacity:0}
+  html.anim-load .heromark .hw,html.anim-load .hero-img{clip-path:inset(0 100% 0 0)}
+  html.anim-load .hero-base{width:0}
+  html.anim-load .hero-coord,html.anim-load .hero-dim{opacity:0}
+  html.anim-load #hd .wm,html.anim-load #hd nav,html.anim-load #hd .menu{opacity:0}
+  .rail{transition:opacity var(--t-rev) var(--ease)}
+  .heromark .hw,.hero-img{transition:clip-path var(--t-major) var(--ease)}
+  .hero-base{transition:width var(--t-rev) var(--ease)}
+  .hero-coord,.hero-dim,#hd .wm,#hd nav,#hd .menu{transition:opacity var(--t-rev) var(--ease)}
+  html.anim-ready .rail{opacity:1}
+  html.anim-ready .hero-img{clip-path:inset(0 0 0 0);transition-delay:.15s}
+  html.anim-ready .heromark .hw{clip-path:inset(0 0 0 0);transition-delay:.2s}
+  html.anim-ready .hero-dim{opacity:1;transition-delay:.5s}
+  html.anim-ready .hero-base{width:46%;transition-delay:.9s}
+  html.anim-ready .hero-coord{opacity:1;transition-delay:1s}
+  html.anim-ready #hd .wm,html.anim-ready #hd .menu{opacity:1;transition-delay:.3s}
+  html.anim-ready #hd nav{opacity:1;transition-delay:1.05s}
+  html.anim-ready .hero-scan{animation:heroScan var(--t-major) var(--ease) .2s both}
+  @keyframes heroScan{0%{left:0;opacity:0}12%{opacity:.9}88%{opacity:.65}100%{left:100%;opacity:0}}
+  .arrival .lead>.rv:nth-child(1){transition-delay:.55s}
+  .arrival .lead>.rv:nth-child(2){transition-delay:.7s}
+  .arrival .lead>.rv:nth-child(3){transition-delay:.85s}
+  .arrival .lead>.rv:nth-child(4){transition-delay:1s}
+
+  /* project carousel — signature focus transition (version B: measured reality) */
+  .proj{transform:scale(.95);opacity:.7}
+  .proj.focused{transform:scale(1.05);opacity:1}
+  .proj.focused .pimg{filter:grayscale(0) contrast(1.04) saturate(1.04) opacity(1)}
+  .proj .pscan{position:absolute;top:0;bottom:0;left:0;width:2px;background:var(--blue);opacity:0;
+    box-shadow:0 0 10px 1px rgba(43,43,230,.45);pointer-events:none;z-index:3}
+  .proj.focused .pscan{animation:pscan var(--t-major) var(--ease)}
+  @keyframes pscan{0%{left:0;opacity:0}14%{opacity:.9}80%{opacity:.6}100%{left:100%;opacity:0}}
+  .proj .pcoord{position:absolute;right:10px;bottom:10px;font-family:var(--mono);font-size:10px;
+    letter-spacing:.06em;color:var(--blue);opacity:0;transform:translateY(4px);z-index:3;
+    transition:opacity var(--t-state) var(--ease),transform var(--t-state) var(--ease)}
+  .proj.focused .pcoord{opacity:1;transform:none;transition-delay:.25s}
+  .proj .meta{transform:translateY(6px)} .proj.focused .meta{transform:none}
+  .tindex{font-family:var(--mono);font-size:12px;color:var(--ink-40);letter-spacing:.08em;align-self:center;margin-right:8px}
+  .tindex b{color:var(--blue);font-weight:400}
+
+  /* interactive states — keyboard focus parity with hover (never movement-only) */
+  a:focus-visible,button:focus-visible,.cap:focus-visible,.traverse:focus-visible{outline:2px solid var(--blue);outline-offset:4px}
+  nav a:focus-visible::after,.modcta a:focus-visible::after,footer .col a:focus-visible::after{right:0}
+  .invite .act:focus-visible .box{transform:scale(1.15);transition:transform var(--t-micro) var(--ease)}
+
+  /* reduced motion — resolve everything instantly; no ambient, no transforms */
+  @media (prefers-reduced-motion:reduce){
+    .rv,.rv--head,.rv--img,.rv--meta{opacity:1!important;transform:none!important;clip-path:none!important;transition:none!important}
+    .hero-base{width:46%!important}
+    .hero-coord,.hero-dim,#hd .wm,#hd nav,#hd .menu,.rail{opacity:1!important}
+    .hero-scan{animation:none!important;opacity:0!important}
+    .proj{transform:none;opacity:1} .proj.focused{transform:scale(1.03)}
+    .proj.focused .pscan{animation:none!important;opacity:0!important}
+  }
+
+  /* OFFLINE / DOWNLOAD-SAFE: drop all network images, keep the neutral tonal placeholders so every
+     slot always shows. Fonts still load from Google when online and fall back cleanly to system/mono
+     type offline. A <noscript> reveal + a JS safety fallback (below) ensure content is never stuck hidden. */
+  .hero-img,.cap .cimg,.proj .pimg,.prof .pimg{background-image:none!important}
+</style>
+<noscript><style>.rv,.rv--head,.rv--img,.rv--meta{opacity:1!important;transform:none!important;clip-path:none!important}</style></noscript>
+</head>
+<body>
+<script>/* set initial motion state before paint; guarantee a usable page even if the main script never runs */(function(){try{if(!matchMedia('(prefers-reduced-motion:reduce)').matches)document.documentElement.classList.add('anim-load');}catch(e){}
+setTimeout(function(){if(window.__motionInit)return;var h=document.documentElement;h.classList.add('anim-ready');var n=document.querySelectorAll('.rv');for(var i=0;i<n.length;i++)n[i].classList.add('in');},1600);})();</script>
+
+<!-- coordinate rail -->
+<div class="rail" id="rail" aria-hidden="true">
+  <div class="st" data-st="1"><span class="tick"></span>01</div>
+  <div class="st" data-st="2"><span class="tick"></span>02</div>
+  <div class="st" data-st="3"><span class="tick"></span>03</div>
+  <div class="st" data-st="4"><span class="tick"></span>04</div>
+  <div class="st" data-st="5"><span class="tick"></span>05</div>
+  <div class="st" data-st="6"><span class="tick"></span>06</div>
+  <div class="st" data-st="7"><span class="tick"></span>07</div>
+</div>
+
+<header id="hd">
+  <a class="wm" href="#">diverse anumite</a>
+  <nav>
+    <a href="#">Despre</a><a href="#">Servicii</a><a href="#">Proiecte</a><a href="#">Contact</a><a href="#" class="en">EN</a>
+  </nav>
+  <button class="menu">Meniu</button>
+</header>
+
+<main>
+
+  <!-- I · ARRIVAL (M-1) — wordmark as the opening composition: answers "who is this studio?" first -->
+  <section class="mv arrival" data-station="1">
+    <div class="heromark" role="img" aria-label="diverse anumite — atelier de arhitectură și reality capture">
+      <div class="hero-img" aria-hidden="true"></div>
+      <div class="hero-scan" aria-hidden="true"></div>
+      <span class="hw" aria-hidden="true">diverse anumite</span>
+      <span class="hero-base" aria-hidden="true"></span>
+      <span class="hero-coord measure" aria-hidden="true">PT—001 · 46.77°N 23.59°E</span>
+      <span class="hero-dim measure" aria-hidden="true">h — 18.4 m</span>
+    </div>
+    <div class="lead">
+      <div class="eyebrow rv">atelier · arhitectură + reality capture</div>
+      <h1 class="rv">Proiectăm spațiul. <span class="b">Măsurăm</span> realitatea.</h1>
+      <p class="rv">Un singur atelier care compune arhitectură și documentează lumea construită cu precizie.</p>
+      <div class="cue rv"><span class="ln"></span><span class="measure">derulați — 06 stații</span>
+        <svg class="mascot" viewBox="0 0 10 12" id="mascotArrival"></svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- II · TWO CAPABILITIES (M-2) -->
+  <section class="mv caps" data-station="2">
+    <div class="cap ad" tabindex="0">
+      <svg class="mvar" viewBox="0 0 10 12" data-mascot="giraffe"></svg>
+      <div class="cimg"><span class="cmark"></span></div>
+      <div class="cname">Arhitectură &amp; Design</div>
+      <div class="csub measure">locuințe · interior · concurs</div>
+    </div>
+    <div class="cap rc" tabindex="0">
+      <svg class="mvar" viewBox="0 0 11 6" data-mascot="drone"></svg>
+      <div class="cimg"><span class="cmark"></span></div>
+      <div class="cname">Reality Capture</div>
+      <div class="csub measure">scanare 3d · fotogrametrie · patrimoniu</div>
+    </div>
+  </section>
+
+  <!-- III · PRACTICE, MEASURED (M-3) -->
+  <section class="mv cred" data-station="3">
+    <h2 class="rv">Precizia are nevoie de <span class="b">mâini</span>, nu doar de instrumente.</h2>
+    <div class="readouts rv">
+      <div class="ro"><span class="v">12<span class="u">ani</span></span><span class="k"><span class="dot"></span>practică continuă</span></div>
+      <div class="ro"><span class="v">UE</span><span class="k"><span class="dot"></span>echipament cofinanțat</span></div>
+      <div class="ro"><span class="v">2<span class="u">mm</span></span><span class="k"><span class="dot"></span>acuratețe scanare</span></div>
+    </div>
+  </section>
+
+  <!-- IV · WORK IN FOCUS (M-4) -->
+  <section class="mv work" data-station="4">
+    <div class="worktitle rv"><span class="n">04·a</span><h2>Arhitectură &amp; Design</h2></div>
+    <p class="intro rv">Fiecare proiect intră pe rând în focus — restul rămân aproape, pentru context.</p>
+    <div class="traverse" id="tvA" tabindex="0">
+      <!-- IMG · "Casă în pantă" — modern hillside house in concrete; measured frontal composition, restrained palette. Serves as the focused (colour) A&D project. PROD → the project's key photograph. -->
+      <div class="proj"><div class="pimg" style="background-color:#cbc6bc;background-image:url('https://loremflickr.com/1000/700/house,concrete,modern?lock=51')"><span class="pmark"></span></div><div class="meta"><span class="t">Casă în pantă</span><span class="d">2024 · locuință</span></div></div>
+      <!-- IMG · "Apartament C." — minimal interior, natural light, concrete/timber. Interior counterpoint to the exteriors. PROD → the project's interior photograph. -->
+      <div class="proj"><div class="pimg" style="background-color:#bdb7ab;background-image:url('https://loremflickr.com/1000/700/interior,minimal,concrete?lock=58')"><span class="pmark"></span></div><div class="meta"><span class="t">Apartament C.</span><span class="d">2023 · interior</span></div></div>
+      <!-- IMG · "Pavilion" — small public/cultural structure, concrete, restrained. Represents competition/public work. PROD → the competition project's key render or photo. -->
+      <div class="proj"><div class="pimg" style="background-color:#c7c2b6;background-image:url('https://loremflickr.com/1000/700/pavilion,concrete,architecture?lock=63')"><span class="pmark"></span></div><div class="meta"><span class="t">Pavilion</span><span class="d">2023 · concurs</span></div></div>
+      <!-- IMG · "Locuință M." — minimal residence in timber + glass, natural light. Rounds out the residential set. PROD → the project's key photograph. -->
+      <div class="proj"><div class="pimg" style="background-color:#b4afa2;background-image:url('https://loremflickr.com/1000/700/house,timber,architecture?lock=67')"><span class="pmark"></span></div><div class="meta"><span class="t">Locuință M.</span><span class="d">2022 · locuință</span></div></div>
+    </div>
+    <div class="tnav rv"><button data-tv="tvA" data-dir="-1">←</button><button data-tv="tvA" data-dir="1">→</button></div>
+    <div class="modcta rv"><a href="#">Toate lucrările — Arhitectură &amp; Design <span class="ar">→</span></a></div>
+
+    <!-- point cloud centrepiece -->
+    <div class="cloud rv">
+      <div class="cap-l"><span class="scanlbl">04·b — reality capture · nor de puncte</span><span class="scanlbl" id="ptcount">— pts</span></div>
+      <canvas id="cloud"></canvas>
+      <span class="hint">trageți pentru a inspecta →</span>
+    </div>
+
+    <div class="worktitle rv" style="margin-top:6vh"><span class="n">04·c</span><h2>Documentare</h2></div>
+    <div class="traverse" id="tvB" tabindex="0">
+      <!-- IMG · "Biserică de lemn" — timber heritage structure (a survey subject). Represents reality-capture documentation. PROD → a scan/photo of the surveyed heritage building. -->
+      <div class="proj"><div class="pimg" style="background-color:#c2bdb2;background-image:url('https://loremflickr.com/1000/700/church,wood,heritage?lock=72')"><span class="pmark"></span></div><div class="meta"><span class="t">Biserică de lemn</span><span class="d">2024 · releveu</span></div></div>
+      <!-- IMG · "Sit industrial" — industrial concrete structure (a drone-documentation subject). Represents photogrammetry work. PROD → a drone frame or ortho-image of the site. -->
+      <div class="proj"><div class="pimg" style="background-color:#b7b1a5;background-image:url('https://loremflickr.com/1000/700/industrial,concrete,architecture?lock=76')"><span class="pmark"></span></div><div class="meta"><span class="t">Sit industrial</span><span class="d">2024 · dronă</span></div></div>
+      <!-- IMG · "Fațadă istorică" — historic stone facade (a 3D-scan subject), rich material detail. Represents scan documentation. PROD → a scan still or measured elevation of the facade. -->
+      <div class="proj"><div class="pimg" style="background-color:#ccc7bd;background-image:url('https://loremflickr.com/1000/700/facade,stone,building?lock=81')"><span class="pmark"></span></div><div class="meta"><span class="t">Fațadă istorică</span><span class="d">2023 · scanare</span></div></div>
+    </div>
+    <div class="tnav rv"><button data-tv="tvB" data-dir="-1">←</button><button data-tv="tvB" data-dir="1">→</button></div>
+    <div class="modcta rv"><a href="#">Toate lucrările — Reality Capture <span class="ar">→</span></a></div>
+  </section>
+
+  <!-- V · CURATED (M-5) -->
+  <section class="mv curated" data-station="5">
+    <div class="comp rv">
+      <h3>Concursuri</h3>
+      <div class="idx">
+        <div class="row"><span>Centru cultural, Iași</span><span class="y">2024</span></div>
+        <div class="row"><span>Piață publică, Timișoara</span><span class="y">2023</span></div>
+        <div class="row"><span>Muzeu de sit</span><span class="y">2022</span></div>
+        <div class="row"><span>Locuire colectivă</span><span class="y">2021</span></div>
+      </div>
+    </div>
+    <div class="prof rv">
+      <div class="pimg"></div>
+      <h3 style="margin-top:16px">Experiență profesională</h3>
+      <div class="note measure">lucrări de birou · grupate după angajator</div>
+    </div>
+  </section>
+
+  <!-- VI · INVITATION (M-6) -->
+  <section class="mv invite" data-station="6">
+    <div class="q rv">Un proiect prinde contur?</div>
+    <a class="act rv" href="#"><span class="box"></span>Începe o conversație <span class="ar">→</span></a>
+  </section>
+</main>
+
+<!-- VII · CLOSE (M-7) -->
+<footer data-station="7">
+  <div class="big">
+    <svg class="fmascot" viewBox="0 0 10 12" data-mascot="giraffe"></svg>
+    <a class="wm" href="#">diverse anumite</a>
+    <p>Arhitectură, design și reality capture — un singur atelier.</p>
+  </div>
+  <div class="col">
+    <h4>Atelier</h4>
+    <a href="#">Despre</a><a href="#">Servicii</a><a href="#">Proiecte</a><a href="#">Contact</a>
+  </div>
+  <div class="col">
+    <h4>Urmăriți</h4>
+    <a href="#">Instagram</a><a href="#">LinkedIn</a><a href="#">Behance</a><a href="#">RO / EN</a>
+  </div>
+  <div class="eu">
+    <p><span class="fl"></span>Echipament de scanare 3D și fotogrametrie achiziționat printr-un proiect cofinanțat din fonduri europene.</p>
+    <p class="measure">© diverse anumite · 46.77°N 23.59°E</p>
+  </div>
+</footer>
+
+<script>
+window.__motionInit=true;   /* tells the pre-paint safety fallback the motion layer is running */
+const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+/* ---- trigger the initial load sequence (markers -> wordmark -> copy -> nav) ---- */
+if(document.documentElement.classList.contains('anim-load')){
+  requestAnimationFrame(()=>requestAnimationFrame(()=>document.documentElement.classList.add('anim-ready')));
+}else{document.documentElement.classList.add('anim-ready');}
+
+/* ---- mascots from ascii grids ---- */
+const GIRAFFE=["...#.#....","...###....","....#.....","....#.....","....#.....","....##....","...####...","..######..","..######..","..#.##.#..","..#.##.#..","..#.##.#.."];
+const DRONE=["#.#.....#.#",".#.......#.","...#####...","...#####...",".#.......#.","#.#.....#.#"];
+function build(svg,grid){let s="";for(let y=0;y<grid.length;y++){for(let x=0;x<grid[y].length;x++){if(grid[y][x]==='#')s+=`<rect x="${x}" y="${y}" width="1" height="1"/>`;}}svg.innerHTML=s;}
+document.getElementById('mascotArrival').setAttribute('viewBox','0 0 10 12');
+build(document.getElementById('mascotArrival'),GIRAFFE);
+document.querySelectorAll('[data-mascot]').forEach(sv=>{build(sv,sv.dataset.mascot==='drone'?DRONE:GIRAFFE);});
+
+/* ---- reveals (typed family, runs once — not a uniform fade-up) ---- */
+(function(){
+  document.querySelectorAll('.cap').forEach(c=>c.classList.add('rv'));
+  const type=el=>el.matches('h1,h2,h3,.q,.worktitle')?'head':el.matches('.cloud,.comp,.prof,.traverse')?'img':'meta';
+  const items=[...document.querySelectorAll('.rv')];
+  items.forEach(el=>el.classList.add('rv--'+type(el)));
+  if(reduce||!('IntersectionObserver' in window)){items.forEach(el=>el.classList.add('in'));return;}
+  const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12,rootMargin:'0px 0px -6% 0px'});
+  items.forEach(el=>io.observe(el));
+})();
+
+/* ---- header solid + coordinate rail active station ---- */
+const hd=document.getElementById('hd');
+const sections=[...document.querySelectorAll('[data-station]')];
+const stEls=[...document.querySelectorAll('.rail .st')];
+function onScroll(){
+  hd.classList.toggle('solid',scrollY>window.innerHeight*.7);
+  let cur=1;const mid=scrollY+innerHeight*.5;
+  sections.forEach(s=>{if(s.offsetTop<=mid)cur=+s.dataset.station;});
+  stEls.forEach(e=>e.classList.toggle('active',+e.dataset.st===cur));
+}
+addEventListener('scroll',onScroll,{passive:true});onScroll();
+
+/* ---- credibility dots light on view ---- */
+const cred=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){[...document.querySelectorAll('.ro')].forEach((r,i)=>setTimeout(()=>r.classList.add('lit'),reduce?0:i*160));cred.disconnect();}});},{threshold:.4});
+const credEl=document.querySelector('.cred');if(credEl)cred.observe(credEl);
+
+/* ---- focus traverses (signature: focus + brief scan + coordinate + index + a11y + drag) ---- */
+document.querySelectorAll('.tnav').forEach(tn=>{
+  const id=tn.querySelector('button').dataset.tv;
+  const idx=document.createElement('span');idx.className='tindex';idx.dataset.tv=id;idx.setAttribute('aria-live','polite');
+  tn.insertBefore(idx,tn.firstChild);
+});
+function focusTv(tv){
+  const rect=tv.getBoundingClientRect(),cx=rect.left+rect.width/2,kids=[...tv.children];
+  let best=null,bi=0,bd=1e9;
+  kids.forEach((p,i)=>{const r=p.getBoundingClientRect();const d=Math.abs(r.left+r.width/2-cx);if(d<bd){bd=d;best=p;bi=i;}});
+  kids.forEach(p=>{const on=p===best;p.classList.toggle('focused',on);p.setAttribute('aria-current',on?'true':'false');});
+  const idx=tv.closest('.work').querySelector('.tindex[data-tv="'+tv.id+'"]');
+  if(idx)idx.innerHTML='<b>'+String(bi+1).padStart(2,'0')+'</b>·'+String(kids.length).padStart(2,'0');
+}
+document.querySelectorAll('.traverse').forEach(tv=>{
+  tv.setAttribute('role','group');tv.setAttribute('aria-roledescription','carusel de proiecte');tv.setAttribute('aria-label','Proiecte — folosiți săgețile pentru a naviga');
+  [...tv.children].forEach((p,i)=>{const img=p.querySelector('.pimg');if(!img)return;
+    const s=document.createElement('span');s.className='pscan';img.appendChild(s);
+    const c=document.createElement('span');c.className='pcoord';c.textContent='pt·'+String(i+1).padStart(2,'0');img.appendChild(c);});
+  focusTv(tv);
+  let t;tv.addEventListener('scroll',()=>{clearTimeout(t);t=setTimeout(()=>focusTv(tv),60);},{passive:true});
+  tv.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();
+    const w=tv.children[0].offsetWidth+26;tv.scrollBy({left:e.key==='ArrowRight'?w:-w,behavior:reduce?'auto':'smooth'});}});
+  let down=false,dx=0,sl=0;
+  tv.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse')return;down=true;dx=e.clientX;sl=tv.scrollLeft;tv.style.scrollSnapType='none';});
+  tv.addEventListener('pointermove',e=>{if(down)tv.scrollLeft=sl-(e.clientX-dx);});
+  const up=()=>{if(down){down=false;tv.style.scrollSnapType='';focusTv(tv);}};
+  tv.addEventListener('pointerup',up);tv.addEventListener('pointerleave',up);
+});
+document.querySelectorAll('.tnav button').forEach(b=>{
+  b.addEventListener('click',()=>{const tv=document.getElementById(b.dataset.tv);const w=tv.children[0].offsetWidth+26;
+    tv.scrollBy({left:b.dataset.dir*w,behavior:reduce?'auto':'smooth'});});
+});
+addEventListener('resize',()=>document.querySelectorAll('.traverse').forEach(focusTv));
+
+/* ---- point cloud (explorable, measured) ---- */
+(function(){
+  const cv=document.getElementById('cloud');if(!cv)return;
+  const ctx=cv.getContext('2d');let W,H,DPR=Math.min(devicePixelRatio||1,2);
+  // build a simple house: box + pitched roof, sampled as points
+  const pts=[];
+  function push(x,y,z){pts.push([x,y,z]);}
+  const rnd=(a,b)=>a+Math.random()*(b-a);
+  // walls
+  for(let i=0;i<900;i++){const s=Math.floor(Math.random()*4);const y=rnd(-1,1);
+    if(s===0)push(rnd(-1,1),y,-1);else if(s===1)push(rnd(-1,1),y,1);
+    else if(s===2)push(-1,y,rnd(-1,1));else push(1,y,rnd(-1,1));}
+  // roof (two slopes meeting at ridge y=1.9)
+  for(let i=0;i<520;i++){const t=Math.random();const x=rnd(-1,1);const side=Math.random()<.5?-1:1;
+    const z=side*(1-t);const y=1+t*.9;push(x,y,z);}
+  // floor + scatter ground
+  for(let i=0;i<260;i++)push(rnd(-1.6,1.6),-1,rnd(-1.6,1.6));
+  document.getElementById('ptcount').textContent=pts.length+' pts';
+  let yaw=.5,pitch=-.18,tyaw=.5,tpitch=-.18,drag=false,px,py,auto=!reduce;
+  let assemble=reduce?1:0,running=false,visible=false;   // assemble = build-in ramp; running = rAF gate
+  function resize(){W=cv.clientWidth;H=cv.clientHeight;cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
+  new ResizeObserver(resize).observe(cv);resize();
+  cv.addEventListener('pointerdown',e=>{drag=true;auto=false;px=e.clientX;py=e.clientY;cv.setPointerCapture(e.pointerId);});
+  cv.addEventListener('pointermove',e=>{if(!drag)return;tyaw+=(e.clientX-px)*.008;tpitch+=(e.clientY-py)*.006;tpitch=Math.max(-.6,Math.min(.4,tpitch));px=e.clientX;py=e.clientY;});
+  cv.addEventListener('pointerup',()=>{drag=false;});
+  function frame(){
+    if(auto)tyaw+=0.0016;
+    yaw+=(tyaw-yaw)*.08;pitch+=(tpitch-pitch)*.08;
+    if(assemble<1)assemble=Math.min(1,assemble+0.02);
+    ctx.clearRect(0,0,W,H);
+    const cx=W*.5,cy=H*.52,sc=Math.min(W,H)*.30;
+    const cyaw=Math.cos(yaw),syaw=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);
+    const shown=Math.floor(pts.length*assemble);
+    for(let i=0;i<shown;i++){
+      let[x,y,z]=pts[i];
+      let x1=x*cyaw+z*syaw, z1=-x*syaw+z*cyaw;
+      let y1=y*cp - z1*sp, z2=y*sp + z1*cp;
+      const sx=cx+x1*sc, sy=cy - y1*sc;
+      const depth=(z2+2)/4; // 0..1
+      const r=0.6+depth*1.5;
+      // blue = measured scan points: a horizontal moving band + a fixed fraction
+      const scanY=Math.sin(yaw*1.3)*0.9;
+      const isBlue=(Math.abs(y-scanY)<0.06)||(i%23===0);
+      if(isBlue){ctx.fillStyle='rgba(43,43,230,'+(0.5+depth*0.5)+')';}
+      else{ctx.fillStyle='rgba(27,23,18,'+(0.18+depth*0.5)+')';}
+      ctx.fillRect(sx,sy,r,r);
+    }
+  }
+  function loop(){frame();if(running&&!reduce)requestAnimationFrame(loop);}
+  // ambient runs ONLY while on-screen (pauses to save CPU/GPU); reduced-motion draws once, static
+  new IntersectionObserver(es=>{visible=es[0].isIntersecting;
+    if(visible&&!running&&!reduce){running=true;loop();}else if(!visible){running=false;}
+  },{threshold:.04}).observe(cv);
+  if(reduce){yaw=tyaw;pitch=tpitch;frame();}
+})();
+</script>
+</body>
+</html>
