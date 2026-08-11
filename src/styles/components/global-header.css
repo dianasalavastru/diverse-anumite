@@ -30,11 +30,45 @@
 }
 
 /* MOTION_NOTES.md §"Motion functions" — Transition: header settle-to-solid.
-   Applied by the motion runtime past 60vh of scroll. */
+   Applied by the motion runtime as soon as the page leaves scrollTop 0.
+
+   ── TWO RECORDED DIVERGENCES FROM THE HiFi, AND WHY ────────────────────────
+   The HiFis settle the header to `rgba(255,255,255,.9)` + `backdrop-filter:
+   blur(8px)`, past 60vh of scroll. Both halves of that shipped a header you
+   could read the page through:
+
+     the THRESHOLD — for the entire first 60vh of every route the header
+       declared no background at all. It is `position: fixed`, so headings and
+       body copy scrolled underneath it and collided with the wordmark, the
+       desktop row and the small-viewport control. On About that is most of the
+       page's opening; on a phone, where 60vh is ~490px, it is several screens
+       of reading.
+     the FILL — 90% white over an 8px blur is still 10% of the page showing
+       through, and a blur is a smear of the content, not a cover for it. Type
+       moving under type at 10% opacity is exactly the collision the settle
+       exists to end.
+
+   So: `--paper`, the ground `body` already paints (base.css), fully opaque, and
+   applied from the first pixel of scroll. Geometry, height, type and the
+   hairline are untouched — this rule changes colour and nothing else, and the
+   `transparent` bottom border above means the state costs no layout shift.
+
+   ── AND THE FADE IS ONE-WAY ────────────────────────────────────────────────
+   `transition: none` is the third divergence, and it follows from the second.
+   A cross-fade from transparent to paper is 400ms of partial transparency —
+   i.e. 400ms of exactly the see-through the opaque fill exists to end, at the
+   one moment it matters most, on every single scroll start. Over 60vh of travel
+   that fade read as a settle; over 2px it reads as the bug, briefly.
+
+   Only the way IN is instant. A transition is governed by the destination
+   state, so removing the class hands the element back to the base rule above
+   and the header still eases back to transparent over 0.4s on the return to
+   the top — where there is no content under it to protect, and where the
+   settle's easing is the whole of what it was for. */
 .site-header.solid {
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(8px);
+  background: var(--paper);
   border-bottom: 1px solid var(--hair);
+  transition: none;
 }
 
 /* The wordmark. Pixel voice as identity (VISUAL_DIRECTION_v2.0 §12 pr. 13). */
@@ -141,13 +175,35 @@
   right: 0;
 }
 
-.site-header.solid .wm,
-.site-header.solid nav a,
-.site-header.solid .menu {
+/* Settling puts paper under the chrome, so the `on-hero` inversion above has to
+   come back off — white type on a white ground is no header at all.
+
+   These are scoped `.on-hero.solid`, NOT `.solid`. Undoing an inversion is the
+   only thing they do, and the default variant has no inversion to undo: on it
+   every declaration below already restates the default. Unscoped they had a
+   side effect instead — `.site-header.solid nav a` and `.site-header nav a.here`
+   carry the same specificity, and the `.solid` block wins on order, so the
+   settled header dropped the current item's blue back to ink on EVERY page. At
+   60vh that was a state most readers never reached; from 2px it would have been
+   the header's normal appearance. The extra class both scopes the reset and
+   lifts it clear of `.here`, which is then restated for on-hero explicitly. */
+.site-header.on-hero.solid .wm,
+.site-header.on-hero.solid nav a,
+.site-header.on-hero.solid .menu {
   color: var(--ink);
 }
 
-.site-header.solid nav a.en {
+/* The current item keeps the one treatment it has everywhere else — colour AND
+   the drawn-in underline, which `.on-hero` had turned white. */
+.site-header.on-hero.solid nav a.here {
+  color: var(--blue);
+}
+
+.site-header.on-hero.solid nav a.here::after {
+  background: var(--blue);
+}
+
+.site-header.on-hero.solid nav a.en {
   /* --ink-60, not --ink-40: same 11px functional link, settled state (I-3). */
   color: var(--ink-60);
 }
@@ -309,5 +365,27 @@
   html.menu-open .site-header .wm,
   html.menu-open .site-header .menu {
     color: var(--ink);
+  }
+
+  /* And the header carries its own paper while the panel is up, rather than
+     borrowing the panel's.
+
+     The panel does extend behind the header (`inset: 0` with the header's
+     height as padding), so an OPEN panel already backs it. But the panel fades
+     in over 240ms, and at scrollTop 0 the header is transparent — for that
+     quarter second the wordmark and the ink-coloured control sit over whatever
+     the page still shows through. Stating it here makes the header opaque on
+     the same frame the class lands, at any scroll position and on both
+     variants, which is what the panel's own opacity cannot promise mid-fade.
+     `background` only: no border is added, so nothing moves.
+
+     `transition: none` for the same reason it is on `.solid`: the base rule
+     would otherwise cross-fade this in over 0.4s, which is 400ms of the very
+     transparency the declaration exists to remove — and 400ms is longer than
+     the panel's own 240ms fade, so the flash would outlast the opening. Closing
+     hands the element back to the base rule and still eases out. */
+  html.menu-open .site-header {
+    background: var(--paper);
+    transition: none;
   }
 }

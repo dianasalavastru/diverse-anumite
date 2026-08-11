@@ -213,10 +213,28 @@ const header = document.querySelector<HTMLElement>('.site-header');
 const stations = [...document.querySelectorAll<HTMLElement>('[data-station]')];
 const railStops = [...document.querySelectorAll<HTMLElement>('.rail .st')];
 
+/**
+ * The settle threshold, in pixels of scroll.
+ *
+ * It used to be `innerHeight * 0.6`, which is what the HiFis animate — and for
+ * every pixel below it the fixed header declared no background, so the page
+ * scrolled underneath it in full. 60vh is most of About's opening on a laptop
+ * and several screens on a phone.
+ *
+ * 2px, not 0: `scrollY` is fractional on trackpads, high-DPI displays and
+ * pinch-zoomed viewports, and both rubber-band overscroll and the browser's own
+ * scroll anchoring can land it a hair off zero while the page has visually not
+ * moved. Toggling a 0.4s background transition on that noise is a visible
+ * flicker at rest. Two pixels is below the header's own hairline and cannot be
+ * read as "still at the top" by anyone — the state is opaque before any content
+ * has travelled far enough to reach the header's underside.
+ */
+const SETTLE_AT = 2;
+
 if (header || (stations.length > 0 && railStops.length > 0)) {
   const onScroll = () => {
-    // Header settle-to-solid past 60% of the first viewport.
-    header?.classList.toggle('solid', scrollY > innerHeight * 0.6);
+    // Header settle-to-solid the moment the page leaves the top.
+    header?.classList.toggle('solid', scrollY > SETTLE_AT);
 
     if (stations.length === 0 || railStops.length === 0) return;
 
@@ -233,5 +251,21 @@ if (header || (stations.length > 0 && railStops.length > 0)) {
   };
 
   addEventListener('scroll', onScroll, { passive: true });
+
+  /* Synchronously, for a document that is ALREADY scrolled when this module
+     runs — a deep link with a fragment, a hard reload part-way down a page. */
   onScroll();
+
+  /* And again at the two moments the scroll offset moves without this module
+     being anywhere near it. The browser restores a reload's scroll position
+     around `load`, and a bfcache entry comes back at its old offset on
+     `pageshow` — in both cases the initial call above has already run, at
+     scrollY 0, and there is no scroll event to correct it. A page restored
+     half-way down would otherwise paint a transparent header over its content
+     until the reader happened to scroll.
+
+     `classList.toggle` with a boolean is idempotent, so the extra calls are
+     free when the state is already right — which is the common case. */
+  addEventListener('load', onScroll);
+  addEventListener('pageshow', onScroll);
 }
