@@ -120,13 +120,12 @@ export interface HomepageMessages {
       readonly intro: string;
       readonly cta: string;
     };
-    readonly pointCloud: {
-      readonly label: string;
-      readonly hint: string;
-      readonly posterAlt: string;
-      /** Shown in place of the field when nothing is publishable yet. */
-      readonly unavailable: string;
-    };
+    /**
+     * No `pointCloud` here, deliberately. The HiFi's 04·b capture centrepiece is
+     * not part of the approved Homepage composition; the seam it fed
+     * (`media/PointCloudField.astro`) is still driven by `PillarHubMessages`,
+     * `WorkEntryMessages` and `ServiceMessages`, which keep their own copy.
+     */
     readonly realityCapture: {
       readonly index: string;
       readonly title: string;
@@ -220,7 +219,7 @@ const ro: HomepageMessages = {
     marker: {
       no: '04',
       label: 'Lucrari, in focus',
-      coordinate: 'a · arhitectura — b · nor de puncte — c · documentare',
+      coordinate: 'a · arhitectura — c · documentare',
     },
     architectureDesign: {
       index: '04·a',
@@ -228,12 +227,6 @@ const ro: HomepageMessages = {
       intro:
         'Fiecare proiect intra pe rand in focus — restul raman aproape, pentru context. Culoarea revine doar acolo unde privirea se opreste.',
       cta: 'Toate lucrarile — Arhitectura & Design',
-    },
-    pointCloud: {
-      label: '04·b — reality capture · nor de puncte',
-      hint: 'trageti pentru a inspecta →',
-      posterAlt: 'Imagine substituent — nor de puncte, in asteptare',
-      unavailable: 'nor de puncte — asset in pregatire',
     },
     realityCapture: {
       index: '04·c',
@@ -336,7 +329,7 @@ const en: HomepageMessages = {
     marker: {
       no: '04',
       label: 'Work, in focus',
-      coordinate: 'a · architecture — b · point cloud — c · documentation',
+      coordinate: 'a · architecture — c · documentation',
     },
     architectureDesign: {
       index: '04·a',
@@ -344,12 +337,6 @@ const en: HomepageMessages = {
       intro:
         'Each project comes into focus in turn — the rest stay close, for context. Colour returns only where the eye stops.',
       cta: 'All work — Architecture & Design',
-    },
-    pointCloud: {
-      label: '04·b — reality capture · point cloud',
-      hint: 'drag to inspect →',
-      posterAlt: 'Placeholder image — point cloud pending',
-      unavailable: 'point cloud — asset in preparation',
     },
     realityCapture: {
       index: '04·c',

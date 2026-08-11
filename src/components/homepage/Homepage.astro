@@ -27,8 +27,10 @@
  * all happen inside the source, before anything reaches a component.
  *
  * ── WHAT IS NOT HERE ──────────────────────────────────────────────────────
- * No point-cloud renderer (Workstream D — see `media/PointCloudField.astro` for
- * the mount contract and I-2 handshake). No canonical URL or sitemap emission
+ * No point-cloud field at all: station 04's 04·b capture centrepiece was removed
+ * from the Homepage composition, so this page neither selects a subject nor
+ * renders the seam. `media/PointCloudField.astro` is unchanged and still serves
+ * the Reality Capture Hub, Work Entry and Service. No canonical URL or sitemap emission
  * (blocked on the production origin — see BaseLayout). No `@view-transition`:
  * §13 scopes the cross-document dissolve to Archive → Work Entry, and the
  * Homepage is neither end of it.
@@ -50,7 +52,7 @@ import { contentSource } from '../../lib/content/build-source';
 const source = contentSource();
 /* ─────────────────────────────────────────────────────────────────────────── */
 
-import { HIGHLIGHT_LIMIT, indexById, pointCloudSubject } from './highlights';
+import { HIGHLIGHT_LIMIT } from './highlights';
 
 interface Props {
   locale: Locale;
@@ -59,18 +61,14 @@ interface Props {
 const { locale } = Astro.props;
 const copy = homepageMessages(locale);
 
-const [entries, archive, placedAnywhere, placedArchitecture, placedRealityCapture, competitions, experience] =
+const [placedAnywhere, placedArchitecture, placedRealityCapture, competitions, experience] =
   await Promise.all([
-    source.workEntries(locale),
-    source.workArchive(locale),
     source.highlights('homepage', null, locale),
     source.highlights('homepage', 'architecture-design', locale),
     source.highlights('homepage', 'reality-capture', locale),
     source.curatedView('competitions', locale),
     source.professionalExperience(locale),
   ]);
-
-const byId = indexById(entries);
 
 /**
  * M-4 · the pillar sections show **placements only** — reconciled at I-3.
@@ -171,7 +169,6 @@ const STATIONS = {
     locale={locale}
     copy={copy.work}
     highlights={highlights}
-    pointCloudSubject={pointCloudSubject(archive, byId)}
     station={STATIONS.work}
   />
 

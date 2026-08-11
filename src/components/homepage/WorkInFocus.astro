@@ -12,18 +12,20 @@
  * Preview Card ×n · CTA Group.
  *
  * ── WHY THIS IS ONE SECTION CONTAINING TWO MODULES ─────────────────────────
- * The approved HiFi composes station 04 as one field with three beats — 04·a
- * Architecture & Design, 04·b the point-cloud centrepiece, 04·c Documentation —
- * and gives the two traverses deliberately different cadence "so the section
- * doesn't repeat itself" (VISUAL_DIRECTION_v2.0 §12: "Never repeat the same
- * layout in succession"). Structurally these are still the two M-4 modules: each
- * has its own framing line, its own curated set and its own single continuation
- * to its own Hub, and each carries comparable weight, so neither pillar reads as
- * primary (D3).
+ * Station 04 is one field with two beats — 04·a Architecture & Design and 04·c
+ * Documentation — and gives the two traverses deliberately different cadence "so
+ * the section doesn't repeat itself" (VISUAL_DIRECTION_v2.0 §12: "Never repeat
+ * the same layout in succession"). Structurally these are the two M-4 modules:
+ * each has its own framing line, its own curated set and its own single
+ * continuation to its own Hub, and each carries comparable weight, so neither
+ * pillar reads as primary (D3).
  *
- * The point cloud is the Reality Capture module's preview treatment, which the
- * Page IA anticipated exactly: M-4 *Future:* "a Reality-Capture-specific preview
- * treatment (e.g. point-cloud) — UI-phase, not IA."
+ * ── NO 04·b POINT-CLOUD FIELD HERE ────────────────────────────────────────
+ * The HiFi's point-cloud centrepiece between the two traverses is not part of
+ * the approved Homepage composition and was removed. The seam itself
+ * (`media/PointCloudField.astro`) is untouched and still renders on the Reality
+ * Capture Hub, the Work Entry capture module and Service proof — this file
+ * simply no longer consumes it.
  *
  * ── A PILLAR WITH NO PLACEMENTS (resolved at I-3) ──────────────────────────
  * The module renders its Section Introduction and its Hub continuation, and no
@@ -39,11 +41,10 @@
  * warning, which is where that belongs.
  */
 import FocusCarousel from '../FocusCarousel.astro';
-import PointCloudField from '../media/PointCloudField.astro';
 import SectionMarker from '../SectionMarker.astro';
 import WorkPreviewCard from '../WorkPreviewCard.astro';
 import { localize } from '../../lib/content';
-import type { Locale, Pillar, WorkEntry, WorkEntrySummary } from '../../lib/content';
+import type { Locale, Pillar, WorkEntrySummary } from '../../lib/content';
 import type { HomepageMessages } from '../../lib/i18n/homepage';
 import { routePath } from '../../lib/i18n/routes';
 import { pillarRouteKey } from '../../lib/i18n/vocabulary';
@@ -52,12 +53,10 @@ interface Props {
   locale: Locale;
   copy: HomepageMessages['work'];
   highlights: Readonly<Record<Pillar, readonly WorkEntrySummary[]>>;
-  /** The one entry the point-cloud field is about (§10.4, §19.4). */
-  pointCloudSubject: WorkEntry | null;
   station: number;
 }
 
-const { locale, copy, highlights, pointCloudSubject, station } = Astro.props;
+const { locale, copy, highlights, station } = Astro.props;
 
 /** Authored plate tones, transcribed from the HiFi's two traverses. */
 const TONES: Readonly<Record<Pillar, readonly string[]>> = {
@@ -104,71 +103,57 @@ const entryHref = (entry: WorkEntrySummary): string | null => {
   <SectionMarker copy={copy.marker} heading id="work-heading" />
 
   {
-    modules.map((module, moduleIndex) => {
+    modules.map((module) => {
       const entries = highlights[module.pillar];
       const tones = TONES[module.pillar];
 
       return (
-        <>
-          <section class="work-module" aria-labelledby={module.headingId}>
-            <div class="worktitle rv" data-rv="head">
-              <span class="n" aria-hidden="true">
-                {module.copy.index}
-              </span>
-              <h3 id={module.headingId}>{module.copy.title}</h3>
-            </div>
+        <section class="work-module" aria-labelledby={module.headingId}>
+          <div class="worktitle rv" data-rv="head">
+            <span class="n" aria-hidden="true">
+              {module.copy.index}
+            </span>
+            <h3 id={module.headingId}>{module.copy.title}</h3>
+          </div>
 
-            <p class="intro rv" data-rv="meta">{module.copy.intro}</p>
+          <p class="intro rv" data-rv="meta">{module.copy.intro}</p>
 
-            {entries.length > 0 && (
-              <FocusCarousel
-                id={module.id}
-                label={`${module.copy.title} — ${copy.carousel.label}`}
-                roleDescription={copy.carousel.roleDescription}
-                previousLabel={copy.carousel.previous}
-                nextLabel={copy.carousel.next}
-                positionLabel={copy.carousel.position}
-                cadence={module.cadence}
-                count={entries.length}
-              >
-                {entries.map((entry, index) => {
-                  const href = entryHref(entry);
-                  return href ? (
-                    <WorkPreviewCard
-                      entry={entry}
-                      locale={locale}
-                      href={href}
-                      index={index + 1}
-                      tone={tones[index % tones.length]}
-                      focused={index === 0}
-                    />
-                  ) : null;
-                })}
-              </FocusCarousel>
-            )}
-
-            <div class="modcta rv" data-rv="meta">
-              <a href={routePath(pillarRouteKey(module.pillar) as never, locale, undefined as never)}>
-                {module.copy.cta}
-                <span class="ar" aria-hidden="true">
-                  →
-                </span>
-              </a>
-            </div>
-          </section>
-
-          {/* 04·b — the crescendo sits between the two modules, exactly as authored. */}
-          {moduleIndex === 0 && (
-            <PointCloudField
-              locale={locale}
-              label={copy.pointCloud.label}
-              hint={copy.pointCloud.hint}
-              posterAlt={copy.pointCloud.posterAlt}
-              unavailable={copy.pointCloud.unavailable}
-              subject={pointCloudSubject}
-            />
+          {entries.length > 0 && (
+            <FocusCarousel
+              id={module.id}
+              label={`${module.copy.title} — ${copy.carousel.label}`}
+              roleDescription={copy.carousel.roleDescription}
+              previousLabel={copy.carousel.previous}
+              nextLabel={copy.carousel.next}
+              positionLabel={copy.carousel.position}
+              cadence={module.cadence}
+              count={entries.length}
+            >
+              {entries.map((entry, index) => {
+                const href = entryHref(entry);
+                return href ? (
+                  <WorkPreviewCard
+                    entry={entry}
+                    locale={locale}
+                    href={href}
+                    index={index + 1}
+                    tone={tones[index % tones.length]}
+                    focused={index === 0}
+                  />
+                ) : null;
+              })}
+            </FocusCarousel>
           )}
-        </>
+
+          <div class="modcta rv" data-rv="meta">
+            <a href={routePath(pillarRouteKey(module.pillar) as never, locale, undefined as never)}>
+              {module.copy.cta}
+              <span class="ar" aria-hidden="true">
+                →
+              </span>
+            </a>
+          </div>
+        </section>
       );
     })
   }

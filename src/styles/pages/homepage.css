@@ -287,10 +287,47 @@
 .caps {
   position: relative;
   padding-bottom: var(--pad-loud);
+  /* The gateway columns and the interlock between them are measured from the
+     section's own inline size (see `.capgrid`), so the composition scales with
+     itself rather than with the window. */
+  container-type: inline-size;
 }
+
+/* ── HOW THE TWO GATEWAYS ARE PLACED ────────────────────────────────────────
+   The HiFi offsets the RC plate with `margin-top: -8vh` on a plain flow
+   sibling. That anchors RC to the BOTTOM OF A&D's CAPTION — a text block whose
+   height the offset cannot know — so the plate lands a caption-and-a-bit below
+   where the composition wants it, and the left column empties out into a dead
+   white band while the eye waits for RC to arrive. The offset is also derived
+   from viewport height, so the separation grows on tall windows for no
+   compositional reason.
+
+   The relationship is therefore declared instead of nudged. A&D holds column
+   one and spans the whole composition; RC starts on row two, and row one is
+   A&D's PLATE (its column width at the plate's own 16/11) less a deliberate
+   interlock. RC's plate consequently rises alongside A&D's caption rather than
+   after it: the two gateways share vertical space, and the read runs diagonally
+   from the dominant plate down into the smaller one.
+
+   The columns do not overlap (they did, by up to 3%, once both `min()` caps
+   released), so a plate can rise beside its neighbour without ever touching it.
+   Nothing about either plate's proportion, weight or order changes — only where
+   the second one begins. */
 
 .capgrid {
   position: relative;
+  /* A&D's column, unchanged from the HiFi's `min(62%, 760px)`. */
+  --cap-ad: min(62cqi, 760px);
+  /* …and the plate it carries, at `.cap.ad .cimg`'s 16/11. */
+  --cap-ad-plate: calc(var(--cap-ad) * 11 / 16);
+  /* How far RC's plate rises past the bottom edge of A&D's — a share of that
+     plate, so the interlock reads the same at every width. */
+  --cap-interlock: calc(var(--cap-ad-plate) * 0.28);
+  display: grid;
+  grid-template-columns: var(--cap-ad) minmax(0, 1fr);
+  grid-template-rows: calc(var(--cap-ad-plate) - var(--cap-interlock)) auto;
+  column-gap: clamp(24px, 3cqi, 48px);
+  align-items: start;
 }
 
 .cap {
@@ -299,13 +336,15 @@
 }
 
 .cap.ad {
-  width: min(62%, 760px);
+  grid-column: 1;
+  grid-row: 1 / span 2;
 }
 
 .cap.rc {
-  width: min(41%, 470px);
-  margin-left: auto;
-  margin-top: -8vh;
+  grid-column: 2;
+  grid-row: 2;
+  justify-self: end;
+  width: min(100%, 470px);
 }
 
 .cap .cimg {
@@ -448,8 +487,25 @@
   align-items: stretch;
 }
 
+/* `align-self` is load-bearing, not cosmetic. The parent's `align-items:
+   stretch` (transcribed from the HiFi) stretches this figure to the row height
+   — which the *body* column sets — and `aspect-ratio` then derives WIDTH from
+   that stretched height. The figure consequently overran its 0.85fr track by
+   162px at 1440 and 204px at 1280, covering the readout numerals that §"III ·
+   PRACTICE, MEASURED" scales up so they "read as PROOF, not footnotes".
+
+   The fragility is the HiFi's own (it overlaps there too, once its viewport
+   narrows to ~831px). It surfaces here at desktop width because this body
+   column is ~185px taller than the HiFi's: the `(substituent)` suffixes wrap
+   each readout label, and the wireframe's mandated About link — which the HiFi
+   omits — adds a row. Both are correct and stay.
+
+   `start` makes the height derive from the width instead, which is the
+   direction the authored 4:5 ratio assumes. Below 820px `.cred` is one column,
+   so this is inert there. */
 .cred .figure {
   position: relative;
+  align-self: start;
   overflow: hidden;
   background: #c6c1b7;
   aspect-ratio: 4 / 5;
@@ -942,6 +998,14 @@ html.anim-ready .hero-scan {
     padding-left: 0;
     border-top: 1px solid var(--hair);
     padding-top: 18px;
+  }
+
+  /* The placed composition is released back into flow: below 820px there is no
+     room for a column to rise beside another without either clipping or
+     shrinking to a thumbnail, so the two gateways become a clean sequence and
+     the `.cap` grid placements above stop applying. */
+  .capgrid {
+    display: block;
   }
 
   .cap,
