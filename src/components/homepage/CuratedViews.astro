@@ -1,0 +1,134 @@
+---
+/**
+ * M-5 · Curated-view highlight module — HOMEPAGE_PAGE_IA Stage E, station 05
+ * ("V · CURATED").
+ *
+ * Responsibility (Page IA M-5): expose **Competitions** and **Professional
+ * Experience** as real destinations that cut across the archive. "These modules
+ * exist to expose important editorial narratives that cut across the Work
+ * Archive, rather than to replace archive browsing."
+ *
+ * Components (HOMEPAGE_WIREFRAME M-5): Curated View Card ×2, "each continuing to
+ * its Curated View… no shortcut straight to entries" for the module CTA.
+ *
+ * ── THE TWO-LEVEL NAVIGATION RULE (Page IA §3) ─────────────────────────────
+ *   Module CTA → ALWAYS the canonical destination — here the curated view
+ *     (`/proiecte/concursuri`, `/proiecte/experienta-profesionala`). Fixed
+ *     behaviour, applied uniformly. The approved HiFi expresses it as the
+ *     name-as-doorway underline on each block's heading, so the heading is the
+ *     link and no extra CTA is added to the approved composition.
+ *   Individual items → a wireframe-phase decision, permitted to link directly to
+ *     the Work Entry. They do, which is also what makes each row keyboard
+ *     reachable — the HiFi's rows are inert `cursor:pointer` divs.
+ *
+ * ── MEMBERSHIP IS B'S, NOT THIS COMPONENT'S ────────────────────────────────
+ * Competitions is the **Entry Type** axis and Professional Experience is
+ * **Attribution = Studio** with Employer as grouping metadata (IA §5.1) — all
+ * three decided inside `ContentSource` (`isCompetition`,
+ * `isProfessionalExperience`, `groupByEmployer`). This component receives the
+ * result already scoped, ordered and grouped, and renders it.
+ *
+ * The index row's place line reads `WorkArchiveItem.location`, which the archive
+ * projection carries from I-3 onwards (`CONTENT_MODEL.md` §3 Metadata, "mostly
+ * display", the same axis `year` already comes from). Before I-3 this component
+ * took full `WorkEntry` objects resolved by id purely to read that one string;
+ * extending B's projection removed the lookup.
+ */
+import Plate from '../media/Plate.astro';
+import SectionMarker from './SectionMarker.astro';
+import { localize } from '../../lib/content';
+import type { EmployerGroup, Locale, WorkArchiveItem } from '../../lib/content';
+import type { HomepageMessages } from '../../lib/i18n/homepage';
+import { routePath } from '../../lib/i18n/routes';
+
+interface Props {
+  locale: Locale;
+  copy: HomepageMessages['curated'];
+  /** `source.curatedView('competitions', locale)` — scoped and ordered by B. */
+  competitions: readonly WorkArchiveItem[];
+  /** `source.professionalExperience(locale)` — grouped by Employer (IA §5.1). */
+  experience: readonly EmployerGroup[];
+  station: number;
+}
+
+const { locale, copy, competitions, experience, station } = Astro.props;
+
+interface Row {
+  href: string;
+  title: string;
+  sub: string | null;
+  year: number;
+}
+
+const rows: Row[] = competitions.flatMap((item) => {
+  const slug = localize(item.slug, locale);
+  const title = localize(item.title, locale);
+  if (!slug || !title) return [];
+  return [
+    {
+      href: routePath('workEntry', locale, slug),
+      title,
+      // Absent Location renders no place line — never a placeholder string.
+      sub: localize(item.location, locale),
+      year: item.year,
+    },
+  ];
+});
+
+/**
+ * Employer names are the note under the Professional Experience block when the
+ * set is non-empty — grouping metadata made visible, per M-5, "grouped by
+ * Employer; employer is grouping metadata, not a category". The authored note
+ * stands in when there is nothing to group.
+ */
+const employers = experience.map((group) => group.employer.name);
+const professionalNote =
+  employers.length > 0 ? employers.join(' · ') : copy.professionalExperience.note;
+
+const professionalCover = experience[0]?.entries[0]?.cover ?? null;
+---
+
+<section class="curated" data-station={station} aria-labelledby="curated-heading">
+  <span class="ghost" aria-hidden="true">{copy.marker.no}</span>
+
+  <SectionMarker copy={copy.marker} heading id="curated-heading" />
+
+  <div class="cur-grid">
+    <div class="comp rv" data-rv="img">
+      <h3>
+        <a href={routePath('competitions', locale)}>{copy.competitions.title}</a>
+      </h3>
+      <p class="cintro">{copy.competitions.intro}</p>
+
+      {
+        rows.length > 0 && (
+          <ul class="idx">
+            {rows.map((row) => (
+              <li>
+                <a class="row" href={row.href}>
+                  <span class="place">
+                    {row.title}
+                    {row.sub && <span class="sub">{row.sub}</span>}
+                  </span>
+                  <span class="y">{row.year}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
+
+    <div class="prof rv" data-rv="img">
+      <div class="pimg">
+        <Plate image={professionalCover} locale={locale} tone="#c6c1b7" />
+      </div>
+      <h3>
+        <a href={routePath('professionalExperience', locale)}>
+          {copy.professionalExperience.title}
+        </a>
+      </h3>
+      <div class="note measure">{professionalNote}</div>
+    </div>
+  </div>
+</section>

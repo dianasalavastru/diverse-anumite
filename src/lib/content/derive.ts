@@ -57,10 +57,24 @@ export function localize<T>(value: Localized<T> | null | undefined, locale: Loca
 }
 
 /**
+ * The minimum an entity needs for the EN gate to be decidable. Satisfied by `WorkEntry`,
+ * `Service`, `WorkEntrySummary`, `ServiceSummary` and `WorkArchiveItem` alike.
+ *
+ * WIDENED AT I-3 (structural, not a redefinition). `isEnAvailable` previously named the four
+ * concrete types; the query layer's locale scoping (`source.ts`) needs the same rule over the
+ * archive projection too, and restating `enPublished && slug.en !== null` in a second place is
+ * precisely the drift §7.1 exists to prevent. Every prior call site still type-checks.
+ */
+export interface EnGated {
+  readonly enPublished: boolean;
+  readonly slug: { readonly en: string | null };
+}
+
+/**
  * Whether an entity may generate an EN page: it must be EN-published *and* carry the
  * localized identity fields the route needs (§11.1, §11.2).
  */
-export function isEnAvailable(entity: WorkEntry | Service | WorkEntrySummary | ServiceSummary): boolean {
+export function isEnAvailable(entity: EnGated): boolean {
   return entity.enPublished && entity.slug.en !== null;
 }
 

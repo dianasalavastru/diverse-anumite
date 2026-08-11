@@ -1,0 +1,102 @@
+/* =============================================================================
+   Focus Carousel — the track, its controls and its index readout.
+
+   Transcribed from the approved Homepage HiFi's `.traverse` / `.tnav` /
+   `.tindex` rules. The cards themselves are the Work Preview Card
+   (work-preview-card.css).
+
+   `padding-right: 40vw` is authored, not accidental: it is what lets the LAST
+   card reach the centre of the track, which is where scroll-snap's `center`
+   alignment puts the focused item. Removing it would make the final project
+   unfocusable.
+   ========================================================================== */
+
+.traverse {
+  display: flex;
+  gap: 26px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 16px 40vw 30px 0;
+  scrollbar-width: none;
+  /* Vertical page scrolling is never captured — see §14.2 and the island. */
+  overscroll-behavior-x: contain;
+}
+
+.traverse::-webkit-scrollbar {
+  display: none;
+}
+
+/* Traverse B — documentation — a different cadence: portrait frames, tighter,
+   "so the section doesn't repeat itself" (HiFi §IV comment). */
+.traverse.docs .proj {
+  width: min(34vw, 330px);
+}
+
+.traverse.docs .proj .pimg {
+  aspect-ratio: 3 / 4;
+}
+
+/* ---- Controls ------------------------------------------------------------ */
+
+.tnav {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  align-items: center;
+}
+
+.tnav button {
+  font-family: var(--mono);
+  font-size: 13px;
+  border: 1px solid var(--hair);
+  background: none;
+  color: inherit;
+  width: 40px;
+  height: 36px;
+  cursor: pointer;
+  transition:
+    border-color 0.3s var(--ease),
+    color 0.3s var(--ease);
+}
+
+.tnav button:hover,
+.tnav button:focus-visible {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+/* The index readout — `NN·NN`, live, updated in sync with the focus change
+   (MOTION_NOTES.md §"B — Measured Reality"). */
+.tindex {
+  font-family: var(--mono);
+  font-size: 12px;
+  /* --ink-60, not --ink-40: this is the live position readout (I-3). */
+  color: var(--ink-60);
+  letter-spacing: 0.08em;
+  margin-right: 8px;
+}
+
+.tindex b {
+  color: var(--blue);
+  font-weight: 400;
+}
+
+@media (max-width: 820px) {
+  .proj {
+    width: 78vw;
+  }
+
+  .traverse.docs .proj {
+    width: 62vw;
+  }
+
+  .traverse {
+    padding-right: 16vw;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .traverse {
+    scroll-behavior: auto;
+  }
+}

@@ -88,9 +88,11 @@
   right: 0;
 }
 
-/* The language toggle sits quieter than the task links. */
+/* The language toggle sits quieter than the task links.
+   --ink-60, not --ink-40: this is an 11px functional link, and --ink-40 measures
+   3.51:1 against the white ground (I-3 correction; see typography.css). */
 .site-header nav a.en {
-  color: var(--ink-40);
+  color: var(--ink-60);
 }
 
 /* §11.2 rule 5: the switcher is disabled, with an accessible explanation, for
@@ -98,7 +100,7 @@
    <span> by the component; never a dead link. The exact UX of this state is
    open upstream (OD-3) — this is the minimum honest treatment, not a design. */
 .site-header nav .en[aria-disabled="true"] {
-  color: var(--ink-40);
+  color: var(--ink-60);
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -146,7 +148,8 @@
 }
 
 .site-header.solid nav a.en {
-  color: var(--ink-40);
+  /* --ink-60, not --ink-40: same 11px functional link, settled state (I-3). */
+  color: var(--ink-60);
 }
 
 /* HP, HUB, RC, WE, SV — the task links collapse to a menu control below 720px.

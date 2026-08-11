@@ -54,7 +54,11 @@ describe('Localization (§7.1, §11.2)', () => {
   });
 
   it('excludes an untranslated entity from EN generation', () => {
-    expect(FIXTURE_WORK_ENTRIES.map(isEnAvailable)).toEqual([true, true, false, true]);
+    // Identified by its EN gate rather than by position, so adding fixture coverage does not
+    // rewrite the assertion (wf-5 joined the set at I-3).
+    const excluded = FIXTURE_WORK_ENTRIES.filter((entry) => !isEnAvailable(entry));
+    expect(excluded.map((entry) => entry._id)).toEqual(['wf-3']);
+    expect(FIXTURE_WORK_ENTRIES.filter(isEnAvailable).length).toBeGreaterThan(0);
   });
 });
 
@@ -64,7 +68,7 @@ describe('Work ⇄ Service relationship (IA Step 6)', () => {
       FIXTURE_SERVICES.map((service) => [service._id, service.demonstratedBy.map((work) => work._id)]),
     ).toEqual([
       ['sv-1', ['wf-1']],
-      ['sv-2', ['wf-2']],
+      ['sv-2', ['wf-2', 'wf-5']],
       ['sv-3', []],
     ]);
   });

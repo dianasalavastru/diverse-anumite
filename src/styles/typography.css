@@ -26,13 +26,30 @@
 
 /* ---- Measurement-data primitives ----------------------------------------- */
 
+/* ── WCAG 2.2 AA correction, integration point I-3 ──────────────────────────
+   Both primitives are authored in all six HiFis with `color: var(--ink-40)`
+   (#8f887e). Measured against the white ground that is **3.51:1**, below the
+   4.5:1 that AA requires for text under 24px — and these are 11px and 12px
+   roles. WCAG 2.2 AA is frozen and owner-ratified (DECISIONS_LOG #78), so the
+   HiFi value cannot stand for functional text.
+
+   The fix is the smallest one available: keep the `--ink-40` token exactly as
+   extracted, and have these two roles consume the next existing token up.
+   `--ink-60` (#6f675d) measures **5.56:1** and is already the authored colour
+   for supporting prose (`.lead .side p`, `.cred .state`, `.work .intro`), so no
+   new colour enters the system and the quiet-secondary reading is preserved.
+
+   `--ink-40` remains in use for non-text and decorative surfaces — see the
+   coordinate rail in layout.css.
+   ------------------------------------------------------------------------- */
+
 /* Section eyebrow / label. Identical in HP, HUB, RC, WE. */
 .eyebrow {
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--ink-40);
+  color: var(--ink-60);
 }
 
 /* The instrument readout. Identical in all six HiFis.
@@ -42,5 +59,5 @@
   font-family: var(--mono);
   font-size: 12px;
   letter-spacing: 0.04em;
-  color: var(--ink-40);
+  color: var(--ink-60);
 }

@@ -414,6 +414,56 @@ export interface WorkEntrySummary {
   readonly curation: Curation;
 }
 
+/**
+ * ADDED AT I-3 — additive, no existing member changed.
+ *
+ * The archive/curated-view projection. `WorkEntrySummary` alone cannot serve the frozen
+ * archive filter contract: §23.5 fixes the URL as
+ * `?pillar=&sector=&type=&discipline=&service=&sort=`, and the summary carries neither
+ * Discipline (the A&D contextual refinement) nor Service references (the RC one). The curated
+ * views need two more: Professional Experience is *Attribution = Studio grouped by Employer*
+ * (IA §5.1), and neither field exists on the summary.
+ *
+ * Rather than widen `WorkEntrySummary` — which every signposting surface consumes, and which
+ * would then carry facets those surfaces have no use for — this composes it. The Work Preview
+ * Card contract is untouched; the archive gets exactly the axes it filters and groups by.
+ *
+ * `attribution` and `employer` here are **not** browse axes. IA Step 5 / F2 is explicit that
+ * Attribution, Employer, Role and Authorship are display and crediting only, never visitor
+ * filters. They appear because a curated view is a *saved editorial filter* (IA §2.3) built at
+ * build time, not a control exposed to visitors.
+ */
+export interface WorkArchiveItem extends WorkEntrySummary {
+  /** The A&D contextual refinement (§23.5). */
+  readonly discipline: DisciplineAssignment;
+  /** The RC contextual refinement (§23.5) — matched by localized Service slug. */
+  readonly services: readonly ServiceRef[];
+  /** Curated-view membership only (IA §5.1). Never an exposed archive filter (F2). */
+  readonly attribution: Attribution;
+  /** Professional Experience grouping metadata, not its own page (IA §5.1). */
+  readonly employer: Employer | null;
+  /**
+   * Display metadata, added at integration point I-3.
+   *
+   * `CONTENT_MODEL.md` §3 puts Location on the Metadata axis, "mostly display",
+   * alongside Year and Status — both of which this projection already carries from
+   * `metadata.*`. It is here for the same reason they are: a signposting surface renders it,
+   * and the alternative was Workstream A resolving a full `WorkEntry` per row purely to read
+   * one string.
+   *
+   * Consumed by the Homepage's Competitions index (`HOMEPAGE_PAGE_IA.md` M-5), whose approved
+   * row carries a place line beneath the title. It is **not** a filter: the archive filter set
+   * is frozen at §23.5 and Location is not in it.
+   */
+  readonly location: Localized<string> | null;
+}
+
+/** The minimum a Work Entry needs to point at a Service in a filter or link (ADDED AT I-3). */
+export interface ServiceRef {
+  readonly _id: string;
+  readonly slug: Localized<string>;
+}
+
 /* ────────────────────────────────────────────────────────────────────────────
  * Service — content object B, first-class peer of Work Entry (CONTENT_MODEL.md §2)
  * ──────────────────────────────────────────────────────────────────────────── */

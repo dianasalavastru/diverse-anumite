@@ -1,0 +1,47 @@
+---
+/**
+ * Section Marker — the connective tissue between spreads.
+ *
+ * COMPONENT_INVENTORY.md "Section Header": labels one section. The approved HiFi
+ * expresses it as a hairline + station number + section name + a running
+ * coordinate, and states why in its own comment: it "ties the sequence together
+ * (fixes abrupt white-gap transitions), pins a right-side anchor (fixes
+ * right-side imbalance), and adds a second small anchor per viewport — all
+ * without adding visual noise."
+ *
+ * The station number carries the pixel voice as a coordinate marker
+ * (VISUAL_DIRECTION_v2.0 §2.5); the label and coordinate carry the mono
+ * measurement voice.
+ *
+ * The `<h2>` variant is used where the marker IS the section's heading. Where a
+ * section already has its own heading (M-3, M-4) the marker is a plain label and
+ * `heading` stays false, so the document outline gains no duplicate level.
+ */
+import type { SectionMarkerCopy } from '../../lib/i18n/homepage';
+
+interface Props {
+  copy: SectionMarkerCopy;
+  /** Render the section name as this section's `<h2>`. */
+  heading?: boolean;
+  /** Id for the heading, so the section can be `aria-labelledby` it. */
+  id?: string;
+}
+
+const { copy, heading = false, id } = Astro.props;
+---
+
+<div class="smark rv" data-rv="meta">
+  <span class="no" aria-hidden="true">{copy.no}</span>
+  {
+    heading ? (
+      <h2 class="lbl" id={id}>
+        {copy.label}
+      </h2>
+    ) : (
+      <span class="lbl" id={id}>
+        {copy.label}
+      </span>
+    )
+  }
+  <span class="co">{copy.coordinate}</span>
+</div>

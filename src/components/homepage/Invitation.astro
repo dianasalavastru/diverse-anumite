@@ -1,0 +1,64 @@
+---
+/**
+ * M-6 · Contact-invitation module — HOMEPAGE_PAGE_IA Stage F, station 06
+ * ("VI · INVITATION").
+ *
+ * Responsibility (Page IA M-6 / wireframe M-6): provide a clear path to start a
+ * conversation **without hard-selling** (J6). This carries the Homepage's
+ * **single primary (conversion) action**, and it "appears only here, at the end,
+ * after understanding has accumulated. The pillar-hub and curated-view
+ * continuations above are *navigation*, kept distinct from this *conversion*
+ * action." Consumes nothing — there is no inline form; Contact converts.
+ *
+ * VISUAL_DIRECTION_v2.0 §6 "The contact / primary action": "A quiet invitation
+ * with the action as a single precise blue activation — **not a filled button
+ * block** — surrounded by the most generous silence." §12 forbids filled,
+ * button-heavy CTAs outright. The action is therefore a link in the pixel voice
+ * with one small blue mark, not a button.
+ *
+ * NO PREFILL HERE. The `?topic=` / `?regarding=` contract (§23.1) is emitted by
+ * Service pages and Pillar Hubs. The Homepage's invitation is pillar-neutral and
+ * carries no context to hand over.
+ *
+ * The contact rows are placeholder values (`src/lib/i18n/homepage.ts`) and are
+ * marked `data-fixture`; the composition needs the second anchor, the facts are
+ * Workstream C's.
+ */
+import SectionMarker from './SectionMarker.astro';
+import type { Locale } from '../../lib/content';
+import type { HomepageMessages } from '../../lib/i18n/homepage';
+import { routePath } from '../../lib/i18n/routes';
+
+interface Props {
+  locale: Locale;
+  copy: HomepageMessages['invitation'];
+  station: number;
+}
+
+const { locale, copy, station } = Astro.props;
+---
+
+<section class="invite" data-station={station} aria-labelledby="invite-heading">
+  <div class="qwrap">
+    <SectionMarker copy={copy.marker} />
+
+    <h2 class="q rv" data-rv="head" id="invite-heading">{copy.question}</h2>
+
+    <a class="act rv" data-rv="meta" href={routePath('contact', locale)}>
+      <span class="box" aria-hidden="true"></span>
+      {copy.action}
+      <span class="ar" aria-hidden="true">→</span>
+    </a>
+  </div>
+
+  <dl class="contact rv" data-rv="meta" data-fixture="contact-details">
+    {
+      copy.contact.map((row) => (
+        <div class="row">
+          <dt class="lab">{row.label}</dt>
+          <dd class="val">{row.value}</dd>
+        </div>
+      ))
+    }
+  </dl>
+</section>

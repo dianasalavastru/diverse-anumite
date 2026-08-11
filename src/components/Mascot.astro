@@ -1,0 +1,75 @@
+---
+/**
+ * Mascot — the pixel character, as a build-time SVG.
+ *
+ * VISUAL_DIRECTION_v2.0 §1 and §12 principle 14: "The mascot is an adaptive
+ * character, never a logo drop" — the giraffe, the drone and other contextual
+ * variants are the clearest carrier of the warmth that keeps the technology
+ * human.
+ *
+ * The approved HiFi builds these from a string grid in client JavaScript. That
+ * is a prototype convenience: the grids are static, so the `<rect>` elements are
+ * emitted at build time here and the page ships no script for them. The grids
+ * themselves are transcribed character-for-character from the HiFi.
+ *
+ * These are the HiFi's placeholder pixel forms, not the designer's mascot
+ * artwork — that asset is not in the repository (see GlobalFooter.astro, which
+ * leaves its mascot slot empty for the same reason). They are used here because
+ * the approved Homepage composition positions and sizes them, and an empty slot
+ * would change the composition; the real artwork drops into this component.
+ */
+
+interface Props {
+  variant: 'giraffe' | 'drone';
+  class?: string;
+}
+
+const { variant, class: className } = Astro.props;
+
+/** Transcribed verbatim from homepage-measured-reality-animated-v3.html. */
+const GRIDS = {
+  giraffe: [
+    '...#.#....',
+    '...###....',
+    '....#.....',
+    '....#.....',
+    '....#.....',
+    '....##....',
+    '...####...',
+    '..######..',
+    '..######..',
+    '..#.##.#..',
+    '..#.##.#..',
+    '..#.##.#..',
+  ],
+  drone: [
+    '#.#.....#.#',
+    '.#.......#.',
+    '...#####...',
+    '...#####...',
+    '.#.......#.',
+    '#.#.....#.#',
+  ],
+} as const;
+
+const grid = GRIDS[variant];
+const width = grid[0]!.length;
+const height = grid.length;
+
+const cells: { x: number; y: number }[] = [];
+for (let y = 0; y < height; y += 1) {
+  const row = grid[y]!;
+  for (let x = 0; x < row.length; x += 1) {
+    if (row[x] === '#') cells.push({ x, y });
+  }
+}
+---
+
+<svg
+  class:list={['mascot', className]}
+  viewBox={`0 0 ${width} ${height}`}
+  aria-hidden="true"
+  focusable="false"
+>
+  {cells.map((cell) => <rect x={cell.x} y={cell.y} width="1" height="1" />)}
+</svg>

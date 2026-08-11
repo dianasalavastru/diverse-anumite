@@ -1,0 +1,100 @@
+/* =============================================================================
+   Point Cloud Field — the full-bleed capture centrepiece.
+
+   Transcribed from the approved Homepage HiFi's `.cloud` rules. Its own comment
+   states the intent: "now the full-bleed CRESCENDO of the feature. Breaks the
+   main gutter to run edge-to-edge; taller; denser… Two anchors: the field + a
+   stat line."
+
+   The gutter break is expressed with the shared `.bleed` primitive from
+   layout.css rather than by repeating the gutter clamps, so the field cannot
+   drift from the page frame.
+
+   VISUAL_DIRECTION_v2.0 §6 "The reality-capture / point-cloud moment": "Give it
+   a whole field and real silence as a slow, explorable exhibit… while always
+   revealing a real building, not just a data effect."
+
+   NO RENDERER IS STYLED HERE. The viewport is the seam Workstream D mounts into
+   (§23.3, §10.3); its poster state is what A ships. The interaction affordance
+   is keyed off `data-viewer-status` so a page with no live renderer never
+   advertises a gesture it cannot honour.
+   ========================================================================== */
+
+.cloud {
+  position: relative;
+  margin-block: clamp(64px, 10vh, 128px);
+  padding: clamp(26px, 4vh, 44px) var(--gutter-end);
+  background: linear-gradient(180deg, #fbfaf8, #ffffff);
+  border-top: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hair);
+}
+
+.cloud .cap-l {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.cloud .scanlbl {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-60);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* The capture readout. Rendered from CMS capture metadata only (§10.4) — the
+   HiFi's `N*1600` multiplier and its hardcoded instrument name do not exist
+   here. */
+.cloud .stat {
+  font-family: var(--mono);
+  font-size: 11px;
+  /* --ink-60, not --ink-40: capture specifications are load-bearing text (I-3). */
+  color: var(--ink-60);
+  letter-spacing: 0.06em;
+}
+
+/* The mount target. Height matches the HiFi's canvas so the composition is
+   identical whether the poster or a live renderer occupies it. */
+.cloud-viewport {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: min(70vh, 620px);
+  overflow: hidden;
+}
+
+/* §10.2 / §14.0 — the static poster IS the fallback, and stays beneath a live
+   renderer rather than being replaced. */
+.cloud-viewport .plate-img,
+.cloud-viewport .plate-fixture {
+  object-fit: contain;
+}
+
+.cloud-viewport[data-viewer-status='live'] {
+  cursor: grab;
+  touch-action: none;
+}
+
+.cloud-viewport[data-viewer-status='live']:active {
+  cursor: grabbing;
+}
+
+.cloud .hint {
+  position: absolute;
+  right: var(--gutter-end);
+  bottom: clamp(20px, 4vh, 36px);
+  color: var(--blue);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  /* Shown only once a renderer can honour it. */
+  display: none;
+}
+
+.cloud:has(.cloud-viewport[data-viewer-status='live']) .hint {
+  display: block;
+}

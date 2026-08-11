@@ -1,5 +1,6 @@
 {
   "extends": "astro/tsconfigs/strict",
   "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist", "node_modules"]
+  "//": "`studio/` is a separate application with its own tsconfig, its own dependency tree and its own `check` script (TECHNICAL_ARCHITECTURE.md §23.3 — B owns studio/**, A owns the root scaffold). Type-checking it from here pulled Sanity's React/Node surface into the Astro program and reported `process` as undefined against the browser lib. It is excluded so each app is checked by its own toolchain.",
+  "exclude": ["dist", "node_modules", "studio"]
 }

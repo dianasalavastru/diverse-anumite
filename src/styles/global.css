@@ -17,8 +17,14 @@
      typography   the role-based type primitives that repeat across all HiFis
      layout       the page frame: gutters, header offset, rhythm application
      components   Global Header / Footer and every component built after them
+     pages        one authored page composition per page type
      motion       the motion layer, incl. the reduced-motion resolutions
      utilities    last-resort single-purpose overrides
+
+   `pages` sits after `components` because a page composition may place a shared
+   component (VISUAL_DIRECTION_v2.0 §12 principle 10: "Consistency in system,
+   variety in composition"), and before `motion` for the same reason `components`
+   is — reduced motion must be able to override anything a page animates.
 
    `motion` sits after `components` deliberately: MOTION_NOTES.md:62 requires
    reduced motion to resolve every animated element to its final static state,
@@ -30,7 +36,7 @@
    order as the layer list — so the result degrades to the intended cascade.
    ========================================================================== */
 
-@layer reset, tokens, fonts, base, typography, layout, components, motion, utilities;
+@layer reset, tokens, fonts, base, typography, layout, components, pages, motion, utilities;
 
 @import './reset.css' layer(reset);
 @import './tokens.css' layer(tokens);
@@ -40,4 +46,9 @@
 @import './layout.css' layer(layout);
 @import './components/global-header.css' layer(components);
 @import './components/global-footer.css' layer(components);
+@import './components/media-plate.css' layer(components);
+@import './components/work-preview-card.css' layer(components);
+@import './components/focus-carousel.css' layer(components);
+@import './components/point-cloud-field.css' layer(components);
+@import './pages/homepage.css' layer(pages);
 @import './motion.css' layer(motion);

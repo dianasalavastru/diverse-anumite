@@ -1,0 +1,39 @@
+---
+/**
+ * Coordinate Rail — the fixed left-edge instrument scale.
+ *
+ * OWNERSHIP: Workstream A. Present in HP, HUB, RC, WE and SV (absent from WA),
+ * with identical geometry, which is why its CSS already lives in the shared
+ * `layout.css` rather than here.
+ *
+ * MOTION_NOTES.md §"Technical elements": "the coordinate rail and its blue tick
+ * track the active station" — the tracking itself is the global motion runtime's
+ * job (`src/scripts/motion-runtime.ts`), driven by the `data-station` attributes
+ * the page puts on its sections. This component only renders the stops.
+ *
+ * It is `aria-hidden`: the rail duplicates no information and offers no action —
+ * it is a measurement annotation on the page, and the sections it indexes are
+ * reachable by ordinary scrolling and by the skip link. `layout.css` also hides
+ * it below 900px, exactly as the HiFi does, so nothing is lost on narrow
+ * viewports.
+ */
+
+interface Props {
+  /** Number of stops. The Homepage has seven: six sections plus the footer. */
+  stations: number;
+}
+
+const { stations } = Astro.props;
+const stops = Array.from({ length: stations }, (_, index) => index + 1);
+---
+
+<div class="rail" aria-hidden="true">
+  {
+    stops.map((station) => (
+      <div class="st" data-st={station}>
+        <span class="tick" />
+        {String(station).padStart(2, '0')}
+      </div>
+    ))
+  }
+</div>

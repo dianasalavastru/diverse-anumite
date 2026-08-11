@@ -1,0 +1,113 @@
+---
+/**
+ * Focus Carousel — the browse pattern, and the Homepage's signature interaction.
+ *
+ * OWNERSHIP: Workstream A (island; TECHNICAL_ARCHITECTURE.md §5.1 lists it as
+ * "Focus carousel | Homepage, Hubs | vanilla; scroll-snap + drag; from HiFi").
+ *
+ * AUTHORITY
+ *   VISUAL_DIRECTION_v2.0 §2.2 — focus is the universal hierarchy mechanism:
+ *     "one is in focus — 'measured' — and the rest recede… larger, at full
+ *     contrast, and may carry the blue signal; the unfocused are smaller and
+ *     lower-contrast but remain visible for context."
+ *   VISUAL_DIRECTION_v2.0 §11 — "Focus carousels for browse… never a product
+ *     slider."
+ *   MOTION_NOTES.md §"Carousel focus prototypes" — **Version B (Measured
+ *     Reality) is the implemented choice**: scan line, semantic blue marker,
+ *     coordinate label, clarity lift, synchronised metadata and index readout,
+ *     neighbours quieted without disappearing. Version A is documented upstream
+ *     as a fallback and is not built.
+ *
+ * INTERACTION COVERAGE, as MOTION_NOTES.md §"Interaction coverage" requires:
+ * native touch swipe + scroll-snap · horizontal trackpad · drag-to-explore with
+ * snap suspended (mouse pointer only) · arrow keys when the carousel is focused ·
+ * the ←/→ controls. "The focused state is expressed through scale, contrast,
+ * metadata, the index readout, and `aria-current` — never through animation
+ * alone."
+ *
+ * ACCESSIBILITY (§14, §14.1, WCAG 2.2 AA)
+ *   - the region is a focusable `role="group"` with `aria-roledescription` and a
+ *     name, so arrow keys have somewhere to be pressed;
+ *   - every card inside is an ordinary link, so the carousel is fully operable
+ *     by Tab alone even if this script never runs (§14.0 progressive
+ *     enhancement);
+ *   - the controls are real buttons with accessible names, not glyph divs;
+ *   - the index readout is `aria-live="polite"` and is rendered server-side, so
+ *     it states a position before hydration rather than being briefly empty;
+ *   - **no scroll trap** (§14.2): nothing calls `preventDefault` on `wheel` or
+ *     `touchmove`, scroll listeners are passive, and drag is bound to
+ *     `pointerType === 'mouse'` only. Vertical page scrolling is never captured.
+ */
+
+interface Props {
+  /** Stable id — the controls target it, and the live region is bound to it. */
+  id: string;
+  /** Accessible name for the region and the controls. */
+  label: string;
+  roleDescription: string;
+  previousLabel: string;
+  nextLabel: string;
+  positionLabel: string;
+  /** 'docs' is the second traverse's cadence: portrait frames, tighter. */
+  cadence?: 'default' | 'docs';
+  /** Card count, so the index readout is correct before the script runs. */
+  count: number;
+}
+
+const {
+  id,
+  label,
+  roleDescription,
+  previousLabel,
+  nextLabel,
+  positionLabel,
+  cadence = 'default',
+  count,
+} = Astro.props;
+
+const total = String(count).padStart(2, '0');
+
+/**
+ * A single-card module renders no controls and no index (I-3).
+ *
+ * With the M-4 selection reduced to explicit placements only, a pillar with one
+ * Homepage Highlight is an ordinary production state. Its ←/→ buttons would have
+ * nowhere to scroll and its `NN·NN` readout would always say `01·01` — a dead
+ * control and a redundant live region. WCAG 2.2 AA and §14 ask for operable
+ * controls, not decorative ones. The track itself is unchanged, so focus,
+ * `aria-current` and the card link all behave identically.
+ */
+const traversable = count > 1;
+---
+
+<div
+  class:list={['traverse', cadence === 'docs' && 'docs']}
+  id={id}
+  tabindex="0"
+  role="group"
+  aria-roledescription={roleDescription}
+  aria-label={label}
+  data-focus-carousel
+>
+  <slot />
+</div>
+
+{
+  traversable && (
+    <div class="tnav rv" data-rv="meta">
+      <span class="tindex" data-carousel-index={id} aria-live="polite" aria-label={positionLabel}>
+        <b>01</b>·{total}
+      </span>
+      <button type="button" data-carousel-target={id} data-carousel-step="-1" aria-label={previousLabel}>
+        <span aria-hidden="true">←</span>
+      </button>
+      <button type="button" data-carousel-target={id} data-carousel-step="1" aria-label={nextLabel}>
+        <span aria-hidden="true">→</span>
+      </button>
+    </div>
+  )
+}
+
+<script>
+  import '../scripts/islands/focus-carousel';
+</script>

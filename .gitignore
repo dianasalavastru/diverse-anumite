@@ -30,6 +30,12 @@ Thumbs.db
 *.zfs
 *.zfprj
 
+# --- machine-local tooling state ---
+# `.claude/settings.local.json` holds one developer's own tool permissions. It is
+# per-machine state, not project configuration, so it is never shared.
+# `.claude/launch.json` IS shared — it is the repo's dev-server config.
+.claude/settings.local.json
+
 # build output / tooling
 dist/
 .astro/

@@ -90,7 +90,7 @@ interface RouteDefinition {
  *   Pillar hub B             /reality-capture                   /en/reality-capture
  *   Contact                  /contact                           /en/contact
  */
-export const ROUTES: Readonly<Record<RouteKey, RouteDefinition>> = {
+export const ROUTES = {
   home: { path: { ro: '/', en: '/' } },
   about: { path: { ro: '/despre', en: '/about' } },
   services: { path: { ro: '/servicii', en: '/services' } },
@@ -113,7 +113,15 @@ export const ROUTES: Readonly<Record<RouteKey, RouteDefinition>> = {
     path: { ro: '/reality-capture', en: '/reality-capture' },
   },
   contact: { path: { ro: '/contact', en: '/contact' } },
-} as const;
+} as const satisfies Readonly<Record<RouteKey, RouteDefinition>>;
+/* `satisfies` rather than a type annotation, corrected during the Homepage
+   build (Phase 3). The annotation widened every entry to `RouteDefinition`,
+   whose `param` is optional — so `SlugArg<K>` below could never resolve to its
+   "requires a slug" branch, and `routePath('workEntry', 'ro')` type-checked
+   while throwing at runtime. Callers had to reach for `as never` to pass a slug
+   at all. `satisfies` keeps the table checked against the contract AND keeps the
+   literal types, so the requirement is enforced at compile time. No value
+   changed; the §11.1 route contract is untouched. */
 
 /* -------------------------------------------------------------------------- */
 /* Path construction                                                           */
@@ -140,7 +148,10 @@ export function routePath<K extends RouteKey>(
   locale: Locale,
   ...[slug]: SlugArg<K>
 ): string {
-  const route = ROUTES[key];
+  /* Widened deliberately: the SIGNATURE reads the literal table (so `SlugArg`
+     can demand a slug where one is needed), while the BODY reads the contract,
+     where `param` is a declared optional rather than absent from a union arm. */
+  const route: RouteDefinition = ROUTES[key];
   const prefix = localePrefix(locale);
   const base = route.path[locale];
 
@@ -217,7 +228,7 @@ export function counterpartPath<K extends RouteKey>(
   targetLocale: Locale,
   slug?: string,
 ): string | null {
-  const route = ROUTES[key];
+  const route: RouteDefinition = ROUTES[key];
 
   if (route.param) {
     if (!slug) return null;

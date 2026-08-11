@@ -1,0 +1,94 @@
+---
+/**
+ * Plate — the media fill inside an authored image box.
+ *
+ * OWNERSHIP: Workstream A.
+ *
+ * It fills its parent and nothing else. Aspect ratio, the greyscale→colour
+ * grade, the blue mark, the scan and the coordinate label all belong to the
+ * *composition* that contains it (`.cimg`, `.pimg`, `.figure`) — VISUAL_DIRECTION_v2.0
+ * §9 makes cropping and grade authorship, so they are never generic.
+ *
+ * WHY A FIXTURE STATE EXISTS. The approved HiFis fill every box from
+ * `loremflickr.com`. §19.1 forbids that outright — "Placeholder origins from the
+ * HiFis must not ship… no HiFi placeholder image host may remain in production
+ * CSP or markup" — and B's Phase-0 fixtures point at `/fixtures/*.jpg`, files
+ * that do not exist in the build and would 404 on every page load. So an asset
+ * that cannot be rendered falls back to the flat warm plate tone the HiFi itself
+ * paints *underneath* its remote image (`background:#c9c4ba` and friends). The
+ * composition — every box, at its authored ratio, in its authored tone — is
+ * preserved exactly; only the photograph is missing, which is the honest state.
+ *
+ * PHASE-0 ONLY. `isRenderable` resolves to true for every asset at I-3, when B's
+ * query layer returns Sanity image CDN URLs, and this component then starts
+ * emitting `<picture>` + `srcset` with AVIF/WebP per §9. The `srcset`/format
+ * work is deliberately not written against fixture URLs that no transform
+ * endpoint would honour.
+ */
+import type { ImageAsset, Locale } from '../../lib/content';
+import { localize } from '../../lib/content';
+
+interface Props {
+  image: ImageAsset | null;
+  locale: Locale;
+  /**
+   * Accessible name. Omit (or pass `null`) when the surrounding link or heading
+   * already names the media — the plate is then marked decorative rather than
+   * repeating the name to a screen reader.
+   */
+  alt?: string | null;
+  /** The authored plate tone shown when no photograph can be rendered. */
+  tone?: string;
+  /** LCP media opts out of lazy loading and asks for priority (§9). */
+  priority?: boolean;
+}
+
+const { image, locale, alt = null, tone = '#c9c4ba', priority = false } = Astro.props;
+
+/**
+ * Whether an asset can actually be fetched.
+ *
+ * §9 puts production media on the **Sanity image CDN**, so a real asset always
+ * carries an absolute origin. B's Phase-0 fixtures carry root-relative paths
+ * (`/fixtures/…`) into a directory that does not exist in the build, and
+ * rendering them would 404 on every page load.
+ *
+ * Testing the origin rather than an id prefix keeps this independent of B's
+ * fixture naming — which has already changed once — and makes I-3 a no-op:
+ * every CDN URL is absolute, so every asset becomes renderable with no edit
+ * here. Introducing genuinely self-hosted local media later is a deliberate
+ * change to this one predicate.
+ */
+function isRenderable(asset: ImageAsset | null): boolean {
+  return asset !== null && /^https?:\/\//.test(asset.url);
+}
+
+const renderable = isRenderable(image);
+/** Authored alt wins over the caller's fallback; §12 "meaningful alt from CMS (authored, not derived)". */
+const accessibleName = (image ? localize(image.alt, locale) : null) ?? alt;
+---
+
+{
+  renderable && image ? (
+    <img
+      class="plate-img"
+      src={image.url}
+      width={image.width}
+      height={image.height}
+      alt={accessibleName ?? ''}
+      loading={priority ? 'eager' : 'lazy'}
+      fetchpriority={priority ? 'high' : undefined}
+      decoding={priority ? 'sync' : 'async'}
+    />
+  ) : (
+    /* Marked, inert and named only when it stands in for named content. */
+    <span
+      class="plate-fixture"
+      style={`--plate-tone:${tone}`}
+      data-fixture="media"
+      role={alt ? 'img' : undefined}
+      aria-label={alt ?? undefined}
+      aria-hidden={alt ? undefined : 'true'}
+    />
+  )
+}

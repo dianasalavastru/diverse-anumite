@@ -1,0 +1,207 @@
+/* =============================================================================
+   Work Preview Card — `focus` variant.
+
+   Transcribed from the approved Homepage HiFi's `.proj` rules, which are spread
+   across two blocks in that file: the base block (§"IV · WORK IN FOCUS") and the
+   motion layer at the foot of the file, which adds the resting scale/opacity and
+   the Version-B technical layer (scan, coordinate label, clarity lift).
+
+   MOTION_NOTES.md §"B — Measured Reality (implemented)" is the specification:
+     - a blue scan line sweeps once across the newly focused image (--t-major),
+       reading as measurement/documentation;
+     - the electric-blue semantic marker activates and grows;
+     - a small coordinate label (pt·NN) resolves into the corner;
+     - the focused image gains a slight contrast/saturation lift;
+     - adjacent projects quiet down (scale + opacity + greyscale) without
+       disappearing.
+   "The technical layer is transient by design — after the sweep, only the
+   architecture photograph and the persistent blue marker remain."
+
+   ── TWO DELIBERATE DIVERGENCES, AND WHY ─────────────────────────────────────
+   1. The HiFi sets `.proj{opacity:.66}` (motion layer) AND
+      `.proj .meta{opacity:.45}` (base block). Those were authored independently
+      and multiply: an unfocused card's title lands at 0.30 effective opacity —
+      #bbbab9 on white, **1.94:1**, against the 4.5:1 WCAG 2.2 AA requires
+      (ratified, DECISIONS_LOG #78). That product is an emergent artifact of two
+      separate rules, not an authored value, and §5.3 says to rebuild rather
+      than copy exactly this kind of prototype debt. The card's authored
+      `opacity:.66` is kept — it is the quieting VISUAL_DIRECTION_v2.0 §2.2 asks
+      for, and the title reads 5.72:1 through it — and the extra multiplier is
+      dropped.
+
+   2. The secondary metadata line takes `--ink` instead of `--ink-40` (I-3) —
+      see the rule for the reasoning and the measurements.
+
+   Focus remains unmistakable in both cases: the card resolves to full opacity,
+   full colour, +6% scale, the blue marker, the scan and the coordinate label.
+
+   The `.pdesc` focus caption the HiFi carries is not implemented — no upstream
+   authority creates the content concept. See WorkPreviewCard.astro.
+   ========================================================================== */
+
+.proj {
+  flex: 0 0 auto;
+  width: min(44vw, 420px);
+  scroll-snap-align: center;
+  display: block;
+  color: inherit;
+
+  /* Resting state: quieted, never hidden (VISUAL_DIRECTION_v2.0 §2.2). */
+  transform: scale(0.94);
+  opacity: 0.66;
+  transition:
+    transform 0.6s var(--ease),
+    opacity 0.6s var(--ease);
+}
+
+.proj .pimg {
+  display: block;
+  aspect-ratio: 3 / 2;
+  position: relative;
+  overflow: hidden;
+  background: #cac5bb;
+  filter: grayscale(0.6) contrast(1.02);
+  transition: filter 0.6s var(--ease);
+}
+
+/* The semantic marker — blue as activation, never decoration (§2.1). */
+.proj .pmark {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  width: 0;
+  height: 2px;
+  background: var(--blue);
+  transition: width 0.5s var(--ease);
+  z-index: 3;
+}
+
+/* The transient scan: measurement performed on the studio's own portfolio. */
+.proj .pscan {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  background: var(--blue);
+  opacity: 0;
+  box-shadow: 0 0 10px 1px rgba(43, 43, 230, 0.45);
+  pointer-events: none;
+  z-index: 3;
+}
+
+.proj .pcoord {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--blue);
+  opacity: 0;
+  transform: translateY(4px);
+  z-index: 3;
+  transition:
+    opacity var(--t-state) var(--ease),
+    transform var(--t-state) var(--ease);
+}
+
+.proj .meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.proj .meta .t {
+  font-family: var(--read);
+  font-weight: 600;
+  font-size: 16px;
+}
+
+/* `--ink` rather than `--ink-40`, corrected at I-3.
+   The card rests at `opacity: .66`, and everything inside is composited through
+   it. `--ink-40` arrived at 2.14:1 that way — below the 4.5:1 WCAG 2.2 AA
+   requires for 11px text (ratified, DECISIONS_LOG #78). No darker *secondary*
+   token survives the quieting either: `--ink-60` lands at 2.77:1.
+   `--ink` measures 5.72:1 through the same 0.66 and 17.83:1 on the focused card,
+   so the authored focused/unfocused hierarchy is carried by the card's own
+   opacity exactly as designed — the mechanism is untouched, only the token it
+   starts from. */
+.proj .meta .d {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+/* ---- Focused ------------------------------------------------------------- */
+
+.proj.focused {
+  transform: scale(1.06);
+  opacity: 1;
+}
+
+.proj.focused .pimg {
+  filter: grayscale(0) contrast(1.05) saturate(1.03);
+}
+
+.proj.focused .pmark {
+  width: 44px;
+}
+
+.proj.focused .pscan {
+  animation: pscan var(--t-major) var(--ease);
+}
+
+.proj.focused .pcoord {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0.25s;
+}
+
+
+@keyframes pscan {
+  0% {
+    left: 0;
+    opacity: 0;
+  }
+  14% {
+    opacity: 0.9;
+  }
+  80% {
+    opacity: 0.6;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+/* ---- Reduced motion ------------------------------------------------------
+   MOTION_NOTES.md:62 — layout parity. The HiFi keeps a reduced focus scale
+   (1.03) so hierarchy survives without the transition, and kills the scan
+   outright. Transcribed exactly. */
+
+@media (prefers-reduced-motion: reduce) {
+  .proj {
+    transform: none;
+    opacity: 1;
+    transition: none;
+  }
+
+  .proj.focused {
+    transform: scale(1.03);
+  }
+
+  .proj.focused .pscan {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+
+  .proj .pimg,
+  .proj .pcoord {
+    transition: none;
+  }
+}

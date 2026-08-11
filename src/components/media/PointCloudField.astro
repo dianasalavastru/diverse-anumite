@@ -1,0 +1,135 @@
+---
+/**
+ * Point Cloud Field — the Homepage's full-bleed capture centrepiece, and the
+ * **integration seam for Workstream D's viewer island**.
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ *  THIS FILE CONTAINS NO RENDERER, AND MUST NOT.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * TECHNICAL_ARCHITECTURE.md §23.3 gives Workstream D "the viewer island
+ * implementation"; §5.1 lists the point-cloud viewer as **renderer spike-gated**;
+ * §10.3 is explicit that "three.js is a hypothesis, not a decision" and that the
+ * renderer "is an output of the spike, not an input". Implementing one here
+ * would pre-empt a decision this workstream does not own — so what A builds is
+ * the composition around it, the static poster state, and the mount contract.
+ *
+ * COMPONENT IDENTITY. Per COMPONENT_INVENTORY.md:111 the point-cloud viewer is a
+ * **variant of Media Viewer**, not a new component — hence `src/components/media/`.
+ *
+ * WHAT THE PAGE DOES WITHOUT D
+ *   The field renders at its authored size, in its authored full-bleed frame,
+ *   with the caption line, the capture readout and the poster. §10.2's pipeline
+ *   ends at "static poster fallback" and §14.0 binds it: "The point-cloud viewer
+ *   degrades to its static poster." Nothing about the approved composition
+ *   depends on the renderer existing.
+ *
+ * ──────────────────────────────────────────────────────────────────────────
+ *  THE MOUNT CONTRACT — what D may rely on, and what D must honour (I-2)
+ * ──────────────────────────────────────────────────────────────────────────
+ *
+ *  D mounts into:            `[data-media-viewer="point-cloud"]`
+ *  Asset:                    `data-asset-url` — the bounded web derivative from
+ *                            §10.2. **Absent means do not mount.** It is absent
+ *                            whenever `capturePublicationCleared` is false: §19.4
+ *                            makes that flag the publication gate, and the gate
+ *                            is applied here so no viewer can bypass it.
+ *  Poster:                   the element's only child until D mounts. D must
+ *                            leave it in the DOM as the fallback surface and
+ *                            must not remove it on failure.
+ *  Status handshake:         the seam ships `data-viewer-status="poster"`.
+ *                            D sets `"live"` once its renderer has painted, and
+ *                            leaves it at `"poster"` on any failure. The
+ *                            stylesheet keys the interaction affordance off this
+ *                            attribute, so a failed renderer never advertises a
+ *                            drag hint it cannot honour.
+ *
+ *  D MUST, per the same documents:
+ *   - gate the loop with IntersectionObserver and pause off-screen, and stay
+ *     static under `prefers-reduced-motion` (MOTION_NOTES.md §"Ambient motion";
+ *     §13 "Ambient motion: the point cloud only");
+ *   - ship a **keyboard equivalent** for rotate, with an accessible name and
+ *     role — §14.1 makes this non-negotiable for every inspection surface and
+ *     warns that "Automated tooling cannot detect a missing keyboard equivalent
+ *     for a canvas gesture";
+ *   - not create a scroll trap: §14.2 rejects the HiFi viewer's
+ *     `preventDefault()` under `{passive:false}` across the whole surface. Zoom
+ *     binds to an explicit activation;
+ *   - render no fabricated readout. Point count, accuracy and equipment come
+ *     from CMS capture metadata and are rendered *here*, not by the renderer.
+ *     §10.4: the HiFi prints `N*1600` as "≈ 8,032,000 puncte" — "a decorative
+ *     multiplier surviving into production is a false accuracy claim".
+ *   - stay inside the Homepage JS budget (§15: ≤ 120 KB compressed **including**
+ *     the viewer). A's homepage cost is reported at each build.
+ *
+ *  Confirm capture-metadata field names with B at I-2 (§23.4) — `types.ts` marks
+ *  `CaptureMetadata` and `PointCloudDerivative` field names provisional.
+ */
+import Plate from './Plate.astro';
+import { localize } from '../../lib/content';
+import type { CaptureMetadata, Locale, WorkEntry } from '../../lib/content';
+import { mountableDerivative } from '../homepage/highlights';
+
+interface Props {
+  locale: Locale;
+  /** The section label above the field. */
+  label: string;
+  /** Drag affordance — shown only once a live renderer can honour it. */
+  hint: string;
+  posterAlt: string;
+  /** Copy shown in the readout when nothing is publishable yet. */
+  unavailable: string;
+  /**
+   * The one entry this field is about — its derivative is what may be mounted
+   * and its capture metadata is what the readout states. One entry, not two:
+   * a readout describing a different survey than the cloud on screen would be
+   * a false technical claim assembled from two true halves (§10.4).
+   */
+  subject: WorkEntry | null;
+}
+
+const { locale, label, hint, posterAlt, unavailable, subject } = Astro.props;
+
+const capture: CaptureMetadata | null = subject?.capture ?? null;
+
+/**
+ * §19.4 publication gate, applied at the seam. No cleared flag, no asset URL —
+ * and with no asset URL, Workstream D never mounts. Applied here rather than
+ * trusted from the caller, so the gate cannot be lost by a future page; it is
+ * the same single function the subject selector uses, never a second copy.
+ */
+const derivative = mountableDerivative(subject);
+
+/**
+ * The readout, assembled ONLY from fields that exist. Nothing is computed,
+ * nothing is defaulted, and an absent value produces an absent segment rather
+ * than a plausible-looking one (§10.4).
+ */
+const accuracy = localize(capture?.accuracy ?? null, locale);
+const readout: string[] = [];
+if (capture?.pointCount != null) {
+  readout.push(`${capture.pointCount.toLocaleString(locale)} pt`);
+}
+if (accuracy) readout.push(accuracy);
+if (capture?.equipment.length) readout.push(capture.equipment.join(' · '));
+---
+
+<div class="cloud bleed rv" data-rv="img">
+  <div class="cap-l">
+    <span class="scanlbl">{label}</span>
+    <span class="stat" data-fixture={capture ? 'capture-metadata' : undefined}>
+      {readout.length > 0 ? readout.join(' · ') : unavailable}
+    </span>
+  </div>
+
+  <div
+    class="cloud-viewport"
+    data-media-viewer="point-cloud"
+    data-viewer-status="poster"
+    data-asset-url={derivative?.assetUrl}
+  >
+    <Plate image={derivative?.poster ?? null} locale={locale} alt={posterAlt} tone="#f4f1ec" />
+  </div>
+
+  <span class="hint" aria-hidden="true">{hint}</span>
+</div>

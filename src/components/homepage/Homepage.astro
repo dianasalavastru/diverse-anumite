@@ -1,0 +1,185 @@
+---
+/**
+ * The Homepage — composed once, rendered per locale.
+ *
+ * OWNERSHIP: Workstream A. Phase 3 of TECHNICAL_ARCHITECTURE.md §23.2:
+ * "**Homepage** — motion-port fidelity against the approved HiFi."
+ *
+ * MODULE ORDER is the wireframe's, which is the Page IA's information flow:
+ *   M-1 Identity → M-2 Pillar branch → M-3 Credibility → M-4 Pillar sections ×2
+ *   → M-5 Curated views → M-6 Contact invitation → M-7 Footer.
+ * "Orientation → Practice → Capabilities → Evidence → Exploration → Action."
+ * The stations 01…07 on the coordinate rail are that sequence made visible.
+ *
+ * ── CONTENT: THE I-3 SWAP POINT ───────────────────────────────────────────
+ * Every content-shaped value comes from Workstream B's `ContentSource`, which
+ * `source.ts` names as the I-3 contract: "Workstream A codes against
+ * `ContentSource` and never against a concrete implementation, so the swap is
+ * one factory call in one file — `createFixtureContentSource()` →
+ * `createSanityContentSource()` — with no component change."
+ *
+ * **That one call is the line below, and it is the only line I-3 touches.** No
+ * GROQ, no CMS coupling, no second content model: this file selects and
+ * arranges, it does not define. Locale scoping (§7.1), discovery order (§7.6),
+ * curated-view membership (IA §5) and employer grouping (IA §5.1) all happen
+ * inside the source, before anything reaches a component.
+ *
+ * ── WHAT IS NOT HERE ──────────────────────────────────────────────────────
+ * No point-cloud renderer (Workstream D — see `media/PointCloudField.astro` for
+ * the mount contract and I-2 handshake). No canonical URL or sitemap emission
+ * (blocked on the production origin — see BaseLayout). No `@view-transition`:
+ * §13 scopes the cross-document dissolve to Archive → Work Entry, and the
+ * Homepage is neither end of it.
+ */
+import Arrival from './Arrival.astro';
+import Capabilities from './Capabilities.astro';
+import CoordinateRail from '../CoordinateRail.astro';
+import Credibility from './Credibility.astro';
+import CuratedViews from './CuratedViews.astro';
+import Invitation from './Invitation.astro';
+import WorkInFocus from './WorkInFocus.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+import type { Locale, Pillar, WorkArchiveItem } from '../../lib/content';
+import { homepageMessages } from '../../lib/i18n/homepage';
+
+/* ── THE I-3 SWAP POINT — this import and this call, nothing else ─────────── */
+import { createFixtureContentSource } from '../../lib/content/fixtures';
+const source = createFixtureContentSource();
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+import { HIGHLIGHT_LIMIT, indexById, pointCloudSubject } from './highlights';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const copy = homepageMessages(locale);
+
+const [entries, archive, placedAnywhere, placedArchitecture, placedRealityCapture, competitions, experience] =
+  await Promise.all([
+    source.workEntries(locale),
+    source.workArchive(locale),
+    source.highlights('homepage', null, locale),
+    source.highlights('homepage', 'architecture-design', locale),
+    source.highlights('homepage', 'reality-capture', locale),
+    source.curatedView('competitions', locale),
+    source.professionalExperience(locale),
+  ]);
+
+const byId = indexById(entries);
+
+/**
+ * M-4 · the pillar sections show **placements only** — reconciled at I-3.
+ *
+ * `CONTENT_MODEL.md` §4 is explicit and frozen: "a homepage highlight strip =
+ * *taxonomy filter ∩ curation flag*, ordered by Editorial Priority", and "the
+ * homepage and curated landing pages **must not** derive editorial choices from
+ * taxonomy alone." §5 draws the same line: "homepage shows *curated highlights*
+ * per pillar (from the curation layer); the Work index is the *complete
+ * filterable archive* (from taxonomy)."
+ *
+ * An earlier build topped an unplaced pillar up from `workArchive(locale,
+ * pillar)`. That is a union where the model specifies an intersection, and it
+ * re-creates the "grid-plus-two-carousels redundancy" §5 says this separation
+ * resolves. Removed. A pillar with no placements renders its framing and its
+ * Hub continuation and no cards — see WorkInFocus.astro.
+ *
+ * The slice is a display bound on an already-selected, already-ordered set; it
+ * changes no membership and no order.
+ */
+const highlights: Record<Pillar, readonly WorkArchiveItem[]> = {
+  'architecture-design': placedArchitecture.slice(0, HIGHLIGHT_LIMIT),
+  'reality-capture': placedRealityCapture.slice(0, HIGHLIGHT_LIMIT),
+};
+
+/**
+ * M-1 · the identity hero's media — curation only, for the same reason. When
+ * nothing is placed the hero renders its authored plate with no photograph; the
+ * composition (wordmark, scan, coordinate markers) is intact, and no entry is
+ * promoted to the page's most prominent slot by taxonomy.
+ */
+const hero = placedAnywhere[0] ?? null;
+
+/** M-2's representative media: the leading curated work of each pillar. */
+const gatewayMedia: Record<Pillar, WorkArchiveItem | null> = {
+  'architecture-design': highlights['architecture-design'][0] ?? null,
+  'reality-capture': highlights['reality-capture'][0] ?? null,
+};
+
+/**
+ * Stations 01…07 — six narrative sections plus the footer, matching the approved
+ * HiFi's rail. Passed down rather than hard-coded per section so the rail and
+ * the sections cannot drift apart.
+ */
+const STATIONS = {
+  arrival: 1,
+  capabilities: 2,
+  credibility: 3,
+  work: 4,
+  curated: 5,
+  invitation: 6,
+  footer: 7,
+} as const;
+---
+
+<BaseLayout
+  locale={locale}
+  rhythm="homepage"
+  routeKey="home"
+  title={copy.meta.title}
+  description={copy.meta.description}
+  footerStation={STATIONS.footer}
+>
+  {/* §14.0, progressive enhancement. The hero's load sequence and the
+      credibility dots are gated on classes the motion runtime adds; with
+      scripting disabled they must resolve, not stay hidden. Reduced motion
+      needs nothing here — homepage.css already resolves it in CSS. */}
+  <Fragment slot="head">
+    <noscript>
+      <style>
+        html.anim-load .hero-plate .hw,
+        html.anim-load .hero-img {
+          clip-path: none !important;
+        }
+        html.anim-load .hero-cap,
+        html.anim-load .hero-dim,
+        .ro .k .dot {
+          opacity: 1 !important;
+        }
+      </style>
+    </noscript>
+  </Fragment>
+
+  <CoordinateRail slot="rail" stations={STATIONS.footer} />
+
+  <Arrival locale={locale} copy={copy.arrival} hero={hero} station={STATIONS.arrival} />
+
+  <Capabilities
+    locale={locale}
+    copy={copy.capabilities}
+    media={gatewayMedia}
+    station={STATIONS.capabilities}
+  />
+
+  <Credibility locale={locale} copy={copy.credibility} station={STATIONS.credibility} />
+
+  <WorkInFocus
+    locale={locale}
+    copy={copy.work}
+    highlights={highlights}
+    pointCloudSubject={pointCloudSubject(archive, byId)}
+    station={STATIONS.work}
+  />
+
+  <CuratedViews
+    locale={locale}
+    copy={copy.curated}
+    competitions={competitions}
+    experience={experience}
+    station={STATIONS.curated}
+  />
+
+  <Invitation locale={locale} copy={copy.invitation} station={STATIONS.invitation} />
+</BaseLayout>

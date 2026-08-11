@@ -1,0 +1,20 @@
+---
+/**
+ * `/en/` — the English Homepage (locale route map §11.1, Home / EN).
+ *
+ * WHY IT EXISTS NOW. The full i18n pass is Phase 8 (§23.2) and its integration
+ * point is I-5. This route is built with the Homepage anyway because the Home
+ * route is the one route §11.2 cannot suppress — it has no entity behind it, so
+ * both counterparts always exist, and it is therefore the only place the
+ * reciprocal `hreflang` pair and the language switcher can be exercised at all
+ * before real content lands. Every EN string it renders is placeholder copy,
+ * marked as such in `src/lib/i18n/homepage.ts`.
+ *
+ * The aggregate modules are locale-scoped (§7.1): an entry that is not
+ * EN-published is absent here, which is exactly what fixture `wf-3` exists to
+ * prove.
+ */
+import Homepage from '../../components/homepage/Homepage.astro';
+---
+
+<Homepage locale="en" />

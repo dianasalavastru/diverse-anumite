@@ -1,0 +1,124 @@
+---
+/**
+ * M-2 · Pillar branch module — HOMEPAGE_PAGE_IA Stage B, station 02
+ * ("II · TWO CAPABILITIES").
+ *
+ * Responsibility (Page IA M-2): present the two capabilities as **co-equal entry
+ * points** and let the visitor choose a direction early (D3, D8, M4).
+ * Destinations: the two Pillar Hubs — never individual services (Page IA §4:
+ * "the homepage does **not** hand directly to individual services").
+ *
+ * Components (HOMEPAGE_WIREFRAME M-2): Section Introduction · Highlight Card,
+ * *pillar-gateway usage, "view" variant* ×2, "each carrying representative media
+ * + the pillar name and continuing to its Pillar Hub (name-as-doorway pattern)."
+ * The wireframe flags a dedicated Pillar Entry component as an escalation, not
+ * an invention — so it is not invented here either.
+ *
+ * ── CO-EQUALITY, AND WHY THE PLATES ARE NOT THE SAME SIZE ──────────────────
+ * The wireframe asks for "equal visual weight — neither larger, first, nor
+ * emphasized over the other (no structural primacy)". The approved HiFi answers
+ * with an *unequal* pair — a dominant A&D plate and a smaller, offset RC plate —
+ * and states why in its own comment: "they are now UNEQUAL… which creates
+ * tension and a clear read order". VISUAL_DIRECTION_v2.0 §2.2 governs that
+ * choice ("Never present items at equal weight when one could be in focus") and
+ * §12 forbids symmetrical, centred sections outright.
+ *
+ * These are reconcilable, and the resolution is upstream, not invented: D3's
+ * co-equality is **structural** — same component, same depth, same kind of
+ * destination, same amount of supporting copy, neither omitted or nested under
+ * the other — while scale contrast is *compositional*. Both plates therefore
+ * carry the same content structure and both resolve to full colour on
+ * inspection. The composition is the approved one; the structure is the
+ * wireframe's. Recorded in the implementation report so the owner can see the
+ * reading rather than discover it.
+ *
+ * ── THE STRETCHED LINK ─────────────────────────────────────────────────────
+ * The HiFi's `.cap` is a `tabindex="0"` div that navigates nowhere. Making the
+ * whole card an `<a>` would fold a full paragraph of context into the link's
+ * accessible name. Instead the pillar name is the link — the "name-as-doorway"
+ * pattern the wireframe names — and it stretches over the card via a
+ * pseudo-element, so pointer users get the whole plate and assistive tech gets
+ * "Arhitectura & Design, link".
+ */
+import Mascot from '../Mascot.astro';
+import Plate from '../media/Plate.astro';
+import SectionMarker from './SectionMarker.astro';
+import type { Locale, Pillar, WorkEntrySummary } from '../../lib/content';
+import type { HomepageMessages } from '../../lib/i18n/homepage';
+import { routePath } from '../../lib/i18n/routes';
+import { pillarLabel, pillarRouteKey } from '../../lib/i18n/vocabulary';
+
+interface Props {
+  locale: Locale;
+  copy: HomepageMessages['capabilities'];
+  /** Representative media per pillar, from the curated set. */
+  media: Readonly<Record<Pillar, WorkEntrySummary | null>>;
+  station: number;
+}
+
+const { locale, copy, media, station } = Astro.props;
+
+interface Gateway {
+  pillar: Pillar;
+  modifier: string;
+  index: string;
+  mascot: 'giraffe' | 'drone';
+  tone: string;
+  facets: string;
+  context: string;
+}
+
+const gateways: Gateway[] = [
+  {
+    pillar: 'architecture-design',
+    modifier: 'ad',
+    index: 'A',
+    mascot: 'giraffe',
+    tone: '#c9c4ba',
+    facets: copy.architectureDesign.facets,
+    context: copy.architectureDesign.context,
+  },
+  {
+    pillar: 'reality-capture',
+    modifier: 'rc',
+    index: 'B',
+    mascot: 'drone',
+    tone: '#c2bdb2',
+    facets: copy.realityCapture.facets,
+    context: copy.realityCapture.context,
+  },
+];
+---
+
+<section class="caps" data-station={station} aria-labelledby="caps-heading">
+  <SectionMarker copy={copy.marker} heading id="caps-heading" />
+
+  <div class="capgrid">
+    <span class="ghost" aria-hidden="true">{copy.marker.no}</span>
+
+    {
+      gateways.map((gateway) => (
+        <div class:list={['cap', gateway.modifier, 'rv']} data-rv="img">
+          <Mascot variant={gateway.mascot} class="mvar" />
+
+          <div class="cimg">
+            <Plate image={media[gateway.pillar]?.cover ?? null} locale={locale} tone={gateway.tone} />
+            <span class="cmark" aria-hidden="true" />
+            <span class="cnum" aria-hidden="true">
+              {gateway.index}
+            </span>
+          </div>
+
+          <h3 class="cname">
+            <a href={routePath(pillarRouteKey(gateway.pillar) as never, locale, undefined as never)}>
+              {pillarLabel(gateway.pillar, locale)}
+            </a>
+          </h3>
+
+          <div class="csub measure">{gateway.facets}</div>
+          <p class="cctx">{gateway.context}</p>
+        </div>
+      ))
+    }
+  </div>
+</section>

@@ -1,0 +1,175 @@
+---
+/**
+ * M-4 · Pillar section module ×2 — HOMEPAGE_PAGE_IA Stage D, station 04
+ * ("IV · WORK IN FOCUS").
+ *
+ * Responsibility (Page IA M-4): "give enough of each capability's work to
+ * *decide to continue into its Hub* — **not** to summarize the Hub." Module CTA
+ * → the Pillar Hub (the C1 continuation); individual cards may link to their
+ * Work Entry (wireframe M-4).
+ *
+ * Components per section (HOMEPAGE_WIREFRAME M-4): Section Introduction · Work
+ * Preview Card ×n · CTA Group.
+ *
+ * ── WHY THIS IS ONE SECTION CONTAINING TWO MODULES ─────────────────────────
+ * The approved HiFi composes station 04 as one field with three beats — 04·a
+ * Architecture & Design, 04·b the point-cloud centrepiece, 04·c Documentation —
+ * and gives the two traverses deliberately different cadence "so the section
+ * doesn't repeat itself" (VISUAL_DIRECTION_v2.0 §12: "Never repeat the same
+ * layout in succession"). Structurally these are still the two M-4 modules: each
+ * has its own framing line, its own curated set and its own single continuation
+ * to its own Hub, and each carries comparable weight, so neither pillar reads as
+ * primary (D3).
+ *
+ * The point cloud is the Reality Capture module's preview treatment, which the
+ * Page IA anticipated exactly: M-4 *Future:* "a Reality-Capture-specific preview
+ * treatment (e.g. point-cloud) — UI-phase, not IA."
+ *
+ * ── A PILLAR WITH NO PLACEMENTS (resolved at I-3) ──────────────────────────
+ * The module renders its Section Introduction and its Hub continuation, and no
+ * cards. Both of those are authored (wireframe M-4); the card set is not, and
+ * `CONTENT_MODEL.md` §4 forbids filling it from taxonomy — "the homepage and
+ * curated landing pages **must not** derive editorial choices from taxonomy
+ * alone."
+ *
+ * No message is rendered either. COMPONENT_INVENTORY.md scopes Empty State to
+ * Work Archive (A-6) and Service (S-4/F5); the Homepage has none, and inventing
+ * one would be new product behaviour. An unpopulated module is the honest signal
+ * that a pillar is uncurated — see the I-3 report's note recommending a Studio
+ * warning, which is where that belongs.
+ */
+import FocusCarousel from '../FocusCarousel.astro';
+import PointCloudField from '../media/PointCloudField.astro';
+import SectionMarker from './SectionMarker.astro';
+import WorkPreviewCard from '../WorkPreviewCard.astro';
+import { localize } from '../../lib/content';
+import type { Locale, Pillar, WorkEntry, WorkEntrySummary } from '../../lib/content';
+import type { HomepageMessages } from '../../lib/i18n/homepage';
+import { routePath } from '../../lib/i18n/routes';
+import { pillarRouteKey } from '../../lib/i18n/vocabulary';
+
+interface Props {
+  locale: Locale;
+  copy: HomepageMessages['work'];
+  highlights: Readonly<Record<Pillar, readonly WorkEntrySummary[]>>;
+  /** The one entry the point-cloud field is about (§10.4, §19.4). */
+  pointCloudSubject: WorkEntry | null;
+  station: number;
+}
+
+const { locale, copy, highlights, pointCloudSubject, station } = Astro.props;
+
+/** Authored plate tones, transcribed from the HiFi's two traverses. */
+const TONES: Readonly<Record<Pillar, readonly string[]>> = {
+  'architecture-design': ['#cbc6bc', '#bdb7ab', '#c7c2b6', '#b4afa2'],
+  'reality-capture': ['#c2bdb2', '#b7b1a5', '#ccc7bd'],
+};
+
+interface Module {
+  pillar: Pillar;
+  id: string;
+  headingId: string;
+  cadence: 'default' | 'docs';
+  copy: HomepageMessages['work']['architectureDesign'];
+}
+
+const modules: Module[] = [
+  {
+    pillar: 'architecture-design',
+    id: 'work-ad',
+    headingId: 'work-ad-heading',
+    cadence: 'default',
+    copy: copy.architectureDesign,
+  },
+  {
+    pillar: 'reality-capture',
+    id: 'work-rc',
+    headingId: 'work-rc-heading',
+    cadence: 'docs',
+    copy: copy.realityCapture,
+  },
+];
+
+/**
+ * The Work Entry route needs the entity's own localized slug — §7.1 makes slugs
+ * localized per entity, so they can never be derived from one another.
+ */
+const entryHref = (entry: WorkEntrySummary): string | null => {
+  const slug = localize(entry.slug, locale);
+  return slug ? routePath('workEntry', locale, slug) : null;
+};
+---
+
+<section class="work" data-station={station} aria-labelledby="work-heading">
+  <SectionMarker copy={copy.marker} heading id="work-heading" />
+
+  {
+    modules.map((module, moduleIndex) => {
+      const entries = highlights[module.pillar];
+      const tones = TONES[module.pillar];
+
+      return (
+        <>
+          <section class="work-module" aria-labelledby={module.headingId}>
+            <div class="worktitle rv" data-rv="head">
+              <span class="n" aria-hidden="true">
+                {module.copy.index}
+              </span>
+              <h3 id={module.headingId}>{module.copy.title}</h3>
+            </div>
+
+            <p class="intro rv" data-rv="meta">{module.copy.intro}</p>
+
+            {entries.length > 0 && (
+              <FocusCarousel
+                id={module.id}
+                label={`${module.copy.title} — ${copy.carousel.label}`}
+                roleDescription={copy.carousel.roleDescription}
+                previousLabel={copy.carousel.previous}
+                nextLabel={copy.carousel.next}
+                positionLabel={copy.carousel.position}
+                cadence={module.cadence}
+                count={entries.length}
+              >
+                {entries.map((entry, index) => {
+                  const href = entryHref(entry);
+                  return href ? (
+                    <WorkPreviewCard
+                      entry={entry}
+                      locale={locale}
+                      href={href}
+                      index={index + 1}
+                      tone={tones[index % tones.length]}
+                      focused={index === 0}
+                    />
+                  ) : null;
+                })}
+              </FocusCarousel>
+            )}
+
+            <div class="modcta rv" data-rv="meta">
+              <a href={routePath(pillarRouteKey(module.pillar) as never, locale, undefined as never)}>
+                {module.copy.cta}
+                <span class="ar" aria-hidden="true">
+                  →
+                </span>
+              </a>
+            </div>
+          </section>
+
+          {/* 04·b — the crescendo sits between the two modules, exactly as authored. */}
+          {moduleIndex === 0 && (
+            <PointCloudField
+              locale={locale}
+              label={copy.pointCloud.label}
+              hint={copy.pointCloud.hint}
+              posterAlt={copy.pointCloud.posterAlt}
+              unavailable={copy.pointCloud.unavailable}
+              subject={pointCloudSubject}
+            />
+          )}
+        </>
+      );
+    })
+  }
+</section>

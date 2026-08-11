@@ -62,6 +62,16 @@ main {
   pointer-events: none;
 }
 
+/* The rail keeps `--ink-40` at 0.5 opacity, which does not meet the 4.5:1 that
+   WCAG 2.2 AA sets for text — deliberately, and it is the one place in the
+   system that stays there (I-3).
+   1.4.3 exempts pure decoration, and the rail qualifies: it is `aria-hidden`,
+   non-interactive, hidden below 900px, and every number it shows is already
+   rendered in-content at full strength by the matching `.smark .no`
+   (`--blue`, 8.11:1). It annotates the page; it carries no information of its
+   own. Raising its contrast would make an instrument annotation compete with
+   the content it measures, against VISUAL_DIRECTION_v2.0 §2.2.
+   Flagged for confirmation in the I-6 accessibility audit. */
 .rail .st {
   font-family: var(--pixel);
   font-size: 12px;

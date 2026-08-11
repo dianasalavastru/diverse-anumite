@@ -1,0 +1,86 @@
+---
+/**
+ * M-3 · Practice-credibility module — HOMEPAGE_PAGE_IA Stage C, station 03
+ * ("III · PRACTICE, MEASURED").
+ *
+ * Responsibility (Page IA M-3): establish credibility early, **pillar-neutral**,
+ * without forcing pillar content (J3). Consumes practice-level credibility —
+ * experience, the EU-funded professional equipment. Destination: About.
+ *
+ * Components (HOMEPAGE_WIREFRAME M-3): Section Header · Rich Text · Statistic ×n
+ * (optional) · a light text link to About. "Any Statistics are supporting…
+ * never a loud metric row — evidence over claims."
+ *
+ * PILLAR-NEUTRALITY is a hard constraint, and it is why this module takes no
+ * Work Entry: nothing here may be scoped to a pillar. The supporting figure is
+ * practice photography, not project media.
+ *
+ * COMPOSITION (approved HiFi §"III · PRACTICE, MEASURED"): "redesigned from a
+ * floating figure list into a real fact block — a supporting portrait/detail
+ * image on the left carries photographic weight and balances the figures, a
+ * short studio statement adds density, and the numbers are scaled up so they read
+ * as PROOF, not footnotes. This is a deliberately DENSE beat."
+ *
+ * THE DOT SEQUENCE. MOTION_NOTES.md §"Technical elements": "the credibility dots
+ * light in sequence". The HiFi drives that with an IntersectionObserver and a
+ * `setTimeout` ladder. Here it is pure CSS — the readouts block is an ordinary
+ * `.rv` element, and the stylesheet staggers each dot off `.readouts.in` with a
+ * per-row `transition-delay`. Identical result, no page script, and reduced
+ * motion resolves it with everything else.
+ *
+ * THE STATISTIC VALUES are placeholder (see `src/lib/i18n/homepage.ts`) and are
+ * marked `data-fixture` so a fabricated credibility claim cannot reach
+ * production unnoticed — the same discipline §10.4 imposes on capture readouts.
+ */
+import SectionMarker from './SectionMarker.astro';
+import Plate from '../media/Plate.astro';
+import type { Locale } from '../../lib/content';
+import type { HomepageMessages } from '../../lib/i18n/homepage';
+import { routePath } from '../../lib/i18n/routes';
+
+interface Props {
+  locale: Locale;
+  copy: HomepageMessages['credibility'];
+  station: number;
+}
+
+const { locale, copy, station } = Astro.props;
+---
+
+<section class="cred" data-station={station} aria-labelledby="cred-heading">
+  <div class="figure rv" data-rv="img">
+    <Plate image={null} locale={locale} tone="#c6c1b7" />
+    <span class="tag" aria-hidden="true">{copy.figureCaption}</span>
+  </div>
+
+  <div class="body">
+    <SectionMarker copy={copy.marker} />
+
+    <h2 class="rv" data-rv="head" id="cred-heading">
+      {copy.heading.lead} <span class="b">{copy.heading.accent}</span>{copy.heading.tail}
+    </h2>
+
+    <p class="state rv" data-rv="meta">{copy.statement}</p>
+
+    <dl class="readouts rv" data-rv="meta" data-fixture="statistics">
+      {
+        copy.readouts.map((readout) => (
+          <div class="ro">
+            <dt class="v">
+              {readout.value}
+              {readout.unit && <span class="u">{readout.unit}</span>}
+            </dt>
+            <dd class="k">
+              <span class="dot" aria-hidden="true" />
+              {readout.label}
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+
+    <a class="quiet-link rv" data-rv="meta" href={routePath('about', locale)}>
+      {copy.aboutLink}<span class="ar" aria-hidden="true">→</span>
+    </a>
+  </div>
+</section>

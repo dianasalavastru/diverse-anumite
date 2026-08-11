@@ -1,0 +1,95 @@
+---
+/**
+ * M-1 · Identity module — HOMEPAGE_PAGE_IA Stage A, station 01 ("I · ARRIVAL").
+ *
+ * Responsibility (Page IA M-1): establish that this is *one* coherent practice
+ * before any split (J1, D9). Question answered: who is this / is it one practice?
+ * Destination: About.
+ *
+ * Components (HOMEPAGE_WIREFRAME M-1): Hero (identity variant) · Rich Text (a
+ * brief identity/positioning line) · a light text link to About.
+ *
+ * COMPOSITION (approved HiFi §"I · ARRIVAL"): photography is the dominant plate
+ * and the wordmark is composited over it; the value proposition below is scaled
+ * up so hierarchy after the wordmark is unmistakable, and set two-column so the
+ * right side carries weight too.
+ *
+ * THE HERO WORDMARK is an intentional composition change recorded upstream
+ * (MOTION_NOTES.md §"The hero wordmark"): the pixel wordmark appears inside the
+ * landing composition as an editorial graphic in electric blue, anchored to the
+ * measured grid, annotated with a coordinate label and a dimension, and on load
+ * it is "measured into existence" by a blue scan bar. It is `aria-hidden`
+ * because it repeats the header wordmark verbatim; the accessible identity is
+ * the `<h1>` below it, and the hero photograph carries the authored alt.
+ *
+ * THE ABOUT LINK is present here and absent from the approved HiFi. The
+ * wireframe and the Page IA both require it, and README.md §"Authority model"
+ * resolves the direction: upstream wins. Recorded as a deviation in the Homepage
+ * implementation report — it is one quiet mono link inside the existing `.side`
+ * block, adding no new visual language.
+ */
+import Mascot from '../Mascot.astro';
+import Plate from '../media/Plate.astro';
+import { localize } from '../../lib/content';
+import type { Locale, WorkEntrySummary } from '../../lib/content';
+import type { HomepageMessages } from '../../lib/i18n/homepage';
+import { routePath } from '../../lib/i18n/routes';
+
+interface Props {
+  locale: Locale;
+  copy: HomepageMessages['arrival'];
+  /** The curated entry whose cover leads the opening (VISUAL_DIRECTION §9). */
+  hero: WorkEntrySummary | null;
+  station: number;
+}
+
+const { locale, copy, hero, station } = Astro.props;
+
+const heroTitle = hero ? localize(hero.title, locale) : null;
+const caption = [copy.heroIndex, heroTitle].filter(Boolean).join(' · ');
+---
+
+<section class="arrival" data-station={station} aria-labelledby="identity">
+  <div class="hero-plate">
+    <div class="hero-img">
+      <Plate image={hero?.cover ?? null} locale={locale} alt={copy.heroFallbackAlt} tone="#cbc6bc" priority />
+    </div>
+    <div class="hero-scrim" aria-hidden="true"></div>
+    <div class="hero-scan" aria-hidden="true"></div>
+
+    <div class="hero-cap" aria-hidden="true">
+      <span class="k">{caption}</span>
+      <span class="measure">{copy.heroCoordinates}</span>
+    </div>
+    <span class="hero-dim measure" aria-hidden="true" data-fixture="hero-dimension">
+      {copy.heroDimension}
+    </span>
+
+    {/* The editorial wordmark — identity as graphic, not as a second landmark. */}
+    <span class="hw" aria-hidden="true">diverse anumite</span>
+  </div>
+
+  <div class="lead">
+    <div class="h1wrap rv" data-rv="head">
+      <div class="eyebrow">{copy.eyebrow}</div>
+      <h1 id="identity">
+        {copy.heading.lead} <span class="b">{copy.heading.accent}</span> {copy.heading.tail}
+      </h1>
+    </div>
+
+    <div class="side rv" data-rv="meta">
+      <p>{copy.statement}</p>
+
+      <div class="cue">
+        <span class="ln" aria-hidden="true"></span>
+        <span class="measure">{copy.cue}</span>
+        <Mascot variant="giraffe" />
+      </div>
+
+      {/* Wireframe M-1: "a quiet secondary affordance, never an emphasized action." */}
+      <a class="quiet-link" href={routePath('about', locale)}>
+        {copy.aboutLink}<span class="ar" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </div>
+</section>

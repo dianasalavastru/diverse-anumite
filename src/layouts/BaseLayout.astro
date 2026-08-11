@@ -114,6 +114,12 @@ const absolute = (path: string) => (Astro.site ? new URL(path, Astro.site).href 
         }
       </style>
     </noscript>
+
+    {/* Per-page head contributions. A page whose composition stages elements of
+        its own owns its own no-JS resolution: the layout cannot enumerate
+        selectors for pages it does not know about, and §14.0 makes progressive
+        enhancement mandatory rather than best-effort. */}
+    <slot name="head" />
   </head>
 
   <body>
@@ -128,6 +134,12 @@ const absolute = (path: string) => (Astro.site ? new URL(path, Astro.site).href 
       counterpart={counterpart}
       counterpartLocale={alternateLocale}
     />
+
+    {/* The coordinate rail, on the page types that have one (HP, HUB, RC, WE,
+        SV — not WA). It is fixed and `aria-hidden`, and it sits outside <main>
+        exactly as the HiFis place it: it annotates the page, it is not page
+        content. Pages without a rail fill nothing and pay nothing. */}
+    <slot name="rail" />
 
     <main id="main">
       <slot />

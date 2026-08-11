@@ -47,7 +47,8 @@
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--ink-40);
+  /* --ink-60, not --ink-40: 10px heading text (I-3). See typography.css. */
+  color: var(--ink-60);
   margin-bottom: 12px;
 }
 
@@ -90,7 +91,8 @@
 .site-footer .eu p {
   font-family: var(--mono);
   font-size: 11px;
-  color: var(--ink-40);
+  /* --ink-60, not --ink-40: the EU acknowledgment is compliance text (I-3). */
+  color: var(--ink-60);
   max-width: 52ch;
   line-height: 1.5;
 }

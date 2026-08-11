@@ -1,0 +1,103 @@
+---
+/**
+ * Work Preview Card — COMPONENT_INVENTORY.md §4.
+ *
+ * Purpose: the canonical preview of one Work Entry.
+ * Responsibility: signpost a work so the visitor can decide to open it.
+ * Appears on: Work Archive results (A-5), Related Work Strip (W-6), hub curated
+ *   work (H-4), Service proof (S-4), Homepage pillar sections (M-4).
+ * Notes (Inventory): "the single reusable 'Work card' everywhere; identical
+ *   concept, identical structure." Variants are media treatment only.
+ *
+ * OWNERSHIP: Workstream A, single-owner file (TECHNICAL_ARCHITECTURE.md §23.3,
+ * "Work Preview Card | A | touched by rendering *and* the field contract
+ * simultaneously"). It lives at the component root rather than under
+ * `homepage/` precisely so the next page to need it extends this file instead of
+ * forking it.
+ *
+ * VARIANTS. Only `focus` exists today — the presentation the approved Homepage
+ * HiFi authors for a focus carousel. The archive's five-size masonry variants
+ * arrive with the archive (Phase 5); adding them now would be inventing
+ * presentation for a page nobody has built.
+ *
+ * REBUILT, NOT COPIED (§5.3). Markup and data attributes come from the Content
+ * Model, never from HiFi markup: the metadata line renders Year + **Entry Type**
+ * from the frozen vocabulary, where the HiFi prints an inconsistent mix of
+ * Sector and Entry Type in the same slot. No `data-type`/`data-status` attribute
+ * survives — those are the collapsed-taxonomy prototype debt §5.3 and R6 name.
+ *
+ * A CARD IS A LINK. The HiFi's `.proj` is an inert `<div>`. HOMEPAGE_WIREFRAME
+ * M-4 permits individual cards to link to their Work Entry, and §14 makes every
+ * interactive surface keyboard-operable — so the card is one `<a>`, reachable by
+ * Tab, with its accessible name composed from the title and metadata it already
+ * shows. Movement is never the only signal of interactivity (MOTION_NOTES.md:54).
+ *
+ * ── NO FOCUS CAPTION (resolved at I-3) ────────────────────────────────────
+ * The approved HiFi reveals a one-line context caption on the focused card
+ * ("Volum de beton asezat pe curba de nivel…"). It is not rendered, because no
+ * upstream authority creates the content concept it would need:
+ *
+ *   - COMPONENT_INVENTORY.md "Work Preview Card" fixes this component's
+ *     *Inputs:* "Work Entry preview (title, key facets, media)". No caption.
+ *     §7 there is explicit that a new concept needs architectural justification
+ *     and that "Visual variation alone is never sufficient reason".
+ *   - `CONTENT_MODEL.md` §3 has no preview-caption field. The nearest candidates
+ *     are `description` (Portable Text — truncating it would be derived
+ *     editorial, and §19.2 governs its serialization) and `seo.description`
+ *     (authored for search results, not for display). Neither is honest here.
+ *   - `HOMEPAGE_WIREFRAME.md` M-4 lists Section Introduction · Work Preview Card
+ *     · CTA Group, and nothing per-card beyond the card.
+ *
+ * A HiFi does not by itself create a CMS field. The slot is therefore absent
+ * rather than filled with invented or repurposed copy. Adding a real
+ * `previewCaption` is an owner + Content Model decision, flagged in the I-3
+ * report; if it is taken, this component gains one element and B one field.
+ */
+import Plate from './media/Plate.astro';
+import { localize } from '../lib/content';
+import type { Locale, WorkEntrySummary } from '../lib/content';
+import { entryTypeLabel } from '../lib/i18n/vocabulary';
+
+interface Props {
+  entry: WorkEntrySummary;
+  locale: Locale;
+  /** Destination — built by the caller from the frozen route map. */
+  href: string;
+  /** 1-based position, for the `pt·NN` coordinate label. */
+  index: number;
+  /** Authored plate tone behind the photograph (see Plate.astro). */
+  tone?: string;
+  /**
+   * Rendered already in focus. The carousel's runtime is an enhancement, so the
+   * composition must be correct before it runs: one card is always "measured"
+   * (VISUAL_DIRECTION_v2.0 §2.2), including with JavaScript disabled.
+   */
+  focused?: boolean;
+  variant?: 'focus';
+}
+
+const { entry, locale, href, index, tone = '#c9c4ba', focused = false } = Astro.props;
+
+const title = localize(entry.title, locale);
+const coordinate = `pt·${String(index).padStart(2, '0')}`;
+const type = entryTypeLabel(entry.entryType.primary, locale);
+---
+
+<a
+  class:list={['proj', focused && 'focused']}
+  href={href}
+  data-work-id={entry._id}
+  aria-current={focused ? 'true' : undefined}
+>
+  <span class="pimg">
+    <Plate image={entry.cover} locale={locale} tone={tone} />
+    <span class="pmark" aria-hidden="true"></span>
+    <span class="pscan" aria-hidden="true"></span>
+    <span class="pcoord" aria-hidden="true">{coordinate}</span>
+  </span>
+
+  <span class="meta">
+    <span class="t">{title}</span>
+    <span class="d">{entry.year} · {type}</span>
+  </span>
+</a>

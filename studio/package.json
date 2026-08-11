@@ -1,0 +1,29 @@
+{
+  "name": "diverse-anumite-studio",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Sanity Studio for diverse anumite — TECHNICAL_ARCHITECTURE.md §7. A separate application with its own dependency tree: the root scaffold is Workstream A's single-owner file (§23.3).",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "sanity dev",
+    "build": "sanity build",
+    "deploy": "sanity deploy",
+    "check": "tsc --noEmit",
+    "export": "sanity dataset export",
+    "manage": "sanity manage"
+  },
+  "dependencies": {
+    "@sanity/vision": "^6.9.1",
+    "react": "^19.2.2",
+    "react-dom": "^19.2.2",
+    "sanity": "^6.9.1",
+    "styled-components": "^6.1.15"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "typescript": "^5.9.3"
+  }
+}

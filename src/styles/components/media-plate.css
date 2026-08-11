@@ -1,0 +1,29 @@
+/* =============================================================================
+   Plate — the media fill inside an authored image box.
+
+   See src/components/media/Plate.astro for why a fixture state exists. The tone
+   is the flat warm plate the approved HiFis paint underneath every remote
+   placeholder photograph; it is passed in per box, because the HiFis vary it
+   deliberately from card to card.
+
+   The box itself (aspect ratio, grade, position: relative) belongs to the
+   composition — VISUAL_DIRECTION_v2.0 §9 makes cropping authorship, so it is
+   never generic.
+   ========================================================================== */
+
+.plate-img,
+.plate-fixture {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.plate-img {
+  object-fit: cover;
+}
+
+.plate-fixture {
+  background: var(--plate-tone, #c9c4ba);
+}

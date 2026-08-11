@@ -75,7 +75,22 @@ if (reduce) {
   const revealObserver = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
+        /**
+         * Already scrolled PAST counts as revealed.
+         *
+         * The observer's first callback reports every element, including those
+         * above the viewport — and those are never going to intersect again on
+         * a downward read. Browsers restore scroll position on reload and on
+         * back-navigation, and a deep link lands mid-page, so without this an
+         * ordinary reload leaves everything above the fold permanently at
+         * `opacity: 0`. The HiFi has the same gap; it is not visible in a
+         * prototype that is only ever opened at the top.
+         *
+         * `bottom <= 0` means the element ended above the viewport's top edge.
+         * It resolves to the same final state, with no transition worth seeing.
+         */
+        const passed = entry.boundingClientRect.bottom <= 0;
+        if (!entry.isIntersecting && !passed) continue;
         entry.target.classList.add('in');
         revealObserver.unobserve(entry.target);
       }
