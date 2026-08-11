@@ -35,6 +35,8 @@ declare module 'node:fs' {
     isFile(): boolean;
   }
   export function readdirSync(path: string, options: { withFileTypes: true }): Dirent[];
+  /* `live.test.ts` lists `studio/seed/` by name to pre-flight every NDJSON the directory holds. */
+  export function readdirSync(path: string | URL): string[];
   export function statSync(path: string): Stats;
 }
 

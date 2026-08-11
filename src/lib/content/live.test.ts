@@ -36,7 +36,7 @@
  *     live data; the drop path needs a real uploaded asset, which NDJSON cannot carry).
  */
 
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { beforeAll, describe, expect, it } from 'vitest';
 
@@ -75,7 +75,7 @@ import { DISCIPLINE_TO_PILLAR, type Discipline } from './types.js';
 import { RESERVED_SLUGS, type Locale } from '../i18n/routes.js';
 
 const REPO_ROOT = new URL('../../../', import.meta.url);
-const SEED_PATH = new URL('studio/seed/b3-test-dataset.ndjson', REPO_ROOT);
+const SEED_DIRECTORY = new URL('studio/seed/', REPO_ROOT);
 
 /* ════════════════════════════════════════════════════════════════════════════
  * Always on — the checks that need no credentials
@@ -154,11 +154,25 @@ interface SeedDocument {
   readonly [key: string]: unknown;
 }
 
+/**
+ * Every NDJSON file in `studio/seed/` is read, not only the B3 one.
+ *
+ * Generalised at I-4: the minimum-content set (`i4-minimum-content.ndjson`) is imported into the
+ * same `development` dataset by the same hand-run command, so it needs the same pre-flight.
+ * `CONTENT_INTAKE.md` §5 caution 3 is explicit — "validate before importing… rather than
+ * discovering the problem in a failing production build". A file the directory holds and this
+ * function skipped would be exactly the content nothing checks.
+ */
 function readSeed(): readonly SeedDocument[] {
-  return readFileSync(SEED_PATH, 'utf8')
-    .trim()
-    .split('\n')
-    .map((line) => JSON.parse(line) as SeedDocument);
+  return readdirSync(SEED_DIRECTORY)
+    .filter((name) => name.endsWith('.ndjson'))
+    .sort()
+    .flatMap((name) =>
+      readFileSync(new URL(name, SEED_DIRECTORY), 'utf8')
+        .trim()
+        .split('\n')
+        .map((line) => JSON.parse(line) as SeedDocument),
+    );
 }
 
 /** Mirrors the document-level rules in `studio/schemaTypes/workEntry.ts`. */
@@ -203,7 +217,7 @@ function validateSeedWorkEntry(document: SeedDocument): ValidationIssue[] {
   ];
 }
 
-describe('Seed pre-flight — studio/seed/b3-test-dataset.ndjson', () => {
+describe('Seed pre-flight — every studio/seed/*.ndjson', () => {
   const seed = readSeed();
 
   it('holds unique ids and resolvable references', () => {
