@@ -11,18 +11,20 @@
  * "Orientation → Practice → Capabilities → Evidence → Exploration → Action."
  * The stations 01…07 on the coordinate rail are that sequence made visible.
  *
- * ── CONTENT: THE I-3 SWAP POINT ───────────────────────────────────────────
+ * ── CONTENT: THE I-3 SWAP POINT, NOW SWAPPED ──────────────────────────────
  * Every content-shaped value comes from Workstream B's `ContentSource`, which
  * `source.ts` names as the I-3 contract: "Workstream A codes against
  * `ContentSource` and never against a concrete implementation, so the swap is
  * one factory call in one file — `createFixtureContentSource()` →
  * `createSanityContentSource()` — with no component change."
  *
- * **That one call is the line below, and it is the only line I-3 touches.** No
- * GROQ, no CMS coupling, no second content model: this file selects and
- * arranges, it does not define. Locale scoping (§7.1), discovery order (§7.6),
- * curated-view membership (IA §5) and employer grouping (IA §5.1) all happen
- * inside the source, before anything reaches a component.
+ * **That one call is the line below, and it was the only line I-3 touched.**
+ * It now returns live Sanity data (`build-source.ts`); not one line of the
+ * composition beneath it moved, which is the contract holding rather than a
+ * claim about it. No GROQ, no CMS coupling, no second content model: this file
+ * selects and arranges, it does not define. Locale scoping (§7.1), discovery
+ * order (§7.6), curated-view membership (IA §5) and employer grouping (IA §5.1)
+ * all happen inside the source, before anything reaches a component.
  *
  * ── WHAT IS NOT HERE ──────────────────────────────────────────────────────
  * No point-cloud renderer (Workstream D — see `media/PointCloudField.astro` for
@@ -43,9 +45,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import type { Locale, Pillar, WorkArchiveItem } from '../../lib/content';
 import { homepageMessages } from '../../lib/i18n/homepage';
 
-/* ── THE I-3 SWAP POINT — this import and this call, nothing else ─────────── */
-import { createFixtureContentSource } from '../../lib/content/fixtures';
-const source = createFixtureContentSource();
+/* ── I-3, SWAPPED — this import and this call, nothing else ───────────────── */
+import { contentSource } from '../../lib/content/build-source';
+const source = contentSource();
 /* ─────────────────────────────────────────────────────────────────────────── */
 
 import { HIGHLIGHT_LIMIT, indexById, pointCloudSubject } from './highlights';

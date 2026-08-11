@@ -14,6 +14,13 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": ["**/*.ts", "**/*.tsx", "../src/lib/content/**/*.ts", "../src/lib/i18n/**/*.ts"],
-  "//": "`../src/lib/content/node-shims.d.ts` is excluded deliberately: it declares a minimal `node:fs`/`node:child_process` for the web app's browser-typed program, and the Studio already has real `@types/node`. Two declarations of the same module collide.",
-  "exclude": ["node_modules", "dist", "../src/lib/content/node-shims.d.ts"]
+  "//": "The Studio type-checks the shared content contract (validation rules, types, vocabularies) so the schema and the query layer cannot drift. Two files in that directory are excluded because they belong to the *web app's* program, not this one, and nothing here imports either.",
+  "// node-shims.d.ts": "It declares a minimal `node:fs`/`node:child_process` for the web app's browser-typed program, and the Studio already has real `@types/node`. Two declarations of the same module collide.",
+  "// build-source.ts": "It reads `import.meta.env`, which is Vite's build-time surface — typed by `astro/client` in the web app and absent here. The Studio has no build to resolve a `ContentSource` for; `astro check` is what covers this file.",
+  "exclude": [
+    "node_modules",
+    "dist",
+    "../src/lib/content/node-shims.d.ts",
+    "../src/lib/content/build-source.ts"
+  ]
 }

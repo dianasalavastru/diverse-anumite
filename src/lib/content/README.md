@@ -17,24 +17,29 @@ workstreams editing them re-creates exactly the drift §7.1 exists to prevent.
 | `groq.ts` | The projections — the single declaration of the query shape. |
 | `normalize.ts` | Raw GROQ result → the frozen contract. Where the guarantees are enforced. |
 | `source.ts` | `ContentSource` — the interface pages consume, and the I-3 swap point. |
-| `fixtures.ts` | Placeholder data, generated through the real query layer. **Never ships.** |
-| `index.ts` | The import surface. Deliberately does not re-export fixtures. |
+| `build-source.ts` | The build-time `ContentSource` the pages actually call. Reads the environment; throws rather than falling back. |
+| `fixtures.ts` | Placeholder data, generated through the real query layer. **Never ships.** Tests only. |
+| `index.ts` | The import surface. Deliberately does not re-export fixtures or `build-source.ts`. |
 | `live.test.ts` | The live CMS handshake (B3). Skips without credentials; proves the contract against a real dataset with them. |
 | `node-shims.d.ts` | Minimal `node:fs`/`node:child_process` types for `live.test.ts`, so no dependency is added to A's `package.json`. |
 
 ## How to consume it
 
 ```ts
-import { createFixtureContentSource } from '../lib/content/fixtures.js'; // today
-// import { createSanityContentSource, resolveSanityConfig } from '../lib/content'; // at I-3
+import { contentSource } from '../lib/content/build-source.js'; // live Sanity, resolved once
 
-const content = createFixtureContentSource();
+const content = contentSource();
 const archive = await content.workArchive('ro');        // discovery order, §23.5 facets
 const entry   = await content.workEntry(slug, 'en');    // null when untranslated
 ```
 
-Both factories return the same `ContentSource`. Swapping fixtures for real data is one edit at
-the composition point — no component changes. That is the §23.4 I-3 contract.
+`createFixtureContentSource()` from `fixtures.js` returns the same `ContentSource` and is what the
+test suites use. **Pages must not import it** — a page that does emits invented projects as
+finished work (§10.4). `build-source.ts` is deliberately not re-exported from `index.ts` for the
+same reason `fixtures.ts` is not: the two content origins should never be one autocomplete apart.
+
+Swapping fixtures for real data was one edit per composition point and no component change. That
+is the §23.4 I-3 contract, and it held.
 
 ## Rules this directory encodes
 
@@ -75,20 +80,21 @@ structural rather than a convention:
 
 ## Status
 
-Integration point I-3. The schema and Studio are in [`studio/`](../../../studio/README.md);
-the query layer is real and tested against fixtures. Not built yet: the contact Pages Function
-(§19.3), the preview environment (§6.2), and the publish webhook (§17).
-
-**No Sanity project exists yet**, so the Sanity source has still not been run against a live
-dataset. B3 built everything that does not require one:
+**Integration point I-3 is closed.** Every page-level composition — Homepage, Work Archive, both
+curated views, and both Work Entry routes — reads live Sanity through `build-source.ts`. No page
+imports `fixtures.ts`. The schema and Studio are in [`studio/`](../../../studio/README.md). Not
+built yet: the contact Pages Function (§19.3), the preview environment (§6.2), and the publish
+webhook (§17).
 
 - `live.test.ts` is the complete verification suite. It self-skips without credentials and runs
   the whole §7/§8/§11.2/§18/§19.4/§23.4 contract against a real dataset with them.
 - Its always-on half runs on every `npm test`: the §18 secrets checks, and a pre-flight that puts
   `studio/seed/b3-test-dataset.ndjson` through the same validation predicates the Studio attaches
   to the fields — so the seed cannot be malformed by the time someone imports it.
-- What the owner must do to unblock the rest is
-  [`studio/README.md` → One-time setup](../../../studio/README.md#one-time-setup--owner-action-not-yet-done).
+- `npm run build` now needs the three §18 variables. It is verified against the **`development`**
+  dataset and the B3 seed; `production` holds no content yet. Without them the build **fails** —
+  it does not fall back to fixtures, because a green build of invented projects is worse than a
+  red one (see the header of `build-source.ts`).
 
 **Preview reads are blocked at this boundary on purpose.** `createContentClient` calls
 `assertProductionPerspective`, so `perspective: 'drafts'` throws at the transport. The preview

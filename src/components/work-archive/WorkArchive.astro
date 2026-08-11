@@ -49,9 +49,9 @@ import { routePath } from '../../lib/i18n/routes';
 import { workArchiveMessages } from '../../lib/i18n/work-archive';
 import { collectFacetValues, serviceOptions } from './facets';
 
-/* ── THE I-3 SWAP POINT — this import and this call, nothing else ─────────── */
-import { createFixtureContentSource } from '../../lib/content/fixtures';
-const source = createFixtureContentSource();
+/* ── I-3, SWAPPED — this import and this call, nothing else ───────────────── */
+import { contentSource } from '../../lib/content/build-source';
+const source = contentSource();
 /* ─────────────────────────────────────────────────────────────────────────── */
 
 interface Props {

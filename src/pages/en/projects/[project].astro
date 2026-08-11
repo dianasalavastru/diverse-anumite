@@ -22,13 +22,13 @@
  * point: a fallback would have to be written, and none is.
  */
 import WorkEntryPage from '../../../components/work-entry/WorkEntryPage.astro';
-import { createFixtureContentSource } from '../../../lib/content/fixtures';
+import { contentSource } from '../../../lib/content/build-source';
 import { localize } from '../../../lib/content';
 import type { WorkEntry } from '../../../lib/content';
 
 export async function getStaticPaths() {
-  /* ── THE I-3 SWAP POINT — this call, and nothing else ─────────────────── */
-  const source = createFixtureContentSource();
+  /* ── I-3, SWAPPED — this call, and nothing else ───────────────────────── */
+  const source = contentSource();
   /* ─────────────────────────────────────────────────────────────────────── */
 
   const entries = await source.workEntries('en');

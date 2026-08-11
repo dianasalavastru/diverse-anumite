@@ -10,6 +10,11 @@
  * It is also the seam R8 prices: a Payload implementation of this interface would leave every
  * page untouched.
  *
+ * That swap has happened. `build-source.ts` resolves `createSanityContentSource` from the build
+ * environment and is what every page calls; `createFixtureContentSource` now serves the test
+ * suites only. The claim above is therefore a measured result rather than a design intention —
+ * the six composition sites changed one import and one call each, and nothing else moved.
+ *
  * **Every method is locale-scoped.** §7.1: "Aggregate surfaces are locale-scoped. Archive, Hubs,
  * homepage curation, and Service 'demonstrated by' render only entities published in the active
  * locale. Discovery order and balanced pillar representation must remain valid when the EN set

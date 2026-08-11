@@ -40,9 +40,9 @@ import ViewTransition from '../ViewTransition.astro';
 import type { Locale } from '../../lib/content';
 import { workArchiveMessages } from '../../lib/i18n/work-archive';
 
-/* ── THE I-3 SWAP POINT ───────────────────────────────────────────────────── */
-import { createFixtureContentSource } from '../../lib/content/fixtures';
-const source = createFixtureContentSource();
+/* ── I-3, SWAPPED ─────────────────────────────────────────────────────────── */
+import { contentSource } from '../../lib/content/build-source';
+const source = contentSource();
 /* ─────────────────────────────────────────────────────────────────────────── */
 
 interface Props {
