@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 
+import { devVisualMedia } from './scripts/astro-integration-dev-visual-media.mjs';
 import { credentialGuard } from './scripts/vite-plugin-credential-guard.mjs';
 
 /**
@@ -19,6 +20,16 @@ import { credentialGuard } from './scripts/vite-plugin-credential-guard.mjs';
  */
 export default defineConfig({
   output: 'static',
+
+  /**
+   * DEVELOPMENT ONLY, and inert by default.
+   *
+   * Registered unconditionally so that its refusal to run in a deployment context executes on
+   * every build — a guard that is itself conditional on the thing it guards is not a guard.
+   * Without `DEV_VISUAL_MEDIA=true` every hook returns immediately and the build is byte-for-byte
+   * what it was before. See `scripts/astro-integration-dev-visual-media.mjs`.
+   */
+  integrations: [devVisualMedia()],
 
   /**
    * §19.1: the Content-Security-Policy carries "no `unsafe-inline` in

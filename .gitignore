@@ -36,6 +36,16 @@ Thumbs.db
 # `.claude/launch.json` IS shared — it is the repo's dev-server config.
 .claude/settings.local.json
 
+# --- development-only visual QA media (never content, never shipped) ---
+# `dev-assets/visual-qa/**` holds temporary local imagery used to stress the
+# layouts while the CMS has no media. It is NOT portfolio content, it is never
+# uploaded to Sanity, and it must never enter Git or a production build. The
+# overlay that consumes it is gated behind `DEV_VISUAL_MEDIA=true` and is inert
+# without it — see `src/lib/dev/visual-media.ts`.
+# `.dev-visual-media/` is the generated downscaled cache of that same imagery.
+dev-assets/
+.dev-visual-media/
+
 # build output / tooling
 dist/
 .astro/

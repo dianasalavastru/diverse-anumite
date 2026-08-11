@@ -57,6 +57,7 @@ import type { Locale, WorkEntrySummary } from '../../lib/content';
 import type { PillarHubMessages } from '../../lib/i18n/pillar-hub';
 import { routePath } from '../../lib/i18n/routes';
 import { MEASUREMENT_TARGETS, type HubPlateOverlay } from './hub';
+import { poolForPillar } from '../../lib/dev/visual-media';
 
 interface Props {
   locale: Locale;
@@ -73,6 +74,18 @@ interface Props {
 }
 
 const { locale, copy, hero, overlay = null, station } = Astro.props;
+
+/* DEVELOPMENT ONLY — see `lib/dev/visual-media.ts`.
+   The pool follows the curated entry when there is one. With no entry there is no pillar in
+   scope either, so it falls back to the signal already present: `overlay === 'measurement'` is
+   the Reality Capture hub's own treatment. Deliberately not a new `pillar` prop — a dev-only
+   concern does not get to widen a component's public contract. */
+const devKey = hero ? `${hero._id}:hub-hero` : `hub:${overlay ?? 'default'}:hero`;
+const devPool = hero
+  ? poolForPillar(hero.pillars.primary, hero.pillars.secondary, devKey)
+  : overlay === 'measurement'
+    ? 'reality-capture'
+    : 'architecture';
 
 const heroTitle = hero ? localize(hero.title, locale) : null;
 const caption = [copy.heroIndex, heroTitle].filter(Boolean).join(' · ');
@@ -105,6 +118,8 @@ const caption = [copy.heroIndex, heroTitle].filter(Boolean).join(' · ');
           alt={copy.heroFallbackAlt}
           tone="#cbc6bc"
           priority
+          devKey={devKey}
+          devPool={devPool}
         />
         {/* The measurement overlay — a coordinate grid, two registration targets
             and the scan, transcribed from the RC HiFi. Decorative measurement

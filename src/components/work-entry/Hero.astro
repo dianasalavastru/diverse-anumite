@@ -34,6 +34,7 @@ import { localize } from '../../lib/content';
 import type { Locale, WorkEntry } from '../../lib/content';
 import type { WorkEntryMessages } from '../../lib/i18n/work-entry';
 import { routePath } from '../../lib/i18n/routes';
+import { poolForPillar } from '../../lib/dev/visual-media';
 import {
   entryTypeLabel,
   pillarLabel,
@@ -52,6 +53,12 @@ const { entry, locale, copy, station } = Astro.props;
 
 const title = localize(entry.title, locale) ?? '';
 const location = localize(entry.metadata.location, locale);
+
+/* DEVELOPMENT ONLY — see `lib/dev/visual-media.ts`. A distinct key from the entry's card, so the
+   full-bleed hero and the small card are not forced to be the same photograph: the point of the
+   QA pass is to see how one composition reads large and another reads small. */
+const devKey = `${entry._id}:entry-hero`;
+const devPool = poolForPillar(entry.pillars.primary, entry.pillars.secondary, devKey);
 
 /**
  * The kicker: the "first relevance signal" the wireframe asks for — sector,
@@ -87,6 +94,8 @@ const primaryPillar = entry.pillars.primary;
         alt={copy.evidence.heroFallbackAlt}
         tone="#3a352d"
         priority
+        devKey={devKey}
+        devPool={devPool}
       />
     </div>
     <div class="we-hero-grad" aria-hidden="true"></div>

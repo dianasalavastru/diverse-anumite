@@ -60,6 +60,7 @@ import Plate from './media/Plate.astro';
 import { localize } from '../lib/content';
 import type { Locale, WorkEntrySummary } from '../lib/content';
 import { entryTypeLabel, pillarLabel } from '../lib/i18n/vocabulary';
+import { poolForPillar } from '../lib/dev/visual-media';
 
 interface Props {
   entry: WorkEntrySummary;
@@ -123,6 +124,13 @@ const type = entryTypeLabel(entry.entryType.primary, locale);
 /* The archive caption's first reading — the pillar, carrying the blue signal
    exactly as the HiFi's `.pl-tag` does. Derived, never authored (§7.4). */
 const pillar = pillarLabel(entry.pillars.primary, locale);
+
+/* DEVELOPMENT ONLY — see `lib/dev/visual-media.ts`. Keyed on the entry rather than on the
+   variant, so the same project shows the same picture on the homepage, its hub and the archive;
+   that consistency is what makes the masonry rhythm readable in a screenshot pass. Inert without
+   `DEV_VISUAL_MEDIA=true`, and never consulted when `entry.cover` is real. */
+const devKey = `${entry._id}:card`;
+const devPool = poolForPillar(entry.pillars.primary, entry.pillars.secondary, devKey);
 ---
 
 {
@@ -149,7 +157,7 @@ const pillar = pillarLabel(entry.pillars.primary, locale);
     <a class="pl" href={href} data-work-id={entry._id}>
       <span class="im">
         <span class="mk" aria-hidden="true" />
-        <Plate image={entry.cover} locale={locale} tone={tone} />
+        <Plate image={entry.cover} locale={locale} tone={tone} devKey={devKey} devPool={devPool} />
         <span class="pid" aria-hidden="true">
           {label}
         </span>
@@ -182,7 +190,7 @@ const pillar = pillarLabel(entry.pillars.primary, locale);
       aria-current={focused ? 'true' : undefined}
     >
       <span class="pimg">
-        <Plate image={entry.cover} locale={locale} tone={tone} />
+        <Plate image={entry.cover} locale={locale} tone={tone} devKey={devKey} devPool={devPool} />
         <span class="pmark" aria-hidden="true" />
         <span class="pscan" aria-hidden="true" />
         <span class="pcoord" aria-hidden="true">

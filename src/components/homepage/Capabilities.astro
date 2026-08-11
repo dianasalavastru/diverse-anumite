@@ -102,7 +102,16 @@ const gateways: Gateway[] = [
           <Mascot variant={gateway.mascot} class="mvar" />
 
           <div class="cimg">
-            <Plate image={media[gateway.pillar]?.cover ?? null} locale={locale} tone={gateway.tone} />
+            {/* DEVELOPMENT ONLY — keyed on the pillar, not on the entry behind it, because the
+                M-2 gateway is a *capability* plate: it should look the same whichever project
+                happens to be curated into it. See `lib/dev/visual-media.ts`. */}
+            <Plate
+              image={media[gateway.pillar]?.cover ?? null}
+              locale={locale}
+              tone={gateway.tone}
+              devKey={`capability:${gateway.pillar}`}
+              devPool={gateway.pillar === 'reality-capture' ? 'reality-capture' : 'architecture'}
+            />
             <span class="cmark" aria-hidden="true" />
             <span class="cnum" aria-hidden="true">
               {gateway.index}

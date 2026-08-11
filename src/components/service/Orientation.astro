@@ -44,6 +44,7 @@ import type { Locale, Service } from '../../lib/content';
 import type { ServiceMessages } from '../../lib/i18n/service';
 import { routePath } from '../../lib/i18n/routes';
 import { pillarLabel, pillarRouteKey } from '../../lib/i18n/vocabulary';
+import { devServiceHero, devServiceKey, devServicePool } from '../../lib/dev/visual-media';
 
 interface Props {
   service: Service;
@@ -62,8 +63,18 @@ const pillarName = pillarLabel(pillar, locale);
 /** F1: the parent Pillar Hub, available from orientation onward (Page IA §4). */
 const hubHref = routePath(pillarRouteKey(pillar) as never, locale, undefined as never);
 
+/* DEVELOPMENT ONLY — see `lib/dev/visual-media.ts`.
+   This surface needs more than a substituted `src`, because the image-led layout is *gated*:
+   with no hero the whole `.sv-hero-media` block and the `--media` modifier never render, so a
+   Plate-level substitution alone would be invisible here and the image-led variant would stay
+   unreviewable. The gate therefore also opens for a temporary image — which is honest, because
+   the rule it encodes is "image-led only when there is an image to lead with", and under the
+   flag there is one. `devHero` is `null` in every build that did not opt in, so `hasHero`
+   collapses back to `service.hero !== null` exactly as before. */
+const devHero = service.hero ? null : devServiceHero(service._id, service.pillar);
+
 /* Image-led only when there is an image to lead with. */
-const hasHero = service.hero !== null;
+const hasHero = service.hero !== null || devHero !== null;
 ---
 
 <section
@@ -76,7 +87,14 @@ const hasHero = service.hero !== null;
       <div class="sv-hero-media" aria-hidden="true">
         {/* Named by the <h1> beside it, so the plate is decorative rather than
             repeating the service name into the accessible tree. */}
-        <Plate image={service.hero} locale={locale} tone="#3a352d" priority />
+        <Plate
+          image={service.hero}
+          locale={locale}
+          tone="#3a352d"
+          priority
+          devKey={devServiceKey(service._id)}
+          devPool={devServicePool(service.pillar)}
+        />
         <div class="sv-hero-grad" />
         <div class="sv-hero-scan" />
       </div>

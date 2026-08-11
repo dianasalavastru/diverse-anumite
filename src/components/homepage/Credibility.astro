@@ -49,7 +49,17 @@ const { locale, copy, station } = Astro.props;
 
 <section class="cred" data-station={station} aria-labelledby="cred-heading">
   <div class="figure rv" data-rv="img">
-    <Plate image={null} locale={locale} tone="#c6c1b7" />
+    {/* DEVELOPMENT ONLY. This figure has no CMS field at all — `image` is hard-coded `null` —
+        so the temporary image is the only way to see whether the composition works with a
+        photograph in it. It draws from `general/`, which is the pool that claims nothing about
+        any pillar. No content model change: there is still no field here. */}
+    <Plate
+      image={null}
+      locale={locale}
+      tone="#c6c1b7"
+      devKey="homepage:credibility"
+      devPool="general"
+    />
     <span class="tag" aria-hidden="true">{copy.figureCaption}</span>
   </div>
 

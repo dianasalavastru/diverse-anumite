@@ -27,6 +27,8 @@
  */
 import type { ImageAsset, Locale } from '../../lib/content';
 import { localize } from '../../lib/content';
+import type { DevMediaPool } from '../../lib/dev/visual-media';
+import { devVisualImage } from '../../lib/dev/visual-media';
 import { isRenderableAsset } from './asset';
 
 interface Props {
@@ -42,9 +44,27 @@ interface Props {
   tone?: string;
   /** LCP media opts out of lazy loading and asks for priority (§9). */
   priority?: boolean;
+  /**
+   * DEVELOPMENT ONLY — a stable identifier for *this box on this surface*, used to pick a
+   * temporary visual-QA image when the CMS has none and `DEV_VISUAL_MEDIA=true`.
+   *
+   * Omit it and the box keeps the authored plate tone exactly as before. Passing it changes
+   * nothing in a normal build: `devVisualImage` returns `null` without the flag.
+   */
+  devKey?: string | null;
+  /** DEVELOPMENT ONLY — which visual-QA folder to draw from. */
+  devPool?: DevMediaPool;
 }
 
-const { image, locale, alt = null, tone = '#c9c4ba', priority = false } = Astro.props;
+const {
+  image,
+  locale,
+  alt = null,
+  tone = '#c9c4ba',
+  priority = false,
+  devKey = null,
+  devPool = 'general',
+} = Astro.props;
 
 /* The renderability predicate moved to `./asset.ts` when the Gallery began
    needing the same answer — see that file for why it exists and why one
@@ -52,6 +72,10 @@ const { image, locale, alt = null, tone = '#c9c4ba', priority = false } = Astro.
 const renderable = isRenderableAsset(image);
 /** Authored alt wins over the caller's fallback; §12 "meaningful alt from CMS (authored, not derived)". */
 const accessibleName = (image ? localize(image.alt, locale) : null) ?? alt;
+
+/* Consulted only once real media has already failed, so it can never displace a Sanity image.
+   `null` in every build that did not explicitly opt in — see `lib/dev/visual-media.ts`. */
+const devImage = renderable || devKey === null ? null : devVisualImage(devPool, devKey);
 ---
 
 {
@@ -61,6 +85,22 @@ const accessibleName = (image ? localize(image.alt, locale) : null) ?? alt;
       src={image.url}
       width={image.width}
       height={image.height}
+      alt={accessibleName ?? ''}
+      loading={priority ? 'eager' : 'lazy'}
+      fetchpriority={priority ? 'high' : undefined}
+      decoding={priority ? 'sync' : 'async'}
+    />
+  ) : devImage ? (
+    /* DEVELOPMENT ONLY. Deliberately the same element, the same class and the same attributes as
+       the real-media branch above, so what the QA pass measures is the production composition
+       and not a special case. `data-dev-visual-media` is the only difference: no visible badge,
+       no caption, but every temporary image is one selector away in the inspector. */
+    <img
+      class="plate-img"
+      data-dev-visual-media="true"
+      src={devImage.src}
+      width={devImage.width}
+      height={devImage.height}
       alt={accessibleName ?? ''}
       loading={priority ? 'eager' : 'lazy'}
       fetchpriority={priority ? 'high' : undefined}

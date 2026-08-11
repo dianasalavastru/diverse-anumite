@@ -121,7 +121,15 @@ const professionalCover = experience[0]?.entries[0]?.cover ?? null;
 
     <div class="prof rv" data-rv="img">
       <div class="pimg">
-        <Plate image={professionalCover} locale={locale} tone="#c6c1b7" />
+        {/* DEVELOPMENT ONLY — keyed on the entry supplying the cover when there is one, so this
+            panel and that project's card agree. See `lib/dev/visual-media.ts`. */}
+        <Plate
+          image={professionalCover}
+          locale={locale}
+          tone="#c6c1b7"
+          devKey={`${experience[0]?.entries[0]?._id ?? 'homepage'}:professional`}
+          devPool="architecture"
+        />
       </div>
       <h3>
         <a href={routePath('professionalExperience', locale)}>

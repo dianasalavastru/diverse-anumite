@@ -73,6 +73,9 @@ import { localize } from '../../lib/content';
 import type { Locale, Service, WorkEntry } from '../../lib/content';
 import { serviceMessages } from '../../lib/i18n/service';
 import { captureSubject, serviceComposition, stationLabel } from './modules';
+/* DEVELOPMENT ONLY — the header variant must agree with `Orientation.astro` about whether a
+   hero is being painted; both ask this one function. Returns `null` without the flag. */
+import { devServiceHero } from '../../lib/dev/visual-media';
 
 interface Props {
   service: Service;
@@ -131,7 +134,7 @@ const marker = (key: keyof typeof copy.markers, station: number) => ({
   slugs={slugs}
   title={seoTitle}
   description={seoDescription}
-  headerVariant={service.hero ? 'on-hero' : 'default'}
+  headerVariant={service.hero || devServiceHero(service._id, service.pillar) ? 'on-hero' : 'default'}
   footerStation={composition.footerStation}
 >
   {/* §14.0 progressive enhancement: the opening's staged elements are gated on

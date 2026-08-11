@@ -34,6 +34,7 @@ import { localize } from '../../lib/content';
 import type { Locale, WorkEntrySummary } from '../../lib/content';
 import type { HomepageMessages } from '../../lib/i18n/homepage';
 import { routePath } from '../../lib/i18n/routes';
+import { poolForPillar } from '../../lib/dev/visual-media';
 
 interface Props {
   locale: Locale;
@@ -47,12 +48,27 @@ const { locale, copy, hero, station } = Astro.props;
 
 const heroTitle = hero ? localize(hero.title, locale) : null;
 const caption = [copy.heroIndex, heroTitle].filter(Boolean).join(' · ');
+
+/* DEVELOPMENT ONLY — see `lib/dev/visual-media.ts`. Keyed on the curated entry when there is
+   one, so the opening frame matches that project's card elsewhere on the page. */
+const devKey = hero ? `${hero._id}:home-hero` : 'homepage:hero';
+const devPool = hero
+  ? poolForPillar(hero.pillars.primary, hero.pillars.secondary, devKey)
+  : 'architecture';
 ---
 
 <section class="arrival" data-station={station} aria-labelledby="identity">
   <div class="hero-plate">
     <div class="hero-img">
-      <Plate image={hero?.cover ?? null} locale={locale} alt={copy.heroFallbackAlt} tone="#cbc6bc" priority />
+      <Plate
+        image={hero?.cover ?? null}
+        locale={locale}
+        alt={copy.heroFallbackAlt}
+        tone="#cbc6bc"
+        priority
+        devKey={devKey}
+        devPool={devPool}
+      />
     </div>
     <div class="hero-scrim" aria-hidden="true"></div>
     <div class="hero-scan" aria-hidden="true"></div>

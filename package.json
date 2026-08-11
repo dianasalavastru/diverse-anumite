@@ -9,8 +9,9 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "postbuild": "node scripts/verify-client-bundles.mjs",
+    "postbuild": "node scripts/verify-client-bundles.mjs && node scripts/verify-no-dev-media.mjs",
     "verify:bundles": "node scripts/verify-client-bundles.mjs",
+    "verify:no-dev-media": "node scripts/verify-no-dev-media.mjs",
     "preview": "astro preview",
     "check": "astro check",
     "test": "vitest run"
