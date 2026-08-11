@@ -1,0 +1,53 @@
+---
+/**
+ * A-1 · Archive orientation — COMPONENT_INVENTORY.md "Page Introduction".
+ *
+ * Purpose: orient a cold arrival. Responsibility: answer "am I in the right
+ * place?". Notes: "must self-orient; deep-linkers may not have seen upstream
+ * pages."
+ *
+ * `WORK_ARCHIVE_PAGE_IA.md` Stage A: many arrivals are cold or pre-filtered
+ * (Hub, Service "see more", a curated view, a shared link), so the page must
+ * "**always** make legible: which archive they are viewing". This is the module
+ * that names it, and the one the wireframe requires to remain "visible/legible at
+ * any width; never hidden".
+ *
+ * It is also the archive's **no-JS orientation**: the heading, the statement and
+ * the total are all server-rendered, so a visitor with no scripting still knows
+ * exactly what they are looking at and how much of it there is.
+ *
+ * Shared with the two curated views, which are the same browse surface under an
+ * editorial scope (`WORK_ARCHIVE_PAGE_IA.md` §1: curated views are "editorial
+ * slices of this same archive, not separate archives") — so they orient with the
+ * same module rather than a parallel one.
+ */
+import { countNoun, type WorkArchiveMessages } from '../../lib/i18n/work-archive';
+import type { Locale } from '../../lib/content';
+
+interface Props {
+  locale: Locale;
+  eyebrow: string;
+  heading: string;
+  statement: string;
+  /** How many entries this surface holds. */
+  total: number;
+  /** The suffix after the count, e.g. "in arhiva". */
+  totalLabel: WorkArchiveMessages['orientation']['total'];
+}
+
+const { locale, eyebrow, heading, statement, total, totalLabel } = Astro.props;
+---
+
+<section class="wa-intro" aria-labelledby="wa-heading">
+  <div>
+    <p class="kick rv" data-rv="meta">{eyebrow}</p>
+    <h1 class="rv" id="wa-heading" data-rv="head">{heading}</h1>
+    <p class="sub rv" data-rv="meta">{statement}</p>
+  </div>
+
+  <p class="count rv" data-rv="meta">
+    <b>{total}</b>
+    {countNoun(total, locale)}
+    {totalLabel}
+  </p>
+</section>

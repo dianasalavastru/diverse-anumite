@@ -1,0 +1,59 @@
+---
+/**
+ * Rich Text — COMPONENT_INVENTORY.md §4.
+ *
+ * Purpose: prose content. Responsibility: present descriptive/framing copy.
+ * Appears on: Hub, Service, **Work Entry**, About. Built here because the Work
+ * Entry (W-2) is the first page to render a `localizedRichText` field.
+ *
+ * All parsing, and therefore the entire §19.2 allowlist, lives in `rich-text.ts`
+ * where it is unit tested. This file only chooses elements. **There is no
+ * `set:html` in this component or in `RichTextSpans.astro`** — CMS content
+ * reaches the page exclusively as text nodes inside elements this file names.
+ *
+ * Renders nothing at all when the field is absent or contains no allowed
+ * content: an empty `<div class="rich-text">` would be a visible gap standing in
+ * for content that does not exist.
+ */
+import RichTextSpans from './RichTextSpans.astro';
+import { tagForStyle, toRichTextItems } from './rich-text';
+import type { RichText } from '../lib/content';
+
+interface Props {
+  blocks: RichText | null;
+  /** Level an authored top-level heading (`h2` in the CMS) renders at. */
+  headingLevel?: 3 | 4;
+  class?: string;
+}
+
+const { blocks, headingLevel = 3, class: className } = Astro.props;
+const items = toRichTextItems(blocks);
+---
+
+{
+  items.length > 0 && (
+    <div class:list={['rich-text', className]}>
+      {items.map((item) => {
+        if (item.kind === 'list') {
+          const List = item.list === 'bullet' ? 'ul' : 'ol';
+          return (
+            <List>
+              {item.lines.map((line) => (
+                <li>
+                  <RichTextSpans spans={line.spans} />
+                </li>
+              ))}
+            </List>
+          );
+        }
+
+        const Tag = tagForStyle(item.line.style, headingLevel);
+        return (
+          <Tag>
+            <RichTextSpans spans={item.line.spans} />
+          </Tag>
+        );
+      })}
+    </div>
+  )
+}

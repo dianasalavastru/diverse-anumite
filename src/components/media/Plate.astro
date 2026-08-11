@@ -27,6 +27,7 @@
  */
 import type { ImageAsset, Locale } from '../../lib/content';
 import { localize } from '../../lib/content';
+import { isRenderableAsset } from './asset';
 
 interface Props {
   image: ImageAsset | null;
@@ -45,25 +46,10 @@ interface Props {
 
 const { image, locale, alt = null, tone = '#c9c4ba', priority = false } = Astro.props;
 
-/**
- * Whether an asset can actually be fetched.
- *
- * §9 puts production media on the **Sanity image CDN**, so a real asset always
- * carries an absolute origin. B's Phase-0 fixtures carry root-relative paths
- * (`/fixtures/…`) into a directory that does not exist in the build, and
- * rendering them would 404 on every page load.
- *
- * Testing the origin rather than an id prefix keeps this independent of B's
- * fixture naming — which has already changed once — and makes I-3 a no-op:
- * every CDN URL is absolute, so every asset becomes renderable with no edit
- * here. Introducing genuinely self-hosted local media later is a deliberate
- * change to this one predicate.
- */
-function isRenderable(asset: ImageAsset | null): boolean {
-  return asset !== null && /^https?:\/\//.test(asset.url);
-}
-
-const renderable = isRenderable(image);
+/* The renderability predicate moved to `./asset.ts` when the Gallery began
+   needing the same answer — see that file for why it exists and why one
+   declaration is the right number. */
+const renderable = isRenderableAsset(image);
 /** Authored alt wins over the caller's fallback; §12 "meaningful alt from CMS (authored, not derived)". */
 const accessibleName = (image ? localize(image.alt, locale) : null) ?? alt;
 ---

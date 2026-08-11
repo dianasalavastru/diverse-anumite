@@ -14,5 +14,6 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": ["**/*.ts", "**/*.tsx", "../src/lib/content/**/*.ts", "../src/lib/i18n/**/*.ts"],
-  "exclude": ["node_modules", "dist"]
+  "//": "`../src/lib/content/node-shims.d.ts` is excluded deliberately: it declares a minimal `node:fs`/`node:child_process` for the web app's browser-typed program, and the Studio already has real `@types/node`. Two declarations of the same module collide.",
+  "exclude": ["node_modules", "dist", "../src/lib/content/node-shims.d.ts"]
 }

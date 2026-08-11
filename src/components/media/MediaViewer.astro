@@ -1,0 +1,143 @@
+---
+/**
+ * Media Viewer — COMPONENT_INVENTORY.md §4 "Evidence".
+ *
+ * Purpose: view media in depth. Responsibility: zoomable / close inspection.
+ * *Appears on:* Work Entry (W-2 zoom). *Variants:* image zoom / point-cloud
+ * viewer (RC). *Notes:* "the RC viewer is a variant, not a new component."
+ *
+ * This file is the **image-zoom variant**. The point-cloud variant is a separate
+ * seam (`PointCloudField.astro`) because its renderer belongs to Workstream D
+ * (§23.3, §10.3) — same component in the Inventory, two mount surfaces in the
+ * build, neither of which implements the other's behaviour.
+ *
+ * VISUAL_DIRECTION_v2.0 §0.2 makes inspection a core value — "the visitor is an
+ * **explorer and inspector**, not a passive observer" — and §7 asks for "zoom on
+ * planșe and detailed work". §6 "The project page" repeats it: "planșe as an
+ * inspectable sequence with zoom".
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ *  ACCESSIBILITY IS THE DESIGN HERE, NOT A PASS OVER IT
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * §14.1: "Every inspection surface ships a keyboard equivalent plus an
+ * accessible name and role: drawing pan/zoom, point-cloud rotate, lightbox,
+ * carousel focus… in the HiFis these surfaces are **pointer-only**."
+ * §14.2: "The HiFi drawing viewer calls `preventDefault()` with
+ * `{passive:false}` across the whole viewer — a scroll trap on touch and
+ * trackpad. **Zoom must be bound to an explicit activation**."
+ *
+ * How each of those lands in this markup:
+ *
+ *  - **A native `<dialog>`**, opened with `showModal()`. Focus containment,
+ *    `Escape` to dismiss, the background made inert and the top layer all come
+ *    from the platform rather than from a hand-rolled trap that can drift. It is
+ *    also why nothing here manages `aria-modal` by hand.
+ *  - **Every action is a real `<button>` with an accessible name** — close,
+ *    previous, next, zoom out, zoom in, reset, and the inspect toggle. Nothing
+ *    is reachable by gesture alone.
+ *  - **Zoom is behind an explicit activation**, exactly as §14.2 requires: the
+ *    `Inspect` toggle (an `aria-pressed` button), the ± controls, `+`/`-`/`0`
+ *    on the stage, a double-click, or a modifier + wheel. A bare wheel over the
+ *    stage is never intercepted, so there is no scroll trap on trackpad or
+ *    touch — the island calls `preventDefault` only while zooming is active.
+ *  - **The stage is a named, focusable region** so the keyboard equivalents have
+ *    somewhere to be pressed, and arrow keys pan it once it is zoomed.
+ *  - **The keyboard contract is visible text**, not a hidden convention.
+ *
+ * PROGRESSIVE ENHANCEMENT (§14.0). This dialog is inert without JavaScript, and
+ * that is safe: the Gallery's items are ordinary links to the full-size asset,
+ * so the media is still inspectable at full size when the island never runs.
+ * Nothing becomes unreachable.
+ */
+import type { ViewerLabels } from '../../lib/i18n/work-entry';
+
+interface Props {
+  copy: ViewerLabels;
+}
+
+const { copy } = Astro.props;
+---
+
+{/* The two readout prefixes are handed to the island as data, because the island
+    is a shared module and copy is per-locale (§23.3: A commits structure, C
+    authors strings). Nothing user-visible is ever built inside the script. */}
+<dialog
+  class="lb"
+  data-media-viewer="image"
+  aria-label={copy.label}
+  data-label-position={copy.position}
+  data-label-zoom={copy.zoomLevel}
+>
+  <div class="lb-bar">
+    <p class="lb-pos">
+      <span class="mono" data-lb-position></span>
+    </p>
+    <button type="button" class="lb-close" data-lb-close>
+      <span aria-hidden="true">✕</span>
+      <span class="lb-btn-label">{copy.close}</span>
+    </button>
+  </div>
+
+  {/* The inspection surface. `role="group"` + a name is what §14.1 asks of an
+      inspection surface; the image inside carries the authored alt text. */}
+  <div
+    class="lb-stage"
+    data-lb-stage
+    tabindex="0"
+    role="group"
+    aria-roledescription={copy.inspect}
+    aria-label={copy.label}
+    data-zoomed="false"
+    data-inspect="false"
+  >
+    <img class="lb-image" data-lb-image alt="" />
+  </div>
+
+  <button type="button" class="lb-nav prev" data-lb-step="-1" aria-label={copy.previous}>
+    <span aria-hidden="true">←</span>
+  </button>
+  <button type="button" class="lb-nav next" data-lb-step="1" aria-label={copy.next}>
+    <span aria-hidden="true">→</span>
+  </button>
+
+  <div class="lb-foot">
+    <p class="lb-cap">
+      <span class="t" data-lb-caption></span>
+      <span class="m mono" data-lb-coordinate></span>
+    </p>
+
+    <div class="lb-ctrls">
+      <span class="lb-zoom mono" data-lb-zoom></span>
+
+      <button
+        type="button"
+        class="lb-btn lb-inspect"
+        data-lb-inspect
+        aria-pressed="false"
+      >
+        {copy.inspect}
+      </button>
+      <button type="button" class="lb-btn" data-lb-zoom-step="-1" aria-label={copy.zoomOut}>
+        <span aria-hidden="true">−</span>
+      </button>
+      <button type="button" class="lb-btn" data-lb-zoom-step="1" aria-label={copy.zoomIn}>
+        <span aria-hidden="true">+</span>
+      </button>
+      <button type="button" class="lb-btn" data-lb-reset aria-label={copy.reset}>
+        <span aria-hidden="true">⤢</span>
+      </button>
+    </div>
+
+    <p class="lb-keys mono">{copy.keys}</p>
+  </div>
+
+  {/* One polite status region for discrete changes (navigation, reset, inspect
+      state). Continuous wheel zoom updates only the visible readout above, so a
+      drag never turns into a stream of announcements. */}
+  <p class="lb-status" role="status" data-lb-status></p>
+</dialog>
+
+<script>
+  import '../../scripts/islands/media-viewer';
+</script>

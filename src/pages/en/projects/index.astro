@@ -1,0 +1,12 @@
+---
+/**
+ * `/en/projects` — the English Work Archive (locale route map §11.1, Work archive / EN).
+ *
+ * The EN segment is `projects`, approved at OD-2 (`DECISIONS_LOG.md` #77). Its
+ * set is a locale-scoped subset of the RO one: §7.1 renders "only entities
+ * published in the active locale", which `ContentSource` applies before ordering.
+ */
+import WorkArchive from '../../../components/work-archive/WorkArchive.astro';
+---
+
+<WorkArchive locale="en" />

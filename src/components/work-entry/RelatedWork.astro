@@ -1,0 +1,113 @@
+---
+/**
+ * W-6 · Related work module (Page IA Stage E) — broaden the evaluation.
+ *
+ * Components (`WORK_ENTRY_WIREFRAME.md` W-6): "**Related Work Strip** (Work
+ * Preview Card ×n; cross-pillar-aware) · CTA Group ('see more' → filtered Work
+ * Archive)."
+ *
+ * Responsibility: "route to work that **broadens understanding** — not always
+ * the most similar, often the most contextualizing."
+ *
+ * ── THE RELATIONSHIP IS AUTHORED, NEVER INFERRED ──────────────────────────
+ * Page IA W-6 *Consumes:* "related Work Entries (related/next; **cross-pillar-
+ * aware**, incl. the linked pair for composite work)"; *Dependencies:* "related
+ * links / curation". IA §2.3 makes Work ⇄ Work an authored relationship, and
+ * `CONTENT_MODEL.md`:63 gives the authoring rule that produces the linked pair:
+ * "if the two halves have independent value/audience, model as **two linked Work
+ * Entries** (related)".
+ *
+ * Nothing here derives a relationship from shared Sector, Discipline, Entry Type
+ * or Service. Taxonomy decides *eligibility* on the Archive; it does not decide
+ * *this*. The strip renders `entry.relatedWork` in its authored order and
+ * nothing else — which is also why the module is absent rather than
+ * taxonomy-filled when an entry has no related links.
+ *
+ * ── WHY A FOCUS STRIP AND NOT THE HiFi's THREE-UP GRID ────────────────────
+ * COMPONENT_INVENTORY.md is explicit that the Related Work Strip "composes Work
+ * **Preview Cards**" and that there is one Work Preview Card everywhere —
+ * "identical concept, identical structure". The approved HiFi builds its related
+ * row from a *second* card implementation (`.rel`), which would fork the single
+ * card the Inventory names. VISUAL_DIRECTION_v2.0 §6 "The project page" settles
+ * the presentation from the visual side: "**suggested work as a quiet focus
+ * strip**". So the strip is the existing FocusCarousel composing the existing
+ * WorkPreviewCard — both already built, reviewed and keyboard-operable — rather
+ * than a third card and a fourth grid.
+ *
+ * ── "SEE MORE" ────────────────────────────────────────────────────────────
+ * The wireframe fixes the module CTA at the *filtered* archive. The filter is
+ * the entry's **Primary Pillar**, per M2: "default contextual navigation follows
+ * the Work Entry's Primary Pillar". The parameter name and token come from the
+ * frozen contract, not from string assembly here — §23.5 fixes `?pillar=`, and
+ * `pillarArchiveParam` holds the archive's token (`architecture`, not the
+ * content identifier `architecture-design`).
+ */
+import FocusCarousel from '../FocusCarousel.astro';
+import WorkPreviewCard from '../WorkPreviewCard.astro';
+import { localize } from '../../lib/content';
+import type { Locale, Pillar, WorkEntrySummary } from '../../lib/content';
+import type { WorkEntryMessages } from '../../lib/i18n/work-entry';
+import { routePath } from '../../lib/i18n/routes';
+import { pillarArchiveParam, pillarLabel } from '../../lib/i18n/vocabulary';
+
+interface Props {
+  related: readonly WorkEntrySummary[];
+  pillar: Pillar;
+  locale: Locale;
+  copy: WorkEntryMessages;
+}
+
+const { related, pillar, locale, copy } = Astro.props;
+
+/** Authored plate tones, cycled — see Plate.astro. */
+const TONES = ['#c2bdb2', '#b7b1a5', '#ccc7bd', '#bdb7ab'];
+
+/**
+ * Every card needs the counterpart's **own** localized slug: §7.1 localizes
+ * slugs per entity, so one can never be derived from another. `source.ts` has
+ * already dropped related entries unavailable in this locale, so a missing slug
+ * here would be a contract violation rather than an expected state — the card is
+ * skipped rather than linked at a URL that does not exist.
+ */
+const cards = related
+  .map((item) => {
+    const slug = localize(item.slug, locale);
+    return slug ? { item, href: routePath('workEntry', locale, slug) } : null;
+  })
+  .filter((card): card is NonNullable<typeof card> => card !== null);
+
+const seeMoreHref = `${routePath('workArchive', locale)}?pillar=${pillarArchiveParam(pillar)}`;
+const seeMoreLabel = `${copy.related.seeMore} — ${pillarLabel(pillar, locale)}`;
+---
+
+<div class="we-related">
+  <FocusCarousel
+    id="we-related"
+    label={copy.related.carousel.label}
+    roleDescription={copy.related.carousel.roleDescription}
+    previousLabel={copy.related.carousel.previous}
+    nextLabel={copy.related.carousel.next}
+    positionLabel={copy.related.carousel.position}
+    count={cards.length}
+  >
+    {
+      cards.map((card, index) => (
+        <WorkPreviewCard
+          entry={card.item}
+          locale={locale}
+          href={card.href}
+          index={index + 1}
+          tone={TONES[index % TONES.length]}
+          focused={index === 0}
+        />
+      ))
+    }
+  </FocusCarousel>
+
+  <p class="we-related-cta rv" data-rv="meta">
+    <a href={seeMoreHref}>
+      {seeMoreLabel}
+      <span class="ar" aria-hidden="true">→</span>
+    </a>
+  </p>
+</div>

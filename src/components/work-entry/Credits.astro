@@ -1,0 +1,150 @@
+---
+/**
+ * W-3 · Professional context & credits (Page IA Stage C).
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ *  THIS IS THE INTEGRITY MODULE. IT IS ALWAYS PRESENT AND IT NEVER GUESSES.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Page IA W-3: "**establish credibility through transparency rather than
+ * ownership claims** — always present, regardless of Entry Type."
+ * Wireframe W-3: "a calm, honest crediting block… **Never over-claims**;
+ * distinct from any competition Team (which lives in W-4)."
+ * Page IA §5 success criteria: "visitors **never leave with a misleading
+ * impression** regarding authorship, responsibility, collaboration, or project
+ * scope."
+ *
+ * ── THE THREE-WAY SPLIT IS STRUCTURAL, NOT COSMETIC ───────────────────────
+ * `CONTENT_MODEL.md`:60, restated at §7.3: "Attribution is the *filter
+ * category*; Role is the *granular functions*; Authorship is the *scoped credit
+ * sentence* (author-of-what + degree + external credit, e.g. 'Visualization by
+ * [Architect]; building design by [Firm]')." §7.3 adds: "A schema without scoped
+ * Authorship cannot render a correct Visualization Commission credit, which
+ * `PROJECT_CONTEXT.md`:30 makes a product requirement."
+ *
+ * So the three are three rows with three labels, and this component contains no
+ * code path that derives one from another, summarises them into a single line,
+ * or substitutes one when another is missing. In particular:
+ *
+ *   - Attribution never stands in for Authorship. "Studio" is a category; it is
+ *     not a statement of what this person did.
+ *   - An absent Authorship statement renders **nothing** — not the Attribution
+ *     label reworded, not "by diverse anumite", not a hyphen. The practice's own
+ *     name is never printed as an author by this component, because inventing an
+ *     author is the precise failure the module exists to prevent. (The CMS makes
+ *     Authorship *required* for Visualization Commission, Studio and
+ *     Collaboration entries — `validation.ts` `validateAuthorship` — so the
+ *     empty case is an Independent entry that chose not to state a scope.)
+ *   - Collaborators and Team are different fields with different meanings.
+ *     Collaborators are credited here; a competition Team belongs to W-4, and
+ *     the wireframe says so explicitly.
+ *
+ * ── SCOPED CREDIT FOR THE THREE HARD CASES ────────────────────────────────
+ * `WORK_ENTRY_PAGE_IA.md` "One blueprint, all Entry Types":
+ *   - **Studio-attributed** — "Credits foreground Employer + Role + scoped
+ *     Authorship; links to Professional Experience." Employer leads the block on
+ *     those entries, and the link out to the curated view is rendered.
+ *   - **Visualization Commission** — "scoped Authorship prominent (images by the
+ *     architect; building design by others)." Authorship leads the block.
+ *   - **Collaboration** — carried by Attribution + Authorship + Collaborators,
+ *     all three rendered separately.
+ * Each case is a change of *order and prominence* over the same rows. No case
+ * adds, hides or rewords a credit.
+ */
+import { localize } from '../../lib/content';
+import type { Locale, WorkEntry } from '../../lib/content';
+import type { WorkEntryMessages } from '../../lib/i18n/work-entry';
+import { routePath } from '../../lib/i18n/routes';
+import { attributionLabel } from '../../lib/i18n/vocabulary';
+
+interface Props {
+  entry: WorkEntry;
+  locale: Locale;
+  copy: WorkEntryMessages;
+}
+
+const { entry, locale, copy } = Astro.props;
+const labels = copy.credits;
+
+const roles = localize(entry.roles, locale);
+const authorship = localize(entry.authorship, locale);
+
+interface Credit {
+  readonly key: string;
+  readonly value: string;
+  /** The scoped statement reads as prose; categories read as measurement data. */
+  readonly prose?: boolean;
+}
+
+/**
+ * Row order carries prominence, and prominence is per Attribution — see the
+ * header. The rows themselves are identical in every case; only the sequence
+ * differs, so no branch can silently omit one.
+ */
+const attribution: Credit = {
+  key: labels.attribution,
+  value: attributionLabel(entry.attribution, locale),
+};
+const employer: Credit | null = entry.employer
+  ? { key: labels.employer, value: entry.employer.name }
+  : null;
+const role: Credit | null = roles?.length ? { key: labels.role, value: roles.join(' · ') } : null;
+const scoped: Credit | null = authorship
+  ? { key: labels.authorship, value: authorship, prose: true }
+  : null;
+const collaborators: Credit | null = entry.metadata.collaborators.length
+  ? { key: labels.collaborators, value: entry.metadata.collaborators.join(' · ') }
+  : null;
+
+const studio = entry.attribution === 'studio';
+const visualization =
+  entry.entryType.primary === 'visualization-commission' ||
+  entry.entryType.secondary.includes('visualization-commission');
+
+const ordered: (Credit | null)[] = studio
+  ? // "Credits foreground Employer + Role + scoped Authorship."
+    [employer, role, scoped, attribution, collaborators]
+  : visualization
+    ? // "scoped Authorship prominent."
+      [scoped, attribution, role, collaborators, employer]
+    : [attribution, role, scoped, collaborators, employer];
+
+const credits = ordered.filter((credit): credit is Credit => credit !== null);
+
+/**
+ * IA §5.1 and Page IA W-3 *Destinations*: a studio entry surfaces its
+ * **Professional Experience** context. The curated view is a real, frozen route
+ * (§11.1) and the entry's Employer is its grouping metadata — so the link is the
+ * canonical route, never a filtered-archive URL assembled from an Attribution
+ * value (which F2 forbids as a visitor-facing filter anyway).
+ */
+const professionalExperience = studio
+  ? routePath('professionalExperience', locale)
+  : null;
+---
+
+<div class="we-credits">
+  <dl class="cr-grid">
+    {
+      credits.map((credit) => (
+        <div class="cr rv" data-rv="meta">
+          <dt class="k">{credit.key}</dt>
+          <dd class:list={['v', !credit.prose && 'mono']}>{credit.value}</dd>
+        </div>
+      ))
+    }
+  </dl>
+
+  {
+    professionalExperience && (
+      <p class="we-credits-link rv" data-rv="meta">
+        <a href={professionalExperience}>
+          {labels.professionalExperience}
+          <span class="ar" aria-hidden="true">
+            →
+          </span>
+        </a>
+      </p>
+    )
+  }
+</div>

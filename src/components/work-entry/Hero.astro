@@ -1,0 +1,113 @@
+---
+/**
+ * W-1 · Orientation & Core Facts — the hero half (Page IA Stage A).
+ *
+ * Responsibility (`WORK_ENTRY_PAGE_IA.md` W-1): "identify the work and situate
+ * it". Components (`WORK_ENTRY_WIREFRAME.md` W-1): **Hero (work variant)** ·
+ * Metadata Strip · **Breadcrumb** (parent pillar/archive — orientation).
+ *
+ * Spatial composition, transcribed: "an image-led opening with the work already
+ * present; the Metadata Strip sits quietly as the first **relevance signal**
+ * (sector, type, scale, year), not a data dump. Interface quiet around the work."
+ *
+ * ARRIVAL. The Page IA's arrival assumption governs this module more than any
+ * other: the Work Entry "has the most diverse inbound of any page… It must
+ * self-orient (what is this, which pillar, which type) without assuming any
+ * particular prior page." Hence a breadcrumb that names both the archive and the
+ * primary pillar, and a strip that answers "what kind of work is this" before
+ * the visitor scrolls.
+ *
+ * ── WHAT THE HiFi HAS THAT THIS DOES NOT, AND WHY ─────────────────────────
+ * The approved HiFi's hero carries a project code and a geographic coordinate
+ * (`PT—001 · 46.77°N 23.59°E`) and a dimension line (`supr. 214 m² · h 18.4 m ·
+ * pantă 22°`). `CONTENT_MODEL.md` §3 has no project-code field, no coordinate
+ * field and no height or slope field — those are hand-authored prototype values
+ * for one fictional project. §5.3 rebuilds markup "from the Content Model,
+ * never from HiFi markup", and §10.4 is emphatic about what happens when a
+ * decorative readout survives into production. The measured line therefore
+ * carries only fields that exist: Sector, Year, Location, and Area where
+ * authored. The composition — kicker, large title, one supporting line, one
+ * measured line — is unchanged.
+ */
+import Plate from '../media/Plate.astro';
+import { localize } from '../../lib/content';
+import type { Locale, WorkEntry } from '../../lib/content';
+import type { WorkEntryMessages } from '../../lib/i18n/work-entry';
+import { routePath } from '../../lib/i18n/routes';
+import {
+  entryTypeLabel,
+  pillarLabel,
+  pillarRouteKey,
+  sectorLabel,
+} from '../../lib/i18n/vocabulary';
+
+interface Props {
+  entry: WorkEntry;
+  locale: Locale;
+  copy: WorkEntryMessages;
+  station: number;
+}
+
+const { entry, locale, copy, station } = Astro.props;
+
+const title = localize(entry.title, locale) ?? '';
+const location = localize(entry.metadata.location, locale);
+
+/**
+ * The kicker: the "first relevance signal" the wireframe asks for — sector,
+ * year, place. Every segment is an authored field, and an absent one leaves no
+ * separator behind.
+ */
+const kicker = [
+  entry.sectors.length > 0 ? sectorLabel(entry.sectors[0] as string, locale) : null,
+  String(entry.metadata.year),
+  location,
+].filter((segment): segment is string => Boolean(segment));
+
+/** The measured line — instrument readout voice (VISUAL_DIRECTION_v2.0 §2.5). */
+const measured = [
+  entryTypeLabel(entry.entryType.primary, locale),
+  entry.metadata.area != null ? `${entry.metadata.area} ${copy.metadata.areaUnit}` : null,
+].filter((segment): segment is string => Boolean(segment));
+
+/**
+ * M2 / F1: the default contextual back-path follows the **Primary Pillar** —
+ * "secondary pillars stay available for classification, discovery and filtering
+ * but never change default navigation" (IA §2.3).
+ */
+const primaryPillar = entry.pillars.primary;
+---
+
+<section class="we-hero-section" data-station={station} aria-labelledby="we-title">
+  <div class="we-hero">
+    <div class="we-hero-media">
+      <Plate
+        image={entry.cover}
+        locale={locale}
+        alt={copy.evidence.heroFallbackAlt}
+        tone="#3a352d"
+        priority
+      />
+    </div>
+    <div class="we-hero-grad" aria-hidden="true"></div>
+    <div class="we-hero-scan" aria-hidden="true"></div>
+
+    <nav class="we-hero-top" aria-label={copy.breadcrumb.label}>
+      <ol class="we-crumbs">
+        <li><a href={routePath('workArchive', locale)}>{copy.breadcrumb.archive}</a></li>
+        <li>
+          <a href={routePath(pillarRouteKey(primaryPillar) as never, locale, undefined as never)}>
+            {pillarLabel(primaryPillar, locale)}
+          </a>
+        </li>
+        <li aria-current="page">{title}</li>
+      </ol>
+    </nav>
+
+    <div class="we-hero-btm">
+      {kicker.length > 0 && <p class="kick mono">{kicker.join(' · ')}</p>}
+      <h1 id="we-title">{title}</h1>
+      {measured.length > 0 && <p class="we-hero-measure mono">{measured.join(' · ')}</p>}
+    </div>
+  </div>
+</section>

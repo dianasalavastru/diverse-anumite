@@ -46,9 +46,15 @@
 @import './layout.css' layer(layout);
 @import './components/global-header.css' layer(components);
 @import './components/global-footer.css' layer(components);
+@import './components/section-marker.css' layer(components);
+@import './components/rich-text.css' layer(components);
 @import './components/media-plate.css' layer(components);
 @import './components/work-preview-card.css' layer(components);
 @import './components/focus-carousel.css' layer(components);
 @import './components/point-cloud-field.css' layer(components);
+@import './components/gallery.css' layer(components);
+@import './components/media-viewer.css' layer(components);
 @import './pages/homepage.css' layer(pages);
+@import './pages/work-entry.css' layer(pages);
+@import './pages/work-archive.css' layer(pages);
 @import './motion.css' layer(motion);

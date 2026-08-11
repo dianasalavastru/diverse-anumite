@@ -19,6 +19,8 @@ workstreams editing them re-creates exactly the drift §7.1 exists to prevent.
 | `source.ts` | `ContentSource` — the interface pages consume, and the I-3 swap point. |
 | `fixtures.ts` | Placeholder data, generated through the real query layer. **Never ships.** |
 | `index.ts` | The import surface. Deliberately does not re-export fixtures. |
+| `live.test.ts` | The live CMS handshake (B3). Skips without credentials; proves the contract against a real dataset with them. |
+| `node-shims.d.ts` | Minimal `node:fs`/`node:child_process` types for `live.test.ts`, so no dependency is added to A's `package.json`. |
 
 ## How to consume it
 
@@ -75,5 +77,20 @@ structural rather than a convention:
 
 Integration point I-3. The schema and Studio are in [`studio/`](../../../studio/README.md);
 the query layer is real and tested against fixtures. Not built yet: the contact Pages Function
-(§19.3), the preview environment (§6.2), and the publish webhook (§17). No Sanity project exists
-yet, so the Sanity source has not been run against a live dataset — see the B2 report.
+(§19.3), the preview environment (§6.2), and the publish webhook (§17).
+
+**No Sanity project exists yet**, so the Sanity source has still not been run against a live
+dataset. B3 built everything that does not require one:
+
+- `live.test.ts` is the complete verification suite. It self-skips without credentials and runs
+  the whole §7/§8/§11.2/§18/§19.4/§23.4 contract against a real dataset with them.
+- Its always-on half runs on every `npm test`: the §18 secrets checks, and a pre-flight that puts
+  `studio/seed/b3-test-dataset.ndjson` through the same validation predicates the Studio attaches
+  to the fields — so the seed cannot be malformed by the time someone imports it.
+- What the owner must do to unblock the rest is
+  [`studio/README.md` → One-time setup](../../../studio/README.md#one-time-setup--owner-action-not-yet-done).
+
+**Preview reads are blocked at this boundary on purpose.** `createContentClient` calls
+`assertProductionPerspective`, so `perspective: 'drafts'` throws at the transport. The preview
+environment (§6.2) needs its own factory carrying its own server-side draft token — kept a
+separate seam so that no production code path can acquire draft access by configuration alone.

@@ -15,10 +15,13 @@
  * `homepage/` precisely so the next page to need it extends this file instead of
  * forking it.
  *
- * VARIANTS. Only `focus` exists today — the presentation the approved Homepage
- * HiFi authors for a focus carousel. The archive's five-size masonry variants
- * arrive with the archive (Phase 5); adding them now would be inventing
- * presentation for a page nobody has built.
+ * VARIANTS. Two, both media/caption treatment only — never a second
+ * responsibility (Inventory §5: "Prefer extending an existing component over
+ * creating a new one (variants, not new components)"):
+ *   `focus`    the approved Homepage HiFi's focus-carousel card;
+ *   `archive`  the approved Work Archive HiFi's masonry card (Phase 5).
+ * The archive's five-size vocabulary is NOT a set of card variants — sizing is
+ * the grid cell's business, and it lives in the Results Grid.
  *
  * REBUILT, NOT COPIED (§5.3). Markup and data attributes come from the Content
  * Model, never from HiFi markup: the metadata line renders Year + **Entry Type**
@@ -56,48 +59,143 @@
 import Plate from './media/Plate.astro';
 import { localize } from '../lib/content';
 import type { Locale, WorkEntrySummary } from '../lib/content';
-import { entryTypeLabel } from '../lib/i18n/vocabulary';
+import { entryTypeLabel, pillarLabel } from '../lib/i18n/vocabulary';
 
 interface Props {
   entry: WorkEntrySummary;
   locale: Locale;
   /** Destination — built by the caller from the frozen route map. */
   href: string;
-  /** 1-based position, for the `pt·NN` coordinate label. */
-  index: number;
+  /**
+   * `focus` variant — 1-based position, rendered as the HiFi's `pt·NN`
+   * coordinate label. Decorative and `aria-hidden`.
+   */
+  index?: number;
+  /**
+   * `archive` variant — the coordinate label composed by the caller (`A·001`).
+   *
+   * The two approved HiFis label their cards differently: the Homepage numbers a
+   * carousel position (`pt·NN`), while the Work Archive numbers an entry within
+   * its pillar (`A·001` / `R·001`) — an identity, not a position, which must
+   * therefore survive a re-sort. A card cannot derive the second from an index,
+   * so the archive composes it in the Results Grid and passes it in. Both remain
+   * decorative and `aria-hidden`.
+   */
+  coordinate?: string;
   /** Authored plate tone behind the photograph (see Plate.astro). */
   tone?: string;
   /**
    * Rendered already in focus. The carousel's runtime is an enhancement, so the
    * composition must be correct before it runs: one card is always "measured"
    * (VISUAL_DIRECTION_v2.0 §2.2), including with JavaScript disabled.
+   * `focus` variant only.
    */
   focused?: boolean;
-  variant?: 'focus';
+  variant?: 'focus' | 'archive';
+  /**
+   * `archive` variant only — the place line, already localized by the caller.
+   * `CONTENT_MODEL.md` §3 puts Location on the Metadata axis ("mostly display"),
+   * and the approved Work Archive HiFi prints it as the caption's fourth reading.
+   * It is **not** a filter: the filter set is frozen at §23.5 and Location is not
+   * in it.
+   */
+  place?: string | null;
+  /** `archive` variant only — the hover/focus continuation cue. */
+  openLabel?: string;
 }
 
-const { entry, locale, href, index, tone = '#c9c4ba', focused = false } = Astro.props;
+const {
+  entry,
+  locale,
+  href,
+  index = 1,
+  coordinate,
+  tone = '#c9c4ba',
+  focused = false,
+  variant = 'focus',
+  place = null,
+  openLabel = '',
+} = Astro.props;
 
+const label = coordinate ?? `pt·${String(index).padStart(2, '0')}`;
 const title = localize(entry.title, locale);
-const coordinate = `pt·${String(index).padStart(2, '0')}`;
 const type = entryTypeLabel(entry.entryType.primary, locale);
+/* The archive caption's first reading — the pillar, carrying the blue signal
+   exactly as the HiFi's `.pl-tag` does. Derived, never authored (§7.4). */
+const pillar = pillarLabel(entry.pillars.primary, locale);
 ---
 
-<a
-  class:list={['proj', focused && 'focused']}
-  href={href}
-  data-work-id={entry._id}
-  aria-current={focused ? 'true' : undefined}
->
-  <span class="pimg">
-    <Plate image={entry.cover} locale={locale} tone={tone} />
-    <span class="pmark" aria-hidden="true"></span>
-    <span class="pscan" aria-hidden="true"></span>
-    <span class="pcoord" aria-hidden="true">{coordinate}</span>
-  </span>
+{
+  /*
+   * ── THE ARCHIVE VARIANT (Phase 5) ────────────────────────────────────────
+   * The variant this file reserved at I-3: "The archive's five-size masonry
+   * variants arrive with the archive (Phase 5)". Same component, same
+   * responsibility, same inputs — the Work Archive HiFi simply composes the
+   * caption differently (title over a metadata line and a continuation cue,
+   * rather than title beside a year), and its class names are that HiFi's own
+   * (`.pl`, `.im`, `.cap`) so the CSS transcription stays legible against the
+   * source. The size class and the grid cell belong to the **Results Grid**,
+   * which is the component the Inventory makes responsible for presenting a set.
+   *
+   * The metadata line renders four INDEPENDENT axes — Pillar · Entry Type · Year
+   * · Location — where the HiFi prints a pillar tag beside an inconsistent mix of
+   * Sector and Entry Type in one slot (`WORK_ARCHIVE_IMPLEMENTATION_NOTES.md`:82
+   * calls that out as the prototype's collapsed taxonomy; §7.2 adopts "do not
+   * merge them" verbatim).
+   */
+}
+{
+  variant === 'archive' ? (
+    <a class="pl" href={href} data-work-id={entry._id}>
+      <span class="im">
+        <span class="mk" aria-hidden="true" />
+        <Plate image={entry.cover} locale={locale} tone={tone} />
+        <span class="pid" aria-hidden="true">
+          {label}
+        </span>
+      </span>
 
-  <span class="meta">
-    <span class="t">{title}</span>
-    <span class="d">{entry.year} · {type}</span>
-  </span>
-</a>
+      <span class="cap">
+        <span class="t">{title}</span>
+        <span class="d">
+          <span class="pl-tag">{pillar}</span>
+          <span>{type}</span>
+          <span>{entry.year}</span>
+          {place && <span>{place}</span>}
+        </span>
+        {/* The link is already named by its title and metadata; the cue would
+            only repeat it into the accessible name. It is a visual affordance,
+            and never the only signal of interactivity (MOTION_NOTES.md:54) —
+            the whole card is the link, and focus-visible outlines it. */}
+        {openLabel && (
+          <span class="go" aria-hidden="true">
+            {openLabel} <span class="ar">→</span>
+          </span>
+        )}
+      </span>
+    </a>
+  ) : (
+    <a
+      class:list={['proj', focused && 'focused']}
+      href={href}
+      data-work-id={entry._id}
+      aria-current={focused ? 'true' : undefined}
+    >
+      <span class="pimg">
+        <Plate image={entry.cover} locale={locale} tone={tone} />
+        <span class="pmark" aria-hidden="true" />
+        <span class="pscan" aria-hidden="true" />
+        <span class="pcoord" aria-hidden="true">
+          {label}
+        </span>
+      </span>
+
+      <span class="meta">
+        <span class="t">{title}</span>
+        <span class="d">
+          {entry.year} · {type}
+        </span>
+      </span>
+    </a>
+  )
+}

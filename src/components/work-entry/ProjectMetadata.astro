@@ -1,0 +1,135 @@
+---
+/**
+ * W-1 · Orientation & Core Facts — the metadata half (Page IA Stage A).
+ *
+ * Component: **Project Metadata** (COMPONENT_INVENTORY.md §4 "Evidence") —
+ * "the flexible key-facts component… common metadata always shown; type-specific
+ * attributes when relevant… **one flexible metadata component; not a fixed field
+ * set**." Its compact form is the Metadata Strip, which the hero above carries.
+ *
+ * *Outputs:* "facets are display (not filters)". Nothing here links into a
+ * filtered archive: IA Step 5 keeps filtering on the Work Archive, and the Page
+ * IA's W-1 *Destinations* are "contextual (parent Hub via F1; facets are
+ * display, not filters)".
+ *
+ * VISUAL_DIRECTION_v2.0 §2.5 sets the voice: metadata "is presented as **precise
+ * measurement data** — exact, consistent, quietly technical, like an instrument
+ * readout." The HiFi's `.specs` table is that, transcribed.
+ *
+ * ── ABSENCE ───────────────────────────────────────────────────────────────
+ * A row exists only when its field has a value **in this locale**. `localize()`
+ * returns `null` for an untranslated EN field and never falls back to RO
+ * (§11.2), so an EN page shows the EN rows and simply omits the rest — it never
+ * shows a Romanian value under an EN URL, and never shows an empty row, a dash
+ * or a placeholder.
+ *
+ * Awards, Team and Deliverables are conditional in a second way: when the
+ * competition or capture module renders, those fields belong to it instead. The
+ * decision lives in `modules.ts` (`awardsAndTeamInCompetition`,
+ * `deliverablesInCapture`) with the two upstream documents that disagree about
+ * it, so each field renders exactly once and is never dropped.
+ */
+import { localize } from '../../lib/content';
+import type { Locale, WorkEntry } from '../../lib/content';
+import type { WorkEntryMessages } from '../../lib/i18n/work-entry';
+import {
+  commissioningLabel,
+  disciplineLabel,
+  entryTypeLabel,
+  sectorLabel,
+  statusLabel,
+} from '../../lib/i18n/vocabulary';
+import { awardsAndTeamInCompetition, deliverablesInCapture } from './modules';
+
+interface Props {
+  entry: WorkEntry;
+  locale: Locale;
+  copy: WorkEntryMessages;
+}
+
+const { entry, locale, copy } = Astro.props;
+const labels = copy.metadata;
+
+interface Row {
+  readonly key: string;
+  readonly value: string;
+  /** Rendered in the mono measurement voice rather than the reading voice. */
+  readonly measured?: boolean;
+}
+
+const rows: Row[] = [];
+const push = (key: string, value: string | null | undefined, measured = false) => {
+  if (value) rows.push({ key, value, measured });
+};
+
+/* Classification — the axes W-1 consumes, each as its own row. §7.2's adopted
+   principle: expose canonical fields "as independent dimensions. Do not merge
+   them." Primary and secondary values of one axis stay on that axis's row. */
+push(
+  labels.discipline,
+  [entry.discipline.primary, ...entry.discipline.secondary]
+    .map((value) => disciplineLabel(value, locale))
+    .join(' · '),
+);
+push(
+  labels.entryType,
+  [entry.entryType.primary, ...entry.entryType.secondary]
+    .map((value) => entryTypeLabel(value, locale))
+    .join(' · '),
+);
+push(labels.sector, entry.sectors.map((sector) => sectorLabel(sector, locale)).join(' · '));
+
+/* Metadata axis — CONTENT_MODEL.md:54. */
+push(labels.year, String(entry.metadata.year), true);
+push(labels.location, localize(entry.metadata.location, locale), true);
+push(labels.status, statusLabel(entry.metadata.status, locale));
+push(
+  labels.area,
+  entry.metadata.area != null ? `${entry.metadata.area} ${labels.areaUnit}` : null,
+  true,
+);
+
+/**
+ * Client is a locale-neutral proper noun and renders as authored.
+ *
+ * §18.1 notes that `Client` is among the fields that are *published* but not
+ * intended for arbitrary public query, which is why the dataset is private — it
+ * is not a reason to withhold it from the page. The Content Model lists it under
+ * Metadata, "mostly display", and the HiFi's technical sheet shows it. An entry
+ * that should not name its client simply leaves the field empty, and no row
+ * appears.
+ */
+push(labels.client, entry.metadata.client, true);
+
+/**
+ * Commissioning context (`CONTENT_MODEL.md`:49) — self-initiated vs
+ * client-commissioned. It is its own axis, listed in neither W-1's nor W-3's
+ * *Consumes* line, and §7.3 gives its consumer only as "acquisition signal". It
+ * belongs here rather than in Credits because it describes how the engagement
+ * came about, not who authored the work — and collapsing it into the Credits
+ * block would blur the three-way split `CONTENT_MODEL.md`:60 protects. Project
+ * Metadata is explicitly "not a fixed field set", which is the slot for exactly
+ * this kind of true, small, orienting fact.
+ */
+push(labels.commissioning, commissioningLabel(entry.commissioning, locale));
+
+/* Fields the type modules claim when they render — see modules.ts. */
+if (!deliverablesInCapture(entry)) {
+  push(labels.deliverables, localize(entry.metadata.deliverables, locale)?.join(' · '));
+}
+if (!awardsAndTeamInCompetition(entry, locale)) {
+  push(labels.awards, localize(entry.metadata.awards, locale)?.join(' · '));
+  push(labels.team, entry.metadata.team.join(' · '));
+}
+---
+
+<dl class="specs rv" data-rv="meta">
+  {
+    rows.map((row) => (
+      <div class="r">
+        <dt class="k">{row.key}</dt>
+        <dd class:list={['v', row.measured && 'mono']}>{row.value}</dd>
+      </div>
+    ))
+  }
+</dl>

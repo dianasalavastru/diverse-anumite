@@ -1,0 +1,84 @@
+---
+/**
+ * W-5 · Demonstrated-service module (Page IA Stage E) — evidence → offering.
+ *
+ * Component: **Demonstrated Service Block** (COMPONENT_INVENTORY.md §4) —
+ * "connect evidence to the offering… *Notes:* **hidden when absent (no empty
+ * module)**."
+ *
+ * Wireframe W-5: "a **quiet** link from this evidence to the relevant service;
+ * **hidden entirely when the entry demonstrates no service** (personal/
+ * competition work) — no empty module." The hiding happens in `modules.ts`, so
+ * this file never renders an empty state; reaching it means there is at least
+ * one Service.
+ *
+ * ── IT LINKS, IT DOES NOT EXPLAIN ─────────────────────────────────────────
+ * Page IA W-5 *Destinations:* "the Service page(s)", and the Work Entry's
+ * "intentionally does NOT" list is explicit: "Does not explain a service in
+ * depth — **it links to the Service page**." IA Step 6 puts the same boundary
+ * from the other side: "Service owns the offering, Work Entry owns the
+ * evidence; cross-reference by **link not duplication**."
+ *
+ * So each block renders the Service's own `name` and its authored one-line
+ * positioning, and nothing else — no deliverables, no process, no equipment,
+ * even though the `ServiceSummary` projection could carry more. The HiFi's
+ * "demonstrat aici: concept · DTAC · DE · detalii de execuție" line is authored
+ * prototype prose for one project; no field pairs a Work Entry with the parts of
+ * a Service it exercised, so that line is not rendered. Reported as a gap.
+ *
+ * ── LOCALE ────────────────────────────────────────────────────────────────
+ * `source.ts` has already scoped `entry.services` to the active locale, so an
+ * entry whose only Service is untranslated hides this module under `/en/`
+ * instead of linking at a page §11.2 guarantees does not exist. Nothing here
+ * re-filters; it consumes the scoped set.
+ */
+import { localize } from '../../lib/content';
+import type { Locale, ServiceSummary } from '../../lib/content';
+import type { WorkEntryMessages } from '../../lib/i18n/work-entry';
+import { routePath } from '../../lib/i18n/routes';
+
+interface Props {
+  services: readonly ServiceSummary[];
+  locale: Locale;
+  copy: WorkEntryMessages;
+}
+
+const { services, locale, copy } = Astro.props;
+
+const links = services
+  .map((service) => {
+    const slug = localize(service.slug, locale);
+    const name = localize(service.name, locale);
+    // Both are required to publish in a locale (`validation.ts`), so this is a
+    // type guard rather than an expected state.
+    if (!slug || !name) return null;
+    return {
+      id: service._id,
+      name,
+      href: routePath('service', locale, slug),
+      positioning: localize(service.shortDescription, locale),
+    };
+  })
+  .filter((link): link is NonNullable<typeof link> => link !== null);
+---
+
+<ul class="svc-grid">
+  {
+    links.map((link) => (
+      <li class="svc rv" data-rv="meta">
+        <h3 class="svc-name">{link.name}</h3>
+        {link.positioning && <p class="svc-line">{link.positioning}</p>}
+        {/* Several blocks may render, so "See the service" alone would give
+            two links the same accessible name (WCAG 2.4.4). The name is
+            extended with the Service it points at, and it still *starts* with
+            the visible label — 2.5.3 Label in Name. */}
+        <a class="svc-go" href={link.href} aria-label={`${copy.services.cta} — ${link.name}`}>
+          {copy.services.cta}
+          <span class="ar" aria-hidden="true">
+            →
+          </span>
+        </a>
+      </li>
+    ))
+  }
+</ul>

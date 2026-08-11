@@ -1,0 +1,69 @@
+---
+/**
+ * The Archive → Work Entry dissolve — TECHNICAL_ARCHITECTURE.md §13.
+ *
+ * OWNERSHIP: shared. A component with no markup, because what it carries is a
+ * document-level opt-in and nothing else.
+ *
+ * §13, verbatim: "**Archive → Work Entry dissolve:** CSS `@view-transition
+ * { navigation: auto }` — a *cross-document* transition requiring no router.
+ * Astro's `ClientRouter` is **not** the mechanism… The CSS form ships zero JS and
+ * degrades to plain navigation where unsupported."
+ *
+ * ── WHY THIS IS A COMPONENT AND NOT A LINE IN A STYLESHEET ─────────────────
+ * `@view-transition` opts in the whole DOCUMENT, and `global.css` is loaded by
+ * every page — putting the rule there would opt the entire site into a
+ * transition §13 scopes to one journey. As a component style it ships only in
+ * the stylesheet of the pages that compose it, which is exactly the two halves
+ * of that journey: the archive family and the Work Entry.
+ *
+ * ── WHY ONE COMPONENT AND NOT TWO ──────────────────────────────────────────
+ * A cross-document transition requires BOTH documents to opt in, so the rule is
+ * inherently a *pair*. It was authored twice — once as `work-archive/
+ * ArchiveDissolve.astro` when the archive shipped its half, and again inline in
+ * `work-entry/WorkEntryPage.astro` when the Work Entry shipped the other — each
+ * with the other's file out of reach in a parallel workstream. The Work Entry's
+ * own comment recorded that as "a one-line follow-up flagged in the report".
+ * This is that follow-up: the two identical declarations became one shared
+ * component at the A3 + A4 integration. Nothing about the rendered result
+ * changed — the same six lines still ship, to the same pages.
+ *
+ * ── WHAT IS DELIBERATELY NOT HERE ──────────────────────────────────────────
+ * The HiFi's exit animation is a script: it calls `preventDefault()`, adds a
+ * `leaving` class and navigates with `setTimeout(…, 430)`. That must not survive
+ * — it breaks middle-click, modifier-click and the browser's own navigation
+ * handling, and it makes a 430 ms delay load-bearing on every card
+ * (VISUAL_DIRECTION_v2.0 §12: "never make a single motion load-bearing"). The
+ * CSS form produces the same result with no JS and no intercepted click.
+ *
+ * Named transition parts (`view-transition-name` pairing the clicked card's
+ * image with the entry's hero, so it morphs rather than crossfades) are NOT set.
+ * A name on one side only animates a lone element rather than morphing a pair,
+ * so naming belongs to the two sides being changed together — now that both
+ * sides are here, that is a single, deliberate follow-up rather than a
+ * cross-workstream one.
+ *
+ * MOTION_NOTES.md:62 requires layout parity under reduced motion, and
+ * `WORK_ARCHIVE_IMPLEMENTATION_NOTES.md`:45 is explicit for this transition:
+ * "Reduced-motion falls back to native navigation." Killing the animations
+ * yields exactly that — the same navigation, cut rather than crossfaded.
+ *
+ * §14.0 binds it and this satisfies the binding: the rule ships zero JS, an
+ * unsupporting browser ignores the at-rule and performs a plain document load,
+ * and navigation never depends on it.
+ */
+---
+
+<style is:global>
+  @view-transition {
+    navigation: auto;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+      animation: none !important;
+    }
+  }
+</style>

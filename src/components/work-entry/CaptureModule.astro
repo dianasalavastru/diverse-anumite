@@ -1,0 +1,110 @@
+---
+/**
+ * W-4 · Type-specific module — **Reality Capture** (Page IA Stage D).
+ *
+ * Components (`WORK_ENTRY_WIREFRAME.md` W-4): "Statistic ×n (accuracy/specs) ·
+ * Rich Text (equipment/deliverables) · Media Viewer (point-cloud) · Gallery
+ * (before–after)."
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ *  TWO RULES GOVERN THIS MODULE ABOVE ALL OTHERS
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * §10.4 — **capture metadata is real data, never computed.** "The HiFis display
+ * fabricated readouts — the homepage renders 5,020 points and prints `N*1600` as
+ * '≈ 8,032,000 puncte'; the service page hardcodes 'acuratețe 2 mm · Leica
+ * RTC360'. **These are prototype artifacts and must not reach production.**…
+ * These are technical claims made to institutional clients evaluating a
+ * surveying service; a decorative multiplier surviving into production is a
+ * false accuracy claim."
+ *
+ * The approved Work Entry HiFi carries the same debt: `≈ — puncte · acuratețe
+ * 2 mm · Leica RTC360 · 2023` in its scan strip, and a `2 mm` figure in its
+ * measured-facts row. Nothing in this module computes, defaults or hardcodes a
+ * figure. Point count, accuracy and equipment are rendered by `PointCloudField`
+ * straight from `CaptureMetadata`, and an undeclared field produces an absent
+ * segment rather than a plausible one.
+ *
+ * §19.4 — **the publication gate.** "A point cloud is *measurable* — publishing
+ * one is materially different from publishing a photograph of the same building,
+ * and heritage/institutional clients may hold contractual restrictions."
+ * `capturePublicationCleared` gates the asset in three independent places: the
+ * Studio warns, the query layer drops an uncleared derivative (`normalize.ts`),
+ * and the seam refuses to emit a mount URL without one (`PointCloudField`). This
+ * module adds no fourth path around them — it hands the whole entry to the seam
+ * and lets the gate apply itself.
+ *
+ * ── THE POINT-CLOUD SEAM IS NOT REIMPLEMENTED HERE ────────────────────────
+ * `PointCloudField.astro` already **is** the mount contract Workstream D builds
+ * against (§23.3 gives D "the viewer island implementation"; §10.3: "three.js is
+ * a hypothesis, not a decision"). It renders the poster fallback, the honest
+ * readout, `data-media-viewer="point-cloud"`, `data-viewer-status="poster"` and
+ * the `data-asset-url` that is absent unless publication is cleared — and it
+ * shows the drag affordance only once D flips the status to `live`.
+ *
+ * Reusing it rather than writing a second capture surface is the point: two
+ * seams would mean two gates, two readouts and two places for D to integrate.
+ * COMPONENT_INVENTORY.md:111 says the same thing from the design side — "the RC
+ * viewer is a **variant**, not a new component."
+ *
+ * What is deliberately absent: the "before–after" Gallery the wireframe names.
+ * The Content Model has no before/after pairing on gallery items (one flat
+ * `ImageAsset[]` — see Gallery.astro), so the pairing cannot be authored; those
+ * images are in W-2's gallery, inspectable through the same Media Viewer.
+ * Reported as a contract gap rather than faked with array positions.
+ */
+import PointCloudField from '../media/PointCloudField.astro';
+import { localize } from '../../lib/content';
+import type { Locale, WorkEntry } from '../../lib/content';
+import type { WorkEntryMessages } from '../../lib/i18n/work-entry';
+
+interface Props {
+  entry: WorkEntry;
+  locale: Locale;
+  copy: WorkEntryMessages;
+}
+
+const { entry, locale, copy } = Astro.props;
+const capture = entry.capture;
+
+/**
+ * The specifications the field's own readout does not carry. Point count,
+ * accuracy and equipment are rendered there, beside the cloud they describe —
+ * §10.4's whole argument is that a readout must describe the asset next to it,
+ * so they are not repeated here.
+ */
+const specs: { key: string; value: string }[] = [];
+if (capture?.software.length) {
+  specs.push({ key: copy.capture.software, value: capture.software.join(' · ') });
+}
+/* Deliverables belong to this module when it renders (wireframe W-4), and to
+   Project Metadata otherwise. `modules.ts` owns that decision. */
+const deliverables = localize(entry.metadata.deliverables, locale);
+if (deliverables?.length) {
+  specs.push({ key: copy.capture.deliverables, value: deliverables.join(' · ') });
+}
+---
+
+<div class="we-capture">
+  <PointCloudField
+    locale={locale}
+    label={copy.capture.label}
+    hint={copy.capture.hint}
+    posterAlt={copy.capture.posterAlt}
+    unavailable={copy.capture.unavailable}
+    subject={entry}
+  />
+
+  {
+    specs.length > 0 && (
+      <dl class="we-type-facts rv" data-rv="meta">
+        {specs.map((spec) => (
+          <div class="r">
+            <dt class="k">{spec.key}</dt>
+            <dd class="v mono">{spec.value}</dd>
+          </div>
+        ))}
+      </dl>
+    )
+  }
+</div>

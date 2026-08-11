@@ -1,0 +1,47 @@
+/* =============================================================================
+   Section Marker — the hairline + station number + label + running coordinate.
+
+   Transcribed verbatim from the approved HiFis' `.smark` block, which is
+   byte-identical in HP and WE (and repeats in HUB, RC, SV). It moved here from
+   `pages/homepage.css` when the Work Entry was built: COMPONENT_INVENTORY.md
+   scopes Section Header to *all pages*, so a second page consuming it made the
+   rule a component rule rather than a page rule. No declaration changed.
+
+   The Homepage HiFi's own comment states the intent: it "ties the sequence
+   together (fixes abrupt white-gap transitions), pins a right-side anchor
+   (fixes right-side imbalance), and adds a second small anchor per viewport —
+   all without adding visual noise."
+   ========================================================================== */
+
+.smark {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  border-top: 1px solid var(--hair);
+  padding-top: clamp(22px, 3vh, 34px);
+  margin-bottom: clamp(34px, 5vh, 64px);
+}
+
+.smark .no {
+  font-family: var(--pixel);
+  font-size: 13px;
+  color: var(--blue);
+}
+
+.smark .lbl {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.smark .co {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  /* --ink-60, not --ink-40: WCAG 2.2 AA for small text (I-3). See typography.css. */
+  color: var(--ink-60);
+}

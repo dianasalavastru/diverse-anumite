@@ -1,0 +1,15 @@
+# Studio-local build and CLI state.
+#
+# The repository root `.gitignore` is Workstream A's single-owner file (TECHNICAL_ARCHITECTURE.md
+# §23.3). `studio/` is a separate application with its own dependency tree and its own
+# generated artifacts, so its ignores live with it rather than in A's file.
+
+# `sanity dev` / `sanity build` regenerate this on every run and discard edits to it.
+.sanity/
+
+# `sanity build` output. The Studio's bundle never enters the web app's.
+dist/
+
+# Dataset exports (`npm run export`, §20). Backups go to owner-controlled storage, not Git —
+# and an export carries the full contents of a private dataset.
+*.tar.gz

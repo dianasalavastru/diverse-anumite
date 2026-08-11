@@ -1,0 +1,105 @@
+---
+/**
+ * Curated view — **Competitions** (`/proiecte/concursuri`, `/en/projects/competitions`).
+ *
+ * OWNERSHIP: Workstream A.
+ *
+ * IA §2.2 commits exactly two curated routes, "only when stable + distinct
+ * intent + externally linkable". This is one of them, and §12 makes the pair the
+ * only indexable routes in the `/proiecte/` namespace besides the archive and
+ * the entries — filter states are never separately canonicalized.
+ *
+ * ── IT IS THE SAME ARCHIVE, NOT A SECOND ONE ──────────────────────────────
+ * `WORK_ARCHIVE_PAGE_IA.md` §1: curated views are "**editorial slices of this
+ * same archive**, not separate archives; they share the browse family and route
+ * onward to Work Entries." So this page composes the *same* orientation module,
+ * the *same* Results Grid and the *same* Work Preview Cards, over the same
+ * `ContentSource`. There is no second grid, no second card and no duplicated
+ * archive logic — the only thing this file adds is the scope.
+ *
+ * ── MEMBERSHIP IS B'S ─────────────────────────────────────────────────────
+ * `source.curatedView('competitions', locale)` applies it: Entry Type, primary
+ * **or secondary**, because `CONTENT_MODEL.md`:47 allows a secondary Entry Type
+ * and an entry that is secondarily a competition still belongs in the view
+ * (`source.ts`/`isCompetition`). Selection and order come from the curation
+ * layer (IA §5). This component receives the result already scoped and ordered.
+ *
+ * ── NO FILTERS HERE ───────────────────────────────────────────────────────
+ * A curated view is "a focused editorial slice" (IA §2.5) and "Filters never
+ * duplicate the role of Curated Views" (`WORK_ARCHIVE_PAGE_IA.md` §4). Adding
+ * the archive's control region would turn an editorial slice back into a
+ * mechanical facet view. The way back to the filterable archive is A-7, which IA
+ * Step 5 requires ("linking back to the full archive").
+ */
+import ArchiveContinue from './ArchiveContinue.astro';
+import ArchiveOrientation from './ArchiveOrientation.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ResultsGrid from './ResultsGrid.astro';
+import ViewTransition from '../ViewTransition.astro';
+
+import type { Locale } from '../../lib/content';
+import { workArchiveMessages } from '../../lib/i18n/work-archive';
+
+/* ── THE I-3 SWAP POINT ───────────────────────────────────────────────────── */
+import { createFixtureContentSource } from '../../lib/content/fixtures';
+const source = createFixtureContentSource();
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const copy = workArchiveMessages(locale);
+const view = copy.curated.competitions;
+
+const items = await source.curatedView('competitions', locale);
+---
+
+<BaseLayout
+  locale={locale}
+  rhythm="work-archive"
+  routeKey="competitions"
+  title={`${view.heading} — ${copy.meta.title}`}
+  description={view.statement}
+>
+  <Fragment slot="head">
+    <noscript>
+      <style>
+        .wa-item.rv {
+          opacity: 1 !important;
+          clip-path: none !important;
+        }
+      </style>
+    </noscript>
+  </Fragment>
+
+  <ViewTransition />
+
+  <div class="wa">
+    <ArchiveOrientation
+      locale={locale}
+      eyebrow={view.eyebrow}
+      heading={view.heading}
+      statement={view.statement}
+      total={items.length}
+      totalLabel={copy.orientation.total}
+    />
+
+    <section class="wa-results" aria-labelledby="wa-heading">
+      {
+        /* The aggregate empty state IA M3 defers to this layer: an editorial
+           message and a way onward, never a bare grid — the same philosophy A-6
+           and F5 apply, which is the only guidance the corpus gives for an
+           aggregate page with nothing in it. */
+        items.length > 0 ? (
+          <ResultsGrid locale={locale} items={items} openLabel={copy.results.open} />
+        ) : (
+          <p class="wa-empty-note">{view.empty}</p>
+        )
+      }
+    </section>
+
+    <ArchiveContinue locale={locale} copy={copy.continue} current="competitions" />
+  </div>
+</BaseLayout>

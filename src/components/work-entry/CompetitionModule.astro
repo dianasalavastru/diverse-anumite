@@ -1,0 +1,81 @@
+---
+/**
+ * W-4 · Type-specific module — **Competition** (Page IA Stage D).
+ *
+ * Components (`WORK_ENTRY_WIREFRAME.md` W-4): "Rich Text (brief) · Statistic
+ * (award/prize) · Rich Text (jury/team) · Gallery (boards)."
+ *
+ * Responsibility: "express the characteristics unique to this Entry Type" —
+ * "a competition's outcome". It toggles on Entry Type in either position
+ * (primary or secondary), because `CONTENT_MODEL.md`:47 allows a secondary type
+ * and a secondarily-competition entry still carries a competition's evidence.
+ *
+ * ── WHAT THIS MODULE CAN AND CANNOT SHOW ──────────────────────────────────
+ * Of the wireframe's four components, the frozen contract supports two:
+ *
+ *   Statistic (award/prize)   →  `metadata.awards`   ✔ localized string list
+ *   Rich Text (jury/team)     →  `metadata.team`     ✔ (team only — see below)
+ *   Rich Text (brief)         →  no field            ✘
+ *   Gallery (boards)          →  no field            ✘ (boards are gallery items,
+ *                                  and the gallery is one untyped set — see
+ *                                  Gallery.astro)
+ *
+ * **There is no jury field.** `CONTENT_MODEL.md`:54 lists the Metadata axis as
+ * "Year, Location, Client, Collaborators, Status, Awards, Area, Team,
+ * Equipment/Software, Deliverables, Accuracy/Specs" — no jury, and §7.3's field
+ * contract adds none. The competition *brief* has no field either; the entry's
+ * `description` is W-2's, and re-using it here would print the same prose twice.
+ * Both gaps are reported to Workstream B rather than filled with a repurposed
+ * field: a jury line assembled from Collaborators or Team would be a false
+ * statement about who judged a competition.
+ *
+ * The Team here is the **competition team**, and it is deliberately not in the
+ * Credits block — wireframe W-3: the credits block is "distinct from any
+ * competition Team (which lives in W-4)". `modules.ts` routes the field to
+ * exactly one of the two, so it is never printed twice and never lost.
+ */
+import { localize } from '../../lib/content';
+import type { Locale, WorkEntry } from '../../lib/content';
+import type { WorkEntryMessages } from '../../lib/i18n/work-entry';
+
+interface Props {
+  entry: WorkEntry;
+  locale: Locale;
+  copy: WorkEntryMessages;
+}
+
+const { entry, locale, copy } = Astro.props;
+
+/* Locale-scoped, with no RO fallback (§11.2): an EN page shows EN awards or no
+   awards row, never a Romanian one. */
+const awards = localize(entry.metadata.awards, locale) ?? [];
+const team = entry.metadata.team;
+---
+
+<div class="we-type">
+  {
+    awards.length > 0 && (
+      <ul class="we-awards rv" data-rv="meta">
+        {awards.map((award) => (
+          <li>
+            {/* Statistic: "a single quantified fact… value + label" — here the
+                authored award line, in the display voice, one per item so a
+                second award never reads as a qualifier on the first. */}
+            <span class="we-award">{award}</span>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+
+  {
+    team.length > 0 && (
+      <dl class="we-type-facts rv" data-rv="meta">
+        <div class="r">
+          <dt class="k">{copy.metadata.team}</dt>
+          <dd class="v mono">{team.join(' · ')}</dd>
+        </div>
+      </dl>
+    )
+  }
+</div>

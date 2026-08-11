@@ -1,0 +1,135 @@
+---
+/**
+ * A-5 · Results — COMPONENT_INVENTORY.md "Results Grid".
+ *
+ * Purpose: present matching work. Responsibility: "signposting previews, ordered
+ * for discovery + balanced pillars". Inputs: a set of Work Preview Cards.
+ * Outputs: → Work Entries. Notes: "signposting surface, never in-depth projects."
+ *
+ * WORK_ARCHIVE_WIREFRAME A-5: "the results region is the emotional and visual
+ * center of the Archive — the work is the protagonist". So the grid owns the
+ * editorial masonry (cells, sizes, order) and the card owns the card.
+ *
+ * ── WHAT THE CELL CARRIES, AND WHY ─────────────────────────────────────────
+ * Three groups of attributes, each with one job:
+ *
+ *   `data-facet-*`  the item's own facets, as INDEPENDENT dimensions
+ *                   (`WORK_ARCHIVE_IMPLEMENTATION_NOTES.md`:84 / §7.2 —
+ *                   "do not merge them"). The HiFi's collapsed `data-type` +
+ *                   `data-status` pair does not survive (§5.3, R6), and no
+ *                   `status` or `attribution` attribute exists at all: neither is
+ *                   a public filter (§23.5, F2), so neither is projected onto a
+ *                   visitor-facing surface.
+ *
+ *   `data-rank-*`   the precomputed orderings (see masonry.ts). The client
+ *                   SELECTS one; it never sorts. This is what makes "developers
+ *                   do not re-order markup" (:113) structural.
+ *
+ *   `data-work`     the filter island's handle on a cell.
+ *
+ * The grid is also the whole page's no-JS baseline: rendered in discovery order
+ * (§7.6), every entry present, every card a link. §14.0's progressive
+ * enhancement is satisfied by the browse working before any script runs — which
+ * is also exactly what IA Step 4 means by "browse is default".
+ */
+import WorkPreviewCard from '../WorkPreviewCard.astro';
+import { localize, type Locale, type WorkArchiveItem } from '../../lib/content';
+import { routePath } from '../../lib/i18n/routes';
+import { itemFacets } from './facets';
+import { archiveSize, computeArchiveRanks, type ArchiveRanks, type ArchiveScope } from './masonry';
+
+interface Props {
+  locale: Locale;
+  /** Already locale-scoped and discovery-ordered by `ContentSource` (§7.1, §7.6). */
+  items: readonly WorkArchiveItem[];
+  /** The per-card continuation cue. */
+  openLabel: string;
+  /** Rendered only where the archive's filter island is mounted. */
+  filterable?: boolean;
+}
+
+const { locale, items, openLabel, filterable = false } = Astro.props;
+
+const ranks = computeArchiveRanks(items);
+
+/**
+ * The HiFi's `A·001` / `R·001` coordinate label: a running number within the
+ * entry's own pillar, in curated order. It is an identity rather than a
+ * position — it must not renumber when the visitor re-sorts — so it is bound to
+ * the entry here, once, and travels with the card.
+ *
+ * Decorative and `aria-hidden` in the card. The letter is the pillar's initial
+ * in the frozen identifier, not a translated label, so it is stable in both
+ * locales.
+ */
+const PILLAR_INITIAL = { 'architecture-design': 'A', 'reality-capture': 'R' } as const;
+const counters = { 'architecture-design': 0, 'reality-capture': 0 };
+
+/** Authored plate tones, cycled — the HiFi paints a warm ground under each image. */
+const TONES = ['#c9c4ba', '#cbc6bc', '#c6c1b7', '#cec9bf'];
+
+const cells = items.flatMap((item, index) => {
+  const slug = localize(item.slug, locale);
+  const title = localize(item.title, locale);
+  /* A card with no localized identity cannot link anywhere §11.2 guarantees
+     exists. It is dropped rather than rendered as a dead card. */
+  if (!slug || !title) return [];
+
+  const pillar = item.pillars.primary;
+  counters[pillar] += 1;
+
+  const facets = itemFacets(item, locale);
+  const rank = ranks.get(item._id);
+
+  return [
+    {
+      item,
+      href: routePath('workEntry', locale, slug),
+      size: archiveSize(item.curation.prominence, item.cover),
+      coordinate: `${PILLAR_INITIAL[pillar]}·${String(counters[pillar]).padStart(3, '0')}`,
+      place: localize(item.location, locale),
+      tone: TONES[index % TONES.length] as string,
+      facets,
+      rank,
+    },
+  ];
+});
+
+const scopeRank = (rank: ArchiveRanks | undefined, scope: ArchiveScope): string | undefined => {
+  const value = rank?.curated[scope];
+  return value === undefined ? undefined : String(value);
+};
+---
+
+<div class="wa-grid" data-archive-grid={filterable ? '' : undefined}>
+  {
+    cells.map((cell) => (
+      <article
+        class:list={['wa-item', 'rv', `s-${cell.size}`]}
+        data-rv="img"
+        data-work=""
+        data-facet-pillars={cell.facets.pillars.join(' ')}
+        data-facet-types={cell.facets.types.join(' ')}
+        data-facet-sectors={cell.facets.sectors.join(' ')}
+        data-facet-disciplines={cell.facets.disciplines.join(' ')}
+        data-facet-services={cell.facets.services.join(' ')}
+        data-rank-curated-all={scopeRank(cell.rank, 'all')}
+        data-rank-curated-architecture-design={scopeRank(cell.rank, 'architecture-design')}
+        data-rank-curated-reality-capture={scopeRank(cell.rank, 'reality-capture')}
+        data-rank-newest={cell.rank ? String(cell.rank.newest) : undefined}
+        data-rank-oldest={cell.rank ? String(cell.rank.oldest) : undefined}
+      >
+        <WorkPreviewCard
+          variant="archive"
+          entry={cell.item}
+          locale={locale}
+          href={cell.href}
+          coordinate={cell.coordinate}
+          place={cell.place}
+          openLabel={openLabel}
+          tone={cell.tone}
+        />
+      </article>
+    ))
+  }
+</div>

@@ -1,0 +1,140 @@
+/* =============================================================================
+   Gallery — the Work Entry's media set (W-2).
+
+   Transcribed from the approved Work Entry HiFi's `.grid` / `.fig` rules.
+
+   VISUAL_DIRECTION_v2.0 §9 governs the composition: "**One image is in focus;
+   the rest recede** — by scale, contrast, placement, crop, sequence… **Never a
+   uniform equal grid by default.**" So the set keeps the HiFi's irregular span
+   rhythm — one leading wide frame, then portrait frames — cycled across a set of
+   any length rather than collapsing to equal cells.
+
+   §9 again: the greyscale-at-rest → colour-on-inspection grade is the "hover-to-
+   blue reveal… as a slow *inspection* gesture" of §6. It resolves on
+   `:focus-visible` as well as `:hover`, per MOTION_NOTES.md:54.
+   ========================================================================== */
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: clamp(12px, 1.4vw, 22px);
+  list-style: none;
+}
+
+.gitem.lead {
+  grid-column: span 4;
+}
+
+.gitem.half {
+  grid-column: span 2;
+}
+
+/* The figure box. `position: relative` is what the Plate fills, and the ratio is
+   authorship, not fit-to-slot (§9: "Cropping is authorship"). */
+.fig {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  background: #cbc6bc;
+}
+
+.gitem.lead .fig {
+  aspect-ratio: 16 / 10;
+}
+
+.gitem.half .fig {
+  aspect-ratio: 4 / 5;
+}
+
+.fig .figbox {
+  display: block;
+  position: absolute;
+  inset: 0;
+}
+
+.fig .plate-img,
+.fig .plate-fixture {
+  filter: grayscale(0.32) contrast(1.03);
+  transition:
+    transform 1.2s var(--slow),
+    filter 0.8s var(--slow);
+}
+
+a.fig:hover .plate-img,
+a.fig:focus-visible .plate-img {
+  transform: scale(1.03);
+  filter: grayscale(0) contrast(1.04);
+}
+
+/* The zoom affordance. It appears on hover AND on keyboard focus — a
+   pointer-only affordance on an inspection surface is exactly what §14.1 calls
+   out in the HiFis. `aria-hidden`, because the link's own accessible name
+   already says the item opens. */
+.fig .z {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: #fff;
+  mix-blend-mode: difference;
+  opacity: 0;
+  transition: opacity var(--t-state) var(--ease);
+  z-index: 2;
+}
+
+a.fig:hover .z,
+a.fig:focus-visible .z {
+  opacity: 1;
+}
+
+/* The coordinate label — the pixel/mono voice as a measurement annotation
+   (§2.5), decorative and inert. */
+.fig .figco {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: #fff;
+  mix-blend-mode: difference;
+  z-index: 2;
+}
+
+/* A non-link figure is an asset that cannot be fetched — it renders its authored
+   plate tone and offers no zoom affordance it could not honour. */
+div.fig {
+  cursor: default;
+}
+
+a.fig {
+  cursor: zoom-in;
+}
+
+@media (max-width: 820px) {
+  .gallery {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .gitem.lead {
+    grid-column: span 2;
+  }
+
+  .gitem.half {
+    grid-column: span 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fig .plate-img,
+  .fig .plate-fixture,
+  .fig .z {
+    transition: none !important;
+  }
+
+  a.fig:hover .plate-img,
+  a.fig:focus-visible .plate-img {
+    transform: none !important;
+  }
+}

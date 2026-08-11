@@ -253,8 +253,21 @@ export const METADATA_FIELDS = {
 
 const METADATA = projection(METADATA_FIELDS);
 
+/**
+ * `derivative.asset` is a **file field**, not a reference — Sanity stores it as
+ * `{ _type: 'file', asset: { _ref } }`, so the dereference is `asset.asset->url`, one level
+ * deeper than an image's `asset->url`.
+ *
+ * FIXED AT B3, against a live dataset. `asset->url` returned `null` for a real uploaded
+ * derivative, and because `normalizeCapture` gates on `raw.derivative?.assetUrl` being truthy,
+ * the §19.4 capture gate appeared to pass while actually withholding *every* derivative,
+ * cleared or not. No fixture could catch it: `fixtures.ts` authors `assetUrl` directly in the
+ * raw shape and never exercises the dereference. It took an uploaded asset in a real dataset —
+ * which is exactly what the B3 capture-gate verification script does
+ * (`studio/scripts/verify-capture-gate.ts`).
+ */
 export const POINT_CLOUD_DERIVATIVE_FIELDS = {
-  assetUrl: 'asset->url',
+  assetUrl: 'asset.asset->url',
   poster: `poster${IMAGE}`,
 } as const satisfies Record<keyof RawPointCloudDerivative, string>;
 

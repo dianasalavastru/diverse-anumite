@@ -1,0 +1,50 @@
+---
+/**
+ * `/proiecte/[proiect]` — the Romanian Work Entry (locale route map §11.1).
+ *
+ * RO is the default locale and is not prefixed (`prefixDefaultLocale: false`).
+ * The page itself is composed in `components/work-entry/WorkEntryPage.astro` so
+ * the two locale routes cannot drift apart.
+ *
+ * TERMINOLOGY BOUNDARY (§11.1). `/proiecte` is a public URL label; the canonical
+ * content object remains the **Work Entry** (`CONTENT_MODEL.md` §1). The file
+ * name follows the route; the types follow the model.
+ *
+ * ── STATIC PATHS ARE THE i18n GATE ────────────────────────────────────────
+ * §6.1 is 100% static prerendering, so the set of generated paths *is* the set
+ * of pages that exist. `source.workEntries(locale)` returns only entries
+ * available in this locale, which makes §11.2 structural rather than a runtime
+ * check: an untranslated entry generates no EN page, and `/en/<untranslated>`
+ * is a clean 404 rather than a redirect to RO.
+ *
+ * Reserved slugs (IA §2.2 F4) need no guard here either: `concursuri` and
+ * `experienta-profesionala` are validated out at authoring time against the same
+ * route map this router reads (`validation.ts`, §7.7), so no Work Entry can
+ * claim a curated route's path.
+ */
+import WorkEntryPage from '../../components/work-entry/WorkEntryPage.astro';
+import { createFixtureContentSource } from '../../lib/content/fixtures';
+import { localize } from '../../lib/content';
+import type { WorkEntry } from '../../lib/content';
+
+export async function getStaticPaths() {
+  /* ── THE I-3 SWAP POINT — this call, and nothing else ─────────────────── */
+  const source = createFixtureContentSource();
+  /* ─────────────────────────────────────────────────────────────────────── */
+
+  const entries = await source.workEntries('ro');
+
+  return entries
+    .map((entry) => {
+      const slug = localize(entry.slug, 'ro');
+      // RO is required to publish at all (`validation.ts`), so this is a type
+      // guard rather than an expected state.
+      return slug ? { params: { proiect: slug }, props: { entry } } : null;
+    })
+    .filter((path): path is NonNullable<typeof path> => path !== null);
+}
+
+const { entry } = Astro.props as { entry: WorkEntry };
+---
+
+<WorkEntryPage entry={entry} locale="ro" />

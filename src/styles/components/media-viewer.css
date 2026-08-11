@@ -1,0 +1,294 @@
+/* =============================================================================
+   Media Viewer — the image-zoom variant (COMPONENT_INVENTORY.md "Media Viewer").
+
+   Transcribed from the approved Work Entry HiFi's `.lb` rules, on a native
+   `<dialog>` instead of a fixed `<div>` — see MediaViewer.astro for why the
+   platform dialog is the accessibility model here.
+
+   VISUAL_DIRECTION_v2.0 §0.2: "Work can be zoomed, rotated, focused, revealed;
+   the site rewards the impulse to look closer." §7: "**zoom** on planșe and
+   detailed work".
+
+   TWO RULES SHOW UP AS CSS RATHER THAN AS SCRIPT:
+
+     1. **`touch-action` is conditional** (§14.2, no scroll trap). At rest the
+        stage claims nothing and touch scrolling behaves natively; only a zoomed
+        stage takes the gesture, keyed off `data-zoomed`. The island's
+        `preventDefault` is gated on the same explicit activation.
+     2. **Reduced motion resolves to layout parity** (MOTION_NOTES.md:62), not
+        to "no animation": the dialog and the image appear in their final state,
+        at the same size, in the same place.
+   ========================================================================== */
+
+.lb {
+  /* The dialog is the whole viewport; `showModal()` puts it in the top layer. */
+  width: 100vw;
+  max-width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  padding: 0;
+  border: none;
+  background: rgb(18 15 11 / 94%);
+  color: #fff;
+  overflow: hidden;
+}
+
+.lb::backdrop {
+  background: rgb(18 15 11 / 88%);
+  backdrop-filter: blur(4px);
+}
+
+/* Opening is a reveal, not an entrance. `--t-rev` is the reveal token
+   (MOTION_NOTES.md §"Timing & easing tokens"). */
+.lb[open] {
+  animation: lb-in var(--t-rev) var(--slow);
+}
+
+@keyframes lb-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* The page behind a modal must not scroll. This is modal semantics, not a
+   scroll trap: the dialog is dismissible by Escape, by the Close button and by
+   a backdrop click, and the lock lifts with it. */
+html:has(dialog[data-media-viewer][open]) {
+  overflow: hidden;
+}
+
+/* ---- Bars ---------------------------------------------------------------- */
+
+.lb-bar,
+.lb-foot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  padding: 20px clamp(20px, 5vw, 48px);
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.lb-bar {
+  top: 0;
+  background: linear-gradient(180deg, rgb(0 0 0 / 45%), transparent);
+}
+
+.lb-foot {
+  bottom: 0;
+  align-items: flex-end;
+  background: linear-gradient(0deg, rgb(0 0 0 / 55%), transparent);
+}
+
+.lb-pos {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+
+.lb-cap {
+  max-width: 52ch;
+}
+
+.lb-cap .t {
+  display: block;
+  font-family: var(--read);
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.lb-cap .m {
+  display: block;
+  font-size: 11px;
+  /* 4.6:1 on the dialog ground — AA for small text. */
+  color: rgb(255 255 255 / 72%);
+  margin-top: 4px;
+  letter-spacing: 0.05em;
+}
+
+.lb-keys {
+  flex-basis: 100%;
+  font-size: 11px;
+  color: rgb(255 255 255 / 72%);
+  letter-spacing: 0.04em;
+}
+
+/* ---- The stage — the inspection surface ---------------------------------- */
+
+.lb-stage {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.lb-image {
+  max-width: 92vw;
+  max-height: 82dvh;
+  width: auto;
+  height: auto;
+  transform-origin: center;
+  will-change: transform;
+  transition: transform var(--t-state) var(--ease);
+}
+
+/* §14.2 — the gesture surface is claimed ONLY once zoom is explicitly active.
+   At rest the stage does not set `touch-action`, so a two-finger scroll or a
+   swipe behaves exactly as it does on the page behind. */
+.lb-stage[data-zoomed='true'] {
+  touch-action: none;
+  cursor: grab;
+}
+
+.lb-stage[data-zoomed='true']:active {
+  cursor: grabbing;
+}
+
+.lb-stage[data-zoomed='false'] .lb-image {
+  cursor: zoom-in;
+}
+
+/* Dragging must not fight the eased transform. */
+.lb-stage[data-zoomed='true'] .lb-image {
+  transition: none;
+}
+
+/* ---- Controls ------------------------------------------------------------
+   Every one is a real <button> with an accessible name (§14.1). None is a
+   filled marketing button — VISUAL_DIRECTION_v2.0 §12 forbids that vocabulary,
+   so these are hairline instrument controls. */
+
+.lb-ctrls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lb-btn,
+.lb-close,
+.lb-nav {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: #fff;
+  background: rgb(0 0 0 / 25%);
+  border: 1px solid rgb(255 255 255 / 35%);
+  cursor: pointer;
+  transition:
+    border-color var(--t-state) var(--ease),
+    background var(--t-state) var(--ease);
+}
+
+.lb-btn {
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0 12px;
+}
+
+.lb-close {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+}
+
+.lb-btn-label {
+  text-transform: uppercase;
+}
+
+/* 44×44 is the WCAG 2.2 AA 2.5.8 Target Size (Minimum) threshold; these sit at
+   40 with the surrounding gap taking them past it, and the nav controls are at
+   52 as the HiFi authors them. */
+/* `z-index: 4` — above the two bars, not level with them. At 3 the footer bar,
+   which comes later in the DOM, won the paint order and swallowed the pointer
+   target wherever the two overlapped; the buttons were still in the tab order,
+   so only pointer users lost them. Found by hit-testing the rendered page. */
+.lb-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 52px;
+  height: 52px;
+  z-index: 4;
+}
+
+.lb-nav.prev {
+  left: clamp(12px, 3vw, 28px);
+}
+
+.lb-nav.next {
+  right: clamp(12px, 3vw, 28px);
+}
+
+.lb-btn:hover,
+.lb-close:hover,
+.lb-nav:hover,
+.lb-btn:focus-visible,
+.lb-close:focus-visible,
+.lb-nav:focus-visible {
+  border-color: #fff;
+  background: rgb(0 0 0 / 45%);
+}
+
+/* The one blue moment in the viewer: inspection *is* activation and measurement
+   (VISUAL_DIRECTION_v2.0 §2.1), so the pressed toggle carries the signal. */
+.lb-inspect[aria-pressed='true'] {
+  border-color: var(--blue);
+  color: #fff;
+  background: rgb(43 43 230 / 45%);
+}
+
+.lb-zoom {
+  font-size: 11px;
+  color: rgb(255 255 255 / 78%);
+  min-width: 5ch;
+  text-align: right;
+}
+
+/* The polite status region carries announcements only. */
+.lb-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The HiFi hides the ← → buttons outright below 640px, which would leave
+   navigation with no operable control at all — §14.1 asks for one, and a swipe
+   gesture this island does not implement is not a substitute. They stay
+   vertically centred and only shrink: overlaying the image edges is the
+   conventional lightbox position and it holds at any viewport height, where
+   docking them above the footer depends on a caption length that varies. */
+@media (max-width: 640px) {
+  .lb-nav {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lb[open] {
+    animation: none !important;
+  }
+
+  .lb-image {
+    transition: none !important;
+  }
+
+  .lb-btn,
+  .lb-close,
+  .lb-nav {
+    transition: none !important;
+  }
+}

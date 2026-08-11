@@ -1,0 +1,87 @@
+---
+/**
+ * A-3 · Active context — COMPONENT_INVENTORY.md "Active Context".
+ *
+ * Purpose: make the current browse state legible. Responsibility: "show pillar +
+ * active filters + 'broaden/clear'." Notes: "state readout; **distinct from
+ * Breadcrumb** (hierarchy)."
+ *
+ * `WORK_ARCHIVE_PAGE_IA.md` A-3 draws the same line against A-2: "A-2 is the
+ * control; A-3 is the readout + 'clear/broaden'." So nothing here changes state
+ * on its own except the one broaden affordance, and the pillar switch stays in
+ * the toggle.
+ *
+ * It answers the Page IA's pass/fail test — "a visitor **always knows** which
+ * pillar/scope they are in and whether filters are active" — which is why the
+ * readout is rendered even when nothing is active, saying so in words
+ * ("viewing: the whole archive") rather than disappearing. An empty control
+ * region cannot communicate an empty filter state.
+ *
+ * ── THE HUB BACK-PATH (F1) ─────────────────────────────────────────────────
+ * `WORK_ARCHIVE_PAGE_IA.md` A-3/A-7: a back-path to the parent Hub "where a
+ * pillar scope is active". Both hub links are prerendered from the frozen route
+ * map and hidden; the island reveals the one matching the active mode. No script
+ * ever builds a URL — routes come from `routes.ts` and nowhere else (OD-1).
+ *
+ * ── THE LIVE REGION ────────────────────────────────────────────────────────
+ * The result count is announced here rather than in the grid: it is the readout
+ * of state, and WCAG 2.2 AA requires a filter's outcome to reach a screen reader
+ * without a visual scan. `role="status"` is polite and never steals focus, which
+ * is what keeps "no focus loss after filtering" true.
+ */
+import { PILLARS, type Locale } from '../../lib/content';
+import { routePath } from '../../lib/i18n/routes';
+import { pillarLabel, pillarRouteKey } from '../../lib/i18n/vocabulary';
+import { countNoun, type WorkArchiveMessages } from '../../lib/i18n/work-archive';
+
+interface Props {
+  locale: Locale;
+  copy: WorkArchiveMessages['activeContext'];
+  /** Plural forms, so the island can inflect the count it writes here. */
+  count: WorkArchiveMessages['count'];
+  /** The unfiltered total — what the readout says before any script runs. */
+  total: number;
+}
+
+const { locale, copy, count, total } = Astro.props;
+
+const hubs = PILLARS.map((pillar) => ({
+  pillar,
+  label: pillarLabel(pillar, locale),
+  href: routePath(pillarRouteKey(pillar), locale),
+}));
+---
+
+<div class="wa-context" data-active-context>
+  <p class="wa-summary">
+    <span class="lab">{copy.label}</span>
+    <span
+      data-active-summary
+      data-none={copy.none}
+      data-count-one={count.one}
+      data-count-few={count.few}
+      data-count-many={count.many}>{copy.none}</span
+    >
+  </p>
+
+  <p class="wa-count measure">
+    <b data-archive-count>{total}</b>
+    <span data-archive-count-noun>{countNoun(total, locale)}</span>
+  </p>
+
+  {/* Announced, not rendered twice: the same count the readout above shows, in
+      the words a screen reader needs when the grid changes under it. */}
+  <p class="wa-sr" role="status" aria-live="polite" data-archive-status></p>
+
+  <button type="button" class="wa-clear" data-archive-clear hidden>
+    {copy.clear} <span class="ar" aria-hidden="true">→</span>
+  </button>
+
+  {
+    hubs.map((hub) => (
+      <a class="wa-hub" href={hub.href} data-hub-link={hub.pillar} hidden>
+        {copy.hub}: {hub.label} <span class="ar" aria-hidden="true">→</span>
+      </a>
+    ))
+  }
+</div>

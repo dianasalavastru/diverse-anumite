@@ -1,0 +1,91 @@
+/* =============================================================================
+   Rich Text — authored prose (COMPONENT_INVENTORY.md "Rich Text").
+
+   The approved HiFis set prose in the reading voice at `--ink-60` with a bounded
+   measure, and that is what this reproduces: the Work Entry HiFi's `.spread .txt
+   p { color: var(--ink-60); font-size: 15.5px }` and `.sheet .abstract { max-width:
+   52ch }`.
+
+   VISUAL_DIRECTION_v2.0 §12 principle 4 — "Less interface, more content" — and
+   §5, which names over-explanation as a weakness: the measure is deliberately
+   short, so prose stays a supporting voice beside the media rather than a wall.
+   The measure lives on the *consumer* (`.we-prose`), not here, because the same
+   component will carry the Service page's long-form explanation, where the
+   proportion is different.
+   ========================================================================== */
+
+.rich-text > * + * {
+  margin-top: 14px;
+}
+
+.rich-text p,
+.rich-text li {
+  color: var(--ink-60);
+  font-size: 15.5px;
+}
+
+/* The first paragraph reads as the lead — the HiFi's `.txt .lead`: full ink,
+   slightly larger. Hierarchy through restraint, not size escalation (§10). */
+.rich-text > p:first-child {
+  color: var(--ink);
+  font-size: 16.5px;
+}
+
+.rich-text h3,
+.rich-text h4,
+.rich-text h5 {
+  font-family: var(--pixel);
+  font-weight: 500;
+  color: var(--ink);
+  margin-top: clamp(24px, 3vh, 34px);
+}
+
+.rich-text h3 {
+  font-size: clamp(20px, 2.2vw, 26px);
+}
+
+.rich-text h4,
+.rich-text h5 {
+  font-size: 17px;
+}
+
+.rich-text ul,
+.rich-text ol {
+  padding-inline-start: 1.4em;
+}
+
+.rich-text li + li {
+  margin-top: 6px;
+}
+
+/* Quote — COMPONENT_INVENTORY.md "Quote" is a separate component for
+   testimonials; this is a `blockquote` inside prose, so it is styled as a quiet
+   indent rather than as a display pull-quote. */
+.rich-text blockquote {
+  border-inline-start: 1px solid var(--hair);
+  padding-inline-start: 18px;
+  color: var(--ink-60);
+}
+
+/* An authored link is external by construction (see rich-text.ts). The
+   underline draws in on hover and on :focus-visible alike — MOTION_NOTES.md:54.
+   Blue is the activation signal (§2.1); it marks the link, it does not fill it. */
+.rich-text a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--blue);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: text-decoration-thickness var(--t-state) var(--ease);
+}
+
+.rich-text a:hover,
+.rich-text a:focus-visible {
+  text-decoration-thickness: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rich-text a {
+    transition: none !important;
+  }
+}

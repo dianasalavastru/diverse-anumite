@@ -1,0 +1,15 @@
+---
+/**
+ * `/proiecte` — the Romanian Work Archive (locale route map §11.1, Work archive / RO).
+ *
+ * RO is the default locale and is not prefixed (`prefixDefaultLocale: false`).
+ * The page is composed in `components/work-archive/WorkArchive.astro` so the two
+ * locale routes cannot drift apart.
+ *
+ * TERMINOLOGY BOUNDARY (§11.1): `/proiecte` is a public URL label. The canonical
+ * content object remains the **Work Entry**.
+ */
+import WorkArchive from '../../components/work-archive/WorkArchive.astro';
+---
+
+<WorkArchive locale="ro" />

@@ -1,0 +1,41 @@
+---
+/**
+ * The inline half of the Rich Text serializer: one allowed line's spans.
+ *
+ * Split out only so the block, list-item and quote branches share one
+ * implementation of "text, optionally strong, optionally em, optionally a link".
+ * It renders text nodes and four known elements and nothing else — there is no
+ * `set:html` here, which is what §19.2 requires of every CMS-content surface.
+ */
+import type { RichTextSpan } from './rich-text';
+
+interface Props {
+  spans: readonly RichTextSpan[];
+}
+
+const { spans } = Astro.props;
+---
+
+{
+  spans.map((span) => {
+    const text = span.strong ? (
+      <strong>{span.em ? <em>{span.text}</em> : span.text}</strong>
+    ) : span.em ? (
+      <em>{span.text}</em>
+    ) : (
+      span.text
+    );
+
+    /* `rel` is set because an authored href is always external by construction
+       — `safeHref` rejects relative URLs. `target` is not set: opening a new
+       window without asking is a WCAG 3.2.5 change-on-request problem, and
+       nothing upstream asks for it. */
+    return span.href ? (
+      <a href={span.href} rel="noopener noreferrer">
+        {text}
+      </a>
+    ) : (
+      text
+    );
+  })
+}

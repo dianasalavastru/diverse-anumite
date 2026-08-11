@@ -1,0 +1,61 @@
+---
+/**
+ * Section Marker — the connective tissue between spreads.
+ *
+ * COMPONENT_INVENTORY.md "Section Header": labels one section, *Appears on:* all
+ * pages. The approved HiFis express it as a hairline + station number + section
+ * name + a running coordinate, and the Homepage HiFi states why in its own
+ * comment: it "ties the sequence together (fixes abrupt white-gap transitions),
+ * pins a right-side anchor (fixes right-side imbalance), and adds a second small
+ * anchor per viewport — all without adding visual noise."
+ *
+ * The station number carries the pixel voice as a coordinate marker
+ * (VISUAL_DIRECTION_v2.0 §2.5); the label and coordinate carry the mono
+ * measurement voice.
+ *
+ * The `<h2>` variant is used where the marker IS the section's heading. Where a
+ * section already has its own heading (M-3, M-4) the marker is a plain label and
+ * `heading` stays false, so the document outline gains no duplicate level.
+ *
+ * ── PROMOTED FROM `homepage/` AT THE WORK ENTRY BUILD ──────────────────────
+ * The Work Entry HiFi carries the identical `.smark` block, and the Inventory
+ * scopes Section Header to *all pages* — so this is one shared component, not
+ * two. Its `Props` are declared locally rather than imported from the Homepage
+ * message file, so no page's copy module owns another page's component. Its CSS
+ * moved with it, from `pages/homepage.css` to `components/section-marker.css`.
+ * Nothing about the rendered result changed.
+ */
+
+interface Props {
+  copy: {
+    /** Station number, pixel voice. */
+    readonly no: string;
+    /** Section name, mono label voice. */
+    readonly label: string;
+    /** The right-side running coordinate, mono. */
+    readonly coordinate: string;
+  };
+  /** Render the section name as this section's `<h2>`. */
+  heading?: boolean;
+  /** Id for the heading, so the section can be `aria-labelledby` it. */
+  id?: string;
+}
+
+const { copy, heading = false, id } = Astro.props;
+---
+
+<div class="smark rv" data-rv="meta">
+  <span class="no" aria-hidden="true">{copy.no}</span>
+  {
+    heading ? (
+      <h2 class="lbl" id={id}>
+        {copy.label}
+      </h2>
+    ) : (
+      <span class="lbl" id={id}>
+        {copy.label}
+      </span>
+    )
+  }
+  <span class="co">{copy.coordinate}</span>
+</div>

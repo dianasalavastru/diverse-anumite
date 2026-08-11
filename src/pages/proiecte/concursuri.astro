@@ -1,0 +1,13 @@
+---
+/**
+ * `/proiecte/concursuri` — Competitions, RO (locale route map §11.1).
+ *
+ * A committed curated route (IA §2.2), and therefore a **reserved slug**: no
+ * Work Entry may claim `concursuri` in RO. `RESERVED_SLUGS` in `routes.ts`
+ * generates that list from this same route table, and the CMS validator reads it
+ * (§7.7) — so this file existing is what reserves the slug, in one place.
+ */
+import CuratedCompetitions from '../../components/work-archive/CuratedCompetitions.astro';
+---
+
+<CuratedCompetitions locale="ro" />

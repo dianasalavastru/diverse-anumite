@@ -1,0 +1,108 @@
+---
+/**
+ * Curated view — **Professional Experience**
+ * (`/proiecte/experienta-profesionala`, `/en/projects/professional-experience`).
+ *
+ * OWNERSHIP: Workstream A. The second and last committed curated route (IA §2.2).
+ *
+ * IA §5.1 defines it completely, and every clause is honoured by the data this
+ * page receives rather than by anything it decides:
+ *   - **Scope:** "Studio-attributed entries only" — `isProfessionalExperience`.
+ *   - **Grouping & order:** "by Employer… employers by recency, entries by
+ *     editorial priority" — `groupByEmployer`.
+ *   - **Value:** "narrative of professional experience + transparent crediting,
+ *     beyond a filtered list" — which is why the groups are headed by employer
+ *     and not flattened into one grid.
+ *
+ * ── ATTRIBUTION IS NOT A BROWSE AXIS, AND THIS IS NOT A COUNTEREXAMPLE ────
+ * IA Step 5 / F2: "Attribution, Employer, Role and Authorship are display and
+ * crediting information only — not visitor filters or browse axes. (Attribution
+ * may define a curated view internally… but is never an exposed archive
+ * filter.)" `types.ts` says the same about the two fields this view reads. So
+ * they select the set **at build**, and no control on any page exposes them.
+ *
+ * The credit-display rule is deliberately NOT implemented here: IA §5.1 assigns
+ * it to the Work Entry ("belongs to Studio-attributed Work Entries… not the
+ * view"). This page signposts; the entry credits.
+ */
+import ArchiveContinue from './ArchiveContinue.astro';
+import ArchiveOrientation from './ArchiveOrientation.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ResultsGrid from './ResultsGrid.astro';
+import ViewTransition from '../ViewTransition.astro';
+
+import type { Locale } from '../../lib/content';
+import { workArchiveMessages } from '../../lib/i18n/work-archive';
+
+/* ── THE I-3 SWAP POINT ───────────────────────────────────────────────────── */
+import { createFixtureContentSource } from '../../lib/content/fixtures';
+const source = createFixtureContentSource();
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const copy = workArchiveMessages(locale);
+const view = copy.curated.professionalExperience;
+
+const groups = await source.professionalExperience(locale);
+const total = groups.reduce((sum, group) => sum + group.entries.length, 0);
+
+/** Stable, locale-independent ids for the per-group headings. */
+const groupId = (index: number) => `wa-employer-${index + 1}`;
+---
+
+<BaseLayout
+  locale={locale}
+  rhythm="work-archive"
+  routeKey="professionalExperience"
+  title={`${view.heading} — ${copy.meta.title}`}
+  description={view.statement}
+>
+  <Fragment slot="head">
+    <noscript>
+      <style>
+        .wa-item.rv {
+          opacity: 1 !important;
+          clip-path: none !important;
+        }
+      </style>
+    </noscript>
+  </Fragment>
+
+  <ViewTransition />
+
+  <div class="wa">
+    <ArchiveOrientation
+      locale={locale}
+      eyebrow={view.eyebrow}
+      heading={view.heading}
+      statement={view.statement}
+      total={total}
+      totalLabel={copy.orientation.total}
+    />
+
+    {
+      groups.length > 0 ? (
+        groups.map((group, index) => (
+          <section class="wa-results wa-group" aria-labelledby={groupId(index)}>
+            <h2 class="wa-group-head rv" data-rv="meta" id={groupId(index)}>
+              <span class="lab">{view.groupLabel}</span>
+              <span class="name">{group.employer.name}</span>
+            </h2>
+
+            <ResultsGrid locale={locale} items={group.entries} openLabel={copy.results.open} />
+          </section>
+        ))
+      ) : (
+        <section class="wa-results">
+          <p class="wa-empty-note">{view.empty}</p>
+        </section>
+      )
+    }
+
+    <ArchiveContinue locale={locale} copy={copy.continue} current="professionalExperience" />
+  </div>
+</BaseLayout>

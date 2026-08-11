@@ -1,0 +1,237 @@
+---
+/**
+ * The Work Entry — composed once, rendered per locale.
+ *
+ * OWNERSHIP: Workstream A. Phase 6 of TECHNICAL_ARCHITECTURE.md §23.2:
+ * "**Work Entry** + Service + Hubs."
+ *
+ * ROUTES (§11.1, frozen): `/proiecte/[proiect]` · `/en/projects/[project]`.
+ * The two route files hand this component a locale and an already-resolved
+ * entry, so the RO and EN pages cannot drift apart.
+ *
+ * ── MODULE ORDER IS THE WIREFRAME'S ───────────────────────────────────────
+ *   W-1 orientation & core facts → W-2 the work → W-3 professional context →
+ *   W-4 type substance → W-5 demonstrated service → W-6 related → W-7 onward
+ * "Orientation & facts → the work → professional context → type-specific
+ * substance → relationships & continue." Which modules render, and the station
+ * each takes on the coordinate rail, is decided in `modules.ts` — see that file
+ * for the absence rules and for why Credits precedes the type module here while
+ * the approved HiFi places it last.
+ *
+ * ── THE CENTRAL IDEA ──────────────────────────────────────────────────────
+ * `WORK_ENTRY_WIREFRAME.md`: "**The Work Entry is where discovery becomes
+ * evaluation.**… Every module helps answer one central question: 'Is this
+ * project relevant evidence for my project?'" And its visual emphasis hierarchy:
+ * the work (W-2) is the evaluative and visual centre; relevance and integrity
+ * signals (W-1 facts, W-3 credits) come next; everything else supports.
+ *
+ * ── CONTENT: THE I-3 CONTRACT ─────────────────────────────────────────────
+ * Every value on this page comes from Workstream B's `ContentSource`. This file
+ * arranges; it does not define. Locale scoping (§7.1) — including the scoping of
+ * `services` and `relatedWork` — happens inside the source before anything
+ * reaches a component, so no module here re-filters by locale.
+ *
+ * ── WHAT IS DELIBERATELY NOT HERE ─────────────────────────────────────────
+ * Four things the approved HiFi renders have no field in `CONTENT_MODEL.md` §3
+ * and are therefore absent rather than invented (§5.3 rebuilds markup from the
+ * Content Model; R6 names HiFi prototype debt as a risk):
+ *
+ *   · the **thesis line** ("Am lăsat panta să deseneze casa…") — authored prose
+ *     for one fictional project, with no field behind it;
+ *   · the **spatial-program table** (rooms, levels, m² per room, a distribution
+ *     bar) — a whole sub-model that does not exist;
+ *   · the **materials strip** — no materials field;
+ *   · the **drawing tabs** (Plan · Section · Elevation) over inline SVG — the
+ *     gallery is one untyped media set (see Gallery.astro).
+ *
+ * Also absent: **JSON-LD**. §12's `CreativeWork` per Work Entry needs a
+ * self-referencing absolute URL, and `astro.config.mjs` has no `site` because no
+ * authoritative document names the production domain — the same blocker
+ * BaseLayout records for canonical tags. Reported, not silently dropped.
+ *
+ * ── THE ARCHIVE → WORK ENTRY DISSOLVE (§13) ───────────────────────────────
+ * A cross-document view transition requires **both** documents to opt in, and
+ * this page composes the Work Entry half. It was authored here as the same six
+ * lines the archive already carried, because the two halves were in different
+ * workstreams' files while both were in flight; at the A3 + A4 integration they
+ * became one shared `../ViewTransition.astro`, which is where the reasoning —
+ * §14.0, reduced motion, and why the transition parts stay unnamed — now lives.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CaptureModule from './CaptureModule.astro';
+import CompetitionModule from './CompetitionModule.astro';
+import CoordinateRail from '../CoordinateRail.astro';
+import Credits from './Credits.astro';
+import DemonstratedServices from './DemonstratedServices.astro';
+import Evidence from './Evidence.astro';
+import Hero from './Hero.astro';
+import MediaViewer from '../media/MediaViewer.astro';
+import Onward from './Onward.astro';
+import ProjectMetadata from './ProjectMetadata.astro';
+import RelatedWork from './RelatedWork.astro';
+import SectionMarker from '../SectionMarker.astro';
+import ViewTransition from '../ViewTransition.astro';
+
+import { localize } from '../../lib/content';
+import type { Locale, WorkEntry } from '../../lib/content';
+import { workEntryMessages } from '../../lib/i18n/work-entry';
+import { workEntryComposition } from './modules';
+
+interface Props {
+  entry: WorkEntry;
+  locale: Locale;
+}
+
+const { entry, locale } = Astro.props;
+
+const copy = workEntryMessages(locale);
+const composition = workEntryComposition(entry, locale);
+const stations = composition.stations;
+
+const title = localize(entry.title, locale) ?? '';
+
+/**
+ * §11.2 rule 4 and the hreflang emitter: the counterpart pair is emitted only
+ * where both exist. `slug.en` is `null` on an untranslated entry, which is
+ * exactly what `BaseLayout` needs to disable the language switcher and emit no
+ * alternates — no separate branch here.
+ */
+const slugs = {
+  ro: entry.slug.ro,
+  ...(entry.slug.en ? { en: entry.slug.en } : {}),
+};
+
+/**
+ * SEO title/description are authored per locale and never derived. An
+ * unauthored SEO title falls back to the work's own title — the same string the
+ * page shows, not a constructed one. An unauthored description emits no meta
+ * tag: `description` is optional on BaseLayout, and §12's "authored, not
+ * derived" rule applies to it as much as to `alt`.
+ */
+const seoTitle = localize(entry.seo.title, locale) ?? title;
+const seoDescription = localize(entry.seo.description, locale) ?? undefined;
+---
+
+<BaseLayout
+  locale={locale}
+  rhythm="work-entry"
+  routeKey="workEntry"
+  slugs={slugs}
+  title={seoTitle}
+  description={seoDescription}
+  headerVariant="on-hero"
+  footerStation={composition.footerStation}
+>
+  {/* §14.0 progressive enhancement: the hero's staged elements are gated on a
+      class the motion runtime adds. With scripting disabled they must resolve,
+      not stay hidden. Reduced motion needs nothing here — work-entry.css already
+      resolves it in CSS. */}
+  <Fragment slot="head">
+    <noscript>
+      <style>
+        html.anim-load .we-hero-btm,
+        html.anim-load .we-hero-top {
+          opacity: 1 !important;
+        }
+        html.anim-load .we-hero-media {
+          transform: none !important;
+        }
+      </style>
+    </noscript>
+  </Fragment>
+
+  <CoordinateRail slot="rail" stations={composition.footerStation} />
+
+  <Hero entry={entry} locale={locale} copy={copy} station={stations.hero ?? 1} />
+
+  <section class="we-section we-facts" data-station={stations.facts} aria-labelledby="we-facts-h">
+    <SectionMarker copy={copy.markers.facts} heading id="we-facts-h" />
+    <ProjectMetadata entry={entry} locale={locale} copy={copy} />
+  </section>
+
+  {
+    stations.evidence && (
+      <section
+        class="we-section we-evidence-section"
+        data-station={stations.evidence}
+        aria-labelledby="we-evidence-h"
+      >
+        <SectionMarker copy={copy.markers.evidence} heading id="we-evidence-h" />
+        <Evidence entry={entry} locale={locale} copy={copy} />
+      </section>
+    )
+  }
+
+  <section
+    class="we-section we-credits-section"
+    data-station={stations.credits}
+    aria-labelledby="we-credits-h"
+  >
+    <SectionMarker copy={copy.markers.credits} heading id="we-credits-h" />
+    <Credits entry={entry} locale={locale} copy={copy} />
+  </section>
+
+  {
+    stations.competition && (
+      <section
+        class="we-section"
+        data-station={stations.competition}
+        aria-labelledby="we-competition-h"
+      >
+        <SectionMarker copy={copy.markers.competition} heading id="we-competition-h" />
+        <CompetitionModule entry={entry} locale={locale} copy={copy} />
+      </section>
+    )
+  }
+
+  {
+    stations.capture && (
+      <section class="we-section" data-station={stations.capture} aria-labelledby="we-capture-h">
+        <SectionMarker copy={copy.markers.capture} heading id="we-capture-h" />
+        <CaptureModule entry={entry} locale={locale} copy={copy} />
+      </section>
+    )
+  }
+
+  {
+    stations.services && (
+      <section class="we-section" data-station={stations.services} aria-labelledby="we-services-h">
+        <SectionMarker copy={copy.markers.services} heading id="we-services-h" />
+        <DemonstratedServices services={entry.services} locale={locale} copy={copy} />
+      </section>
+    )
+  }
+
+  {
+    stations.related && (
+      <section class="we-section" data-station={stations.related} aria-labelledby="we-related-h">
+        <SectionMarker copy={copy.markers.related} heading id="we-related-h" />
+        <RelatedWork
+          related={entry.relatedWork}
+          pillar={entry.pillars.primary}
+          locale={locale}
+          copy={copy}
+        />
+      </section>
+    )
+  }
+
+  <section
+    class="we-section we-onward-section"
+    data-station={stations.onward}
+    aria-labelledby="we-onward-h"
+  >
+    <SectionMarker copy={copy.markers.onward} heading id="we-onward-h" />
+    <Onward pillar={entry.pillars.primary} locale={locale} copy={copy} />
+  </section>
+
+  {/* One Media Viewer per page, shared by every inspectable gallery item. It is
+      inert without the island, and the gallery items remain plain links to the
+      full-size asset — see MediaViewer.astro. */}
+  {stations.evidence && entry.gallery.length > 0 && <MediaViewer copy={copy.viewer} />}
+
+  {/* The Work Entry half of the §13 dissolve — the archive family composes the
+      same component. Scoped to this page's stylesheet rather than to global.css,
+      so the opt-in reaches the pages §13 names and no others. */}
+  <ViewTransition />
+</BaseLayout>

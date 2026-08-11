@@ -12,6 +12,13 @@
       "runtimeExecutable": "npx",
       "runtimeArgs": ["astro", "dev", "--port", "4322"],
       "port": 4322
+    },
+    {
+      "name": "sanity-studio",
+      "cwd": "studio",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["sanity", "dev", "--port", "3333"],
+      "port": 3333
     }
   ]
 }

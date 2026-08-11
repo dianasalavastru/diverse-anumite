@@ -1,0 +1,61 @@
+---
+/**
+ * A-2 · Pillar toggle — COMPONENT_INVENTORY.md "Pillar Toggle".
+ *
+ * Purpose: the co-equal scope control. Responsibility: switch archive scope
+ * All · A&D · Reality Capture. Notes: "**a mode control, not a filter;** All is
+ * default." WORK_ARCHIVE_WIREFRAME A-2: "presented with the two pillars at
+ * **equal weight** (no primacy)" — IA §3.2 forbids structural primacy, so the
+ * two pillars are rendered from `PILLARS` in the frozen order with identical
+ * markup and identical styling. Neither is emphasised.
+ *
+ * ── WHY A RADIOGROUP AND NOT A TABLIST ─────────────────────────────────────
+ * The HiFi authors these as `role="tablist"` / `role="tab"`. A tab owns a
+ * tabpanel, and three tabs here control **one** results region — so the ARIA
+ * relationship a tablist promises (`aria-controls` → a panel per tab) cannot be
+ * honoured, and assistive tech would announce a panel structure that does not
+ * exist. A radiogroup states exactly what this is: one single-select mode, three
+ * mutually exclusive options. Roving tabindex and arrow-key movement are the
+ * island's (§14 — every control keyboard operable).
+ *
+ * The visual result — the HiFi's calm editorial tabs with the blue underline
+ * drawing in under the active pillar — is unchanged.
+ *
+ * Rendered checked = All, always: the page is prerendered unfiltered (§6.1) and
+ * the island applies the URL state after load. Without the island, All is the
+ * true and only state.
+ */
+import { PILLARS, type Locale } from '../../lib/content';
+import { pillarLabel } from '../../lib/i18n/vocabulary';
+import type { WorkArchiveMessages } from '../../lib/i18n/work-archive';
+
+interface Props {
+  locale: Locale;
+  copy: WorkArchiveMessages['pillar'];
+}
+
+const { locale, copy } = Astro.props;
+
+/** `all` first — it is the default scope, not a third pillar (IA Step 5). */
+const options = [
+  { value: 'all', label: copy.all },
+  ...PILLARS.map((pillar) => ({ value: pillar, label: pillarLabel(pillar, locale) })),
+];
+---
+
+<div class="pills" role="radiogroup" aria-label={copy.legend} data-facet="pillar">
+  {
+    options.map((option, index) => (
+      <button
+        type="button"
+        class:list={['pill', index === 0 && 'on']}
+        role="radio"
+        aria-checked={index === 0 ? 'true' : 'false'}
+        tabindex={index === 0 ? 0 : -1}
+        data-value={option.value}
+      >
+        {option.label}
+      </button>
+    ))
+  }
+</div>

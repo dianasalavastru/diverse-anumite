@@ -1,0 +1,867 @@
+/* =============================================================================
+   work-archive.css — the authored Work Archive composition.
+
+   AUTHORITY: `docs/pages/work-archive/work-archive-measured-reality-hifi-v1.html`
+   (owner-approved 2026-08-10) + `VISUAL_DIRECTION_v2.0.md` + `MOTION_NOTES.md`.
+   TECHNICAL_ARCHITECTURE.md §5.3: "Verbatim absorption applies to: design
+   tokens, CSS, and the motion layer." Everything below is that absorption, and
+   §1.2 binds it: implementation "may not simplify an approved HiFi's visual or
+   interaction result."
+
+   Rules that differ from the HiFi differ only in HOW the same result is
+   produced, and each says so where it happens. There are six:
+
+     1. shared tokens and primitives replace repeated literals (`--pad-loud`,
+        `--gutter-*`, `.bleed`, `.measure`);
+     2. `--ink-40` on functional text becomes `--ink-60` — 3.51:1 vs the 4.5:1
+        WCAG 2.2 AA requires below 24px (ratified, DECISIONS_LOG #78). The same
+        correction typography.css already applies system-wide; `--ink-40` stays
+        exactly as extracted and is still used for non-text;
+     3. the grid's default row span is dropped so the no-JS layout is a working
+        aligned grid rather than an overlapping one (see `.wa-grid`);
+     4. hover-only states are paired with `:focus-visible` throughout
+        (MOTION_NOTES.md:54 — keyboard indication at least as clear as hover);
+     5. the `year` and `status` selects are gone — Year became the sort control
+        and Status is not a public filter (`WORK_ARCHIVE_IMPLEMENTATION_NOTES.md`
+        :64, :66). Their `.sel` styling is unchanged and now carries Sector and
+        Sort;
+     6. three modules the HiFi has no markup for — the active-context readout
+        (A-3), the contextual refinement row (A-4) and the continue affordances
+        (A-7) — are built ENTIRELY from the existing vocabulary (mono label
+        voice, hairlines, the blue underline draw-in). No new visual language.
+
+   Section numbering follows the HiFi's own comments.
+   ========================================================================== */
+
+/* ---- Screen-reader-only ---------------------------------------------------
+   The archive names its results region and announces its count without adding
+   visible chrome to a page whose one dominant idea is the work. Page-scoped
+   rather than a global utility: `global.css` declares a `utilities` layer but
+   imports no file into it, and creating that global surface is a foundation
+   decision, not an archive one. */
+.wa-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* =============================================================================
+   A-1 · INTRO — "compact — browsing starts high"
+   ========================================================================== */
+
+.wa-intro {
+  padding: clamp(96px, 13vh, 150px) 0 clamp(30px, 4vh, 50px);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 24px;
+  align-items: end;
+}
+
+.wa-intro .kick {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--blue);
+  margin-bottom: 18px;
+}
+
+.wa-intro h1 {
+  font-family: var(--pixel);
+  font-weight: 500;
+  font-size: clamp(40px, 6.5vw, 92px);
+  line-height: 0.92;
+}
+
+.wa-intro .sub {
+  color: var(--ink-60);
+  font-size: clamp(15px, 1.5vw, 18px);
+  max-width: 44ch;
+  margin-top: 16px;
+}
+
+.wa-intro .count {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink-60);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+/* Blue on a revealed value — VISUAL_DIRECTION_v2.0 §2.1 permits exactly this
+   ("the moment a value or detail is revealed"), and it is the HiFi's own use. */
+.wa-intro .count b {
+  color: var(--blue);
+  font-weight: 400;
+}
+
+@media (max-width: 720px) {
+  .wa-intro {
+    grid-template-columns: 1fr;
+  }
+
+  .wa-intro .count {
+    text-align: left;
+  }
+}
+
+/* =============================================================================
+   A-2/A-3/A-4 · THE CONTROL REGION — "sticky, calm, editorial"
+
+   WORK_ARCHIVE_WIREFRAME: "a quiet, persistent control region framing a results
+   region… The controls must never out-emphasize the work."
+   ========================================================================== */
+
+.wa-controls {
+  position: sticky;
+  top: var(--header-h);
+  z-index: 30;
+  background: rgb(255 255 255 / 92%);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hair);
+  /* `.bleed` supplies the negative margins; this restores the inner alignment,
+     which is what the HiFi's hand-written padding pair does. */
+  padding: clamp(14px, 2vh, 20px) var(--gutter-end) clamp(14px, 2vh, 20px) var(--gutter-start);
+}
+
+.frow {
+  display: flex;
+  align-items: center;
+  gap: clamp(16px, 3vw, 40px);
+  flex-wrap: wrap;
+}
+
+.frow + .frow,
+.wa-controls .wa-context {
+  margin-top: 12px;
+}
+
+/* ---- Pillar tabs (A-2) ---------------------------------------------------
+   The mode control. Both pillars are styled identically — IA §3.2 forbids
+   structural primacy, so nothing here may distinguish them. */
+
+.pills {
+  display: flex;
+  gap: clamp(16px, 2.5vw, 34px);
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.pill {
+  font-family: var(--pixel);
+  font-size: clamp(15px, 1.6vw, 20px);
+  color: var(--ink-60);
+  background: none;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  padding: 2px 0;
+  transition: color var(--t-state) var(--ease);
+}
+
+.pill:hover,
+.pill:focus-visible {
+  color: var(--ink);
+}
+
+.pill.on {
+  color: var(--ink);
+}
+
+.pill::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 100%;
+  bottom: -4px;
+  height: 2px;
+  background: var(--blue);
+  transition: right 0.4s var(--slow);
+}
+
+.pill.on::after {
+  right: 0;
+}
+
+/* ---- Chips (A-4: Entry Type, and the contextual refinement) -------------- */
+
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.chip {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  /* --ink-60, not the HiFi's --ink-60-on-white-at-11px problem child: this is
+     the value the HiFi already uses here, and it measures 5.56:1. */
+  color: var(--ink-60);
+  background: none;
+  border: 1px solid var(--hair);
+  padding: 6px 12px;
+  cursor: pointer;
+  transition:
+    border-color var(--t-state) var(--ease),
+    color var(--t-state) var(--ease);
+  white-space: nowrap;
+}
+
+.chip:hover,
+.chip:focus-visible {
+  border-color: var(--ink-60);
+  color: var(--ink);
+}
+
+/* Blue as activation: the selected refinement is the one measured thing here. */
+.chip.on {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+/* The contextual row's own label — mono label voice, like every other. */
+.wa-contextual .clab {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-60);
+}
+
+.wa-contextual[hidden] {
+  display: none;
+}
+
+/* ---- Quiet selects (A-4: Sector, and Year-as-sort) ----------------------- */
+
+.sels {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.sel {
+  position: relative;
+}
+
+.sel select {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--ink-60);
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--hair);
+  padding: 4px 20px 4px 2px;
+  cursor: pointer;
+  appearance: none;
+  text-transform: lowercase;
+}
+
+.sel select:focus-visible {
+  border-color: var(--blue);
+  color: var(--ink);
+}
+
+.sel::after {
+  content: "▾";
+  position: absolute;
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 9px;
+  color: var(--ink-60);
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .sels {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  /* The control region stops being sticky in one column.
+     Wrapped onto four or five rows it stands ~370px tall, and pinned under the
+     header that is close to half a phone viewport — a frame louder than the work
+     it frames, against WORK_ARCHIVE_WIREFRAME's "the controls must never
+     out-emphasize the work" and its A-4 responsive intent ("may collapse into a
+     compact control on narrow screens"). Static, it is complete and legible at
+     the top of the browse and then yields the screen to the results. Nothing is
+     hidden and no control is dropped — IA:167 leaves inline-vs-expander open,
+     and inventing a disclosure here would be answering it. */
+  .wa-controls {
+    position: static;
+  }
+}
+
+/* ---- Active context (A-3) ------------------------------------------------
+   No HiFi precedent — the prototype has no state readout. Built from the
+   existing vocabulary only: the mono label voice, `--ink-60` supporting text,
+   and the same blue underline draw-in the nav, footer and `.quiet-link` use. */
+
+.wa-context {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(12px, 2vw, 26px);
+  flex-wrap: wrap;
+}
+
+.wa-summary {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+
+.wa-summary .lab {
+  color: var(--ink-60);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  margin-right: 8px;
+}
+
+.wa-count {
+  white-space: nowrap;
+}
+
+.wa-count b {
+  color: var(--blue);
+  font-weight: 400;
+}
+
+.wa-clear,
+.wa-hub {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-60);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+}
+
+.wa-clear[hidden],
+.wa-hub[hidden] {
+  display: none;
+}
+
+.wa-hub {
+  margin-left: auto;
+}
+
+.wa-clear::after,
+.wa-hub::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 100%;
+  bottom: -4px;
+  height: 1.5px;
+  background: var(--blue);
+  transition: right var(--t-state) var(--ease);
+}
+
+.wa-clear:hover::after,
+.wa-clear:focus-visible::after,
+.wa-hub:hover::after,
+.wa-hub:focus-visible::after {
+  right: 0;
+}
+
+.wa-clear .ar,
+.wa-hub .ar {
+  color: var(--blue);
+  margin-left: 6px;
+  display: inline-block;
+  transition: transform var(--t-state) var(--ease);
+}
+
+.wa-clear:hover .ar,
+.wa-clear:focus-visible .ar,
+.wa-hub:hover .ar,
+.wa-hub:focus-visible .ar {
+  transform: translateX(5px);
+}
+
+/* =============================================================================
+   A-5 · EDITORIAL MASONRY — the five-size vocabulary
+
+   `WORK_ARCHIVE_IMPLEMENTATION_NOTES.md`:40, frozen: "five-size vocabulary
+   (feature / wide / tall / std / small), asymmetric composition, measured gaps.
+   **Not a uniform card grid.**"
+   ========================================================================== */
+
+.wa-results:focus {
+  /* Programmatic focus target after a filter change. It is not a control, so it
+     takes no visible ring on click — `:focus-visible` still applies for keyboard. */
+  outline: none;
+}
+
+.wa-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: clamp(16px, 2vw, 34px);
+  /* The HiFi's `grid-auto-rows: 8px` with a hard-coded `span 40` on every item.
+     The row unit is kept — it is what makes the measured masonry fine-grained —
+     but the minimum becomes a `minmax(8px, auto)` and the default span is
+     dropped. Reason: with a fixed 8px row and a fixed 40-row span, an item whose
+     content exceeds 320px overflows into its neighbours, which is the state the
+     page is in before the masonry script runs. With no default span each cell
+     occupies one auto row and the page is a correct, aligned grid at every
+     width — §14.0's "enhancements over a working static layout" — and the island
+     then writes the measured spans that produce the authored masonry. */
+  grid-auto-rows: minmax(8px, auto);
+  padding: clamp(30px, 5vh, 60px) 0 var(--pad-loud);
+}
+
+.wa-item {
+  min-width: 0;
+}
+
+.wa-item[hidden] {
+  display: none;
+}
+
+.s-feature {
+  grid-column: span 8;
+}
+
+.s-wide {
+  grid-column: span 6;
+}
+
+.s-tall,
+.s-std,
+.s-small {
+  grid-column: span 4;
+}
+
+@media (max-width: 960px) {
+  .wa-grid {
+    grid-template-columns: repeat(8, 1fr);
+  }
+
+  .s-feature,
+  .s-wide {
+    grid-column: span 8;
+  }
+
+  .s-tall,
+  .s-std,
+  .s-small {
+    grid-column: span 4;
+  }
+}
+
+@media (max-width: 640px) {
+  .wa-grid {
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+  }
+
+  /* One column: sizes stop meaning column spans, and the island clears the
+     measured row spans to match (the HiFi does the same). Ordering survives —
+     `order` is what carries the curated sequence, not placement. */
+  .wa-grid .wa-item {
+    grid-column: auto;
+    grid-row: auto;
+    margin-bottom: 8px;
+  }
+}
+
+/* ---- The archive card ----------------------------------------------------
+   Scoped under `.wa-grid` so the HiFi's short class names (`.pl`, `.im`,
+   `.cap`) cannot collide with the Homepage card's (`.proj`, `.pimg`, `.meta`)
+   in the shared `components` layer. Same component, two authored treatments. */
+
+.wa-grid .pl {
+  display: block;
+  position: relative;
+  color: inherit;
+}
+
+/* `display: block` because the card's boxes are spans — a card is one `<a>`, so
+   everything inside it is phrasing content, and `aspect-ratio` does not apply to
+   an inline box. The HiFi's `.im` is a `<div>` inside an `<a>`; the rendered
+   result is identical, the element type is not. */
+.wa-grid .im {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  background: #cbc6bc;
+}
+
+/* Aspect ratio IS the size vocabulary's second dimension — the HiFi gives each
+   size its own crop, which is why `tall` and `wide` are different sizes rather
+   than different widths. VISUAL_DIRECTION_v2.0 §9: cropping is authorship. */
+.s-feature .im {
+  aspect-ratio: 16 / 9;
+}
+
+.s-wide .im {
+  aspect-ratio: 3 / 2;
+}
+
+.s-tall .im {
+  aspect-ratio: 3 / 4;
+}
+
+.s-std .im {
+  aspect-ratio: 4 / 3;
+}
+
+.s-small .im {
+  aspect-ratio: 1 / 1;
+}
+
+.wa-grid .im .plate-img,
+.wa-grid .im .plate-fixture {
+  object-fit: cover;
+  filter: grayscale(0.55) contrast(1.03);
+  transition:
+    transform 1.2s var(--slow),
+    filter 0.9s var(--slow);
+}
+
+/* Greyscale at rest, colour on inspection — the calm-browsing rule (:46) and
+   the reveal-as-inspection mechanism (§2.4). */
+.wa-grid .pl:hover .plate-img,
+.wa-grid .pl:focus-visible .plate-img,
+.wa-grid .pl:hover .plate-fixture,
+.wa-grid .pl:focus-visible .plate-fixture {
+  transform: scale(1.035);
+  filter: grayscale(0) contrast(1.04);
+}
+
+/* The growing blue mark: activation, never decoration (§2.1). */
+.wa-grid .mk {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  width: 0;
+  height: 2px;
+  background: var(--blue);
+  transition: width 0.55s var(--slow);
+  z-index: 2;
+}
+
+.wa-grid .pl:hover .mk,
+.wa-grid .pl:focus-visible .mk {
+  width: 40px;
+}
+
+.wa-grid .pid {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: #fff;
+  mix-blend-mode: difference;
+  letter-spacing: 0.05em;
+  z-index: 2;
+}
+
+.wa-grid .cap {
+  margin-top: 12px;
+  position: relative;
+  display: block;
+}
+
+.wa-grid .cap .t {
+  font-family: var(--pixel);
+  font-size: clamp(17px, 1.5vw, 21px);
+  line-height: 1;
+  display: inline-block;
+  position: relative;
+}
+
+.wa-grid .cap .t::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 100%;
+  bottom: -3px;
+  height: 1.5px;
+  background: var(--blue);
+  transition: right 0.4s var(--slow);
+}
+
+.wa-grid .pl:hover .cap .t::after,
+.wa-grid .pl:focus-visible .cap .t::after {
+  right: 0;
+}
+
+.wa-grid .cap .d {
+  margin-top: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  /* --ink-60, not the HiFi's --ink-40: 11px functional text, WCAG 2.2 AA. */
+  color: var(--ink-60);
+  letter-spacing: 0.04em;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.wa-grid .cap .d .pl-tag {
+  color: var(--blue);
+}
+
+.wa-grid .cap .go {
+  margin-top: 8px;
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity 0.4s var(--slow),
+    transform 0.4s var(--slow);
+}
+
+.wa-grid .cap .go .ar {
+  color: var(--blue);
+}
+
+.wa-grid .pl:hover .cap .go,
+.wa-grid .pl:focus-visible .cap .go {
+  opacity: 1;
+  transform: none;
+}
+
+/* =============================================================================
+   A-6 · EMPTY STATE — "honest message + suggested categories + one-click reset"
+   ========================================================================== */
+
+.wa-empty {
+  padding: clamp(60px, 12vh, 140px) 0;
+  max-width: 52ch;
+}
+
+.wa-empty[hidden] {
+  display: none;
+}
+
+.wa-empty h2 {
+  font-family: var(--read);
+  font-weight: 600;
+  font-size: clamp(22px, 2.6vw, 32px);
+  letter-spacing: -0.02em;
+  line-height: 1.14;
+}
+
+.wa-empty p {
+  color: var(--ink-60);
+  margin-top: 14px;
+  font-size: 15.5px;
+}
+
+.wa-empty .sugg {
+  margin-top: 26px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.wa-empty .sugg .lab {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-60);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.wa-empty .reset {
+  margin-top: 26px;
+  font-family: var(--pixel);
+  font-size: clamp(18px, 2vw, 24px);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--ink);
+  position: relative;
+}
+
+.wa-empty .reset .ar {
+  color: var(--blue);
+  transition: transform 0.4s var(--slow);
+}
+
+.wa-empty .reset:hover .ar,
+.wa-empty .reset:focus-visible .ar {
+  transform: translateX(8px);
+}
+
+/* The aggregate empty note used by the curated views (IA M3 defers the UI to
+   this layer; A-6/F5 supply the philosophy). Same measure, same quiet voice. */
+.wa-empty-note {
+  max-width: 52ch;
+  padding: clamp(40px, 8vh, 90px) 0;
+  color: var(--ink-60);
+  font-size: 15.5px;
+}
+
+/* =============================================================================
+   Curated views — grouped results (Professional Experience, IA §5.1)
+   ========================================================================== */
+
+.wa-group + .wa-group {
+  margin-top: clamp(20px, 4vh, 44px);
+}
+
+.wa-group-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  border-top: 1px solid var(--hair);
+  padding-top: clamp(18px, 2.5vh, 28px);
+}
+
+.wa-group-head .lab {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-60);
+}
+
+.wa-group-head .name {
+  font-family: var(--pixel);
+  font-size: clamp(18px, 2.2vw, 26px);
+  color: var(--ink);
+}
+
+.wa-group .wa-grid {
+  padding-top: clamp(20px, 3vh, 36px);
+}
+
+/* =============================================================================
+   A-7 · CONTINUE — quiet navigational affordances, never a conversion prompt
+   ========================================================================== */
+
+.wa-continue {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(16px, 3vw, 40px);
+  flex-wrap: wrap;
+  border-top: 1px solid var(--hair);
+  padding: clamp(22px, 3vh, 34px) 0 var(--pad-loud);
+}
+
+.wa-continue .lab {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-60);
+}
+
+.wa-continue ul {
+  display: flex;
+  gap: clamp(16px, 3vw, 40px);
+  flex-wrap: wrap;
+  list-style: none;
+}
+
+.wa-continue a {
+  font-family: var(--mono);
+  font-size: 13px;
+  position: relative;
+}
+
+.wa-continue a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 100%;
+  bottom: -4px;
+  height: 1.5px;
+  background: var(--blue);
+  transition: right var(--t-state) var(--ease);
+}
+
+.wa-continue a:hover::after,
+.wa-continue a:focus-visible::after {
+  right: 0;
+}
+
+.wa-continue .ar {
+  color: var(--blue);
+  margin-left: 6px;
+  display: inline-block;
+  transition: transform var(--t-state) var(--ease);
+}
+
+.wa-continue a:hover .ar,
+.wa-continue a:focus-visible .ar {
+  transform: translateX(5px);
+}
+
+/* =============================================================================
+   Reduced motion — MOTION_NOTES.md:62, LAYOUT PARITY
+
+   "Content and layout are identical with motion removed." Every transition here
+   resolves instantly; nothing moves, nothing is hidden, and the masonry, the
+   sizes and the order are untouched — layout is not motion. The hover reveals
+   (`.go`, the underline draws, the blue mark) resolve to their VISIBLE state
+   rather than being disabled, so no information is reachable only through a
+   transition that no longer runs.
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .pill,
+  .pill::after,
+  .chip,
+  .sel select,
+  .wa-clear::after,
+  .wa-hub::after,
+  .wa-clear .ar,
+  .wa-hub .ar,
+  .wa-continue a::after,
+  .wa-continue .ar,
+  .wa-grid .im .plate-img,
+  .wa-grid .im .plate-fixture,
+  .wa-grid .mk,
+  .wa-grid .cap .t::after,
+  .wa-grid .cap .go,
+  .wa-empty .reset .ar {
+    transition: none !important;
+  }
+
+  .wa-grid .pl:hover .plate-img,
+  .wa-grid .pl:focus-visible .plate-img,
+  .wa-grid .pl:hover .plate-fixture,
+  .wa-grid .pl:focus-visible .plate-fixture {
+    transform: none;
+  }
+
+  /* The continuation cue is content, not decoration: with no transition to
+     reveal it, it is simply present. */
+  .wa-grid .cap .go {
+    opacity: 1;
+    transform: none;
+  }
+}

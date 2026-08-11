@@ -1,0 +1,65 @@
+---
+/**
+ * W-7 · Onward module — Hub back-path + light contact (Page IA Stage E).
+ *
+ * Components (`WORK_ENTRY_WIREFRAME.md` W-7): "CTA Group (Hub back-path) · CTA
+ * Group (light, secondary — contact)."
+ *
+ * Spatial composition, transcribed: "quiet navigational affordances; **no
+ * dominant conversion CTA** (the Work Entry is evidence, conversion-quiet by
+ * design, O2). Contact is available but understated."
+ *
+ * That is also VISUAL_DIRECTION_v2.0 §6 "The contact / primary action": "a
+ * **quiet invitation** with the action as a single precise blue activation — not
+ * a filled button block", and §12's "Things we never do": "Never use filled,
+ * button-heavy CTAs". Both links here are text links; the blue appears once, as
+ * activation (§2.1).
+ *
+ * ── THE HUB BACK-PATH IS THE PRIMARY PILLAR'S ─────────────────────────────
+ * F1 (IA §2.3) + M2: "default contextual navigation follows the Work Entry's
+ * **Primary Pillar** … secondary pillars stay available for classification,
+ * discovery and filtering but never change default navigation." A cross-pillar
+ * entry therefore offers **one** back-path, not two — the route map's frozen hub
+ * route for its primary pillar.
+ *
+ * ── CONTACT CARRIES NO PREFILL, DELIBERATELY ──────────────────────────────
+ * §23.1's contact prefill contract names its emitters: `?topic=` and
+ * `?regarding=` are "**Emitted by Service pages and Pillar Hubs**; consumed by
+ * Contact". The Work Entry is not one of them, and IA Step 7 defines the two
+ * prefills as a broad Topic plus "the exact originating `Regarding` service" —
+ * which a Work Entry demonstrating two Services (or none) cannot supply
+ * unambiguously. So this is a plain link to Contact. Adding a parameter would be
+ * inventing an emitter the frozen contract does not have.
+ */
+import type { Locale, Pillar } from '../../lib/content';
+import type { WorkEntryMessages } from '../../lib/i18n/work-entry';
+import { routePath } from '../../lib/i18n/routes';
+import { pillarLabel, pillarRouteKey } from '../../lib/i18n/vocabulary';
+
+interface Props {
+  pillar: Pillar;
+  locale: Locale;
+  copy: WorkEntryMessages;
+}
+
+const { pillar, locale, copy } = Astro.props;
+
+const hubHref = routePath(pillarRouteKey(pillar) as never, locale, undefined as never);
+const hubLabel = copy.onward.hub.replace('{pillar}', pillarLabel(pillar, locale));
+---
+
+<div class="we-onward">
+  <p class="we-onward-hub rv" data-rv="meta">
+    <a href={hubHref}>
+      {hubLabel}
+      <span class="ar" aria-hidden="true">→</span>
+    </a>
+  </p>
+
+  <p class="we-onward-contact rv" data-rv="meta">
+    <a href={routePath('contact', locale)}>
+      <span class="box" aria-hidden="true"></span>
+      {copy.onward.contact}
+    </a>
+  </p>
+</div>

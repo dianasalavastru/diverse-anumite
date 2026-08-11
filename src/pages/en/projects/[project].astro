@@ -1,0 +1,47 @@
+---
+/**
+ * `/en/projects/[project]` — the English Work Entry (locale route map §11.1).
+ *
+ * The composition is shared with the RO route; only the locale and the source
+ * scope differ.
+ *
+ * ── §11.2, ENFORCED BY CONSTRUCTION ───────────────────────────────────────
+ * `source.workEntries('en')` returns only entries that are EN-published **and**
+ * carry an EN slug (`isEnAvailable`). Because the build is fully static (§6.1),
+ * that filter *is* the rule set:
+ *
+ *   1. no EN page is generated for an untranslated entity      — no path emitted
+ *   2. RO content is never served under `/en/`                 — nothing to fall back to
+ *   3. the entity is excluded from the EN sitemap              — no page to list
+ *   4. no `hreflang` pair is emitted                           — `slug.en` is null
+ *   5. the language switcher is disabled for that entity       — BaseLayout, via `slugs`
+ *   6. RO is never blocked by a missing EN counterpart         — separate route
+ *   7. `/en/<untranslated>` returns a clean **404**            — the path does not exist
+ *
+ * There is no redirect and no fallback anywhere in this file, which is the
+ * point: a fallback would have to be written, and none is.
+ */
+import WorkEntryPage from '../../../components/work-entry/WorkEntryPage.astro';
+import { createFixtureContentSource } from '../../../lib/content/fixtures';
+import { localize } from '../../../lib/content';
+import type { WorkEntry } from '../../../lib/content';
+
+export async function getStaticPaths() {
+  /* ── THE I-3 SWAP POINT — this call, and nothing else ─────────────────── */
+  const source = createFixtureContentSource();
+  /* ─────────────────────────────────────────────────────────────────────── */
+
+  const entries = await source.workEntries('en');
+
+  return entries
+    .map((entry) => {
+      const slug = localize(entry.slug, 'en');
+      return slug ? { params: { project: slug }, props: { entry } } : null;
+    })
+    .filter((path): path is NonNullable<typeof path> => path !== null);
+}
+
+const { entry } = Astro.props as { entry: WorkEntry };
+---
+
+<WorkEntryPage entry={entry} locale="en" />

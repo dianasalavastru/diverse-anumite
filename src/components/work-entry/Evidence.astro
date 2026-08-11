@@ -1,0 +1,66 @@
+---
+/**
+ * W-2 · Description & media (Page IA Stage B) — **the work as evidence**.
+ *
+ * Responsibility: "present the project as evidence to see and assess."
+ * Components (`WORK_ENTRY_WIREFRAME.md` W-2): Rich Text (description) · Gallery ·
+ * Media Viewer (zoom; point-cloud variant for reality-capture).
+ *
+ * Spatial composition, transcribed: "**this module is the evaluative and visual
+ * center of the page** — the work is the protagonist, generous whitespace, media
+ * given room to be examined closely. The description supports the media; the
+ * interface frames, never competes (Central Design Principle)."
+ *
+ * That sentence decides the layout: the description is one column beside the
+ * leading frame (the HiFi's `.spread`), and the rest of the set follows as the
+ * gallery — media dominant, prose supporting. VISUAL_DIRECTION_v2.0 §9 forbids a
+ * "uniform equal grid by default", so the gallery keeps the HiFi's irregular
+ * span rhythm (see Gallery.astro).
+ *
+ * The point-cloud variant of the Media Viewer is NOT here: it is the W-4 Reality
+ * Capture module's surface (`CaptureModule.astro`), which is where the wireframe
+ * places it and where the §19.4 publication gate and Workstream D's seam live.
+ */
+import Gallery from '../media/Gallery.astro';
+import RichText from '../RichText.astro';
+import { localize } from '../../lib/content';
+import type { Locale, WorkEntry } from '../../lib/content';
+import type { WorkEntryMessages } from '../../lib/i18n/work-entry';
+
+interface Props {
+  entry: WorkEntry;
+  locale: Locale;
+  copy: WorkEntryMessages;
+}
+
+const { entry, locale, copy } = Astro.props;
+
+const description = localize(entry.description, locale);
+const gallery = entry.gallery;
+---
+
+<div class="we-evidence">
+  {
+    description && description.length > 0 && (
+      <div class="we-prose rv" data-rv="meta">
+        {/* headingLevel 3: the section already owns the <h2> its marker renders,
+            so an authored top-level heading takes <h3> and the outline stays
+            valid (WCAG 2.2 AA — see rich-text.ts). */}
+        <RichText blocks={description} headingLevel={3} />
+      </div>
+    )
+  }
+
+  {
+    gallery.length > 0 && (
+      <div class="we-gallery rv" data-rv="img">
+        <Gallery
+          images={gallery}
+          locale={locale}
+          label={copy.evidence.galleryLabel}
+          openItem={copy.viewer.openItem}
+        />
+      </div>
+    )
+  }
+</div>

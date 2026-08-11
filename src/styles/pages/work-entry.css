@@ -1,0 +1,611 @@
+/* =============================================================================
+   work-entry.css — the authored Work Entry composition.
+
+   AUTHORITY: `docs/pages/work-entry/work-entry-measured-reality-hifi-v1.html`
+   (owner-approved 2026-08-10) + `VISUAL_DIRECTION_v2.0.md` + `MOTION_NOTES.md`.
+   TECHNICAL_ARCHITECTURE.md §5.3: "Verbatim absorption applies to: design
+   tokens, CSS, and the motion layer." §1.2 binds it: implementation "may not
+   simplify an approved HiFi's visual or interaction result."
+
+   The HiFi's own header states the intent this file preserves: "The WORK is the
+   protagonist; the interface is only its frame." `WORK_ENTRY_WIREFRAME.md`
+   fixes the emphasis hierarchy — the work (W-2) is the evaluative and visual
+   centre, then the relevance/integrity signals (W-1 facts, W-3 credits), then
+   everything else.
+
+   ── RULES THAT DIFFER FROM THE HiFi, AND WHY ──────────────────────────────
+   Each differs only in HOW the same result is produced, and says so at the point
+   of difference. There are six:
+
+     1. shared tokens and primitives replace repeated literals — `--pad-loud`,
+        `--pad-quiet`, `--gutter-*`, `.bleed`, `.smark`, `.mono`;
+     2. `.specs` is a `<dl>`, so its grid targets `.r/.k/.v` on definition
+        elements rather than divs — a semantics change, not a visual one;
+     3. `--ink-40` is raised to `--ink-60` on every text role, for the WCAG 2.2
+        AA reason typography.css records (3.51:1 vs the required 4.5:1);
+     4. hover-only states are paired with `:focus-visible` throughout
+        (MOTION_NOTES.md:54 — keyboard indication at least as clear as hover);
+     5. the related strip is the shared FocusCarousel + Work Preview Card, not
+        the HiFi's second card implementation — see RelatedWork.astro;
+     6. four HiFi sections have no CSS here at all, because they have no content
+        field: the thesis line, the spatial-program table, the materials strip
+        and the drawing tabs. See WorkEntryPage.astro.
+   ========================================================================== */
+
+/* ---- I · HERO — the work arrives full-bleed, image-first ------------------
+   Transcribed from `.hero`. The HiFi centres a 100vw block with
+   `margin-left: calc(50% - 50vw)`; the shared `.bleed` primitive already
+   cancels the main gutters to the same edges, so the negative-margin literal is
+   not repeated. */
+
+.we-hero-section {
+  position: relative;
+}
+
+.we-hero {
+  position: relative;
+  height: 100vh;
+  min-height: 560px;
+  overflow: hidden;
+  background: var(--ink);
+  margin-inline-start: calc(-1 * var(--gutter-start));
+  margin-inline-end: calc(-1 * var(--gutter-end));
+}
+
+.we-hero-media {
+  position: absolute;
+  inset: 0;
+  transform: scale(1.06);
+  transition: transform 1.6s var(--slow);
+}
+
+html.anim-ready .we-hero-media {
+  transform: scale(1);
+}
+
+/* The photograph carries the title and the breadcrumb over it; the gradient is
+   what keeps both at contrast on any image. Transcribed from `.hero-grad`. */
+.we-hero-grad {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(20, 17, 12, 0.52) 0%,
+    rgba(20, 17, 12, 0) 26%,
+    rgba(20, 17, 12, 0) 40%,
+    rgba(20, 17, 12, 0.72) 100%
+  );
+}
+
+/* The measurement gesture: a blue scan bar crosses the image once on load —
+   VISUAL_DIRECTION_v2.0 §2.1, blue as activation and measurement. One run, no
+   loop (§12: "never loop, pulse, or perform"). */
+.we-hero-scan {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  background: var(--blue);
+  opacity: 0;
+  box-shadow: 0 0 16px 3px rgb(43 43 230 / 60%);
+}
+
+html.anim-ready .we-hero-scan {
+  animation: we-scan 1.5s var(--slow) 0.5s both;
+}
+
+@keyframes we-scan {
+  0% {
+    left: 0;
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.9;
+  }
+  88% {
+    opacity: 0.6;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+.we-hero-top {
+  position: absolute;
+  top: clamp(84px, 12vh, 110px);
+  left: var(--gutter-start);
+  right: var(--gutter-end);
+  color: #fff;
+}
+
+.we-crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 8px;
+  list-style: none;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: rgb(255 255 255 / 88%);
+}
+
+.we-crumbs li + li::before {
+  content: '/';
+  margin-inline-end: 8px;
+  color: rgb(255 255 255 / 55%);
+}
+
+.we-crumbs a {
+  text-decoration: underline;
+  text-decoration-color: rgb(255 255 255 / 35%);
+  text-underline-offset: 4px;
+  transition: text-decoration-color var(--t-state) var(--ease);
+}
+
+.we-crumbs a:hover,
+.we-crumbs a:focus-visible {
+  text-decoration-color: #fff;
+}
+
+/* The current page is the last crumb and is not a link — a self-link is a
+   wayfinding dead end, and `aria-current="page"` already states position. */
+.we-crumbs [aria-current='page'] {
+  color: rgb(255 255 255 / 70%);
+}
+
+.we-hero-btm {
+  position: absolute;
+  left: var(--gutter-start);
+  right: var(--gutter-end);
+  bottom: clamp(40px, 7vh, 72px);
+  color: #fff;
+}
+
+.we-hero-btm .kick {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 88%);
+  margin-bottom: 16px;
+}
+
+/* The one display size on this page, authored per composition — tokens.css
+   records why no global display scale exists. */
+.we-hero-btm h1 {
+  font-family: var(--pixel);
+  font-weight: 500;
+  font-size: clamp(40px, 9vw, 140px);
+  line-height: 0.92;
+  letter-spacing: 0.01em;
+}
+
+.we-hero-btm .we-hero-measure {
+  margin-top: 18px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: rgb(255 255 255 / 78%);
+}
+
+/* Load gate — the hero resolves after the image, as the HiFi stages it. */
+html.anim-load .we-hero-btm,
+html.anim-load .we-hero-top {
+  opacity: 0;
+}
+
+.we-hero-btm,
+.we-hero-top {
+  transition: opacity 1s var(--slow) 0.3s;
+}
+
+html.anim-ready .we-hero-btm,
+html.anim-ready .we-hero-top {
+  opacity: 1;
+}
+
+@media (max-width: 820px) {
+  .we-hero-btm h1 {
+    font-size: clamp(38px, 13vw, 72px);
+  }
+}
+
+/* ---- Section frame -------------------------------------------------------
+   The DENSE ↔ SILENT cadence of VISUAL_DIRECTION_v2.0 §8, using the page's own
+   rhythm set (tokens.css `[data-rhythm="work-entry"]`, transcribed from this
+   HiFi's `:root`). */
+
+.we-section {
+  padding-block: var(--pad-loud);
+}
+
+/* The closing beat gets the quiet interval — "Silence is space and time". */
+.we-onward-section {
+  padding-block-start: var(--pad-quiet);
+}
+
+/* ---- II · TECHNICAL SHEET — metadata as measurement data -----------------
+   Transcribed from `.specs`. VISUAL_DIRECTION_v2.0 §2.5: metadata "presented as
+   precise measurement data — exact, consistent, quietly technical, like an
+   instrument readout."
+
+   A <dl>, not a table of divs: these are name/value pairs, and the pairing is
+   the semantics. `display: contents` on the wrapper would break the pair for
+   some assistive technology, so each pair is a grid row instead. */
+
+.specs {
+  border-top: 1px solid var(--ink);
+  max-width: 62ch;
+}
+
+.specs .r {
+  display: grid;
+  grid-template-columns: 12ch 1fr;
+  gap: 18px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--hair);
+}
+
+.specs .k {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  /* --ink-60, not the HiFi's --ink-40: 3.51:1 fails WCAG 2.2 AA for small text
+     (DECISIONS_LOG #78). See typography.css for the full measurement. */
+  color: var(--ink-60);
+  padding-top: 3px;
+}
+
+.specs .v {
+  font-family: var(--read);
+  font-weight: 500;
+  font-size: 15px;
+  margin: 0;
+}
+
+.specs .v.mono {
+  font-size: 13.5px;
+}
+
+@media (max-width: 520px) {
+  .specs .r {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
+/* ---- III · THE WORK — prose, then the media given the full field ----------
+   `WORK_ENTRY_WIREFRAME.md` W-2: "**this module is the evaluative and visual
+   center of the page** — the work is the protagonist, generous whitespace, media
+   given room to be examined closely. The description supports the media."
+
+   The HiFi expresses that as `.spread` — a text column beside one lead figure —
+   and then runs a separate `.grid` gallery below it. That two-part shape depends
+   on the *first* gallery item being singled out as the lead figure, and no field
+   marks one: the gallery is one flat, editor-ordered set (see Gallery.astro).
+   Promoting `gallery[0]` by position would be the build inventing an editorial
+   decision the Content Model gives the editor no way to make.
+
+   So the same emphasis is produced with the material that does exist: the prose
+   is held to a short measure, and the media takes the whole field immediately
+   after it, at the HiFi's own irregular span rhythm (one lead frame, then
+   portrait frames — gallery.css). The description supports; the work leads. */
+
+.we-evidence {
+  display: grid;
+  gap: clamp(30px, 5vw, 72px);
+}
+
+.we-prose {
+  max-width: 52ch;
+}
+
+.we-gallery {
+  margin-top: clamp(10px, 2vh, 24px);
+}
+
+/* ---- W-4 · type-specific facts ------------------------------------------- */
+
+.we-type-facts {
+  border-top: 1px solid var(--ink);
+  max-width: 62ch;
+  margin-top: clamp(20px, 3vh, 34px);
+}
+
+.we-type-facts .r {
+  display: grid;
+  grid-template-columns: 12ch 1fr;
+  gap: 18px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--hair);
+}
+
+.we-type-facts .k {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-60);
+  padding-top: 3px;
+}
+
+.we-type-facts .v {
+  font-size: 15px;
+  margin: 0;
+}
+
+/* A competition's outcome. COMPONENT_INVENTORY.md "Statistic": "a single
+   quantified fact… evidence over claims" — so one award per line, at the
+   display weight the HiFi gives its measured facts, and never a claim the
+   content does not make. */
+.we-awards {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(20px, 3vw, 48px);
+  border-top: 1px solid var(--ink);
+  padding-top: clamp(24px, 3.5vh, 40px);
+}
+
+.we-award {
+  font-family: var(--pixel);
+  font-size: clamp(20px, 2.4vw, 30px);
+  line-height: 1.05;
+  display: block;
+  max-width: 24ch;
+}
+
+/* ---- W-3 · CREDITS — honest attribution ---------------------------------
+   Transcribed from `.cr-grid`. `WORK_ENTRY_WIREFRAME.md` W-3: "a calm, honest
+   crediting block". Each credit is a name/value pair and stays one. */
+
+.cr-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(20px, 3vw, 44px);
+}
+
+.cr .k {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-60);
+  margin-bottom: 8px;
+}
+
+.cr .v {
+  font-size: 14.5px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.cr .v.mono {
+  font-size: 13px;
+}
+
+/* The Authorship statement is prose, and it is the one credit that must never
+   be skimmed past — it is what prevents over-claiming (Page IA §5 "Integrity").
+   It reads at the body voice and is given room to run to a full sentence. */
+.cr:has(.v:not(.mono)) .v {
+  max-width: 34ch;
+}
+
+.we-credits-link {
+  margin-top: clamp(24px, 4vh, 40px);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.we-credits-link .ar {
+  color: var(--blue);
+  margin-inline-start: 8px;
+  display: inline-block;
+  transition: transform var(--t-state) var(--slow);
+}
+
+.we-credits-link a:hover .ar,
+.we-credits-link a:focus-visible .ar {
+  transform: translateX(5px);
+}
+
+@media (max-width: 900px) {
+  .cr-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .cr-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- W-5 · DEMONSTRATED SERVICES ----------------------------------------
+   Transcribed from `.svc-grid` / `.svc`. Wireframe W-5: "a **quiet** link from
+   this evidence to the relevant service" — a hairline block and a text link, no
+   filled CTA (VISUAL_DIRECTION_v2.0 §12: "Never use filled, button-heavy
+   CTAs"). */
+
+.svc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(20px, 3vw, 44px);
+  list-style: none;
+}
+
+.svc {
+  border-top: 1px solid var(--ink);
+  padding-top: 20px;
+}
+
+.svc-name {
+  font-family: var(--pixel);
+  font-weight: 500;
+  font-size: clamp(20px, 2.4vw, 30px);
+  margin-bottom: 8px;
+}
+
+.svc-line {
+  color: var(--ink-60);
+  font-size: 14.5px;
+  max-width: 42ch;
+}
+
+.svc-go {
+  margin-top: 16px;
+  display: inline-flex;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.svc-go .ar {
+  color: var(--blue);
+  transition: transform var(--t-state) var(--slow);
+}
+
+.svc-go:hover .ar,
+.svc-go:focus-visible .ar {
+  transform: translateX(5px);
+}
+
+@media (max-width: 640px) {
+  .svc-grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+}
+
+/* ---- W-6 · RELATED WORK -------------------------------------------------- */
+
+.we-related-cta {
+  margin-top: clamp(20px, 3vh, 32px);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.we-related-cta .ar {
+  color: var(--blue);
+  margin-inline-start: 8px;
+  display: inline-block;
+  transition: transform var(--t-state) var(--slow);
+}
+
+.we-related-cta a:hover .ar,
+.we-related-cta a:focus-visible .ar {
+  transform: translateX(6px);
+}
+
+/* ---- W-7 · ONWARD — quiet affordances, no dominant CTA -------------------
+   Transcribed from `.continue`. Wireframe W-7: "quiet navigational affordances;
+   **no dominant conversion CTA** (the Work Entry is evidence, conversion-quiet
+   by design, O2)." */
+
+.we-onward {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px 40px;
+  flex-wrap: wrap;
+}
+
+.we-onward-hub {
+  font-family: var(--read);
+  font-weight: 600;
+  font-size: clamp(22px, 2.9vw, 38px);
+  letter-spacing: -0.02em;
+  max-width: 20ch;
+  line-height: 1.08;
+}
+
+.we-onward-hub .ar {
+  color: var(--blue);
+  display: inline-block;
+  transition: transform var(--t-rev) var(--slow);
+}
+
+.we-onward-hub a:hover .ar,
+.we-onward-hub a:focus-visible .ar {
+  transform: translateX(6px);
+}
+
+/* The single blue activation of the closing beat (§2.1) — a mark, not a
+   button. */
+.we-onward-contact {
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.05em;
+}
+
+.we-onward-contact a {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.we-onward-contact .box {
+  width: 10px;
+  height: 10px;
+  background: var(--blue);
+  flex: 0 0 auto;
+}
+
+/* The underline draws in on hover AND on :focus-visible — MOTION_NOTES.md:54
+   asks for parity, and the base `:focus-visible` outline is additive to it. */
+.we-onward-contact a::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 -2px 0;
+  height: 1.5px;
+  background: var(--blue);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--t-state) var(--ease);
+}
+
+.we-onward-contact a:hover::after,
+.we-onward-contact a:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* ---- Reduced motion ------------------------------------------------------
+   MOTION_NOTES.md:62 / §13: LAYOUT PARITY, not merely disabled transitions —
+   "Content and layout are identical with motion removed." The hero resolves to
+   its final framing and the scan never runs, so the composition on screen is
+   the same one, minus the movement. */
+
+@media (prefers-reduced-motion: reduce) {
+  .we-hero-media {
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .we-hero-scan {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+
+  .we-hero-btm,
+  .we-hero-top {
+    opacity: 1 !important;
+    transition: none !important;
+  }
+
+  .we-credits-link .ar,
+  .we-related-cta .ar,
+  .we-onward-hub .ar,
+  .svc-go .ar,
+  .we-onward-contact a::after {
+    transition: none !important;
+  }
+}

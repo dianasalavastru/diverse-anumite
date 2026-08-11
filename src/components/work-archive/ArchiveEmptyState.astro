@@ -1,0 +1,79 @@
+---
+/**
+ * A-6 · Empty state — COMPONENT_INVENTORY.md "Empty State" (archive variant).
+ *
+ * Purpose: "handle 'nothing here' with confidence." Responsibility: "preserve
+ * context, explain why, offer a next step." Notes: "**never a bare grid or dead
+ * end.**"
+ *
+ * `WORK_ARCHIVE_PAGE_IA.md` A-6 makes it a pass/fail test — "an **empty result**
+ * gives guidance and preserves context — never a bare empty grid" — and states
+ * the philosophy: an empty result "must never feel like an error" (the parallel
+ * to the Service page's F5). WORK_ARCHIVE_WIREFRAME A-6 fixes the contents: the
+ * current scope preserved, a short "why nothing", and a way forward — adjust or
+ * clear filters, switch pillar, or return to broader browsing.
+ *
+ * ── THE SUGGESTIONS ARE LINKS, NOT BUTTONS ─────────────────────────────────
+ * Each carries a real `href` built from the frozen URL contract, so it is
+ * shareable, middle-clickable and works as a plain document load if the island
+ * never runs. The island intercepts them to keep the transition in-page, which
+ * is an enhancement over a working link, not a replacement for one (§14.0).
+ *
+ * The targets are the two pillars and the whole archive — the three scopes A-6
+ * names ("switch pillar", "return to broader browsing"). They are **modes**, not
+ * curated slices: filters must never duplicate curated views
+ * (`WORK_ARCHIVE_PAGE_IA.md` A-4), so no suggestion points at Competitions or
+ * Professional Experience. Those are offered as what they are, in A-7.
+ *
+ * `hidden` at render: the prerendered archive is never empty (an empty archive
+ * is a content state, not a filter state — and IA §2.1 makes `/proiecte` the
+ * canonical index either way, so the module is present and simply not shown).
+ */
+import { PILLARS, type Locale } from '../../lib/content';
+import { pillarLabel } from '../../lib/i18n/vocabulary';
+import type { WorkArchiveMessages } from '../../lib/i18n/work-archive';
+import { DEFAULT_ARCHIVE_STATE, archiveHref, type PillarMode } from './archive-state';
+
+interface Props {
+  locale: Locale;
+  copy: WorkArchiveMessages['empty'];
+  wholeArchiveLabel: string;
+  /** The archive's own path, from the route map — never concatenated here. */
+  basePath: string;
+}
+
+const { locale, copy, wholeArchiveLabel, basePath } = Astro.props;
+
+const suggestions: { pillar: PillarMode; label: string; href: string }[] = [
+  {
+    pillar: 'all',
+    label: wholeArchiveLabel,
+    href: archiveHref(basePath, DEFAULT_ARCHIVE_STATE),
+  },
+  ...PILLARS.map((pillar) => ({
+    pillar: pillar as PillarMode,
+    label: pillarLabel(pillar, locale),
+    href: archiveHref(basePath, { ...DEFAULT_ARCHIVE_STATE, pillar }),
+  })),
+];
+---
+
+<div class="wa-empty" data-archive-empty hidden>
+  <h2>{copy.heading}</h2>
+  <p>{copy.body}</p>
+
+  <div class="sugg">
+    <span class="lab">{copy.suggestLabel}</span>
+    {
+      suggestions.map((suggestion) => (
+        <a class="chip" href={suggestion.href} data-archive-suggest={suggestion.pillar}>
+          {suggestion.label}
+        </a>
+      ))
+    }
+  </div>
+
+  <button type="button" class="reset" data-archive-reset>
+    {copy.reset} <span class="ar" aria-hidden="true">→</span>
+  </button>
+</div>

@@ -12,6 +12,11 @@ export default defineCliConfig({
     projectId: process.env.SANITY_STUDIO_PROJECT_ID,
     dataset: process.env.SANITY_STUDIO_DATASET ?? 'production',
   },
-  /** The Studio is a separate application; its build output never enters the web app's. */
-  autoUpdates: false,
+  /**
+   * The Studio is a separate application; its build output never enters the web app's.
+   *
+   * `autoUpdates` moved under `deployment` in @sanity/cli 7.x — the top-level form still works
+   * but warns on every `sanity build`. Corrected at B3 rather than carried as noise.
+   */
+  deployment: { autoUpdates: false },
 })

@@ -21,15 +21,24 @@
  * independent dimensions. Do not merge them." Production renders Year + Entry
  * Type — one axis, from the frozen vocabulary.
  *
- * SCOPE. Only the axes the Homepage renders: Entry Type and Pillar. The
- * remaining axes (Status, Discipline, Sector, Attribution) get their labels when
- * the page that displays them is built — adding them now would be inventing
- * copy no page consumes.
+ * SCOPE. The axes a built page renders. Entry Type and Pillar arrived with the
+ * Homepage; Status, Discipline, Sector, Attribution and Commissioning arrived
+ * with the **Work Entry**, which is the page that displays them (W-1 Project
+ * Metadata and W-3 Credits — `WORK_ENTRY_PAGE_IA.md`). Nothing is added for a
+ * page that does not yet exist.
  *
  * OD-8 (§11.3): Romanian copy is authored WITHOUT diacritics.
  */
 
-import type { EntryType, Pillar } from '../content';
+import type {
+  Attribution,
+  CommissioningContext,
+  Discipline,
+  EntryType,
+  Pillar,
+  Sector,
+  Status,
+} from '../content';
 import type { Locale, RouteKey } from './routes';
 
 /* -------------------------------------------------------------------------- */
@@ -108,4 +117,168 @@ const PILLAR_ROUTE_KEYS: Readonly<Record<Pillar, RouteKey>> = {
 
 export function pillarRouteKey(value: Pillar): RouteKey {
   return PILLAR_ROUTE_KEYS[value];
+}
+
+/**
+ * Pillar (content identity) → the Work Archive's **query-parameter** token.
+ *
+ * The third namespace `types.ts` names. It is fixed upstream at
+ * `WORK_ARCHIVE_IMPLEMENTATION_NOTES.md`:41 and :134 as `?pillar=architecture` |
+ * `?pillar=reality-capture`, and TECHNICAL_ARCHITECTURE.md §23.5 freezes
+ * `?pillar=` as part of the archive filter + URL contract. Note the A&D token is
+ * `architecture`, NOT the content identifier `architecture-design` — declared
+ * once here so no page concatenates a filtered-archive URL from a Pillar value
+ * and quietly emits a token the archive will not recognise.
+ */
+const PILLAR_ARCHIVE_PARAMS: Readonly<Record<Pillar, string>> = {
+  'architecture-design': 'architecture',
+  'reality-capture': 'reality-capture',
+};
+
+export function pillarArchiveParam(value: Pillar): string {
+  return PILLAR_ARCHIVE_PARAMS[value];
+}
+
+/* -------------------------------------------------------------------------- */
+/* Status — CONTENT_MODEL.md:58                                                */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A Metadata value, and where "Built" lives. Orthogonal to Entry Type: a Design
+ * Project may be Built or Unbuilt. EN labels are the canonical ones; RO labels
+ * are working translations, PENDING (C).
+ */
+const STATUS_LABELS: Readonly<Record<Locale, Readonly<Record<Status, string>>>> = {
+  ro: {
+    'built-realized': 'Construit / realizat',
+    'unbuilt-proposal': 'Neconstruit / propunere',
+    'in-progress': 'In lucru',
+    delivered: 'Predat',
+  },
+  en: {
+    'built-realized': 'Built / Realized',
+    'unbuilt-proposal': 'Unbuilt / Proposal',
+    'in-progress': 'In progress',
+    delivered: 'Delivered',
+  },
+};
+
+export function statusLabel(value: Status, locale: Locale): string {
+  return STATUS_LABELS[locale][value];
+}
+
+/* -------------------------------------------------------------------------- */
+/* Discipline — CONTENT_MODEL.md:46                                            */
+/* -------------------------------------------------------------------------- */
+
+const DISCIPLINE_LABELS: Readonly<Record<Locale, Readonly<Record<Discipline, string>>>> = {
+  ro: {
+    architecture: 'Arhitectura',
+    'interior-design': 'Design interior',
+    'reality-capture': 'Reality Capture',
+    visualization: 'Vizualizare',
+  },
+  en: {
+    architecture: 'Architecture',
+    'interior-design': 'Interior Design',
+    'reality-capture': 'Reality Capture',
+    visualization: 'Visualization',
+  },
+};
+
+export function disciplineLabel(value: Discipline, locale: Locale): string {
+  return DISCIPLINE_LABELS[locale][value];
+}
+
+/* -------------------------------------------------------------------------- */
+/* Attribution — CONTENT_MODEL.md:48, :60                                      */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The *filter category* of the three-way split, and only that.
+ * `CONTENT_MODEL.md`:60: "Attribution is the *filter category*; Role is the
+ * *granular functions*; Authorship is the *scoped credit sentence*." These
+ * labels name the category — they never stand in for the Authorship statement,
+ * and W-3 renders all three separately.
+ */
+const ATTRIBUTION_LABELS: Readonly<Record<Locale, Readonly<Record<Attribution, string>>>> = {
+  ro: {
+    independent: 'Independent',
+    collaboration: 'In colaborare',
+    studio: 'In cadrul unui birou',
+  },
+  en: {
+    independent: 'Independent',
+    collaboration: 'Collaboration',
+    studio: 'Studio',
+  },
+};
+
+export function attributionLabel(value: Attribution, locale: Locale): string {
+  return ATTRIBUTION_LABELS[locale][value];
+}
+
+/* -------------------------------------------------------------------------- */
+/* Commissioning context — CONTENT_MODEL.md:49                                 */
+/* -------------------------------------------------------------------------- */
+
+const COMMISSIONING_LABELS: Readonly<
+  Record<Locale, Readonly<Record<CommissioningContext, string>>>
+> = {
+  ro: {
+    'self-initiated': 'Initiativa proprie',
+    'client-commissioned': 'Comanda de client',
+  },
+  en: {
+    'self-initiated': 'Self-initiated',
+    'client-commissioned': 'Client-commissioned',
+  },
+};
+
+export function commissioningLabel(value: CommissioningContext, locale: Locale): string {
+  return COMMISSIONING_LABELS[locale][value];
+}
+
+/* -------------------------------------------------------------------------- */
+/* Sector — CONTENT_MODEL.md:53 (deliberately OPEN)                            */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The one axis with no closed vocabulary. `CONTENT_MODEL.md`:53 ends its list
+ * with "…" and :100 makes a new sector "a new *value*, not a new structure";
+ * `types.ts` keeps the type open for exactly that reason.
+ *
+ * So this map is a *translation table for the known values*, not a validation
+ * list. An unknown value is not dropped and is not invented copy either — its
+ * authored token is de-slugged (`adaptive-reuse` → `adaptive reuse`), which is a
+ * formatting rule applied to authored content, never a new string. The label is
+ * display-only: IA Step 5 keeps Sector a filter on the Archive, and this is the
+ * Work Entry, where facets are display, not filters (`WORK_ENTRY_PAGE_IA.md`
+ * W-1).
+ */
+const SECTOR_LABELS: Readonly<Record<Locale, Readonly<Record<string, string>>>> = {
+  ro: {
+    residential: 'Rezidential',
+    hospitality: 'Ospitalitate',
+    office: 'Birouri',
+    cultural: 'Cultural',
+    heritage: 'Patrimoniu',
+    industrial: 'Industrial',
+    infrastructure: 'Infrastructura',
+    education: 'Educatie',
+  },
+  en: {
+    residential: 'Residential',
+    hospitality: 'Hospitality',
+    office: 'Office',
+    cultural: 'Cultural',
+    heritage: 'Heritage',
+    industrial: 'Industrial',
+    infrastructure: 'Infrastructure',
+    education: 'Education',
+  },
+};
+
+export function sectorLabel(value: Sector, locale: Locale): string {
+  return SECTOR_LABELS[locale][value] ?? value.replace(/-/g, ' ');
 }

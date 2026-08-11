@@ -1,0 +1,155 @@
+---
+/**
+ * The Work Archive — composed once, rendered per locale.
+ *
+ * OWNERSHIP: Workstream A. Phase 5 of TECHNICAL_ARCHITECTURE.md §23.2:
+ * "**Work Archive** — filter contract, URL state, masonry engine."
+ *
+ * MODULE ORDER is the wireframe's two-region structure, which is the Page IA's
+ * discovery cycle: a **control region** (A-1 orientation · A-2 pillar toggle ·
+ * A-3 active context · A-4 filters) framing a **results region** (A-5 results,
+ * or A-6 when nothing matches), with A-7 continue affordances throughout.
+ * "The control region **frames** the results; the results are the protagonist."
+ *
+ * ── CONTENT: THE SAME I-3 SWAP POINT ──────────────────────────────────────
+ * Every content-shaped value comes from `ContentSource`. Locale scoping (§7.1)
+ * and discovery order (§7.6) happen inside the source, before anything reaches a
+ * component — this file selects and arranges, it does not define. Swapping
+ * fixtures for Sanity is the one call below, and nothing else on this page moves.
+ *
+ * ── WHAT THIS PAGE DELIBERATELY DOES NOT DO ───────────────────────────────
+ *   - It does not persuade. `WORK_ARCHIVE_PAGE_IA.md` §1: "Does not persuade —
+ *     it enables exploration, not conversion." There is no CTA to Contact;
+ *     Contact is reachable only through the global nav.
+ *   - It does not present a project. Results are signposts that route to Work
+ *     Entries.
+ *   - It carries **no coordinate rail** — the rail is present in five HiFis and
+ *     absent from this one (see layout.css), so none is added.
+ *
+ * ── THE ISLAND IS AN ENHANCEMENT ──────────────────────────────────────────
+ * Rendered static, this page is the complete archive in discovery order, every
+ * card a link — which is the browse IA Step 4 makes the default and the state
+ * §12 needs for crawlers ("client-side filtering never hides content from
+ * crawlers"). The filter controls are the enhancement layered on top, and the
+ * `<noscript>` rule below hides them when the enhancement cannot run, rather than
+ * leaving inert controls on the page. Nothing else about the page changes.
+ */
+import ActiveContext from './ActiveContext.astro';
+import ArchiveContinue from './ArchiveContinue.astro';
+import ArchiveEmptyState from './ArchiveEmptyState.astro';
+import ArchiveFilters from './ArchiveFilters.astro';
+import ArchiveOrientation from './ArchiveOrientation.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PillarToggle from './PillarToggle.astro';
+import ResultsGrid from './ResultsGrid.astro';
+import ViewTransition from '../ViewTransition.astro';
+
+import type { Locale } from '../../lib/content';
+import { routePath } from '../../lib/i18n/routes';
+import { workArchiveMessages } from '../../lib/i18n/work-archive';
+import { collectFacetValues, serviceOptions } from './facets';
+
+/* ── THE I-3 SWAP POINT — this import and this call, nothing else ─────────── */
+import { createFixtureContentSource } from '../../lib/content/fixtures';
+const source = createFixtureContentSource();
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const copy = workArchiveMessages(locale);
+
+const [items, services] = await Promise.all([
+  source.workArchive(locale),
+  source.serviceSummaries(locale),
+]);
+
+/** Option lists projected from the rendered set — never from the full vocabulary. */
+const values = collectFacetValues(items, locale);
+const serviceChoices = serviceOptions(services, values.services, locale);
+
+const basePath = routePath('workArchive', locale);
+---
+
+<BaseLayout
+  locale={locale}
+  rhythm="work-archive"
+  routeKey="workArchive"
+  title={copy.meta.title}
+  description={copy.meta.description}
+>
+  <Fragment slot="head">
+    {/* §14.0, progressive enhancement. Two resolutions, both no-JS only:
+        the reveal system leaves cells hidden if the runtime never runs, and the
+        filter controls cannot filter anything without the island — an inert
+        control that looks operable is worse than an absent one, and the archive
+        below it is already complete and browsable. */}
+    <noscript>
+      <style>
+        .wa-controls {
+          display: none;
+        }
+        .wa-item.rv {
+          opacity: 1 !important;
+          clip-path: none !important;
+        }
+      </style>
+    </noscript>
+  </Fragment>
+
+  <ViewTransition />
+
+  <div class="wa" data-archive data-archive-base={basePath}>
+    <ArchiveOrientation
+      locale={locale}
+      eyebrow={copy.orientation.eyebrow}
+      heading={copy.orientation.heading}
+      statement={copy.orientation.statement}
+      total={items.length}
+      totalLabel={copy.orientation.total}
+    />
+
+    {/* The control region: quiet, consistent, and never louder than the work
+        (WORK_ARCHIVE_WIREFRAME, "Visual emphasis hierarchy"). */}
+    <div class="wa-controls bleed">
+      <div class="frow">
+        <PillarToggle locale={locale} copy={copy.pillar} />
+      </div>
+
+      <ArchiveFilters
+        locale={locale}
+        copy={copy.filters}
+        values={values}
+        services={serviceChoices}
+      />
+
+      <ActiveContext
+        locale={locale}
+        copy={copy.activeContext}
+        count={copy.count}
+        total={items.length}
+      />
+    </div>
+
+    <section class="wa-results" aria-labelledby="wa-results-heading" tabindex="-1" data-archive-region>
+      <h2 class="wa-sr" id="wa-results-heading">{copy.results.label}</h2>
+
+      <ResultsGrid locale={locale} items={items} openLabel={copy.results.open} filterable />
+
+      <ArchiveEmptyState
+        locale={locale}
+        copy={copy.empty}
+        wholeArchiveLabel={copy.continue.fullArchive}
+        basePath={basePath}
+      />
+    </section>
+
+    <ArchiveContinue locale={locale} copy={copy.continue} current="workArchive" />
+  </div>
+
+  <script>
+    import '../../scripts/islands/work-archive';
+  </script>
+</BaseLayout>

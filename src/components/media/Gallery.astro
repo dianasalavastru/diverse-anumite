@@ -1,0 +1,117 @@
+---
+/**
+ * Gallery — COMPONENT_INVENTORY.md §4 "Evidence".
+ *
+ * Purpose: present a work's images. Responsibility: show the work as evidence.
+ * *Inputs:* media set (drawings/planșe; capture media). *Outputs:* → Media
+ * Viewer. *Appears on:* Work Entry (W-2). *Variants:* design / capture media.
+ * *Notes:* "content differs by type; **structure identical**."
+ *
+ * ── ONE GALLERY, BECAUSE THE FROZEN CONTRACT HAS ONE MEDIA SET ────────────
+ * The Inventory's variants are a *content* distinction, and the Content Model
+ * carries no field that makes it: `WorkEntry.gallery` is a single flat
+ * `ImageAsset[]`, and the Studio field is one array titled "Images & drawings"
+ * (`studio/schemaTypes/workEntry.ts`). There is no `kind` on a gallery item, so
+ * nothing in the build can honestly say "this one is a plan and that one is a
+ * photograph".
+ *
+ * The approved HiFi *does* separate them — it carries a `Plan parter · Secțiune ·
+ * Elevație S` tab set over hand-authored inline SVG. That is prototype content,
+ * not a content type: §5.3 is explicit that markup is "rebuilt from the Content
+ * Model" and never copied from HiFi markup, and R6 names exactly this class of
+ * prototype debt. Rendering those tabs would mean inventing a media taxonomy the
+ * CMS cannot populate, and shipping three empty tabs on every real entry.
+ *
+ * So the gallery is one ordered set in the editor's authored order, and **every
+ * item is inspectable at full size through the same Media Viewer** — which is
+ * the capability W-2 actually requires ("media gallery with zoom (drawings/
+ * planșe; capture media where relevant)"). The gap is reported to Workstream B
+ * rather than papered over; adding a `kind` to the gallery item is a schema
+ * change and a Content Model question, not a rendering decision.
+ *
+ * ── PROGRESSIVE ENHANCEMENT (§14.0) ───────────────────────────────────────
+ * Each item is a real link to the full-size asset. With the island running, the
+ * click is intercepted and the Media Viewer opens; with scripting disabled the
+ * link still opens the image at full size, so the inspection surface is never
+ * unreachable. An asset that cannot be fetched is rendered as its authored plate
+ * and is **not** a link — offering a zoom affordance over a tone would be an
+ * empty promise.
+ */
+import Plate from './Plate.astro';
+import { isRenderableAsset } from './asset';
+import { localize } from '../../lib/content';
+import type { ImageAsset, Locale } from '../../lib/content';
+
+interface Props {
+  images: readonly ImageAsset[];
+  locale: Locale;
+  /** Accessible name of the list. */
+  label: string;
+  /** Accessible-name prefix for one item, e.g. "Open image". */
+  openItem: string;
+  /**
+   * Authored plate tones behind the photographs, cycled across the set. The
+   * HiFis vary them deliberately from box to box (see Plate.astro).
+   */
+  tones?: readonly string[];
+}
+
+const { images, locale, label, openItem, tones = ['#cbc6bc', '#bdb7ab', '#c7c2b6', '#b4afa2'] } =
+  Astro.props;
+
+/**
+ * The HiFi's gallery is a six-column composition with one leading wide frame and
+ * four portrait ones — "Never present items at equal weight when one could be in
+ * focus" (VISUAL_DIRECTION_v2.0 §12). The span pattern is transcribed from it and
+ * cycled, so a set of any length keeps the authored irregular rhythm instead of
+ * collapsing into a uniform grid. Position 0 leads.
+ */
+const SPANS = ['lead', 'half', 'half', 'half', 'half'] as const;
+---
+
+<ul class="gallery" aria-label={label}>
+  {
+    images.map((image, index) => {
+      const alt = localize(image.alt, locale);
+      const coordinate = `img·${String(index + 1).padStart(2, '0')}`;
+      const tone = tones[index % tones.length];
+      const shape = SPANS[index % SPANS.length];
+      const renderable = isRenderableAsset(image);
+
+      return (
+        <li class:list={['gitem', shape]}>
+          {renderable ? (
+            <a
+              class="fig"
+              href={image.url}
+              aria-label={alt ? `${openItem}: ${alt}` : `${openItem} ${index + 1}`}
+              data-viewer-item
+              data-viewer-index={index}
+              data-viewer-caption={alt ?? ''}
+              data-viewer-coordinate={coordinate}
+            >
+              <span class="figbox">
+                <Plate image={image} locale={locale} tone={tone} />
+              </span>
+              <span class="z" aria-hidden="true">
+                ↗
+              </span>
+              <span class="figco" aria-hidden="true">
+                {coordinate}
+              </span>
+            </a>
+          ) : (
+            <div class="fig">
+              <span class="figbox">
+                <Plate image={image} locale={locale} tone={tone} />
+              </span>
+              <span class="figco" aria-hidden="true">
+                {coordinate}
+              </span>
+            </div>
+          )}
+        </li>
+      );
+    })
+  }
+</ul>

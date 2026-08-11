@@ -1,0 +1,60 @@
+---
+/**
+ * A-7 · Continue / back-path — COMPONENT_INVENTORY.md "CTA Group".
+ *
+ * Purpose: keep exploration fluid and reversible.
+ * `WORK_ARCHIVE_WIREFRAME` A-7: "quiet, navigational affordances — refine,
+ * switch pillar, or return to the Hub; **never a conversion prompt**." The
+ * wireframe is explicit that the Archive has no conversion CTA and that Contact
+ * is reachable only through the global nav, so nothing here points at Contact.
+ *
+ * The pillar switch (A-2) and the Hub back-path (A-3) already exist above; this
+ * module carries the remaining destination IA Step 5 requires: "**Curated views
+ * reachable from the archive, linking back to the full archive**", in both
+ * directions.
+ *
+ * ── CURATED VIEWS ARE OFFERED AS DESTINATIONS, NOT AS FILTERS ──────────────
+ * `WORK_ARCHIVE_PAGE_IA.md` A-4: "**Filters never duplicate curated views**
+ * (mechanical facets vs. editorial slices)". Competitions is reachable as a
+ * route because it is an editorial slice — even though a visitor could
+ * approximate it with `?type=competition-entry`, that filter is a mechanical
+ * facet and the curated view is a curated selection and order. The two are
+ * offered as what they are and never as each other.
+ *
+ * Only the two committed curated routes appear (IA §2.2: "Curated routes only
+ * when stable + distinct intent + externally linkable → Competitions,
+ * Professional Experience"). No third is invented.
+ */
+import { routePath, type Locale, type RouteKey } from '../../lib/i18n/routes';
+import type { WorkArchiveMessages } from '../../lib/i18n/work-archive';
+
+interface Props {
+  locale: Locale;
+  copy: WorkArchiveMessages['continue'];
+  /** Which archive-family surface this is, so it never links to itself. */
+  current: RouteKey;
+}
+
+const { locale, copy, current } = Astro.props;
+
+const destinations: { key: RouteKey; label: string }[] = [
+  { key: 'workArchive', label: copy.fullArchive },
+  { key: 'competitions', label: copy.competitions },
+  { key: 'professionalExperience', label: copy.professionalExperience },
+].filter((destination) => destination.key !== current) as { key: RouteKey; label: string }[];
+---
+
+<nav class="wa-continue" aria-label={copy.label}>
+  <span class="lab">{copy.label}</span>
+  <ul>
+    {
+      destinations.map((destination) => (
+        <li>
+          <a href={routePath(destination.key as never, locale, undefined as never)}>
+            {destination.label} <span class="ar" aria-hidden="true">→</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>
