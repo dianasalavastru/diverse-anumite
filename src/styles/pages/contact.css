@@ -79,29 +79,23 @@
   /* The canvas, not the measure. Reading measures stay on the elements that
      carry running text (`.c-statement`, `.measure`, `.c-confirm`).
 
-     ── WHY 1520, AND WHY IT DOES NOTHING AT LAPTOP WIDTHS ───────────────────
-     `layout.css` already establishes the site's frame: `main` is padded by
-     `--gutter-start` / `--gutter-end`, and every other page composes edge to
-     edge inside it — `about.css` and `services-index.css` declare no page-level
-     max-width at all, which is why the Global Header's nav and the About bands
-     both terminate on the same inline-end line. Contact carried a 1200px cap
-     and stopped 75px short of that line at 1440 and 271px short at 1650, which
-     read as the composition ending before the grid did.
-
-     So the cap is raised past every laptop and desktop width the page is
-     actually read at: at 1440 the available well is 1275px and at 1650 it is
-     1470px, so `100%` wins in both and the composition terminates exactly on
-     `--gutter-end`, flush with the header. The bound only engages above a
-     ~1704px viewport, and it exists for one reason — past a ~1520px well the
-     form track passes 1000px and a single-line input stops reading as a control
-     and starts reading as a rule drawn across the screen. That is a measure
-     limit, not a layout one, and it is the only thing this value does. */
-  max-width: min(100%, 1520px);
+     The canvas is sized and centred in the desktop block at the foot of this
+     file, not here — see the long note there. Below 1024px the page inherits
+     the site frame unchanged and fills it. */
 
   /* The gap between the two columns, and — halved — the offset that centres the
      parting hairline inside it. Declared once here so the grid and the rule can
-     never drift apart. */
-  --c-gap: clamp(40px, 5vw, 80px);
+     never drift apart.
+
+     The ceiling is 64px, not the 80px it was while the canvas ran nearly edge
+     to edge. The gap is not a fixed architectural interval — it is a PROPORTION
+     of the composition, and once the canvas came in to ~1025px at 1440 an 80px
+     gap was 12% of the form's own width where it had been under 10%. Holding
+     the pixel value would have taken the difference out of the form, which is
+     the one thing on this page that must stay dominant. 64px restores the
+     column relationship to exactly 68/32 at 1440 and 1650 — the gap moved so
+     that the ratio would not have to. */
+  --c-gap: clamp(40px, 5vw, 64px);
 
   /* The gutter between the two half-width fields. Declared here rather than
      inline on `.c-fields` because the submit control derives its width from it
@@ -859,23 +853,93 @@ a.c-method-value:focus-visible {
    textarea and the mono context value would otherwise push the form track past
    its share. */
 @media (min-width: 1024px) {
+  /* ---- The editorial canvas ----------------------------------------------
+     Contact composes edge to edge inside the site frame like every other page,
+     and on a wide monitor that reads as a form stretched across the screen
+     rather than as a composition. This page is the one place where that is
+     wrong: it is a single sheet with one action on it, not a browse surface,
+     and the wireframe's "generous spacing" is spacing AROUND the sheet as much
+     as inside it. So the frame is restated here — Contact only — as a
+     deliberately inset, symmetrically centred canvas.
+
+     It is two declarations, and deliberately the plainest form the result can
+     take: a symmetric frame, and a centred sheet inside it.
+
+     ── 1 · THE FRAME IS MADE SYMMETRIC ──────────────────────────────────────
+     `layout.css` pads `main` asymmetrically on purpose — a wider inline-start
+     gutter that clears the fixed coordinate rail, VISUAL_DIRECTION_v2.0 §12's
+     "prefer edge alignment over centring". That is right for the six HiFi page
+     types, all of which are edge-aligned reading surfaces. It is wrong for a
+     centred sheet: a canvas auto-centred inside an asymmetric well lands 18px
+     off the viewport's own centre at 1440, which is exactly the drift this pass
+     exists to remove.
+
+     So Contact — and only Contact — restates `--gutter-start` as
+     `--gutter-end`. Overriding the TOKEN rather than `main`'s padding keeps
+     `.bleed` and anything else that reads the pair internally consistent, and
+     the override is scoped by `:has()` to the one page that carries `.c-page`,
+     so the global value and every other page's frame are untouched. The
+     coordinate rail is `position: fixed` at `--rail-left` and is absent from
+     this page anyway, so nothing is left uncleared.
+
+     ── 2 · THE SHEET IS SIZED AND CENTRED ───────────────────────────────────
+     `inline-size` is `min()` of three terms, in the order they take over:
+
+       · `100%` — the well. Below ~1050px it wins, so the page can never
+         overflow its own frame; this is what makes the tablet end of the range
+         simply use the width it has.
+       · `40vw + 450px` — the ramp, and the term that governs every width the
+         page is actually read at. The canvas grows at less than half the rate
+         of the viewport, so outer whitespace grows FASTER than the composition
+         — which is what makes the inset read as a decision rather than as a
+         margin that happens to be there:
+
+           1024   canvas  860px  (84.0%)   gutters 82 / 82
+           1280   canvas  962px  (75.2%)   gutters 159 / 159
+           1440   canvas 1026px  (71.3%)   gutters 207 / 207
+           1650   canvas 1110px  (67.3%)   gutters 270 / 270
+
+       · `1140px` — the cap. Above a ~1725px viewport the sheet stops growing
+         and the margins take everything after that: 1140px at 1920 (59.4%),
+         1140px at 2560. Past this width a wider canvas buys nothing — the form
+         track is already 713px, and a single underlined input any wider stops
+         reading as a control and starts reading as a rule drawn across the
+         monitor. That measure limit is the only thing this number does, and it
+         is the same argument the earlier `1520px` bound made, at the width the
+         centred composition actually needs it.
+
+     `margin-inline: auto` is then the whole of the centring, and it is exact
+     because step 1 made the well symmetric. Every child inherits the boundary
+     because every child is inside `.c-page`: breadcrumb, eyebrow, H1, the
+     masthead rule, the form/rail grid and the confirmation all terminate on the
+     same two lines. */
+  main:has(.c-page) {
+    --gutter-start: var(--gutter-end);
+  }
+
+  .c-page {
+    inline-size: min(100%, 40vw + 450px, 1140px);
+    margin-inline: auto;
+  }
+
   /* ~68/32, and expressed as "the rail takes its share, the form takes what is
      left" rather than as two `fr` shares, because the two columns are not the
      same kind of thing. The form is the page (wireframe: "the primary action and
      its visual center of gravity"); the rail is an editorial aside whose job is
      a readable measure and nothing more.
 
-     `30%` resolves against the well, so the ratio is the SAME at every width the
-     two-column layout applies to — it does not drift as the well grows. The
-     `296px` floor is the one exception and it is deliberate: below it the mono
-     context value and the Service names start breaking at awkward measures, so
-     on a narrow desktop the rail keeps its measure and the ratio relaxes instead
-     of the other way round.
+     `30%` resolves against the canvas, so the ratio is the SAME at every width
+     the two-column layout applies to — it does not drift as the canvas grows,
+     and it did not move when the canvas was inset above. The `296px` floor is
+     the one exception and it is deliberate: below it the mono context value and
+     the Service names start breaking at awkward measures, so on a narrow
+     desktop the rail keeps its measure and the ratio relaxes instead of the
+     other way round.
 
-       1650   well 1470  ·  rail 441px  ·  form 949px   → 68.3 / 31.7
-       1440   well 1275  ·  rail 383px  ·  form 820px   → 68.2 / 31.8
-       1280   well 1126  ·  rail 338px  ·  form 724px   → 68.2 / 31.8
-       1024   well  901  ·  rail 296px  ·  form 554px   → 65.2 / 34.8 (floor)
+       1650   canvas 1110  ·  rail 333px  ·  form 713px  → 68.2 / 31.8
+       1440   canvas 1026  ·  rail 308px  ·  form 654px  → 68.0 / 32.0
+       1280   canvas  962  ·  rail 296px  ·  form 602px  → 67.0 / 33.0 (floor)
+       1024   canvas  860  ·  rail 296px  ·  form 513px  → 63.4 / 36.6 (floor)
 
      `--c-gap` (72–80px on a wide viewport) is unchanged, so the parting hairline
      keeps its air on both sides. */
@@ -894,9 +958,41 @@ a.c-method-value:focus-visible {
     grid-row: 1;
   }
 
+  /* ── THE FORM ENDS AS A BLOCK, NOT ON THE BUTTON'S BORDER ────────────────
+     `.c-submit-row` is the last thing the form renders (`.c-status` and
+     `.c-privacy` are empty and collapse), so with no tail of its own the form
+     box terminated on the CTA's own 1px border — and because the parting
+     hairline is stretched to the form's height, the rule terminated on that
+     same pixel too. The page's `--pad-loud` tail did follow, but it belongs to
+     the PAGE: from inside the composition the action had a boundary drawn
+     across its bottom edge and nothing between the two, which is what read as
+     clipped.
+
+     60px of real flow spacing, and three things about the value:
+
+       · it is a LENGTH, not a `vh` share. The tail below it is
+         `clamp(64px, 10vh, 120px)`, which is derived from the window and
+         therefore collapses exactly when the page is already tight — a short
+         window loses its ending twice over. This beat cannot: 60px at a 900px
+         laptop is 60px at a 700px one.
+       · it is padding on the form, so it is inside the composition. The rule
+         between the columns lengthens with it and both columns close together,
+         which is how a parted composition ends; the page tail then follows as
+         the separate, larger beat it always was.
+       · it is desktop-only. Below 1024px the form is not the last block on the
+         page — the rail follows it in source order — and a tail here would
+         become an interval between two modules rather than an ending. The
+         stack keeps `.c-body`'s own gap, unchanged.
+
+     It does not move the CTA. Nothing above it shifts by a pixel; the page
+     simply grows 60px taller, and at 1440×900 that means the composition now
+     asks for a small scroll to reach its own ending. That is the intended
+     trade — see the note on `.c-body` about the beat this page spends at its
+     foot. */
   .c-form {
     grid-column: 1;
     grid-row: 1;
+    padding-block-end: 60px;
   }
 
   /* Row 2 of the two the form spans. Grid hands a spanning item's surplus height
