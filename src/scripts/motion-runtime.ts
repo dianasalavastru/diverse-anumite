@@ -67,37 +67,126 @@ for (const el of reveals) {
   el.classList.add(`rv--${revealType(el)}`);
 }
 
+/* ════════════════════════════════════════════════════════════════════════════
+   THE REVEAL GATE FAILS OPEN. IT DID NOT, AND THAT SHIPPED CONTENT INVISIBLE.
+   ════════════════════════════════════════════════════════════════════════════
+
+   Every `.rv` element starts at `opacity: 0` (motion.css), and `rv--head` and
+   `rv--img` additionally start clipped to an empty box. Until something adds
+   `.in`, that content is not merely un-animated — it is **gone**. Headings,
+   photographs and whole media regions on every page of the site are behind this
+   one class.
+
+   That gate used to be an `IntersectionObserver`, and an observer is a *promise
+   of delivery*, not a guarantee of one. It delivers nothing while the document
+   is hidden — and after the document becomes visible it only fires again when a
+   threshold is **crossed**, so a page that was loaded in a background tab, or
+   restored from bfcache, or opened behind another window, and is then read
+   without scrolling, never crosses anything. Its headings and images stay at
+   `opacity: 0` forever.
+
+   That is not hypothetical. It reproduces exactly: with the document hidden, an
+   observer registered on a fully on-screen element never fires at all (a 30s
+   `await` on its first callback times out), while the same page's layout,
+   geometry and images are all completely correct underneath. The reported
+   symptom — "the geometry exists, the space exists, the content is invisible" —
+   is this and only this.
+
+   So the observer is gone, and the same decision is computed from layout
+   instead. `getBoundingClientRect()` cannot be withheld: it is synchronous, it
+   is exact, and it answers whether an element is on screen whether or not the
+   compositor feels like telling us.
+
+   ── THE MOTION IS UNCHANGED ────────────────────────────────────────────────
+   `shouldReveal` reproduces the observer's geometry exactly rather than
+   approximating it: the same 12% threshold, against a root whose bottom edge is
+   pulled up by the same 6%, plus the same "already scrolled past" rule. An
+   element reveals at the same scroll position it did before. MOTION_NOTES.md's
+   staged reveal, its per-type delays and its reading order are all untouched —
+   only the thing that *notices* changed.
+
+   ── AND IT STILL RUNS ONCE ─────────────────────────────────────────────────
+   `pending` shrinks as elements resolve and is never re-added to, so a revealed
+   element is never re-evaluated and never re-animates on scroll-back. When it
+   empties, the listeners remove themselves and the page pays nothing.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/** The observer's own bookkeeping, kept: reveal once, then forget. */
+const pending = new Set(reveals);
+
+function resolve(el: Element): void {
+  el.classList.add('in');
+  pending.delete(el);
+}
+
+/**
+ * The `{ threshold: 0.12, rootMargin: '0px 0px -6% 0px' }` contract, computed.
+ *
+ * A zero-height element can never reach a ratio, so it resolves on entry
+ * instead — otherwise an empty-but-present box would be the one thing that
+ * could still stick, which is the bug this function exists to end.
+ */
+function shouldReveal(el: Element): boolean {
+  const box = el.getBoundingClientRect();
+
+  // Scrolled past: it ended above the viewport and will never intersect again.
+  if (box.bottom <= 0) return true;
+
+  const rootBottom = window.innerHeight * 0.94; // rootMargin: 0 0 -6% 0
+  if (box.top >= rootBottom) return false;
+
+  if (box.height === 0) return true;
+
+  const visible = Math.min(box.bottom, rootBottom) - Math.max(box.top, 0);
+  return visible / box.height >= 0.12;
+}
+
 if (reduce) {
   // Layout parity: final state, immediately, no transition (MOTION_NOTES.md:62).
-  for (const el of reveals) el.classList.add('in');
+  for (const el of reveals) resolve(el);
 } else if (reveals.length > 0) {
-  // Reveals run ONCE — unobserved after firing, not on every scroll-back.
-  const revealObserver = new IntersectionObserver(
-    (entries) => {
-      for (const entry of entries) {
-        /**
-         * Already scrolled PAST counts as revealed.
-         *
-         * The observer's first callback reports every element, including those
-         * above the viewport — and those are never going to intersect again on
-         * a downward read. Browsers restore scroll position on reload and on
-         * back-navigation, and a deep link lands mid-page, so without this an
-         * ordinary reload leaves everything above the fold permanently at
-         * `opacity: 0`. The HiFi has the same gap; it is not visible in a
-         * prototype that is only ever opened at the top.
-         *
-         * `bottom <= 0` means the element ended above the viewport's top edge.
-         * It resolves to the same final state, with no transition worth seeing.
-         */
-        const passed = entry.boundingClientRect.bottom <= 0;
-        if (!entry.isIntersecting && !passed) continue;
-        entry.target.classList.add('in');
-        revealObserver.unobserve(entry.target);
-      }
-    },
-    { threshold: 0.12, rootMargin: '0px 0px -6% 0px' },
-  );
-  for (const el of reveals) revealObserver.observe(el);
+  let queued = false;
+
+  const sweep = (): void => {
+    queued = false;
+    for (const el of [...pending]) {
+      if (shouldReveal(el)) resolve(el);
+    }
+    if (pending.size === 0) {
+      removeEventListener('scroll', schedule);
+      removeEventListener('resize', schedule);
+      removeEventListener('load', sweep);
+      document.removeEventListener('visibilitychange', sweep);
+    }
+  };
+
+  /** One sweep per frame at most, however many events arrive. */
+  function schedule(): void {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(sweep);
+  }
+
+  /* Scroll and resize are high-frequency, so they coalesce into one frame. */
+  addEventListener('scroll', schedule, { passive: true });
+  addEventListener('resize', schedule);
+
+  /* `load` and `visibilitychange` sweep SYNCHRONOUSLY, and that difference is
+     the whole point of listening to them.
+     They are the two moments the observer had no answer for — a page whose
+     images settle late and shift the layout, and a page that was never visible
+     when its content first came on screen — and both can occur while
+     `requestAnimationFrame` is still frozen. Deferring these to a frame would
+     hand the correctness path back to the same "runs only when the browser feels
+     like rendering" dependency this rewrite exists to remove. They are rare
+     enough that the throttle buys nothing anyway. */
+  addEventListener('load', sweep);
+  document.addEventListener('visibilitychange', sweep);
+
+  /* Synchronously, before the first paint the runtime can affect: whatever is
+     already on screen is already readable. Nothing above the fold waits for an
+     event that may never come. */
+  sweep();
 }
 
 /* -------------------------------------------------------------------------- */
