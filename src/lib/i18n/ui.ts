@@ -68,8 +68,15 @@ export interface UiMessages {
   readonly nav: NavLabels;
   readonly footer: FooterLabels;
   readonly language: LanguageToggleLabels;
-  /** Label of the small-viewport menu control. */
+  /** Label of the small-viewport menu control, closed. */
   readonly menu: string;
+  /**
+   * Label the same control takes while its panel is open. The control keeps its
+   * `aria-expanded` state either way — this is the SIGHTED affordance, because a
+   * full-surface panel headed by a button still reading "MENIU" gives a pointer
+   * user nothing to aim at to get out of it.
+   */
+  readonly menuClose: string;
   /** Accessible name for the header landmark. */
   readonly primaryNavigation: string;
   /** Skip link target label — WCAG 2.2 AA bypass-blocks. */
@@ -95,6 +102,7 @@ const ro: UiMessages = {
     unavailable: '',
   },
   menu: 'Meniu',
+  menuClose: 'Inchide',
   primaryNavigation: 'Navigare principala',
   skipToContent: 'Sari la continut',
 };
@@ -123,6 +131,7 @@ const en: UiMessages = {
     unavailable: '',
   },
   menu: 'Menu',
+  menuClose: 'Close',
   primaryNavigation: 'Primary navigation',
   skipToContent: 'Skip to content',
 };

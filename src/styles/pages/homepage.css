@@ -128,13 +128,30 @@
 .arrival {
   position: relative;
   padding: clamp(90px, 12vh, 150px) 0 var(--pad-quiet);
+  /* THE OPENING MEASURE (desktop composition pass).
+     Station 01 has to read as one scene: plate + the beginning of the value
+     proposition inside one normal desktop view. The plate is therefore
+     composed against the viewport's HEIGHT first — that is the axis the
+     requirement is stated in — and its width follows from it below. */
+  --hero-h: clamp(320px, 52vh, 560px);
 }
 
 .hero-plate {
   position: relative;
-  width: 100%;
-  height: clamp(360px, 64vh, 640px);
+  /* WAS `width: 100%; height: clamp(360px, 64vh, 640px)`.
+     Nothing constrained the plate at all: it took the entire content well, so
+     at 1440 it ran 1275px — 89% of the window, gutter to gutter — and 64vh
+     tall. That is a banner; the HiFi's "dominant plate" is a composed one.
+     The width is now derived from `--hero-h` through the plate's own
+     cinematic ratio (11/5 ≈ the 2.21:1 it already rendered at), so the
+     proportion is unchanged and only the scale is corrected. The 92% ceiling
+     is the containment rule itself — the plate never reaches the inline-end
+     gutter, so paper always shows beside it. */
+  width: min(92%, calc(var(--hero-h) * 11 / 5));
+  height: var(--hero-h);
   overflow: hidden;
+  /* The wordmark is measured from the plate, not the window — see `.hw`. */
+  container-type: inline-size;
 }
 
 .hero-img {
@@ -182,7 +199,14 @@
   font-family: var(--pixel);
   font-weight: 500;
   color: var(--blue);
-  font-size: clamp(34px, 8.4vw, 124px);
+  /* WAS `8.4vw`. The wordmark is composited ON the plate and set `nowrap`
+     inside its `overflow: hidden`, so it has to scale with the PLATE. Sized
+     from the window it survived only because the plate was the window; the
+     moment the plate is contained, a window-sized wordmark is clipped.
+     9.5cqi is the ratio it already rendered at (121px on a 1275px plate at
+     1440, 107.5px on a 1126px plate at 1280) — the same wordmark, now
+     measured against the thing it sits on. */
+  font-size: clamp(34px, 9.5cqi, 124px);
   line-height: 0.9;
   letter-spacing: 0.02em;
   white-space: nowrap;
@@ -235,11 +259,15 @@
   align-items: start;
 }
 
-.lead .h1wrap {
-  max-width: 22ch;
-}
-
+/* The 22-character measure belongs to the HEADING, and `ch` resolves against
+   the element it is written on. On the wrapper it resolved at the inherited
+   16px — 196px — so the 58px heading overflowed its own box on every word,
+   and `.rv--head`'s clip-path (a reveal type the HiFi does not apply to this
+   wrapper) cut the overflow off mid-word: "Proiecta…" with the rest gone.
+   Measured where it is meant, the heading sets 22 characters of ITS type and
+   the eyebrow above it keeps its own natural single line. */
 .lead h1 {
+  max-width: 22ch;
   font-family: var(--read);
   font-weight: 600;
   font-size: clamp(30px, 4.4vw, 58px);
@@ -482,7 +510,22 @@
   position: relative;
   padding: var(--pad-loud) 0;
   display: grid;
-  grid-template-columns: 0.85fr 1.15fr;
+  /* WAS `grid-template-columns: 0.85fr 1.15fr`.
+     An `fr` track hands the figure a share of whatever the well is wide —
+     517px at 1440 — and `aspect-ratio: 4/5` then turns that width into 647px
+     of HEIGHT, 72% of a 900px viewport, for what §III calls a *supporting*
+     figure. Nothing in that chain ever consults the view the photograph has to
+     be seen in, which is why it grew with the window instead of composing
+     against it.
+     The figure column is therefore measured against the viewport's height and
+     converted back through the figure's own authored 4:5 — the ratio, the crop
+     and the `align-self: start` fix below are all untouched; only the scale
+     feeding them is now bounded. The 34% ceiling keeps the photograph from
+     retaking the composition on short, wide windows, where 56vh would be the
+     larger of the two. The body column takes the remainder, which is what lets
+     it read as the equal half of the beat rather than the leftover. */
+  --cred-figure: min(34%, calc(56vh * 4 / 5));
+  grid-template-columns: var(--cred-figure) minmax(0, 1fr);
   gap: clamp(30px, 4vw, 64px);
   align-items: stretch;
 }
@@ -583,7 +626,19 @@
   text-transform: uppercase;
   color: var(--ink-60);
   text-align: right;
-  max-width: 22ch;
+  /* WAS `22ch` — 146px, because `ch` at 11px mono with 0.10em tracking is a
+     very small unit. `.ro` is baseline-aligned, so every label line past the
+     first hangs BELOW the numeral and adds its full leading to the row: the
+     three labels ran 5/3/4 lines and the readout block stood 434px tall
+     against 700px of column it was not using. The `align-self: start` note on
+     `.cred .figure` already names the cause — the "(substituent)" suffixes
+     this build carries and the HiFi does not.
+     44ch is where that stops paying: it is the smallest measure at which all
+     three suffixed labels settle at two lines (rows go 162/126/144 → 109 each,
+     the floor the numeral itself sets), and widening further changes nothing.
+     Nothing about the label's voice, size, colour or right alignment moves —
+     only how much room it is allowed to use before it wraps. */
+  max-width: 44ch;
   margin: 0;
 }
 
@@ -673,7 +728,23 @@
 
 .cur-grid {
   display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
+  /* WAS `grid-template-columns: 1.15fr 0.85fr`.
+     This is the same unbounded chain as `.cred`, and here it inverted the
+     station's hierarchy outright. The 0.85fr track handed the board 511px, and
+     `.prof .pimg`'s `aspect-ratio: 4/5` made that 639px of height. The whole
+     left column — 05 SELECTIE, Concursuri, its intro and its index — measures
+     162px. One image was therefore setting 766px of grid height, 4.7× the
+     content it was supposed to counterpoint, and `align-items: start` left
+     nothing to answer it.
+     The board column is now measured against the viewport height through its
+     own 4:5, exactly as the credibility figure is: it stays a real, legible
+     architectural document (360×450 at 1440×900, still a quarter of the
+     window's width) but it stops dictating how far the station runs. The
+     editorial column takes the remainder — 843px instead of 692px — so the
+     list, not the photograph, is what the width is spent on. The ghost 05
+     keeps its own placement and is untouched. */
+  --cur-board: min(30%, calc(50vh * 4 / 5));
+  grid-template-columns: minmax(0, 1fr) var(--cur-board);
   gap: clamp(30px, 5vw, 72px);
   align-items: start;
   position: relative;
@@ -979,8 +1050,14 @@ html.anim-ready .hero-scan {
     padding-top: 104px;
   }
 
+  /* The narrow composition is unchanged: the plate keeps its authored mobile
+     height and goes back to the full well. Containment is a wide-viewport
+     correction — below 820px there is no gutter to give back, and §12 forbids
+     shrinking the narrow art direction to match a desktop decision. */
   .hero-plate {
-    height: clamp(300px, 52vh, 460px);
+    --hero-h: clamp(300px, 52vh, 460px);
+    width: 100%;
+    height: var(--hero-h);
   }
 
   .hw {
@@ -1022,6 +1099,15 @@ html.anim-ready .hero-scan {
 
   .cred .figure {
     aspect-ratio: 16 / 10;
+  }
+
+  /* The readout measure goes back to the authored narrow value. `.ro` stays a
+     single flex row here, so at 375 a 44ch label leaves the numeral ~52px and
+     "12" drops its own unit onto a second line — the desktop measure buys
+     nothing narrow and costs the numeral its line. The narrow composition is
+     therefore exactly as authored. */
+  .ro .k {
+    max-width: 22ch;
   }
 
   .cur-grid {

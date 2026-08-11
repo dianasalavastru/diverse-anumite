@@ -14,13 +14,33 @@
  * Styling lives in src/styles/components/global-header.css, inside the
  * `components` cascade layer.
  *
+ * ── THE SMALL-VIEWPORT PANEL ───────────────────────────────────────────────
+ * Below 720px the horizontal nav is `display: none` and the `menu` control
+ * takes its place. That control used to render `disabled` with no panel behind
+ * it, which meant the entire global navigation — all four task links AND the
+ * language toggle — was unreachable by pointer, touch and keyboard alike at
+ * every small viewport. Only the wordmark survived. §14.0 ("no interactive
+ * surface may become unreachable") was being broken by the header itself.
+ *
+ * The panel below is that missing surface. It is a plain disclosure: a native
+ * <button> carrying `aria-expanded`/`aria-controls`, and a normal <nav> of
+ * normal links. NOT `role="menu"` — that pattern owes arrow-key roving focus and
+ * typeahead, and these are page links, not menu commands (APG: "menu" is for
+ * application actions; site navigation stays a nav of links).
+ *
+ * It renders as a SIBLING of <header>, not a child, and that is deliberate:
+ * every existing rule in global-header.css and motion.css is written
+ * `.site-header nav …`, so nesting the panel's <nav> inside the header would
+ * silently inherit the desktop row's display, gap, type scale AND its
+ * `display: none` below 720px. As a sibling, not one existing selector changes
+ * meaning, so the approved desktop header is untouched by construction.
+ *
+ * Both navs render from the SAME `items` array, the same `isCurrent`, the same
+ * `routePath` and the same `counterpart` prop. There is no second route map.
+ *
  * NOT YET BUILT (deliberately, and out of scope for the I-1 foundation):
  *   - the Servicii pillar-grouped dropdown (COMPONENT_INVENTORY.md §4 lists it
- *     as an input; it depends on the Service objects, which are Workstream B);
- *   - the small-viewport menu panel behind the `menu` control. The control is
- *     rendered and focusable, but has no panel yet, so it is marked
- *     `aria-expanded="false"` and `hidden` from assistive tech would be wrong —
- *     it is instead disabled, which is honest about the current state.
+ *     as an input; it depends on the Service objects, which are Workstream B).
  */
 import { ui } from '../lib/i18n/ui';
 import { routePath, type Locale, type RouteKey } from '../lib/i18n/routes';
@@ -115,5 +135,52 @@ function isCurrent(key: RouteKey): boolean {
     }
   </nav>
 
-  <button class="menu" type="button" aria-expanded="false" disabled>{t.menu}</button>
+  <button
+    class="menu"
+    type="button"
+    aria-expanded="false"
+    aria-controls="site-menu"
+    data-label-open={t.menu}
+    data-label-close={t.menuClose}>{t.menu}</button>
 </header>
+
+{/* The panel is closed by CSS (`visibility: hidden`), not by an attribute the
+    runtime has to arrive and set — so it is closed, and its links are out of the
+    tab order, from the very first paint and however late the module loads. At
+    721px and up it is `display: none` outright and costs nothing. */}
+<div class="menu-panel" id="site-menu">
+  <nav aria-label={t.primaryNavigation}>
+    {
+      items.map((item) => (
+        <a
+          href={routePath(item.key as never, locale, undefined as never)}
+          class:list={[isCurrent(item.key) && 'here']}
+          aria-current={isCurrent(item.key) ? 'page' : undefined}
+        >
+          {item.label}
+        </a>
+      ))
+    }
+
+    {
+      counterpart ? (
+        <a class="en" href={counterpart} hreflang={counterpartLocale} lang={counterpartLocale}>
+          {toggleLabel}
+        </a>
+      ) : (
+        <span
+          class="en"
+          aria-disabled="true"
+          lang={counterpartLocale}
+          title={t.language.unavailable || undefined}
+        >
+          {toggleLabel}
+        </span>
+      )
+    }
+  </nav>
+</div>
+
+<script>
+  import '../scripts/islands/global-nav';
+</script>

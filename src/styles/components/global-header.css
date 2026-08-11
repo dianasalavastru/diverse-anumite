@@ -152,15 +152,162 @@
   color: var(--ink-60);
 }
 
+/* ---- The small-viewport panel ------------------------------------------- */
+
+/* Closed, and absent above the breakpoint. `display: none` here is what makes
+   the panel free on desktop; the `visibility` state below is what makes it
+   closed-but-transitionable on mobile. Both keep its links out of the tab order
+   without any attribute a runtime has to arrive and set. */
+.menu-panel {
+  display: none;
+}
+
+.menu-panel nav {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Full-width rows: the whole row is the target, not just the word. Editorial
+   list, not an app drawer — thin rules, no radius, no shadow, no inset card. */
+.menu-panel nav > * {
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+  position: relative;
+  display: flex;
+  align-items: center;
+  /* WCAG 2.2 AA 2.5.8 asks 24x24; 56px is the composition's own row, and it
+     clears 2.5.5 (AAA, 44x44) as well. */
+  min-height: 56px;
+  padding-inline: var(--gutter-end);
+  border-block-end: 1px solid var(--hair);
+  touch-action: manipulation;
+}
+
+.menu-panel nav > :first-child {
+  border-block-start: 1px solid var(--hair);
+}
+
+/* Current section. The same blue as the desktop underline, and the same
+   STRUCTURAL treatment translated to a stacked list: a rule at the inline
+   start, drawn in the accent, so the state is not carried by colour alone
+   (WCAG 1.4.1). `aria-current="page"` carries it non-visually. */
+.menu-panel nav a.here {
+  color: var(--blue);
+}
+
+.menu-panel nav a.here::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 3px;
+  background: var(--blue);
+}
+
+/* The language toggle sits quieter than the task links, exactly as it does in
+   the header row — and keeps --ink-60 for the same 4.5:1 reason (I-3). */
+.menu-panel nav .en {
+  color: var(--ink-60);
+}
+
+.menu-panel nav .en[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* HP, HUB, RC, WE, SV — the task links collapse to a menu control below 720px.
-   The control is present and focusable at every width; only its display flips,
-   so nothing becomes unreachable (§14.0). */
+   720px is not a device label and it is not arbitrary: it is the breakpoint the
+   HiFis record, and it sits comfortably ABOVE the measured collision point. The
+   RO row is the wider of the two locales (wordmark 87px + nav 357px), and with
+   `--gutter-end` at 5vw it stops fitting at ~522px; EN at ~514px. Collapsing at
+   720px therefore happens while the row still fits, which is why nothing has
+   ever overflowed — and lowering it to the true collision point would change the
+   approved header's appearance across the whole 522-720px band for no
+   functional gain. It stays where the HiFis put it.
+
+   Below it, the control is no longer decorative: it opens the panel. */
 @media (max-width: 720px) {
   .site-header nav {
     display: none;
   }
 
   .site-header .menu {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    /* 2.5.8 again. The padding grows inward only, so the label's right edge
+       stays on the gutter and the header's composition does not move. */
+    min-height: 44px;
+    padding-inline-start: 16px;
+
+    /* The control is a WORD, not an icon, and a word inside a tap target is a
+       word a touch device will happily select instead of pressing — a tap that
+       lands slightly long leaves "MENIU" highlighted and the panel shut.
+       `touch-action` drops the legacy 300ms double-tap wait with it. */
+    user-select: none;
+    touch-action: manipulation;
+  }
+
+  /* Full viewport, INCLUDING the strip behind the header — the header is
+     `z-index: 60` and draws on top of it, so this is simply how the header
+     stops being transparent over page content while the panel is open. The
+     panel's own content starts below it. */
+  .menu-panel {
     display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    padding-block-start: var(--header-h);
+    background: var(--paper);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+
+    /* Closed. `visibility` — not `display` — because it is the one property
+       that both removes the links from the tab order and can be transitioned:
+       the delay holds the panel present for the length of the fade out, then
+       drops it.
+
+       `pointer-events` is NOT the same statement said twice. For the 240ms the
+       fade out lasts, the panel is still `visibility: visible` at `opacity: 0`
+       — a full-viewport sheet of nothing, and an invisible layer still swallows
+       the tap that lands on it. Without this, closing with Escape leaves a
+       quarter second in which the page underneath cannot be touched. */
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 0.24s var(--ease),
+      visibility 0s linear 0.24s;
+  }
+
+  html.menu-open .menu-panel {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+    transition:
+      opacity 0.24s var(--ease),
+      visibility 0s;
+  }
+
+  /* The page behind must not scroll under the panel. `overflow: hidden` never
+     moves the scroll offset, so opening and closing cannot jump the page;
+     `scrollbar-gutter: stable` keeps the classic scrollbar's width reserved
+     while it is hidden, so nothing reflows either. The runtime releases this on
+     every exit path, including a viewport that grows past this media query. */
+  html.menu-open {
+    overflow: hidden;
+    scrollbar-gutter: stable;
+  }
+
+  /* The wordmark and the control sit over the panel's white ground while it is
+     open, so the `on-hero` variant's white type would vanish. Both revert to
+     ink for as long as the panel is up — this is the only state in which the
+     header's own colour depends on something other than scroll. */
+  html.menu-open .site-header .wm,
+  html.menu-open .site-header .menu {
+    color: var(--ink);
   }
 }

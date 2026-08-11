@@ -125,84 +125,92 @@ const topicOptions = TOPIC_CHOICES.map((value) => ({
   <h2 class="c-form-legend" id="c-form-legend">{form.legend}</h2>
   <p class="c-required-note measure">{form.requiredNote}</p>
 
-  <div class="c-field">
-    <label class="c-label" for={name.control}>
-      {form.name.label}<span class="c-req" aria-hidden="true">{form.requiredMark}</span>
-    </label>
-    <input
-      class="c-input"
-      id={name.control}
-      name="name"
-      type="text"
-      autocomplete="name"
-      required
-      aria-describedby={describedBy('name', form.name.hint)}
-      data-field="name"
-    />
-    {form.name.hint && <p class="c-hint" id={name.hint}>{form.name.hint}</p>}
-    <p class="c-error" id={name.error} data-error-for="name" {...errorData(form.name.errors)}></p>
-  </div>
+  {/* The fields are a grid rather than four stacked blocks. Nothing is added,
+      removed or reordered — Name and Email simply share one row once the column
+      is wide enough for two ≥44px controls to sit side by side, which is the
+      pairing every browser's own autofill already treats as one step. The
+      previous stack put the submit control below the fold of a 900px-tall
+      laptop viewport with four fields' worth of `3.6vh` gaps above it. */}
+  <div class="c-fields">
+    <div class="c-field c-field--half">
+      <label class="c-label" for={name.control}>
+        {form.name.label}<span class="c-req" aria-hidden="true">{form.requiredMark}</span>
+      </label>
+      <input
+        class="c-input"
+        id={name.control}
+        name="name"
+        type="text"
+        autocomplete="name"
+        required
+        aria-describedby={describedBy('name', form.name.hint)}
+        data-field="name"
+      />
+      {form.name.hint && <p class="c-hint" id={name.hint}>{form.name.hint}</p>}
+      <p class="c-error" id={name.error} data-error-for="name" {...errorData(form.name.errors)}></p>
+    </div>
 
-  <div class="c-field">
-    <label class="c-label" for={email.control}>
-      {form.email.label}<span class="c-req" aria-hidden="true">{form.requiredMark}</span>
-    </label>
-    <input
-      class="c-input"
-      id={email.control}
-      name="email"
-      type="email"
-      inputmode="email"
-      autocomplete="email"
-      spellcheck="false"
-      required
-      aria-describedby={describedBy('email', form.email.hint)}
-      data-field="email"
-    />
-    {form.email.hint && <p class="c-hint" id={email.hint}>{form.email.hint}</p>}
-    <p class="c-error" id={email.error} data-error-for="email" {...errorData(form.email.errors)}></p>
-  </div>
+    <div class="c-field c-field--half">
+      <label class="c-label" for={email.control}>
+        {form.email.label}<span class="c-req" aria-hidden="true">{form.requiredMark}</span>
+      </label>
+      <input
+        class="c-input"
+        id={email.control}
+        name="email"
+        type="email"
+        inputmode="email"
+        autocomplete="email"
+        spellcheck="false"
+        required
+        aria-describedby={describedBy('email', form.email.hint)}
+        data-field="email"
+      />
+      {form.email.hint && <p class="c-hint" id={email.hint}>{form.email.hint}</p>}
+      <p class="c-error" id={email.error} data-error-for="email" {...errorData(form.email.errors)}></p>
+    </div>
 
-  {/* The optional broad Topic selector. A native `<select>`: its state is
-      announced by the platform, it is keyboard operable with no authored ARIA,
-      and the island sets its value from the prefill — the same control the
-      visitor can then change, rather than a second, read-only echo of context. */}
-  <div class="c-field c-field--topic">
-    <label class="c-label" for={topic.control}>{form.topic.label}</label>
-    <span class="c-sel">
-      <select
-        class="c-select"
-        id={topic.control}
-        name="topic"
-        aria-describedby={form.topic.hint ? topic.hint : undefined}
-        data-field="topic"
-      >
-        {
-          topicOptions.map((option) => (
-            <option value={option.value} selected={option.value === TOPIC_NOT_SURE}>
-              {option.label}
-            </option>
-          ))
-        }
-      </select>
-    </span>
-    {form.topic.hint && <p class="c-hint" id={topic.hint}>{form.topic.hint}</p>}
-  </div>
+    {/* The optional broad Topic selector. A native `<select>`: its state is
+        announced by the platform, it is keyboard operable with no authored ARIA,
+        and the island sets its value from the prefill — the same control the
+        visitor can then change, rather than a second, read-only echo of context. */}
+    <div class="c-field c-field--full c-field--topic">
+      <label class="c-label" for={topic.control}>{form.topic.label}</label>
+      <span class="c-sel">
+        <select
+          class="c-select"
+          id={topic.control}
+          name="topic"
+          aria-describedby={form.topic.hint ? topic.hint : undefined}
+          data-field="topic"
+        >
+          {
+            topicOptions.map((option) => (
+              <option value={option.value} selected={option.value === TOPIC_NOT_SURE}>
+                {option.label}
+              </option>
+            ))
+          }
+        </select>
+      </span>
+      {form.topic.hint && <p class="c-hint" id={topic.hint}>{form.topic.hint}</p>}
+    </div>
 
-  <div class="c-field">
-    <label class="c-label" for={message.control}>
-      {form.message.label}<span class="c-req" aria-hidden="true">{form.requiredMark}</span>
-    </label>
-    <textarea
-      class="c-input c-textarea"
-      id={message.control}
-      name="message"
-      rows="7"
-      required
-      aria-describedby={describedBy('message', form.message.hint)}
-      data-field="message"></textarea>
-    {form.message.hint && <p class="c-hint" id={message.hint}>{form.message.hint}</p>}
-    <p class="c-error" id={message.error} data-error-for="message" {...errorData(form.message.errors)}></p>
+    <div class="c-field c-field--full">
+      <label class="c-label" for={message.control}>
+        {form.message.label}<span class="c-req" aria-hidden="true">{form.requiredMark}</span>
+      </label>
+      <textarea
+        class="c-input c-textarea"
+        id={message.control}
+        name="message"
+        rows="5"
+        required
+        aria-describedby={describedBy('message', form.message.hint)}
+        data-field="message"></textarea>
+      {form.message.hint && <p class="c-hint" id={message.hint}>{form.message.hint}</p>}
+      <p class="c-error" id={message.error} data-error-for="message" {...errorData(form.message.errors)}></p>
+    </div>
   </div>
 
   {/* Carries the validated Service slug on the no-JS POST. The island sets it

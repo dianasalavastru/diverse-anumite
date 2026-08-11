@@ -25,6 +25,19 @@
  * multi-station page types (HP, HUB, RC, WE, SV), and Contact is a single
  * uninterrupted act. `WorkArchive.astro` records the same reasoning for its own
  * missing rail.
+ *
+ * ── TWO COMPOSITION MOVES, NEITHER OF THEM NEW CONTENT ─────────────────────
+ *  1. **The breadcrumb and the eyebrow share one baseline.** Both are 11px mono
+ *     roles, and the section marker used by every paced page type already puts a
+ *     label at the inline start and a running coordinate at the inline end of one
+ *     rule (`SectionMarker.astro`). This is that geometry, applied to the two
+ *     11px roles Contact actually has. DOM order is unchanged — nav, then the
+ *     eyebrow that labels the heading below it.
+ *  2. **The statement is rendered by `ContactPage.astro`, not here.** It is still
+ *     C-1 content and still reads immediately after the heading; it is composed
+ *     into the lead block beside the form so that the desktop canvas carries
+ *     weight on both sides instead of one. See the composition note in
+ *     `ContactPage.astro` and the grid in `styles/pages/contact.css`.
  */
 import type { Locale } from '../../lib/content';
 import type { ContactMessages } from '../../lib/i18n/contact';
@@ -39,14 +52,16 @@ const { locale, copy } = Astro.props;
 ---
 
 <section class="c-intro" aria-labelledby="c-heading">
-  <nav class="c-crumbs-nav" aria-label={copy.breadcrumbLabel}>
-    <ol class="c-crumbs">
-      <li><a href={routePath('home', locale)}>{copy.home}</a></li>
-      <li aria-current="page">{copy.here}</li>
-    </ol>
-  </nav>
+  <div class="c-intro-top">
+    <nav class="c-crumbs-nav" aria-label={copy.breadcrumbLabel}>
+      <ol class="c-crumbs">
+        <li><a href={routePath('home', locale)}>{copy.home}</a></li>
+        <li aria-current="page">{copy.here}</li>
+      </ol>
+    </nav>
 
-  <p class="eyebrow rv" data-rv="meta">{copy.eyebrow}</p>
+    <p class="eyebrow rv" data-rv="meta">{copy.eyebrow}</p>
+  </div>
+
   <h1 class="c-title rv" data-rv="head" id="c-heading">{copy.heading}</h1>
-  <p class="c-statement rv" data-rv="meta">{copy.statement}</p>
 </section>

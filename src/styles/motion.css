@@ -132,6 +132,15 @@ html.anim-ready .site-header nav {
     opacity: 1 !important;
     transition: none !important;
   }
+
+  /* The small-viewport panel: the state change is kept, the fade is not. Only
+     `transition` is reset — the panel's `visibility`/`opacity` ARE its open and
+     closed states, and forcing either would leave it permanently open. Dropping
+     the transition also drops the delay that holds it present through the fade
+     out, so closed becomes closed on the same frame. */
+  .menu-panel {
+    transition: none !important;
+  }
 }
 
 /* ---- Cross-document view transitions -------------------------------------

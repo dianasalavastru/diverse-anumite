@@ -100,6 +100,16 @@ const absolute = (path: string) => (Astro.site ? new URL(path, Astro.site).href 
       No-JS fallback. The motion layer starts elements hidden and reveals them;
       if the bundle never runs, they must not stay hidden. Reduced motion is
       handled in CSS, so this covers only the scripting-disabled case.
+
+      The second block covers the small-viewport navigation. Below 720px the
+      header hides the horizontal nav and offers a `MENIU` disclosure instead,
+      and a disclosure needs a runtime — so with scripting off the control is a
+      dead one. It is removed, and the nav it stands in for is given back: the
+      header leaves the fixed layer, grows to fit, and the task links wrap. Less
+      composed than the panel, and completely usable, which is the trade §14.0
+      asks for ("no interactive surface may become unreachable when an
+      enhancement API is absent"). `position: static` rather than a taller fixed
+      header so nothing is ever covered by it.
     -->
     <noscript>
       <style>
@@ -111,6 +121,34 @@ const absolute = (path: string) => (Astro.site ? new URL(path, Astro.site).href 
           opacity: 1 !important;
           transform: none !important;
           clip-path: none !important;
+        }
+
+        @media (max-width: 720px) {
+          .site-header {
+            position: static;
+            height: auto;
+            flex-wrap: wrap;
+            row-gap: 4px;
+            padding-block: 12px;
+          }
+
+          .site-header nav {
+            display: flex !important;
+            flex-wrap: wrap;
+            gap: 4px 22px;
+          }
+
+          .site-header nav a,
+          .site-header nav .en {
+            display: inline-flex;
+            align-items: center;
+            min-height: 44px;
+          }
+
+          .site-header .menu,
+          .menu-panel {
+            display: none !important;
+          }
         }
       </style>
     </noscript>

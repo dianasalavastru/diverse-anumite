@@ -40,6 +40,38 @@
  *      that yields an accessible control: hairline underline, ink text, blue on
  *      focus. See the header of `styles/pages/contact.css`.
  *
+ * ── DESKTOP COMPOSITION: TWO COLUMNS, NO NEW CONTENT ───────────────────────
+ * The modules and their reading progression are unchanged. What changed is where
+ * they sit on a wide canvas.
+ *
+ * Until now the whole page was one 78ch column: C-1, C-2 and the form stacked in
+ * the inline-start half and the rest of a 1440px canvas was blank, with the form
+ * pushed so far down that its submit control sat below the fold. The wireframe
+ * asks for "generous spacing", not for a column of empty gutters, and it is
+ * explicit that "above / below / beside" describe **reading order and relative
+ * emphasis, never pixel positions" — so the reading progression is preserved in
+ * the DOM while the desktop grid places the supporting material beside the form:
+ *
+ *   LEFT (1.6fr)   the form — C-3, "the primary action and visual center of
+ *                  gravity", now the widest and heaviest thing on the page.
+ *   RIGHT (1fr)    the lead block — C-1's statement and C-2's acknowledgement —
+ *                  and, below it, C-4/C-5 when they are authored. Separated from
+ *                  the form by a single hairline in the gap, which is the only
+ *                  separator this system has (`--hair`). No panel, no fill.
+ *
+ * DOM order is statement → context → form → methods → expectation, which is the
+ * wireframe's progression verbatim and what every narrow viewport renders. The
+ * two columns are a placement of that order, not a reordering of it: everything
+ * in the right column is non-interactive text, so focus order (2.4.3) is the
+ * form's own order in both layouts.
+ *
+ * ── WHAT THE RIGHT COLUMN DOES *NOT* CONTAIN ───────────────────────────────
+ * An address, a phone number, an office, a response time or a social handle.
+ * None of those exists in an authoritative source — see the long note in
+ * `lib/i18n/contact.ts` — and inventing one here to balance a composition is
+ * exactly what §10.4 forbids. C-4 and C-5 keep their slots and stay absent; the
+ * column is composed around the content that is real.
+ *
  * ── CONTENT: THE SAME I-3 SWAP POINT ───────────────────────────────────────
  * One content read, and it is not page copy: the Service catalogue the prefill
  * layer validates `?regarding=` against, locale-scoped by `ContentSource` before
@@ -51,6 +83,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import ConfirmationState from './ConfirmationState.astro';
 import ContactMethods from './ContactMethods.astro';
 import ContactOrientation from './ContactOrientation.astro';
+import ContactTopics from './ContactTopics.astro';
 import ContextSummary from './ContextSummary.astro';
 import EnquiryForm from './EnquiryForm.astro';
 import ResponseExpectation from './ResponseExpectation.astro';
@@ -114,8 +147,20 @@ const prefillCatalogue = JSON.stringify({
   },
 });
 
-/** C-4 and C-5 are both PENDING today; without either there is no aside to draw. */
-const hasSecondary = channels.length > 0 || copy.expectation !== '';
+/**
+ * Whether the rail's LOWER stations exist at all.
+ *
+ * Three candidates, in reading order: the topic index (real as soon as the CMS
+ * has one published Service in this locale), C-4's direct channels and C-5's
+ * response expectation. The last two are PENDING and render nothing today; the
+ * first is what gives the rail a second station and lets it stay compositionally
+ * present down the height of the form instead of ending in its first third.
+ *
+ * When all three are absent the aside is not drawn — an empty container is worse
+ * than none, and the grid falls back to a single row.
+ */
+const hasTopics = catalogue.length > 0;
+const hasSecondary = hasTopics || channels.length > 0 || copy.expectation !== '';
 ---
 
 <BaseLayout
@@ -130,17 +175,23 @@ const hasSecondary = channels.length > 0 || copy.expectation !== '';
   <div class="c-page" data-contact data-prefill={prefillCatalogue}>
     <ContactOrientation locale={locale} copy={copy.orientation} />
 
-    {/* The signature moment (C-2) sits between orientation and the form, which
-        is where the wireframe places it: "a calm, reassuring acknowledgement
-        placed **before** the form". */}
-    <ContextSummary copy={copy.context} />
+    <div class:list={['c-body', hasSecondary && 'c-body--support']}>
+      {/* C-1's statement and the signature moment (C-2), in that order and
+          both still BEFORE the form in the DOM — "a calm, reassuring
+          acknowledgement placed **before** the form". On a wide viewport the
+          grid seats this block in the second column, level with the form's
+          first field. */}
+      <div class="c-lead">
+        <p class="c-statement rv" data-rv="meta">{copy.orientation.statement}</p>
+        <ContextSummary copy={copy.context} />
+      </div>
 
-    <div class="c-body">
       <EnquiryForm locale={locale} copy={copy} />
 
       {
         hasSecondary && (
-          <aside class="c-secondary">
+          <aside class="c-support">
+            <ContactTopics locale={locale} services={catalogue} />
             <ContactMethods channels={channels} />
             <ResponseExpectation copy={copy.expectation} />
           </aside>

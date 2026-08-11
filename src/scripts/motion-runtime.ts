@@ -35,6 +35,22 @@ if (reduce) {
   root.classList.add('anim-ready');
 } else {
   requestAnimationFrame(() => requestAnimationFrame(() => root.classList.add('anim-ready')));
+
+  /* ── AND A DEADLINE, BECAUSE rAF IS NOT A PROMISE OF A FRAME ──────────────
+     `requestAnimationFrame` does not run while the document is not being
+     rendered — a background tab, a window behind another window, a restored
+     bfcache entry that has not painted yet. Until `anim-ready` lands, the
+     header chrome is at `opacity: 0`: the wordmark, the rail and — since the
+     small-viewport panel was built — the `MENIU` control that is now the ONLY
+     way to reach navigation on a phone. A staged fade that has not started is
+     indistinguishable from a header that is not there.
+
+     This is the same lesson the reveal gate below is written around, applied to
+     the one part of the load sequence that still depended on a frame arriving.
+     The deadline never changes the motion when frames ARE flowing: the double
+     rAF resolves in ~32ms and `classList.add` is idempotent, so 400ms is only
+     ever reached when the alternative was staying hidden indefinitely. */
+  setTimeout(() => root.classList.add('anim-ready'), 400);
 }
 
 /* -------------------------------------------------------------------------- */

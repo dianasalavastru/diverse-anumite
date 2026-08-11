@@ -5,8 +5,7 @@
  * OWNERSHIP: Workstream A.
  *
  * ══════════════════════════════════════════════════════════════════════════
- *  THIS PAGE IS A STRUCTURALLY CORRECT SHELL, NOT A FINISHED PAGE.
- *  IT IS BUILT TO STOP LYING BY 404, NOT TO CLAIM THE PAGE IS DONE.
+ *  THE COMPOSITION IS PRODUCTION-READY. THE COPY IS NOT, AND SAYS SO.
  * ══════════════════════════════════════════════════════════════════════════
  *
  * **Required.** IA §2.1 puts `/despre` in the locked sitemap; IA §2.5 gives it a
@@ -15,56 +14,81 @@
  * ("**About (Despre)** — Trust in architect/practice; carries EU-funded
  * expansion narrative … **No dominant CTA**; clear onward paths to Work,
  * Services, Contact"; `DECISIONS_LOG.md` #45, #47); and NAV_DECISION_RECORD.md
- * §4 locks "Despre" as one of four global-nav items, mapped to About. Four
- * components already link here (homepage Arrival and Credibility, the hub's
- * Orientation, the Service page's S-1). Retargeting the nav item was considered
- * and rejected: the nav table and its mapping are locked, and changing them is
- * an upstream amendment, not an implementation fix.
+ * §4 locks "Despre" as one of four global-nav items. Four components link here.
  *
- * **Unspecified.** `README.md` §"Open questions": About "is a defined page type
- * with **no Page IA, wireframe, or HiFi** (no `docs/pages/about/` yet)."
- * `PAGE_IA_INDEX.md` §2 covers six page types and About is not among them.
- * `tokens.css` names it directly as a page type that "has no rhythm set here and
- * cannot be built until one is authored upstream."
+ * ── WHAT THIS BUILD REPLACED, AND WHY ─────────────────────────────────────
+ * The previous implementation rendered a name, an empty statement slot and three
+ * equal text links across a full canvas. That was the honest state of a page
+ * whose copy did not exist, and it is why it read as a navigation placeholder
+ * rather than as an About page: the whitespace carried no information.
  *
- * So the page renders **only what an authoritative document actually states**:
+ * It is replaced against an **owner-approved visual reference for this page**
+ * (supplied 2026-08-11), which is now the authority for composition, density,
+ * hierarchy and proportion — the role a HiFi plays for the six page types that
+ * have one. `README.md` §"Open questions" still records that About has no Page
+ * IA and no wireframe; the reference governs *layout*, and it does not author
+ * facts. Where it illustrates content the practice has not stated — a biography,
+ * four counts, named software and scanners — that content is NOT transcribed.
+ * See `lib/i18n/about.ts` for the four rules the copy follows instead.
  *
- *   · its name — the locked nav label, not new copy;
- *   · the practice statement slot — IA §2.5's responsibility. PENDING (C),
- *     absent while empty;
- *   · the EU-funding context slot — IA Step 7 / #45 assign it here. PENDING
- *     (C + governance: the programme's publicity rules are an open question);
- *   · three onward paths of equal weight to Work, Services and Contact —
- *     IA Step 7 / #47, and "no dominant CTA" is why they are three equal text
- *     links and not a hero button.
+ * ── THE COMPOSITION ───────────────────────────────────────────────────────
+ *   masthead   eyebrow · the locked page name · rule · positioning statement,
+ *              against a wide photograph. ~42/58 text-to-image, one band.
+ *   01 / 02    who the practice is, beside how it works — a four-movement
+ *              sequence, read across.
+ *   03 / 04    what it has done, beside what it works with.
+ *   closing    one statement, and the two paths the page earns.
  *
- * And it renders **nothing else**. No biography, no founding year, no studio
- * history, no client list, no awards, no team, no photograph, no counts, no
- * "years of experience", no address or response-time promise. Every one of those
- * would be a fabricated claim about a real person, which is what §10.4 forbids
- * for a point count and forbids far more strongly here. The nearest authored
- * material — `PROJECT_CONTEXT.md` — is an internal brief written *about* the
- * project, not published copy, and repurposing it as public prose would put
- * words in the owner's mouth.
+ * Two-cell bands, divided by a hairline and opened by a full-width rule. The
+ * bands `.bleed` so their rules run edge to edge exactly as the reference draws
+ * them; the cells carry the page gutters back, so the type stays on the frame
+ * `layout.css` sets. No panel, no fill, no card, no shadow — the ground stays
+ * white and the only accent is blue (VISUAL_DIRECTION_v2.0 §1, §2.1, §12).
  *
- * **Rhythm.** No `about` set exists and none is added — inventing pacing values
- * is the redesign `tokens.css` warns against. The page composes with
- * `rhythm="service"`, the same borrow and the same reasoning Contact used for
- * the same reason: a single editorial column with generous pacing. Swapping to
- * an authored set later is one prop.
+ * ── DEPTH, NOT REPETITION ─────────────────────────────────────────────────
+ * The Homepage answers "what is this?" — M-1's positioning line, M-2's two-pillar
+ * fork, M-3's "small studio with a steady hand". This page may share that
+ * vocabulary but must not restate it. So the masthead argues *why the two
+ * disciplines are one practice* rather than announcing that they are; §02 makes
+ * the working method explicit, which no other page does; §03 and §04 carry the
+ * evidence and the capability layer the Homepage deliberately keeps out of M-3
+ * ("evidence over claims… never a loud metric row"). The one unavoidable overlap
+ * — the practice being small and singular — is reported rather than removed.
  *
- * **What remains.** Until C authors the statement and the funding narrative, and
- * until an About Page IA exists, this page resolves and orients but does not yet
- * build trust — it cannot. That is reported as the outstanding item, not papered
- * over. The fix is a message-file edit plus, ideally, an upstream Page IA; no
- * component here needs to change.
+ * ── RHYTHM ────────────────────────────────────────────────────────────────
+ * Still no authored `about` rhythm set, and none is invented (tokens.css). The
+ * page composes with `rhythm="homepage"`, changed from the borrowed `service`
+ * set: `service` pacing is authored for a single editorial column with 220px
+ * quiet beats, and this page is now a dense multi-band composition whose nearest
+ * authored sibling is the Homepage. Only the token values change; every section
+ * value below is authored against the reference. Swapping to an `about` set when
+ * one exists is one prop.
  *
- * **No CMS schema.** `studio/schemaTypes/index.ts` holds "two documents and one
- * reference list", and nothing upstream requires About content to be
- * CMS-managed — IA Step 7 types it "Standalone". Adding an `about` document type
- * would be a Workstream B schema change made on no authority.
+ * ── NO COORDINATE RAIL, NO STATIONS ───────────────────────────────────────
+ * `CoordinateRail.astro` scopes the rail to HP, HUB, RC, WE and SV. The
+ * reference draws none, the four section numbers here are in-content coordinates
+ * rather than a scroll instrument, and the Services index records at length why a
+ * rail that measures nothing authored is worse than no rail. `data-station` goes
+ * with it — it exists only for the rail tracker.
+ *
+ * ── MEDIA ─────────────────────────────────────────────────────────────────
+ * Two boxes, both authored as frames with their own `aspect-ratio`, so the
+ * layout is identical whether they hold a Sanity image, a temporary visual-QA
+ * image, or nothing (`Plate.astro`). There is no CMS field behind either — the
+ * same state `Credibility.astro`'s figure is in — so `image` is `null` and the
+ * only thing that can fill them today is the `DEV_VISUAL_MEDIA` overlay, which is
+ * inert without the flag and cannot survive a build (`verify-no-dev-media`).
+ * Both draw from `general`, the pool that claims nothing about either pillar —
+ * the precedent Credibility set for practice photography — under two distinct
+ * keys, so the two boxes resolve to two different images.
+ *
+ * ── NO CMS SCHEMA ─────────────────────────────────────────────────────────
+ * Unchanged, and deliberately so: no `about` document type, no new field, no
+ * content read. IA Step 7 types About "Standalone". Every string is one edit in
+ * `lib/i18n/about.ts` away from being the owner's own words, which is the point.
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import Plate from '../media/Plate.astro';
 import ViewTransition from '../ViewTransition.astro';
 
 import type { Locale } from '../../lib/content';
@@ -79,50 +103,181 @@ const { locale } = Astro.props;
 const copy = aboutMessages(locale);
 
 /**
- * IA Step 7 names three, in this order, and gives none of them primacy. They are
- * rendered as one set of equal text links — the structural expression of "no
- * dominant CTA". Every destination is a real route from the frozen map.
+ * The closing paths. IA Step 7 names Work, Services and Contact and gives none
+ * of them primacy; the approved composition promotes two of them to the closing
+ * band and keeps Services as the quiet mono link that closes §04 — the same
+ * subordinate treatment `.si-hub` gives the hub continuation. All three paths
+ * are present, none is a button, and none is emphasized over the others by size
+ * or colour, which is what "no dominant CTA" means structurally.
  */
 const onward = [
-  { href: routePath('workArchive', locale), label: copy.onward.work },
-  { href: routePath('services', locale), label: copy.onward.services },
-  { href: routePath('contact', locale), label: copy.onward.contact },
+  { href: routePath('workArchive', locale), label: copy.closing.work },
+  { href: routePath('contact', locale), label: copy.closing.contact },
 ];
 ---
 
 <BaseLayout
   locale={locale}
-  rhythm="service"
+  rhythm="homepage"
   routeKey="about"
   title={copy.meta.title}
   description={copy.meta.description || undefined}
 >
   <ViewTransition />
 
-  <section class="ab-page" aria-labelledby="ab-title">
-    <p class="ab-eyebrow eyebrow rv" data-rv="meta">{copy.eyebrow}</p>
-    <h1 id="ab-title" class="ab-title rv" data-rv="head">{copy.heading}</h1>
+  {/* ── MASTHEAD ─────────────────────────────────────────────────────────
+      Text left, photograph right, both starting on the same line under the
+      fixed header. The photograph is `priority` — it is this page's LCP
+      candidate and the reference's whole first impression. */}
+  <section class="ab-masthead" aria-labelledby="ab-title">
+    <div class="ab-masthead-text">
+      <p class="ab-eyebrow eyebrow rv" data-rv="meta">{copy.eyebrow}</p>
+      <h1 id="ab-title" class="ab-title rv" data-rv="head">{copy.heading}</h1>
+      <div class="ab-rule rv" data-rv="meta" aria-hidden="true"></div>
+      <div class="ab-intro rv" data-rv="meta" data-fixture="about-copy">
+        {copy.intro.map((paragraph) => <p>{paragraph}</p>)}
+      </div>
+    </div>
 
-    {/* PENDING (C). An empty slot renders no element — never a placeholder
-        sentence presented as the practice's own words. */}
-    {copy.statement && <p class="ab-statement rv" data-rv="meta">{copy.statement}</p>}
+    <div class="ab-masthead-plate rv" data-rv="img">
+      <Plate
+        image={null}
+        locale={locale}
+        alt={copy.heroAlt}
+        tone="#c9c4ba"
+        priority
+        devKey="about:hero"
+        devPool="general"
+      />
+    </div>
+  </section>
 
-    {
-      copy.funding && (
-        <p class="ab-funding rv" data-rv="meta">
-          {copy.funding}
+  {/* ── 01 · CINE  |  02 · CUM LUCRAM ───────────────────────────────────── */}
+  <div class="ab-band bleed">
+    <section class="ab-cell ab-who" aria-labelledby="ab-who-h">
+      <p class="ab-num" aria-hidden="true">{copy.who.no}</p>
+      <h2 class="ab-section-h rv" data-rv="head" id="ab-who-h">{copy.who.label}</h2>
+
+      <div class="ab-who-body">
+        {/* Visibly marked substitute biography — see lib/i18n/about.ts. The
+            marker is in the string, not only in this attribute, because an
+            attribute is invisible to the person reviewing the page. */}
+        <div class="ab-who-text rv" data-rv="meta" data-fixture="about-copy">
+          {copy.who.body.map((paragraph) => <p>{paragraph}</p>)}
+        </div>
+
+        <div class="ab-who-plate rv" data-rv="img">
+          <Plate
+            image={null}
+            locale={locale}
+            alt={copy.who.imageAlt}
+            tone="#c6c1b7"
+            devKey="about:cine"
+            devPool="general"
+          />
+        </div>
+      </div>
+    </section>
+
+    <section class="ab-cell ab-how" aria-labelledby="ab-how-h">
+      <p class="ab-num" aria-hidden="true">{copy.how.no}</p>
+      <h2 class="ab-section-h rv" data-rv="head" id="ab-how-h">{copy.how.label}</h2>
+
+      {/* An ordered list, because the sequence is the meaning. The connector
+          arrow is decorative and belongs to the row above the names, exactly as
+          the reference draws it; it rotates rather than disappears when the
+          sequence turns vertical, so the direction survives the breakpoint. */}
+      <ol class="ab-steps rv" data-rv="meta" data-fixture="about-copy">
+        {
+          copy.how.steps.map((step, index) => (
+            <li class="ab-step">
+              <p class="ab-step-head" aria-hidden="true">
+                <span class="ab-step-no">{step.no}</span>
+                {index < copy.how.steps.length - 1 && <span class="ab-step-ar">→</span>}
+              </p>
+              <h3 class="ab-step-name">{step.name}</h3>
+              <p class="ab-step-text">{step.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+  </div>
+
+  {/* ── 03 · EXPERIENTA  |  04 · INSTRUMENTE ────────────────────────────── */}
+  <div class="ab-band bleed">
+    <section class="ab-cell ab-exp" aria-labelledby="ab-exp-h">
+      <p class="ab-num" aria-hidden="true">{copy.experience.no}</p>
+      <h2 class="ab-section-h rv" data-rv="head" id="ab-exp-h">{copy.experience.label}</h2>
+
+      {/* `data-fixture="statistics"` is the homepage's own marker for a
+          fabricated credibility readout (§10.4 discipline), and every label
+          additionally carries a visible `(substituent)`. A real value replaces a
+          string; nothing here computes, derives or counts anything. */}
+      <dl class="ab-facts rv" data-rv="meta" data-fixture="statistics">
+        {
+          copy.experience.facts.map((fact) => (
+            <div class="ab-fact">
+              <dt class="ab-fact-v">{fact.value}</dt>
+              <dd class="ab-fact-k">{fact.label}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </section>
+
+    <section class="ab-cell ab-tools" aria-labelledby="ab-tools-h">
+      <p class="ab-num" aria-hidden="true">{copy.tools.no}</p>
+      <h2 class="ab-section-h rv" data-rv="head" id="ab-tools-h">{copy.tools.label}</h2>
+
+      {/* Plain typographic rows — no logo wall, no icons, no badges. Categories
+          rather than product names (lib/i18n/about.ts, rule 3); the composition
+          takes authored names verbatim the day the owner supplies them. */}
+      <div class="ab-tool-groups rv" data-rv="meta" data-fixture="about-copy">
+        {
+          copy.tools.groups.map((group) => (
+            <ul class="ab-tool-list">
+              {group.map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
+          ))
+        }
+      </div>
+
+      {/* IA Step 7's third onward path, deliberately subordinate — see the
+          `onward` note above. Same construction as `.si-hub`. */}
+      <p class="ab-tools-services rv" data-rv="meta">
+        <a href={routePath('services', locale)}>
+          {copy.tools.services}
+          <span class="ar" aria-hidden="true">→</span>
+        </a>
+      </p>
+    </section>
+  </div>
+
+  {/* ── CLOSING ─────────────────────────────────────────────────────────── */}
+  <section class="ab-close bleed">
+    <div class="ab-close-inner">
+      <div class="ab-close-say">
+        <p class="ab-close-state rv" data-rv="meta" data-fixture="about-copy">
+          {copy.closing.statement}
         </p>
-      )
-    }
+        {/* PENDING (C + governance). An empty slot renders no element. */}
+        {
+          copy.closing.funding && (
+            <p class="ab-funding rv" data-rv="meta">
+              {copy.closing.funding}
+            </p>
+          )
+        }
+      </div>
 
-    {/* A content list, not a `<nav>` landmark. The Work Entry's W-7 and the
-        Service page's S-5 render their onward paths the same way: the page
-        already has one named navigation landmark in the header, and a second
-        unnamed one — unavoidable while `onward.label` is PENDING — would be a
-        landmark a screen-reader user cannot tell apart from it. */}
-    <div class="ab-onward rv" data-rv="meta">
-      {copy.onward.label && <h2 class="ab-onward-h eyebrow">{copy.onward.label}</h2>}
-      <ul class="ab-onward-list">
+      {/* A content list, not a `<nav>` landmark: the page already has one named
+          navigation landmark in the header, and a second unnamed one would be
+          indistinguishable from it to a screen-reader user. The Work Entry's W-7
+          and the Service page's S-5 render their onward paths the same way. */}
+      <ul class="ab-onward rv" data-rv="meta">
         {
           onward.map((path) => (
             <li>

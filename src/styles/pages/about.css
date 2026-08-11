@@ -1,37 +1,94 @@
 /* =============================================================================
    about.css — the About (Despre) composition.
 
-   AUTHORITY: none directly. About has no Page IA, no wireframe and no HiFi
-   (`README.md` §"Open questions"), so nothing here is transcribed. Every value
-   is an existing token or an existing type role; the composition is the
-   smallest one that renders what IA Step 7 specifies — a name, a statement, the
-   EU-funding context, and three equal onward paths.
+   AUTHORITY: an owner-approved visual reference for this page (supplied
+   2026-08-11), which governs composition, density, hierarchy and proportion —
+   the role a HiFi plays for the six page types that have one. It is NOT an
+   authority over content: `PAGE_IA_INDEX.md` still covers six page types and
+   About is not among them, and `README.md` §"Open questions" still records that
+   About has no Page IA and no wireframe.
 
-   The file is short because the page is. It will need revisiting when an About
-   Page IA and copy exist; that is a redesign to be authored upstream, not
-   guessed here.
+   So nothing here is transcribed from an approved HiFi, and nothing here is
+   invented either: every value is an existing token, or an existing type role,
+   or a rule already authored for a neighbouring page whose source is named at
+   the point of reuse. VISUAL_DIRECTION_v2.0 §12 principle 10 ("Consistency in
+   system, variety in composition") is the licence for that reuse;
+   COMPONENT_INVENTORY.md §7 is the constraint on inventing instead.
+
+   ── WHAT THIS REPLACED ────────────────────────────────────────────────────
+   A 68ch single column holding a name and three links. It was the correct
+   rendering of a page with no copy, and it failed for exactly the reason the
+   reference corrects: the whitespace carried no information. The composition
+   below is four editorial bands over one continuous white ground, sized so the
+   masthead and the opening of the first band share the first screen at
+   1440x900.
+
+   ── PALETTE, UNCHANGED ────────────────────────────────────────────────────
+   White ground, warm near-black ink, hairline rules, blue as the single accent
+   and only as activation or measurement (§1, §2.1). No tinted band, no filled
+   panel, no card, no shadow, no gradient, no pill, no icon. The reference's own
+   warm photography is media, not surface.
    ========================================================================== */
 
-/* ── CORRECTED AT THE VISUAL-QA PASS ────────────────────────────────────────
-   This opened on `calc(var(--header-h) + var(--pad-quiet))` and closed on
-   `--pad-quiet` — ~290px of void above three lines of content and ~220px below
-   them, which made a deliberately sparse page read as a broken one. The values
-   below are the system's pattern for a page opening under the fixed header with
-   no hero (`.wa-intro`, transcribed by `.c-intro` for the same reason). The
-   page stays sparse, because it *is* sparse until C authors its copy — it simply
-   no longer looks like a rendering failure. */
-.ab-page {
-  padding-block: clamp(96px, 13vh, 150px) var(--pad-loud);
-  max-width: 68ch;
+/* ---- Section furniture ---------------------------------------------------
+   Every band opens the same way: a blue mono coordinate over the section's
+   `<h2>`. Identical pairing to `.si-num` over `.si-pillar` on the Services
+   index, and to `.cap .cnum` over `.cap .cname` on the Homepage — the numeral is
+   the technical marker, the name is the hierarchy. */
+
+.ab-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--blue);
+  margin-block-end: 6px;
 }
 
-/* Blue, matching the page-opening kicker on the archive and both hubs. */
+/* The reading voice, not the pixel display voice. The pixel face is reserved
+   for identity and coordinate markers (§12 principle 13), and on this page it
+   already carries the `<h1>` and the §03 numerals; giving it the four section
+   names as well would flatten the page into one voice. `--read` at a modest
+   scale is the same second-level role `.cred h2` uses. */
+.ab-section-h {
+  font-family: var(--read);
+  font-weight: 600;
+  font-size: clamp(19px, 1.7vw, 24px);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  margin-block-end: clamp(20px, 2.6vh, 32px);
+}
+
+/* ============================ MASTHEAD ====================================
+   Text left, photograph right, opening together under the fixed header.
+   ~42/58, which is the reference's own split and the reason the large page name
+   does not stand alone against empty canvas. */
+
+.ab-masthead {
+  display: grid;
+  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1fr);
+  gap: clamp(28px, 3.4vw, 56px);
+  align-items: start;
+  /* Clears the fixed header and adds one small beat, nothing more — the
+     `.si-masthead` correction, for the same reason: an opening that earns its
+     air from content rather than inheriting a hero page's pacing.
+
+     ── TIGHTENED AT THE VIEWPORT-FIT PASS ────────────────────────────────
+     Opened on `clamp(20px, 3vh, 34px)` / closed on `clamp(28px, 4vh, 52px)`.
+     The opening is ONE BEAT of an editorial spread, not a screen of its own,
+     and the acceptance test is that the 01/02 band is already reading when the
+     page lands. Both beats are reduced, neither is removed: the masthead still
+     stands clear of the fixed header and still closes on a real interval before
+     the first band's rule. */
+  padding-block: calc(var(--header-h) + clamp(14px, 2.2vh, 26px)) clamp(18px, 2.6vh, 34px);
+}
+
 .ab-eyebrow {
   color: var(--blue);
-  margin-block-end: 18px;
+  margin-block-end: 12px;
 }
 
-/* `.wa-intro h1` — the standalone-page masthead scale. */
+/* Unchanged from the previous build: `.wa-intro h1`, the standalone-page
+   masthead scale. It is already the size the reference draws. */
 .ab-title {
   font-family: var(--pixel);
   font-weight: 500;
@@ -40,91 +97,532 @@
   letter-spacing: 0.01em;
 }
 
-/* The practice statement — this page's whole substance, once authored. Sized as
-   the lead prose role the other pages use for their opening paragraph. */
-.ab-statement {
-  margin-block-start: clamp(30px, 4vh, 52px);
-  font-size: clamp(17px, 1.8vw, 22px);
-  line-height: 1.6;
+/* The thin rule under the page name. `--ink` at 1px: it separates the name from
+   the statement inside one column and must read as a division, not as the
+   hairlines that separate whole bands. */
+/* Tightened at the viewport-fit pass, from `clamp(18px, 2.6vh, 30px)`. It is one
+   division inside a single column, and it was carrying more air than the beat
+   between whole bands does. */
+.ab-rule {
+  margin-block: clamp(14px, 2vh, 24px);
+  height: 1px;
+  background: var(--ink);
+}
+
+/* ── MEASURE AND LEADING, AT THE VIEWPORT-FIT PASS ──────────────────────────
+   `46ch` set the statement narrower than the column it sits in — 414px of type
+   inside 513px of column at 1440 — which bought nothing and cost a line per
+   paragraph. `52ch` lets the paragraph run to the column it was given and stays
+   well inside a comfortable reading measure (~50 characters); the column, not
+   this value, is what bounds it at every width.
+   `1.55` is the leading `.si-intro` already uses for the same lead-paragraph
+   role. Neither the type size nor the voice changes. */
+.ab-intro p {
+  font-size: clamp(15.5px, 1.5vw, 18px);
+  line-height: 1.55;
+  color: var(--ink);
+  max-width: 52ch;
+}
+
+.ab-intro p + p {
+  margin-block-start: 1em;
+}
+
+/* The frame is authored; the photograph is not (see AboutPage.astro). The ratio
+   lives on the FRAME, so the box occupies the same space whether it holds a
+   Sanity image, a temporary visual-QA image or neither — nothing reflows when
+   media arrives. */
+/* ── WHY THE RATIO IS CAPPED RATHER THAN CHANGED ───────────────────────────
+   `aspect-ratio` derives the box's height from a width that only ever grows, so
+   on a wide-and-short window the opening photograph — and with it the whole
+   opening — grew against a viewport it never consulted. That is the same chain
+   `.cred` documents, and the correction is the same: bound the height against
+   the view the image is actually seen in, and let the authored ratio govern
+   everything below that bound.
+
+   The ratio itself is untouched, and the cap is deliberately loose: at 1440x900
+   it takes the box from 2.00:1 to 2.09:1, which is a wide editorial landscape
+   before and after. It is a ceiling on how tall the opening may become, not a
+   banner crop — the image stays the dominant mass balancing the page name.
+
+   `clamp` rather than `min`, and the floor is the load-bearing half: a bare
+   viewport fraction keeps shrinking on a short window, and somewhere below 280px
+   this stops being a landscape photograph and becomes a letterbox strip. The
+   floor holds the box at ~2.5:1 at the widest desktop measure and lets the band
+   below simply start lower, which is the honest outcome on a window that short. */
+.ab-masthead-plate {
+  position: relative;
+  /* Explicit, and load-bearing. A grid item whose size comes from an
+     `aspect-ratio` plus a definite block size stops being stretched by
+     `justify-self`, so capping the height silently narrowed the box inside its
+     own track (713px -> 684px) and pulled the photograph off the page's
+     inline-end gutter — the edge it shares with the header. Stating the inline
+     size keeps the width the track's, and lets the cap act on height alone. */
+  inline-size: 100%;
+  aspect-ratio: 2 / 1;
+  max-block-size: clamp(280px, 38vh, 360px);
+  overflow: hidden;
+  background: var(--paper);
+}
+
+/* The grade sits on the MEDIA, never on the frame — `filter` applies to a whole
+   subtree, and on the frame it would desaturate anything composited over it.
+   The value is the restrained one `.si-plate` already uses. */
+.ab-masthead-plate .plate-img {
+  filter: grayscale(0.5) contrast(1.05);
+}
+
+/* ============================ BANDS =======================================
+   Two cells, divided by a hairline, opened by a rule that runs edge to edge.
+
+   The band `.bleed`s so its rules reach the canvas edge exactly as the
+   reference draws them, and each cell carries the page gutters back, so the
+   type stays on the frame `layout.css` sets. This is a rule-and-division
+   composition, not a panel one: VISUAL_DIRECTION_v2.0 §12 forbids the
+   panel-and-fill idiom, and `.si-group` records the same choice. */
+
+.ab-band {
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  border-block-start: 1px solid var(--hair);
+}
+
+/* §03/§04 sits closer to even than §01/§02: the facts row needs four columns of
+   numeral, and the tools rows are short. Both splits are the reference's. */
+.ab-band + .ab-band {
+  grid-template-columns: 1.05fr 0.95fr;
+}
+
+.ab-cell {
+  min-width: 0;
+  padding-block: clamp(26px, 3.6vh, 44px);
+  padding-inline: clamp(24px, 3vw, 48px);
+}
+
+.ab-cell:first-child {
+  padding-inline-start: var(--gutter-start);
+}
+
+.ab-cell:last-child {
+  padding-inline-end: var(--gutter-end);
+  border-inline-start: 1px solid var(--hair);
+}
+
+/* ---- 01 · Cine -----------------------------------------------------------
+   Prose beside a portrait-format frame. `align-items: start` keeps the image
+   deriving its height from its own ratio rather than from the text column —
+   the failure `.cred .figure` documents at length. */
+
+.ab-who-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.62fr);
+  gap: clamp(20px, 2.4vw, 34px);
+  align-items: start;
+}
+
+.ab-who-text p {
+  font-size: clamp(13.5px, 1.15vw, 15px);
+  line-height: 1.65;
+  color: var(--ink-60);
+  max-width: 44ch;
+}
+
+.ab-who-text p + p {
+  margin-block-start: 1em;
+}
+
+/* 4:5, the authored portrait ratio the Homepage's supporting practice figure
+   already uses. A process/portrait treatment, deliberately not a second wide
+   project hero. */
+.ab-who-plate {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--paper);
+}
+
+.ab-who-plate .plate-img {
+  filter: grayscale(0.6) contrast(1.03);
+}
+
+/* ---- 02 · Cum lucram -----------------------------------------------------
+   Four movements read across. Typography, numerals, arrows and spacing carry
+   it — no card, no box, no circled number, no icon. The connector is the same
+   blue caret the whole site uses for continuation. */
+
+.ab-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(14px, 1.6vw, 24px);
+  list-style: none;
+}
+
+.ab-step-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-block-end: 10px;
+}
+
+.ab-step-no {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--blue);
+}
+
+/* The connector points at the next movement, so it sits at the trailing edge of
+   the row and the last step has none. Decorative: the `<ol>` already carries
+   the sequence to assistive technology. */
+.ab-step-ar {
+  color: var(--blue);
+  font-size: 13px;
+  line-height: 1;
+}
+
+.ab-step-name {
+  font-family: var(--read);
+  font-weight: 600;
+  font-size: clamp(16px, 1.4vw, 21px);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  margin-block-end: 8px;
+}
+
+.ab-step-text {
+  font-size: clamp(12.5px, 1vw, 13.5px);
+  line-height: 1.55;
+  color: var(--ink-60);
+}
+
+/* ---- 03 · Experienta -----------------------------------------------------
+   Four facts across one row, divided by hairlines. Prominent but restrained:
+   the numeral takes the pixel voice at roughly half the page name's scale, and
+   the label stays in the 11px mono measurement voice. HOMEPAGE_WIREFRAME M-3's
+   constraint holds here too — "never a loud metric row". */
+
+.ab-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.ab-fact {
+  padding-inline: clamp(12px, 1.4vw, 20px);
+}
+
+.ab-fact:first-child {
+  padding-inline-start: 0;
+}
+
+.ab-fact + .ab-fact {
+  border-inline-start: 1px solid var(--hair);
+}
+
+.ab-fact-v {
+  font-family: var(--pixel);
+  font-weight: 500;
+  font-size: clamp(28px, 3.2vw, 44px);
+  line-height: 0.95;
+  letter-spacing: 0.01em;
+}
+
+.ab-fact-k {
+  margin-block-start: 10px;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.45;
+  letter-spacing: 0.06em;
+  /* `--ink-60`, not `--ink-40`: 11px functional text, WCAG 2.2 AA (I-3, see
+     typography.css). */
+  color: var(--ink-60);
+}
+
+/* ---- 04 · Instrumente ----------------------------------------------------
+   Two plain typographic rows. No logo wall, no product icons, no badges — the
+   separator is the site's own mono interpunct, the same one the Section Marker
+   and the capability facets already use. */
+
+.ab-tool-groups {
+  display: grid;
+  gap: 12px;
+}
+
+.ab-tool-list {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 8px;
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.03em;
   color: var(--ink);
 }
 
-/* The EU-funding context (IA Step 7; DECISIONS_LOG #45). Supporting voice — it
-   is context on this page, not the acknowledgment itself, which is a site-wide
-   footer element. */
+.ab-tool-list li + li::before {
+  content: "·";
+  color: var(--blue);
+  margin-inline-end: 8px;
+}
+
+.ab-tools-services {
+  margin-block-start: clamp(20px, 2.6vh, 30px);
+}
+
+/* Transcribed from `.si-hub`, including its WCAG 2.2 AA SC 2.5.8 correction:
+   as a bare 11px mono link the target box measures ~16px tall, and none of the
+   standard exceptions applies. The box grows, the type does not. */
+.ab-tools-services a {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 24px;
+  line-height: 1;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-60);
+}
+
+.ab-tools-services .ar {
+  color: var(--blue);
+  display: inline-block;
+  transition: transform var(--t-state) var(--slow);
+}
+
+.ab-tools-services a:hover,
+.ab-tools-services a:focus-visible {
+  color: var(--blue);
+}
+
+.ab-tools-services a:hover .ar,
+.ab-tools-services a:focus-visible .ar {
+  transform: translateX(6px);
+}
+
+/* ============================ CLOSING =====================================
+   A compact band, not a CTA box. One statement on the left, two paths on the
+   right, on one rule — the structural expression of "no dominant CTA"
+   (IA Step 7; DECISIONS_LOG #47). VISUAL_DIRECTION_v2.0 §12 forbids filled
+   button CTAs, which a boxed call to action would fail first. */
+
+.ab-close {
+  border-block-start: 1px solid var(--hair);
+}
+
+.ab-close-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(24px, 4vw, 64px);
+  align-items: center;
+  padding-inline: var(--gutter-start) var(--gutter-end);
+  padding-block: clamp(26px, 3.6vh, 44px) clamp(30px, 4.4vh, 56px);
+}
+
+/* The blue mark is the one place on this page it appears as a rule rather than
+   as a caret or a numeral. §2.1 permits it as activation and measurement and
+   forbids it as area or fill: a 2px edge marking the statement the page closes
+   on is the former, and it is the same device the Work Entry uses to mark a
+   pulled statement. */
+.ab-close-state {
+  border-inline-start: 2px solid var(--blue);
+  padding-inline-start: clamp(14px, 1.4vw, 20px);
+  font-size: clamp(14.5px, 1.25vw, 16.5px);
+  line-height: 1.6;
+  color: var(--ink);
+  max-width: 54ch;
+}
+
+/* The EU-funding context (IA Step 7; DECISIONS_LOG #45), absent while
+   unauthored. Supporting voice — it is context on this page, not the
+   acknowledgment itself, which is a site-wide footer element. */
 .ab-funding {
-  margin-block-start: clamp(26px, 3.5vh, 40px);
-  font-size: clamp(15px, 1.4vw, 17px);
+  margin-block-start: 14px;
+  padding-inline-start: clamp(14px, 1.4vw, 20px);
+  font-size: 13px;
   line-height: 1.6;
   color: var(--ink-60);
 }
 
-/* ---- Onward paths --------------------------------------------------------
-   IA Step 7 / DECISIONS_LOG #47: "No dominant CTA; clear onward paths to Work,
-   Services, Contact." Three links on one rule, in one row, at one size — the
-   structural meaning of "no dominant". VISUAL_DIRECTION_v2.0 §12 forbids filled
-   button CTAs, which this would fail first if any one of them were emphasized. */
-
 .ab-onward {
-  margin-block-start: clamp(44px, 6vh, 80px);
-  border-block-start: 1px solid var(--ink);
-  padding-block-start: clamp(22px, 3vh, 32px);
-}
-
-.ab-onward-h {
-  margin-block-end: 16px;
-}
-
-.ab-onward-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px 40px;
+  gap: 14px clamp(24px, 3vw, 48px);
   list-style: none;
 }
 
-/* `min-height` for WCAG 2.2 AA SC 2.5.8 (Target Size — Minimum): at the 19px
-   floor of the clamp the text box is 19px tall, 5px short of 24. The box grows,
-   the type does not — the same correction `.hub-quiet` documents for the About
-   link on the hub, and it avoids having to lean on the Spacing exception. */
-.ab-onward-list a {
-  font-family: var(--pixel);
-  font-size: clamp(19px, 2.1vw, 26px);
+/* The mono navigation voice, at the scale the reference draws — both links
+   identical, so neither reads as the dominant action. `min-height` is the same
+   SC 2.5.8 correction as above. */
+.ab-onward a {
   display: inline-flex;
   align-items: center;
   gap: 12px;
   min-height: 24px;
   line-height: 1;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   position: relative;
 }
 
-.ab-onward-list .ar {
+.ab-onward .ar {
   color: var(--blue);
   transition: transform var(--t-state) var(--slow);
 }
 
-.ab-onward-list a::after {
+/* The blue underline draw-in the global nav, the footer and `.quiet-link`
+   already use. */
+.ab-onward a::after {
   content: "";
   position: absolute;
   inset-inline: 0 100%;
   bottom: -6px;
-  height: 2px;
+  height: 1.5px;
   background: var(--blue);
   transition: inset-inline-end var(--t-state) var(--slow);
 }
 
-.ab-onward-list a:hover .ar,
-.ab-onward-list a:focus-visible .ar {
+.ab-onward a:hover .ar,
+.ab-onward a:focus-visible .ar {
   transform: translateX(8px);
 }
 
-.ab-onward-list a:hover::after,
-.ab-onward-list a:focus-visible::after {
+.ab-onward a:hover::after,
+.ab-onward a:focus-visible::after {
   inset-inline-end: 0;
 }
 
+/* ============================ RESPONSIVE ==================================
+   Desktop is the primary target; the breakpoints below are the ones the site
+   already uses — 1200 for the wide two-band composition, 900 where `layout.css`
+   ends the wide composition and hides the coordinate rail, 640 for the phone. */
+
+@media (max-width: 1200px) {
+  /* Four movements and four facts stop being readable long before the cell
+     stops being wide, so they fold to 2x2 while the bands stay side by side. */
+  .ab-steps,
+  .ab-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(18px, 2.4vh, 28px) clamp(14px, 1.6vw, 24px);
+  }
+
+  /* With two per row the hairline belongs between the columns, never before the
+     first item of a row. */
+  .ab-fact:nth-child(odd) {
+    padding-inline-start: 0;
+    border-inline-start: 0;
+  }
+
+  /* The connector points across a row that no longer runs across. It is
+     decorative — the `<ol>` carries the sequence to assistive technology — so it
+     is withdrawn rather than repointed while the grid is 2x2. */
+  .ab-step-ar {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  /* One column, in the reading order the markup already carries: masthead text,
+     masthead image, 01, its image, 02, 03, 04, closing. */
+  .ab-band,
+  .ab-band + .ab-band {
+    grid-template-columns: 1fr;
+  }
+
+  .ab-cell,
+  .ab-cell:first-child,
+  .ab-cell:last-child {
+    padding-inline: var(--gutter-start) var(--gutter-end);
+  }
+
+  /* The division between the two cells turns from vertical to horizontal —
+     the same hairline, on the axis the composition now runs. */
+  .ab-cell:last-child {
+    border-inline-start: 0;
+    border-block-start: 1px solid var(--hair);
+  }
+
+  .ab-close-inner {
+    grid-template-columns: 1fr;
+    gap: clamp(22px, 3vh, 32px);
+    align-items: start;
+  }
+}
+
+@media (max-width: 760px) {
+  .ab-masthead {
+    grid-template-columns: 1fr;
+    gap: clamp(22px, 3vh, 32px);
+  }
+
+  /* Wider than 2:1 would leave a letterbox slot on a phone; 3:2 is the ratio the
+     site's own single-column media boxes take.
+
+     The desktop height cap is released here on purpose. It exists to stop a
+     two-column opening from outgrowing a wide-and-short window; in a single
+     column the photograph follows the reading flow instead of competing with it,
+     and capping it would shrink the phone hero to solve a desktop problem. */
+  .ab-masthead-plate {
+    aspect-ratio: 3 / 2;
+    max-block-size: none;
+  }
+
+  .ab-who-body {
+    grid-template-columns: 1fr;
+  }
+
+  /* Full width would make a 4:5 frame taller than the phone viewport and push
+     the sequence out of reach; capped, it stays a supporting figure. */
+  .ab-who-plate {
+    max-width: 260px;
+  }
+}
+
+@media (max-width: 640px) {
+  .ab-steps,
+  .ab-facts {
+    grid-template-columns: 1fr;
+  }
+
+  /* A single vertical sequence: the connector returns, turned onto the axis the
+     steps now run, so the direction survives the breakpoint. Each movement is
+     separated by the same hairline the bands use rather than by space alone. */
+  /* Beside its own number rather than pushed to the far edge: at one column the
+     trailing edge is the width of the phone, and a caret stranded there points
+     at nothing. */
+  .ab-step-head {
+    justify-content: flex-start;
+  }
+
+  .ab-step-ar {
+    display: inline-block;
+    transform: rotate(90deg);
+  }
+
+  .ab-step + .ab-step {
+    border-block-start: 1px solid var(--hair);
+    padding-block-start: clamp(14px, 2vh, 20px);
+  }
+
+  .ab-fact {
+    padding-inline: 0;
+    padding-block-start: 16px;
+  }
+
+  .ab-fact + .ab-fact {
+    border-inline-start: 0;
+    border-block-start: 1px solid var(--hair);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .ab-onward-list .ar,
-  .ab-onward-list a::after {
+  .ab-onward .ar,
+  .ab-onward a::after,
+  .ab-tools-services .ar {
     transition: none;
   }
 }

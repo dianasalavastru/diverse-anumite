@@ -49,22 +49,109 @@
 
 /* =============================================================================
    The page frame
+
+   ── ONE COLUMN → A TWO-COLUMN COMPOSITION (2026-08-11) ──────────────────────
+   The page was built as a single 78ch reading column. On a 1440×900 laptop that
+   put every element in the inline-start half, left ~45% of the canvas blank,
+   and — with four `3.6vh` field gaps and a 9lh textarea above it — pushed the
+   submit control 375px below the fold. The wireframe asks for "generous
+   spacing" and for the form to be "the visual center of gravity"; it does not
+   ask for a column of empty gutters, and it states outright that "above /
+   below / beside describe reading order and relative emphasis, never pixel
+   positions".
+
+   So the DOM order is untouched — C-1 · C-2 · C-3 · C-4 · C-5 · C-6, exactly
+   the wireframe's reading progression, and exactly what every viewport below
+   1024px still renders as one stack. Above 1024px the same order is PLACED as
+   two columns: the form (1.6fr) beside the supporting material (1fr), parted by
+   a single hairline in the gap.
+
+   Nothing new enters the vocabulary. The separator is `--hair`, the same rule
+   `.invite .contact .row` and `.specs .r` use; the column relationship is the
+   asymmetric edge alignment VISUAL_DIRECTION_v2.0 §12 asks for ("prefer edge
+   alignment over centring", "asymmetric balance"); there is no panel, no fill,
+   no card and no second accent. The vertical pacing values below all move
+   DOWN within the authored `service` rhythm set — `--pad-loud` replaces
+   `--pad-quiet` at the tail — and no rhythm token is invented.
    ========================================================================== */
 
 .c-page {
-  /* The wireframe's whole composition is a single reading column: "the
-     interface is calm and uncluttered", "the form stacks to full width".
-     Measure, not a centred wrapper — layout.css already establishes the
-     asymmetric gutters and no HiFi centres anything. */
-  max-width: 78ch;
+  /* The canvas, not the measure. Reading measures stay on the elements that
+     carry running text (`.c-statement`, `.measure`, `.c-confirm`).
+
+     ── WHY 1520, AND WHY IT DOES NOTHING AT LAPTOP WIDTHS ───────────────────
+     `layout.css` already establishes the site's frame: `main` is padded by
+     `--gutter-start` / `--gutter-end`, and every other page composes edge to
+     edge inside it — `about.css` and `services-index.css` declare no page-level
+     max-width at all, which is why the Global Header's nav and the About bands
+     both terminate on the same inline-end line. Contact carried a 1200px cap
+     and stopped 75px short of that line at 1440 and 271px short at 1650, which
+     read as the composition ending before the grid did.
+
+     So the cap is raised past every laptop and desktop width the page is
+     actually read at: at 1440 the available well is 1275px and at 1650 it is
+     1470px, so `100%` wins in both and the composition terminates exactly on
+     `--gutter-end`, flush with the header. The bound only engages above a
+     ~1704px viewport, and it exists for one reason — past a ~1520px well the
+     form track passes 1000px and a single-line input stops reading as a control
+     and starts reading as a rule drawn across the screen. That is a measure
+     limit, not a layout one, and it is the only thing this value does. */
+  max-width: min(100%, 1520px);
+
+  /* The gap between the two columns, and — halved — the offset that centres the
+     parting hairline inside it. Declared once here so the grid and the rule can
+     never drift apart. */
+  --c-gap: clamp(40px, 5vw, 80px);
+
+  /* The gutter between the two half-width fields. Declared here rather than
+     inline on `.c-fields` because the submit control derives its width from it
+     — see `.c-submit` — and a control that is meant to align with the field
+     above it cannot own a second copy of that number. */
+  --c-field-gap: clamp(20px, 2.4vw, 32px);
 }
 
 /* ---- C-1 · Orientation ---------------------------------------------------
    Pacing transcribed from `.wa-intro`: the page opens high, because a visitor
-   who came here to act should not have to scroll to find out that they can. */
+   who came here to act should not have to scroll to find out that they can.
+   Reduced from `clamp(96px, 13vh, 150px)`: "should not have to scroll" is the
+   stated intent, and on a laptop viewport the old opening spent 150px of the
+   900px it had to honour it. The floor still clears the 66px fixed header with
+   room to spare. */
 
 .c-intro {
-  padding-block: clamp(96px, 13vh, 150px) clamp(28px, 4vh, 44px);
+  /* The masthead formula the two other standalone pages already use —
+     `.si-masthead` and `.ab-masthead`: clear the fixed header, then add one
+     small beat. `about.css` states the reason it replaced a fixed opening:
+     "an opening that earns its air from content rather than inheriting a hero
+     page's pacing". Contact's old `clamp(96px, 13vh, 150px)` was that inherited
+     pacing, and it spent 150px of a 900px viewport on it. */
+  padding-block: calc(var(--header-h) + clamp(20px, 3vh, 34px)) clamp(16px, 2.2vh, 26px);
+  /* The masthead closes on a rule, and the two columns hang below it. The only
+     separator the system has. */
+  border-block-end: 1px solid var(--hair);
+}
+
+/* Blue, as the page-opening kicker is on every other page that has one:
+   `.si-eyebrow`, `.ab-eyebrow`, `.wa-intro .kick`, `.hub-arrival-lead .eyebrow`.
+   VISUAL_DIRECTION_v2.0 §2.1 scopes blue to activation and measurement, and
+   this is that same orientation role, not a new use — Contact was the one
+   standalone page still opening on a grey kicker. */
+.c-intro-top .eyebrow {
+  color: var(--blue);
+}
+
+/* The breadcrumb and the eyebrow share one baseline: both are 11px mono roles,
+   and `SectionMarker` already establishes the geometry of a label at the inline
+   start with a running coordinate at the inline end. Two stacked 11px lines
+   cost ~38px and read as two unrelated markers; one line reads as the page's
+   coordinate and uses the full width of the canvas. */
+.c-intro-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 24px;
+  margin-block-end: clamp(16px, 2.4vh, 26px);
 }
 
 /* The breadcrumb, on the white ground. `.we-crumbs` is the same structure over
@@ -79,7 +166,6 @@
   font-size: 11px;
   letter-spacing: 0.1em;
   color: var(--ink-60);
-  margin-block-end: clamp(24px, 4vh, 40px);
 }
 
 /* `--ink-60`, not `--ink-40`: 3.51:1 vs the 4.5:1 WCAG 2.2 AA requires for text
@@ -125,11 +211,29 @@
   margin-block-start: 10px;
 }
 
+/* C-1's statement. Rendered inside the lead block by `ContactPage.astro`, so it
+   carries no top margin of its own — the lead's own row gap spaces it. */
 .c-statement {
-  margin-block-start: clamp(18px, 2.6vh, 28px);
   max-width: 46ch;
   color: var(--ink-60);
   font-size: clamp(15px, 1.15vw, 17px);
+}
+
+/* =============================================================================
+   The lead block — C-1's statement + C-2, the supporting column
+
+   Not a card and not a sidebar: the same two modules the page always had, in
+   the same order, placed beside the form instead of stacked above it. It is the
+   whole reason the desktop canvas now carries weight on both sides, and it does
+   it with content that already existed rather than with content invented to
+   fill a gap. C-4 and C-5 join it in `.c-support` below, if and when Workstream
+   C authors them.
+   ========================================================================== */
+
+.c-lead {
+  display: grid;
+  align-content: start;
+  gap: clamp(18px, 2.6vh, 28px);
 }
 
 /* =============================================================================
@@ -176,14 +280,17 @@
   display: none;
 }
 
+/* The stacked, narrow-viewport form: lead → form → support, in source order.
+   `--pad-loud` closes the page instead of `--pad-quiet` (153px vs 90px on a
+   900px viewport): both are authored members of the `service` rhythm set, and
+   the quiet beat is the one the Service pages spend on a full-bleed silence
+   before the next station. Contact has no next station — it has a footer, and
+   arriving at it through 150px of nothing is the "large amount of
+   low-information vertical space" this pass exists to remove. */
 .c-body {
   display: grid;
-  gap: clamp(48px, 8vh, 96px);
-  padding-block: clamp(40px, 6vh, 72px) var(--pad-quiet);
-}
-
-.c-form {
-  max-width: 46ch;
+  gap: clamp(32px, 4.5vh, 52px);
+  padding-block: clamp(24px, 3vh, 40px) var(--pad-loud);
 }
 
 .c-form-legend {
@@ -197,8 +304,39 @@
   margin-block-start: 8px;
 }
 
+/* ---- The field grid ------------------------------------------------------
+   Four stacked blocks, each with a `clamp(26px, 3.6vh, 38px)` top margin, was
+   ~130px of pure interval inside a form that collects four values. The grid
+   keeps the fields' order and their labels, hints and error nodes exactly as
+   they were, and only tightens the interval and pairs the two short fields.
+
+   Name + Email share a row from 720px up. They are the pairing browsers already
+   treat as one step (`autocomplete="name"` / `"email"`), each control keeps its
+   own label, hint, error node and ≥44px line box, and below 720px they stack
+   like everything else. */
+
+.c-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: var(--c-field-gap);
+  row-gap: clamp(18px, 2.3vh, 26px);
+  margin-block-start: clamp(20px, 2.6vh, 28px);
+}
+
+@media (min-width: 720px) {
+  .c-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .c-field--full {
+    grid-column: 1 / -1;
+  }
+}
+
+/* `min-width: 0` so a long hint or error message cannot blow a track out past
+   its share of the row (grid items floor at `auto`, i.e. min-content). */
 .c-field {
-  margin-block-start: clamp(26px, 3.6vh, 38px);
+  min-width: 0;
 }
 
 .c-label {
@@ -259,9 +397,18 @@
   padding-block-end: 9px; /* hold the baseline while the rule thickens */
 }
 
+/* `7.5lh` — 180px at the control's own 16px/1.5, which is the foot of the
+   180–220px band the composition brief asks for, expressed in the control's line
+   box rather than as a magic pixel value so it tracks the type if the type ever
+   moves. It was `9lh` (216px, taller than the other three fields put together)
+   before this pass and `6lh` (144px) briefly after it; at 645px wide, 144px read
+   as a letterbox rather than as a place to write.
+
+   `resize: vertical` is kept, so a visitor writing at length still enlarges it
+   themselves; `rows="5"` is the matching no-CSS floor. */
 .c-textarea {
   resize: vertical;
-  min-height: 9lh;
+  min-height: 7.5lh;
 }
 
 .c-hint {
@@ -306,6 +453,17 @@
   display: inline-block;
 }
 
+/* Inside the field grid the control's underline is a grid edge like every other
+   field's, so it runs the width of its cell rather than sitting at the select's
+   intrinsic ~177px and leaving a hole in the middle of the form. The archive's
+   `.sel` keeps its intrinsic width because it is one of a row of inline facet
+   controls; here it is one of four stacked fields. */
+.c-field--topic .c-sel,
+.c-field--topic .c-sel select {
+  display: block;
+  width: 100%;
+}
+
 .c-sel select {
   font-family: var(--read);
   font-size: 16px;
@@ -344,34 +502,72 @@
 }
 
 /* ---- The single primary action -------------------------------------------
-   VISUAL_DIRECTION_v2.0 §6: "a single precise blue activation — **not a filled
-   button block**"; §12 "Things we never do": "Never use filled, button-heavy
-   CTAs". Transcribed from `.we-onward-contact a` (the blue mark, the drawn
-   underline) and `.invite .act` (the travelling arrow).
 
-   The padding and `min-block-size` are not decoration: they bring the target to
-   ≥44px, comfortably past WCAG 2.2 AA 2.5.8's 24px minimum, and keep it there at
-   mobile sizes where the label's line box alone would leave it at 39px. */
+   VISUAL_DIRECTION_v2.0 §6 asks for "a single precise blue activation — **not a
+   filled button block**", and §12's "Things we never do" carries "Never use
+   filled, button-heavy CTAs". Both are honoured, and neither says the control
+   must be indistinguishable from a caption.
+
+   The previous treatment was a text link with a drawn underline, transcribed
+   from `.we-onward-contact a`. That is the right voice for an ONWARD LINK at the
+   tail of an editorial page — it is the wrong voice here. On Contact this is the
+   conversion action the whole page exists to reach, and at 13px mono beside a
+   821px form it read as one more piece of metadata. So the treatment becomes a
+   RULED FIELD rather than a filled block:
+
+     · a 1px `--ink` border — the same hairline grammar as every other rule on
+       this page, closed into a rectangle instead of drawn along one edge;
+     · **no fill at rest.** The blue stays a 10px mark and an arrow. There is no
+       blue area, no tint, no radius, no shadow, no gradient — the four things
+       §12 actually forbids;
+     · a width taken from the form's own grid, not invented: exactly the width of
+       the Nume field above it, so the control's left and right edges land on
+       column lines that already exist;
+     · the arrow pushed to the far edge, which is what turns a text run into a
+       field with a destination.
+
+   Inversion is reserved for the interactive states, where a change of ground is
+   the clearest possible statement that the control is live — see below. */
 
 .c-submit-row {
-  margin-block-start: clamp(32px, 4.5vh, 48px);
+  /* Slightly tighter than the old text-link spacing: the border now does the
+     separating that the interval used to do, and this keeps the taller control
+     inside the same first viewport it was already in. */
+  margin-block-start: clamp(16px, 2vh, 24px);
 }
 
 .c-submit {
-  position: relative;
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+
+  /* One field-column wide — `calc(50% - gap/2)` is literally the width the
+     `.c-fields` grid gives Nume and Email, so the button edge-aligns with the
+     field above it instead of sitting at an arbitrary percentage. ~48% of the
+     form at every desktop width (394px at 1440, 459px at 1650, 347px at 1280). */
+  inline-size: calc(50% - var(--c-field-gap) / 2);
+
   font-family: var(--mono);
+  /* 700, where every other mono role on this page is 400. The one place the
+     page raises its voice, and it raises it by weight rather than by size or by
+     colour. */
+  font-weight: 700;
   font-size: 13px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--ink);
-  background: none;
-  border: none;
-  padding: 12px 2px;
-  min-block-size: 44px;
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  padding: 16px 20px;
+  /* 52px, not the 44px floor: 2.5.8 is the minimum a control may be, not the
+     size the primary action of a page should be. */
+  min-block-size: 52px;
   cursor: pointer;
+  transition:
+    background-color var(--t-state) var(--ease),
+    border-color var(--t-state) var(--ease),
+    color var(--t-state) var(--ease);
 }
 
 .c-submit .box {
@@ -379,12 +575,49 @@
   height: 10px;
   background: var(--blue);
   flex: 0 0 auto;
+  transition: background-color var(--t-state) var(--ease);
 }
 
+/* Pushed to the inline end. The label sits beside the mark; the arrow sits at
+   the boundary it points at. */
 .c-submit .ar {
   color: var(--blue);
   display: inline-block;
-  transition: transform var(--t-state) var(--slow);
+  margin-inline-start: auto;
+  transition:
+    transform var(--t-state) var(--slow),
+    color var(--t-state) var(--ease);
+}
+
+/* ---- Hover and focus, at parity --------------------------------------------
+   MOTION_NOTES.md:54 — "Keyboard `:focus-visible` is at least as clear as
+   pointer hover" — so the two states are the same declaration, not two
+   treatments that can drift.
+
+   The ground inverts. `--paper` on `--ink` measures 15.6:1, the same pairing the
+   Work Entry hero already uses, so the label gains contrast rather than losing
+   it. The blue does NOT stay inside the box: `--blue` on `--ink` is ~1.7:1 and
+   would simply disappear. It moves to the BORDER, where it reads against the
+   paper the button sits on — which is blue doing exactly what §2.1 scopes it to,
+   signalling activation, as a 1px rule and never as an area.
+
+   The global `:focus-visible` (base.css: 2px `--blue`, 4px offset) is additive
+   and sits outside the border on white, so a keyboard user gets the inverted
+   field AND the ring. */
+
+.c-submit:hover,
+.c-submit:focus-visible {
+  background: var(--ink);
+  border-color: var(--blue);
+  color: var(--paper);
+}
+
+.c-submit:hover .box,
+.c-submit:focus-visible .box,
+.c-submit:hover .ar,
+.c-submit:focus-visible .ar {
+  background: var(--paper);
+  color: var(--paper);
 }
 
 .c-submit:hover .ar,
@@ -392,31 +625,23 @@
   transform: translateX(6px);
 }
 
-.c-submit::after {
-  content: '';
-  position: absolute;
-  inset: auto 2px 6px 22px;
-  height: 1.5px;
-  background: var(--blue);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform var(--t-state) var(--ease);
-}
-
-.c-submit:hover::after,
-.c-submit:focus-visible::after {
-  transform: scaleX(1);
-}
-
-/* Submitting. The control stays in place and stays announced — only its label
-   and its availability change. */
+/* Submitting. The control stays in place, stays announced and keeps its box —
+   only its label, its availability and its weight change. `--ink-40` (3.51:1)
+   on the border rather than `--hair` (1.2:1): a disabled control is exempt from
+   1.4.11, but a boundary nobody can see is not a state, it is a disappearance. */
 .c-submit[disabled] {
   cursor: progress;
   color: var(--ink-60);
+  background: var(--paper);
+  border-color: var(--ink-40);
 }
 
 .c-submit[disabled] .box {
   background: var(--ink-40);
+}
+
+.c-submit[disabled] .ar {
+  color: var(--ink-40);
 }
 
 .c-status {
@@ -446,12 +671,72 @@
    Both are "quiet, secondary … never loud enough to fragment the single obvious
    path". Both render nothing today (see `lib/i18n/contact.ts`); the rules stand
    so that authoring content turns them on without a stylesheet change.
+
+   No email address, phone number, location or response time is authored
+   anywhere in this repository, so this block is ABSENT — not stubbed, not
+   filled with a marked placeholder. `lib/i18n/contact.ts` records why the
+   Homepage's `(substituent)` precedent is not extended to this page: there the
+   row is a composition anchor, here it is the primary affordance of the module
+   and a visitor would send a real enquiry to it. The two-column composition is
+   therefore designed around the content that exists, and this block joins the
+   lead column above it the moment one string is authored.
    ========================================================================== */
 
-.c-secondary {
+.c-support {
   display: grid;
+  align-content: start;
   gap: clamp(20px, 3vh, 32px);
   max-width: 46ch;
+}
+
+/* =============================================================================
+   The rail's stations
+
+   The rail is an editorial sidebar, not a second body column: two or three quiet
+   stations distributed down the height of the form, each opening on the mono
+   label voice, parted by the hairline. Nothing here is a card, a fill or a
+   panel — the vocabulary is the one `.invite .contact .row` and `.specs .r`
+   already use, at rail scale.
+   ========================================================================== */
+
+/* The label that opens a station. Same 11px mono uppercase role as `.c-label`
+   and `.c-context-label`, so the rail and the form speak in one voice. */
+.c-station-label {
+  font-family: var(--mono);
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-60);
+}
+
+/* ---- The topic index -----------------------------------------------------
+   Reading voice for the Service names, mono for the two Pillar groups above
+   them: the same numeral-over-name pairing `.si-num` / `.si-pillar` uses on the
+   Services index and `.cap .cnum` / `.cap .cname` on the Homepage, at the
+   quietest scale in the system. No rules between the entries — a ruled list of
+   four short lines reads as a table, and this is an aside. */
+
+.c-topic-group {
+  margin-block-start: clamp(18px, 2.4vh, 26px);
+}
+
+.c-topic-pillar {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--blue);
+  margin-block-end: 8px;
+}
+
+.c-topic-list {
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink);
 }
 
 /* Hairline rows — transcribed from `.invite .contact .row` (homepage.css). */
@@ -507,7 +792,7 @@ a.c-method-value:focus-visible {
    ========================================================================== */
 
 .c-confirm {
-  padding-block: clamp(40px, 6vh, 72px) var(--pad-quiet);
+  padding-block: clamp(28px, 3.6vh, 48px) var(--pad-loud);
   max-width: 46ch;
 }
 
@@ -556,13 +841,112 @@ a.c-method-value:focus-visible {
 }
 
 /* =============================================================================
-   Responsive — "the form stacks to full width; the primary button stays obvious
-   and reachable" (wireframe C-3 responsive intent)
+   Responsive
+
+   The stack above IS the mobile composition — "the form stacks to full width;
+   the primary button stays obvious and reachable", and the reading progression
+   C-1 → C-2 → C-3 → C-4 → C-5 in source order. Everything below is additive:
+   the two-column placement is a wide-viewport enhancement of that stack, never
+   a layout the narrow one has to undo.
    ========================================================================== */
+
+/* ---- The desktop composition ---------------------------------------------
+   1024px, not 900px: below it the 1fr track is too narrow to hold the statement
+   at a readable measure once the page's own asymmetric gutters are taken out,
+   and a supporting column that has to hyphenate is worse than a stacked one.
+
+   `minmax(0, …)` on both tracks: an `fr` floors at min-content, and the
+   textarea and the mono context value would otherwise push the form track past
+   its share. */
+@media (min-width: 1024px) {
+  /* ~68/32, and expressed as "the rail takes its share, the form takes what is
+     left" rather than as two `fr` shares, because the two columns are not the
+     same kind of thing. The form is the page (wireframe: "the primary action and
+     its visual center of gravity"); the rail is an editorial aside whose job is
+     a readable measure and nothing more.
+
+     `30%` resolves against the well, so the ratio is the SAME at every width the
+     two-column layout applies to — it does not drift as the well grows. The
+     `296px` floor is the one exception and it is deliberate: below it the mono
+     context value and the Service names start breaking at awkward measures, so
+     on a narrow desktop the rail keeps its measure and the ratio relaxes instead
+     of the other way round.
+
+       1650   well 1470  ·  rail 441px  ·  form 949px   → 68.3 / 31.7
+       1440   well 1275  ·  rail 383px  ·  form 820px   → 68.2 / 31.8
+       1280   well 1126  ·  rail 338px  ·  form 724px   → 68.2 / 31.8
+       1024   well  901  ·  rail 296px  ·  form 554px   → 65.2 / 34.8 (floor)
+
+     `--c-gap` (72–80px on a wide viewport) is unchanged, so the parting hairline
+     keeps its air on both sides. */
+  .c-body {
+    grid-template-columns: minmax(0, 1fr) max(296px, 30%);
+    column-gap: var(--c-gap);
+    row-gap: 0;
+  }
+
+  /* The form leads and carries the weight; the supporting material sits beside
+     it. `.c-form` spans both rows only when C-4/C-5 exist, so that with the
+     lead block alone the two columns share one row and the parting hairline
+     runs the full height of the composition either way. */
+  .c-lead {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .c-form {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  /* Row 2 of the two the form spans. Grid hands a spanning item's surplus height
+     to the rows it crosses, so the rail's lower stations start partway down the
+     form rather than stacking against its heading — which is the whole point of
+     an editorial sidebar and the reason the parting hairline earns its keep.
+     No rule of its own at the top: `.c-context` already closes the station above
+     it, and a second hairline a distributed gap away would read as a mistake. */
+  .c-support {
+    grid-column: 2;
+    grid-row: 2;
+    max-width: none;
+    padding-block-start: clamp(20px, 3vh, 32px);
+  }
+
+  .c-body--support .c-form {
+    grid-row: 1 / span 2;
+  }
+
+  /* The only thing between the columns: one hairline, centred in the gap. Not a
+     border on a panel — the panel does not exist. Both blocks carry it so it is
+     continuous across the row boundary (hence `row-gap: 0` above). */
+  .c-lead,
+  .c-support {
+    border-inline-start: 1px solid var(--hair);
+    margin-inline-start: calc(var(--c-gap) / -2);
+    padding-inline-start: calc(var(--c-gap) / 2);
+  }
+
+  /* In the narrow column the label and the value stack, and the block's own top
+     rule would double the lead's row gap — the bottom rule alone closes it. */
+  .c-context {
+    border-block-start: none;
+    padding-block-start: 0;
+  }
+}
+
+/* Between the stack and the two columns the form has no track to bound it, so
+   it keeps a reading measure of its own rather than running the full canvas —
+   a 78ch textarea is not a better textarea. Above 1024px the grid track is the
+   bound and the form fills it, edge to edge with the hairline. */
+@media (max-width: 1023px) {
+  .c-form {
+    max-width: 62ch;
+  }
+}
 
 @media (max-width: 640px) {
   .c-form,
-  .c-secondary,
+  .c-support,
   .c-status,
   .c-privacy,
   .c-confirm {
@@ -574,22 +958,32 @@ a.c-method-value:focus-visible {
     width: 100%;
   }
 
-  /* One row, full width, still a text action rather than a filled block. */
+  /* Full width, because on a phone the strongest composition and the largest
+     target are the same thing. The arrow keeps its `margin-inline-start: auto`,
+     so the label stays at the start edge and the arrow at the end edge — the
+     desktop field, stretched, not a different control. */
   .c-submit {
-    justify-content: flex-start;
-    width: 100%;
+    inline-size: 100%;
   }
 }
 
 /* =============================================================================
    Reduced motion — MOTION_NOTES.md:62 / §13: layout parity, not merely disabled
-   transitions. Nothing on this page moves except the arrow travel and the
-   underline draw, and both resolve to their resting state.
+   transitions. Nothing on this page moves except the arrow travel, and it
+   resolves to its resting state.
+
+   The submit control's own transition is listed too. It carries no movement —
+   only `background-color`, `border-color` and `colour` — but §13 asks for the
+   final state IMMEDIATELY rather than for a slower version of the same change,
+   and the state itself is unaffected: hover and focus still invert the ground,
+   they just arrive at once. Layout parity holds either way; the button occupies
+   exactly the same box in every state.
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
+  .c-submit,
+  .c-submit .box,
   .c-submit .ar,
-  .c-submit::after,
   .c-confirm-onward .ar,
   .c-input,
   .c-sel select {

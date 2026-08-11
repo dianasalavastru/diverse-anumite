@@ -1,0 +1,82 @@
+---
+/**
+ * The Contact rail's topic index — the studio's own Service taxonomy, quiet and
+ * unlinked, answering one of the questions `CONTACT_PAGE_IA.md` §1 puts on this
+ * page by name.
+ *
+ * ── WHY THIS EXISTS, AND WHY IT IS NOT A NEW RESPONSIBILITY ────────────────
+ * §1 lists the visitor questions Contact answers, and the second of them is
+ * "**What should I contact you about?**". Until now nothing on the page answered
+ * it except the form's three-option Topic selector, which is the frozen PILLAR
+ * axis (IA Step 7) and deliberately coarse. This module answers it at the
+ * granularity the visitor actually thinks in — the Services themselves — and
+ * does nothing else.
+ *
+ * ── EVERY STRING HERE COMES FROM SOMEWHERE ELSE ────────────────────────────
+ *   · the heading      `ui(locale).nav.services` — the site's own LOCKED name
+ *                      for this taxonomy (NAV_DECISION_RECORD.md §4). No new
+ *                      copy is authored for this module, in either locale.
+ *   · the group names  `pillarLabel()` — the frozen Pillar vocabulary, the same
+ *                      labels the form's Topic selector already renders.
+ *   · the entries      Service documents out of the CMS, locale-scoped by
+ *                      `serviceSummaries` before `ContactPage.astro` hands them
+ *                      over. Nothing is invented, nothing is hardcoded, and a
+ *                      Service that is not published in this locale is not here.
+ * Group order is `PILLARS`, the frozen model order; IA §3.2 forbids structural
+ * primacy of either pillar, so the two groups render identically.
+ *
+ * ── IT IS NOT NAVIGATION ───────────────────────────────────────────────────
+ * No links, and that is a decision rather than an omission. C-3 is "one obvious
+ * primary button; **no competing calls to action**", and `CONTACT_PAGE_IA.md` §4
+ * asks to "avoid unnecessary onward navigation" on the page that owns conversion
+ * intent. A visitor who wants to read about a Service reaches it from the global
+ * nav; here the names are an orientation aid, printed in the reading voice, so
+ * the visitor knows what to name in the message they are already writing.
+ *
+ * It renders nothing at all when the catalogue is empty — the same absent-rather-
+ * than-stubbed rule `ContactMethods` follows.
+ */
+import { PILLARS, type Pillar } from '../../lib/content';
+import type { Locale } from '../../lib/i18n/routes';
+import { ui } from '../../lib/i18n/ui';
+import { pillarLabel } from '../../lib/i18n/vocabulary';
+import type { PrefillService } from './prefill';
+
+interface Props {
+  locale: Locale;
+  /** The same locale-scoped catalogue the prefill layer validates against. */
+  services: readonly PrefillService[];
+}
+
+const { locale, services } = Astro.props;
+
+/** Only a pillar that actually has a published Service in this locale appears. */
+const groups = PILLARS.map((pillar: Pillar) => ({
+  pillar,
+  label: pillarLabel(pillar, locale),
+  entries: services.filter((service) => service.pillar === pillar),
+})).filter((group) => group.entries.length > 0);
+
+const heading = ui(locale).nav.services;
+---
+
+{
+  groups.length > 0 && (
+    <section class="c-topics rv" data-rv="meta" aria-labelledby="c-topics-heading">
+      <h2 class="c-station-label" id="c-topics-heading">
+        {heading}
+      </h2>
+
+      {groups.map((group) => (
+        <div class="c-topic-group">
+          <p class="c-topic-pillar">{group.label}</p>
+          <ul class="c-topic-list">
+            {group.entries.map((service) => (
+              <li>{service.name}</li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </section>
+  )
+}
