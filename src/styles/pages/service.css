@@ -245,7 +245,17 @@ html.anim-ready .sv-orientation-in {
   color: var(--ink-60);
 }
 
+/* WCAG 2.2 AA SC 2.5.8 (Target Size — Minimum), found at the visual-QA pass:
+   this measured 102 × 16 — 8px short of the 24px minimum, and no exception
+   applies (it is not inline in a sentence, and it is the only control in its
+   region so the Spacing alternative cannot rescue it). The box grows, the type
+   does not — the identical correction `.hub-quiet` documents for the hub's About
+   link. The underline stays on the text box, so nothing about the authored
+   appearance changes. */
 .sv-about a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
   border-block-end: 1px solid var(--hair);
   padding-block-end: 2px;
 }
@@ -638,7 +648,15 @@ html.anim-ready .sv-orientation-in {
 
 /* The F1 back-path in both places it appears (F5 and S-5): navigation voice,
    deliberately below the conversion action in weight. */
+/* Same SC 2.5.8 correction as `.sv-about a` above: this measured 159 × 14. It
+   appears twice — in F5's empty state and in S-5 — and both are standalone
+   controls. Growing the box leaves the navigation voice, and its deliberate
+   subordination to the conversion action, exactly as authored. */
 .sv-backpath {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 24px;
   font-family: var(--mono);
   font-size: 12px;
   letter-spacing: 0.06em;
