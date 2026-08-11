@@ -111,9 +111,24 @@ Running ledger of client-validated decisions for the Atelier portfolio website. 
 73. **Implementation layer opened.** `WORK_ARCHIVE_IMPLEMENTATION_NOTES.md` recovered and adopted as authoritative production-behaviour notes for the Work Archive (companion to its HiFi); its taxonomy/filter details reconcile to — and never override — the frozen Content Model + locked IA. `IMPLEMENTATION_DOCUMENT_STANDARD.md` is a known but currently unavailable cross-page standard; its slot is reserved for post-migration recovery/recreation (not reconstructed here).
 74. **Documentation migrated to a Git SSOT** (shallow, page-colocated); `README.md` is the single developer entry point, distilled from `START_HERE.md` (now archived). Amendment channels: correction + implementation feedback. **Next phase = production implementation (tech stack not yet selected).**
 
+## Batch 21 — Production technical architecture adopted; route, i18n and non-functional decisions (amendment: implementation feedback) — 2026-08-11
+
+75. **`docs/implementation/TECHNICAL_ARCHITECTURE.md` adopted as the authoritative production technical architecture.** Closes the "tech stack not yet selected" gate recorded at #74. It is explicitly **downstream** of the Content Model, IA, Page IA, wireframes, and `VISUAL_DIRECTION_v2.0` + approved HiFis, and may not redefine any of them. Stack: Astro 5 (static + islands) · Sanity (Payload as priced fallback) · vanilla CSS + token layer · no motion library (upholds `MOTION_NOTES.md`:9) · Cloudflare Pages + one Function · client-side archive filtering. Produced by reconciling the original architecture proposal against an independent Architecture Review and a Security & Privacy Review.
+
+76. **OD-1 — Pillar hub public names and routes APPROVED** (owner, 2026-08-11). Architecture & Design → `/arhitectura-design`; Reality Capture → `/reality-capture`. Confirms the working slugs at `NAV_DECISION_RECORD.md`:42 as final and resolves the "pillar-hub public names" open item. **No Content Model semantics change**; hubs remain first-class landing pages and stay out of the global nav (#19–20).
+
+77. **OD-2 — English route segments APPROVED** (owner, 2026-08-11). RO remains at root, EN under `/en/` (per #21):
+
+    `/` → `/en/` · `/despre` → `/en/about` · `/servicii` → `/en/services` · `/servicii/[serviciu]` → `/en/services/[service]` · `/proiecte` → `/en/projects` · `/proiecte/[proiect]` → `/en/projects/[project]` · `/proiecte/concursuri` → `/en/projects/competitions` · `/proiecte/experienta-profesionala` → `/en/projects/professional-experience` · `/arhitectura-design` → `/en/architecture-design` · `/reality-capture` → `/en/reality-capture` · `/contact` → `/en/contact`
+
+    Resolves the "i18n slug detail" open item **for route segments**; per-entity localized slugs remain authored content. **The public URL/navigation terminology does not rename the canonical content object — the internal canonical object remains the Work Entry** (`CONTENT_MODEL.md` §1), exactly as "Proiecte" never renamed it (#24 of `NAV_DECISION_RECORD.md`). Per-locale reserved-slug list (IA §2.2, F4) now includes EN `competitions` and `professional-experience`.
+
+78. **OD-5 — Accessibility, performance and browser targets APPROVED** (owner, 2026-08-11). Accessibility target **WCAG 2.2 AA**. Performance budgets as defined in `TECHNICAL_ARCHITECTURE.md` §15, treated as **engineering budgets/targets, not guarantees for every synthetic test or device**; point-cloud numeric budgets remain **provisional until measured by the production spike**. Browser baseline: latest 2 major versions of Chrome, Safari, Firefox and Edge, with **current iOS Safari explicitly included**. **Progressive enhancement is mandatory; unsupported enhancement APIs must degrade to functional baseline behaviour — cross-document View Transitions must never be required for navigation to work.**
+
 ### Open (non-blocking, carried into design/build)
 - Multi-select within a facet; inline vs expander rendering (design-step).
-- Pillar-hub public names; i18n slug detail; confirm EU programme publicity rules.
+- Confirm EU programme publicity rules.
+- Missing-translation counterpart UX; capture-asset publication-rights and contact-data retention policy; whether composite entries may override derived Primary Pillar. *(Tracked as OD-3, OD-6, OD-7 in `TECHNICAL_ARCHITECTURE.md` §22.)*
 - Point-cloud fidelity; credibility copy authoring.
 - Visualization as its own discipline vs service/role; possible future "Academic" Attribution; possible "Collection" object.
 - **"Pillar Entry" component** — homepage M-2 currently expressed via Highlight Card; whether to add a dedicated component is deferred to the design phase (would enter via amendment channel 3 if design confirms the need).

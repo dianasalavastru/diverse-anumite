@@ -1,0 +1,163 @@
+/* =============================================================================
+   Global Header — COMPONENT_INVENTORY.md §4 "Global Header".
+
+   Responsibility: persistent Layer-2 task-first wayfinding, never shape-shifting
+   (NAV_DECISION_RECORD.md §3-4). Pillar hubs are NOT items here (§5.2).
+
+   CSS transcribed from the approved HiFis, which define it identically apart
+   from two recorded divergences:
+     z-index  50 in HP · 60 in HUB, RC, WA, WE, SV -> 60 adopted (5 of 6, and
+              the higher value is the one that clears every page's own layers).
+     .on-hero present in WE and SV only — the variant for pages that open on a
+              full-bleed dark hero. Kept as a variant, applied by those pages.
+   ========================================================================== */
+
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-h);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--gutter-end);
+  transition:
+    background 0.4s var(--ease),
+    border-color 0.4s var(--ease);
+  border-bottom: 1px solid transparent;
+}
+
+/* MOTION_NOTES.md §"Motion functions" — Transition: header settle-to-solid.
+   Applied by the motion runtime past 60vh of scroll. */
+.site-header.solid {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--hair);
+}
+
+/* The wordmark. Pixel voice as identity (VISUAL_DIRECTION_v2.0 §12 pr. 13). */
+.wm {
+  font-family: var(--pixel);
+  font-size: 20px;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+
+.site-header nav {
+  display: flex;
+  gap: 26px;
+  align-items: center;
+}
+
+.site-header nav a {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+  position: relative;
+  padding: 4px 0;
+}
+
+/* The underline draws in rather than appearing — one motion family shared by
+   hover and focus (MOTION_NOTES.md §"Navigation & interactive states"). */
+.site-header nav a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 100%;
+  bottom: 0;
+  height: 1.5px;
+  background: var(--blue);
+  transition: right 0.3s var(--ease);
+}
+
+.site-header nav a:hover::after,
+.site-header nav a:focus-visible::after {
+  right: 0;
+}
+
+/* Current section. HUB, WA, SV. */
+.site-header nav a.here {
+  color: var(--blue);
+}
+
+.site-header nav a.here::after {
+  right: 0;
+}
+
+/* The language toggle sits quieter than the task links. */
+.site-header nav a.en {
+  color: var(--ink-40);
+}
+
+/* §11.2 rule 5: the switcher is disabled, with an accessible explanation, for
+   an entity that has no counterpart in the other locale. Rendered as a plain
+   <span> by the component; never a dead link. The exact UX of this state is
+   open upstream (OD-3) — this is the minimum honest treatment, not a design. */
+.site-header nav .en[aria-disabled="true"] {
+  color: var(--ink-40);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.site-header nav .en[aria-disabled="true"]::after {
+  content: none;
+}
+
+.site-header .menu {
+  display: none;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+}
+
+/* ---- Variant: over a full-bleed dark hero (WE, SV) ---------------------- */
+.site-header.on-hero .wm,
+.site-header.on-hero nav a,
+.site-header.on-hero .menu {
+  color: #fff;
+}
+
+.site-header.on-hero nav a.en {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.site-header.on-hero nav a.here {
+  color: #fff;
+}
+
+.site-header.on-hero nav a.here::after {
+  background: #fff;
+  right: 0;
+}
+
+.site-header.solid .wm,
+.site-header.solid nav a,
+.site-header.solid .menu {
+  color: var(--ink);
+}
+
+.site-header.solid nav a.en {
+  color: var(--ink-40);
+}
+
+/* HP, HUB, RC, WE, SV — the task links collapse to a menu control below 720px.
+   The control is present and focusable at every width; only its display flips,
+   so nothing becomes unreachable (§14.0). */
+@media (max-width: 720px) {
+  .site-header nav {
+    display: none;
+  }
+
+  .site-header .menu {
+    display: block;
+  }
+}

@@ -1,0 +1,100 @@
+/* =============================================================================
+   layout.css — the page frame primitives.
+
+   Only the frame that every page shares: the asymmetric main gutters, the
+   header offset, and the coordinate-rail slot. Section composition, grids and
+   the floating/focus compositions are per-page work (VISUAL_DIRECTION_v2.0 §12
+   composition grammar) and are NOT abstracted here — "consistency in system,
+   variety in composition" (§12 principle 10).
+   ========================================================================== */
+
+/* ---- The main content well ----------------------------------------------
+   All six HiFis pad <main> asymmetrically: a wider inline-start gutter (which
+   clears the fixed coordinate rail) and a narrower inline-end gutter. The
+   asymmetry is the point — VISUAL_DIRECTION_v2.0 §12: "Prefer edge alignment
+   over centring", "asymmetric balance". There is no centred max-width wrapper
+   in any HiFi, and none is introduced here.
+
+   Logical properties are used so the frame follows writing direction; both
+   locales (RO, EN) are LTR, so this is equivalent to the HiFis' physical
+   padding-left / padding-right today. */
+main {
+  padding-inline-start: var(--gutter-start);
+  padding-inline-end: var(--gutter-end);
+}
+
+/* Full-bleed escape: cancels the main gutters so an element can run edge to
+   edge. Transcribed from HP's `.cloud`, which breaks the gutter to make the
+   point-cloud field the "full-bleed CRESCENDO". Named as a primitive because
+   §9 of VISUAL_DIRECTION_v2.0 requires images to be able to "bleed to the
+   canvas edge" anywhere, not only on the homepage. */
+.bleed {
+  margin-inline-start: calc(-1 * var(--gutter-start));
+  margin-inline-end: calc(-1 * var(--gutter-end));
+}
+
+/* ---- Header offset -------------------------------------------------------
+   The Global Header is fixed in every HiFi, so it is out of flow. Pages that
+   open on a non-hero surface must not slide their first element under it.
+   The HiFis handle this per page (e.g. HP's `.arrival` top padding); this
+   utility exposes the header height so a page never hard-codes 66px. */
+.pad-header {
+  padding-block-start: var(--header-h);
+}
+
+/* ---- Coordinate rail slot ------------------------------------------------
+   The rail is a fixed left-edge instrument scale present in HP, HUB, RC, WE, SV
+   (absent from WA). MOTION_NOTES.md §"Technical elements": the rail and its blue
+   tick track the active station. Identical geometry in every HiFi that has it.
+   Hidden below 900px in HP — the rail is a wide-viewport affordance only, and it
+   is aria-hidden, so nothing is lost. */
+.rail {
+  position: fixed;
+  left: var(--rail-left);
+  top: 0;
+  bottom: 0;
+  width: var(--rail-width);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+  pointer-events: none;
+}
+
+.rail .st {
+  font-family: var(--pixel);
+  font-size: 12px;
+  color: var(--ink-40);
+  opacity: 0.5;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition:
+    opacity 0.4s,
+    color 0.4s;
+}
+
+.rail .st .tick {
+  width: 10px;
+  height: 1px;
+  background: var(--ink-40);
+  transition: all 0.4s var(--ease);
+}
+
+.rail .st.active {
+  opacity: 1;
+  color: var(--blue);
+}
+
+.rail .st.active .tick {
+  width: 24px;
+  height: 2px;
+  background: var(--blue);
+}
+
+@media (max-width: 900px) {
+  .rail {
+    display: none;
+  }
+}

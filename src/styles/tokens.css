@@ -1,0 +1,173 @@
+/* =============================================================================
+   tokens.css — design tokens, extracted VERBATIM from the approved HiFis.
+
+   OWNERSHIP: Workstream A, single-owner file (TECHNICAL_ARCHITECTURE.md §23.3).
+   AUTHORITY:  VISUAL_DIRECTION_v2.0.md + the six approved HiFi .html files
+               (README.md §"Approved HiFi references", owner-approved 2026-08-10)
+               + MOTION_NOTES.md for the timing/easing tokens.
+
+   §5.3 of TECHNICAL_ARCHITECTURE.md: "Verbatim absorption applies to: design
+   tokens, CSS, and the motion layer." Nothing here is redesigned. Every value
+   below is copied character-for-character from a HiFi `:root` block; the source
+   files are named per group. Where the same token carried different values in
+   different HiFis, the divergence is recorded in full and reconciled explicitly
+   — never averaged, never re-picked on taste.
+
+   HiFi source keys used in the notes below:
+     HP  docs/pages/homepage/homepage-measured-reality-animated-v3.html
+     HUB docs/pages/pillar-hub/pillar-hub-measured-reality-hifi-v1_1.html
+     RC  docs/pages/pillar-hub/reality-capture-hub-measured-reality-hifi-v1.html
+     WA  docs/pages/work-archive/work-archive-measured-reality-hifi-v1.html
+     WE  docs/pages/work-entry/work-entry-measured-reality-hifi-v1.html
+     SV  docs/pages/service/service-page-measured-reality-hifi-v1.html
+   ========================================================================== */
+
+:root {
+  /* ---- Colour — identical in all six HiFis (HP, HUB, RC, WA, WE, SV) -------
+     VISUAL_DIRECTION_v2.0 §1: white ground, warm near-black, electric blue.
+     §2.1: blue is the signal of activation and measurement — it is forbidden
+     as area, fill, background or decoration. There is deliberately no
+     "--blue-bg", no tint ramp and no second accent: the palette below is the
+     whole palette. */
+  --paper: #ffffff;
+  --ink: #1b1712;              /* warm near-black, never cold  [HP comment]   */
+  --ink-60: #6f675d;
+  --ink-40: #8f887e;
+  --hair: #e8e4dc;
+  --hair-2: #f1ede6;
+  --blue: #2b2be6;             /* single accent — activation & measurement only */
+
+  /* Present in RC + SV only; absent from HP, HUB, WA, WE. Promoted to the
+     global set because it is a derivative of --blue at the same value in both
+     files (rgba of #2b2be6 at 8%), not an independent colour decision. */
+  --blue-08: rgba(43, 43, 230, 0.08);
+
+  /* ---- Typeface stacks — identical in all six HiFis ------------------------
+     VISUAL_DIRECTION_v2.0 §10 / §2.5: the pixel voice is identity and
+     coordinate marker (never body); the mono voice carries measurement data;
+     the reading voice carries running text.
+     The HiFis load these from the Google Fonts CDN. Production self-hosts them
+     (TECHNICAL_ARCHITECTURE §9, and §19.1 forbids HiFi placeholder origins) —
+     see fonts.css. The stacks themselves are unchanged. */
+  --pixel: "Pixelify Sans", monospace;
+  --mono: "Space Mono", monospace;
+  --read: "Inter", -apple-system, sans-serif;
+
+  /* ---- Motion — easing ----------------------------------------------------
+     --ease  identical in all six HiFis; MOTION_NOTES.md:19 "smooth
+             acceleration/deceleration, no overshoot or bounce".
+     --slow  present in HUB, RC, WA, WE, SV; absent from HP only. Promoted to
+             the global set: five of six HiFis define it identically and WE
+             documents it as "premium, decelerated". */
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --slow: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ---- Motion — duration --------------------------------------------------
+     MOTION_NOTES.md §"Timing & easing tokens", absorbed verbatim per
+     TECHNICAL_ARCHITECTURE §13. Defined in the HP motion layer; the other five
+     HiFis inline equivalent durations. */
+  --t-micro: 0.18s;            /* hover / press micro-interactions            */
+  --t-state: 0.36s;            /* state transitions (focus, hover reveals)    */
+  --t-rev: 0.66s;              /* content reveals                             */
+  --t-major: 1s;               /* hero scan, carousel focus transition        */
+
+  /* ---- Page frame — identical in all six HiFis ----------------------------
+     The inline-end gutter, the header height and the coordinate-rail geometry
+     are unanimous. The inline-START gutter is NOT unanimous and therefore
+     lives in the rhythm sets below, not here. */
+  --gutter-end: clamp(20px, 5vw, 64px);
+  --header-h: 66px;
+  --rail-left: 26px;
+  --rail-width: 44px;
+}
+
+/* =============================================================================
+   PAGE RHYTHM SETS
+
+   VISUAL_DIRECTION_v2.0 §8 makes pacing a deliberate DENSE <-> SILENT cadence
+   whose "intervals vary; pacing is never metronomic". The HiFis implement that
+   by giving each page type its own rhythm values — HUB states it in a comment:
+   "Hub breathes wider than the Homepage — longer editorial rhythm".
+
+   These are therefore NOT one global token with six conflicting definitions.
+   They are five authored rhythm sets, transcribed verbatim, selected by the
+   `data-rhythm` attribute the base layout writes onto <html>.
+
+   `--lh-body` and `--gutter-start` are members of these sets for the same
+   reason: their values track page type, not a global default.
+     line-height  1.62 in HP, WA, WE   ·   1.66 in HUB, RC, SV
+     inline-start clamp(20px,7vw,110px) in HP, WE
+                  clamp(20px,7vw,120px) in HUB, RC, WA, SV
+   A 3–3 / 4–2 split is not a majority worth inventing a global default from,
+   so no default exists: `rhythm` is a REQUIRED prop on BaseLayout. A page type
+   with no approved HiFi (Contact, About) has no rhythm set here and cannot be
+   built until one is authored upstream. That is intentional — see the
+   "unresolved" note at the foot of this file.
+   ========================================================================== */
+
+:root[data-rhythm="homepage"] {
+  /* HP — "vertical rhythm tokens — pacing is now a system, not a per-section
+     guess": quiet = breathing beats (hero tail, invite); loud = dense beats
+     (work, credibility). */
+  --pad-quiet: clamp(84px, 13vh, 168px);
+  --pad-loud: clamp(48px, 7vh, 86px);
+  --gutter-start: clamp(20px, 7vw, 110px);
+  --lh-body: 1.62;
+}
+
+:root[data-rhythm="pillar-hub"] {
+  /* HUB and RC define these identically. */
+  --pad-quiet: clamp(110px, 17vh, 230px);
+  --pad-loud: clamp(64px, 10vh, 120px);
+  --gutter-start: clamp(20px, 7vw, 120px);
+  --lh-body: 1.66;
+}
+
+:root[data-rhythm="service"] {
+  /* SV. Note --pad-quiet's max is 220px here vs the hubs' 230px — transcribed
+     as authored, not normalized to the hub value. */
+  --pad-quiet: clamp(110px, 17vh, 220px);
+  --pad-loud: clamp(64px, 10vh, 120px);
+  --gutter-start: clamp(20px, 7vw, 120px);
+  --lh-body: 1.66;
+}
+
+:root[data-rhythm="work-entry"] {
+  /* WE. */
+  --pad-quiet: clamp(96px, 15vh, 190px);
+  --pad-loud: clamp(52px, 8vh, 96px);
+  --gutter-start: clamp(20px, 7vw, 110px);
+  --lh-body: 1.62;
+}
+
+:root[data-rhythm="work-archive"] {
+  /* WA defines --pad-loud only; it has no --pad-quiet, because the archive is
+     a continuously dense browse surface with no "silent" beat. Left undefined
+     rather than back-filled — a page that needs a quiet beat here would be a
+     design decision, not an implementation one. */
+  --pad-loud: clamp(48px, 7vh, 86px);
+  --gutter-start: clamp(20px, 7vw, 120px);
+  --lh-body: 1.62;
+}
+
+/* =============================================================================
+   UNRESOLVED / DELIBERATELY ABSENT — do not fill these in without upstream input
+
+   1. No rhythm set for Contact or About. Contact has a Page IA + wireframe but
+      no HiFi; About has neither (README.md §"Open questions"). No tokens are
+      invented for them.
+   2. No display type scale. The fixed role sizes (11/12/13px labels, 20px
+      wordmark) repeat across all six HiFis and are captured in typography.css,
+      but the fluid display sizes do not: 47 distinct `clamp()` font sizes
+      appear across the six files, 40 of them exactly once, each authored for
+      one composition. VISUAL_DIRECTION_v2.0 §10 asks for "hierarchy through
+      restraint and space, not size escalation" — i.e. per-composition sizing.
+      Deriving a global scale from those values would be a redesign.
+   3. No dark-environment theme. VISUAL_DIRECTION_v2.0 §12 records the dual
+      white/dark "capture environment" as a prototype CANDIDATE, not a rule, and
+      TECHNICAL_ARCHITECTURE §22 asks only to "keep tokens theme-capable". The
+      tokens above are already theme-capable — every colour is a custom property
+      consumed by reference — so no second palette is authored here.
+   4. No spacing/size scale beyond the above. The HiFis compose with per-element
+      `clamp()` values, not a step scale.
+   ========================================================================== */

@@ -1,0 +1,46 @@
+/* =============================================================================
+   typography.css — the role-based type primitives.
+
+   These are the type roles that repeat, byte-identical, across the approved
+   HiFis. They are primitives because the HiFis treat them as primitives — each
+   one expresses a role from VISUAL_DIRECTION_v2.0 §2.5 / §10, not a size step.
+
+   There is deliberately no display scale here. See the "unresolved" note at the
+   foot of tokens.css: the fluid heading sizes are authored per composition and
+   deriving a scale from them would be a redesign.
+   ========================================================================== */
+
+/* ---- Voices (VISUAL_DIRECTION_v2.0 §10) ---------------------------------- */
+
+/* The pixel voice: identity and coordinate markers. Never body text
+   (§12 principle 13: "Pixel type is a voice and a coordinate marker, never the
+   body"). Defined in HP; the other HiFis reference var(--pixel) directly. */
+.pixel {
+  font-family: var(--pixel);
+}
+
+/* The mono voice: measurement data. */
+.mono {
+  font-family: var(--mono);
+}
+
+/* ---- Measurement-data primitives ----------------------------------------- */
+
+/* Section eyebrow / label. Identical in HP, HUB, RC, WE. */
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+
+/* The instrument readout. Identical in all six HiFis.
+   §2.5: "metadata is presented as precise measurement data — exact, consistent,
+   quietly technical, like an instrument readout." */
+.measure {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-40);
+}

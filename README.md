@@ -14,8 +14,13 @@ requirement: the owner must be able to add and edit projects **without touching 
 
 ## Current phase
 
-**Design & architecture: complete and frozen. Implementation: not yet started** (tech stack, CMS
-mapping, and design tokens are deliberately unchosen). The full design architecture — content model,
+**Design & architecture: complete and frozen. Technical architecture: decided and authoritative
+([`docs/implementation/TECHNICAL_ARCHITECTURE.md`](docs/implementation/TECHNICAL_ARCHITECTURE.md),
+2026-08-11). Implementation: Phase 0 complete — integration checkpoint I-1 landed 2026-08-11**
+(design tokens extracted verbatim from the approved HiFis; the frozen locale route map, the global
+`@layer` architecture, the base layout with Global Header/Footer and motion runtime, and the
+frontend ↔ CMS content contract are all in the repository). Page implementation has not started.
+The full design architecture — content model,
 information architecture, navigation, six page contracts, the design system, six wireframes, and the
 visual direction (**v2.0, "measured reality"**) — is done and authoritative. Interactive HiFi
 references exist for six page types. The next real artifact is a running Homepage, not another document.
@@ -54,9 +59,23 @@ docs/
 │   ├── service/    SERVICE_PAGE_IA · SERVICE_WIREFRAME · service-page-…-hifi-v1.html
 │   └── contact/    CONTACT_PAGE_IA · CONTACT_WIREFRAME            (no HiFi yet — see Open questions)
 ├── governance/     DECISIONS_LOG.md (living ledger) · DOCUMENTATION_RELEASE_v1.0.md (freeze record)
-├── implementation/ RESERVED — see "Implementation guidance" below (folder not yet created)
+├── implementation/ TECHNICAL_ARCHITECTURE.md (authoritative production architecture)
 ├── references/     source proposal PDFs + cover JPG · INSPIRATION.md · CONTENT_MODEL_VALIDATION.md   (non-authoritative)
 └── archive/        superseded/ · historical/ · proposal/   (⛔ provenance only — never build from)
+```
+
+Since I-1, application code lives beside it. **A file has exactly one owning workstream**
+(`TECHNICAL_ARCHITECTURE.md` §23.3) — the owner is noted in brackets:
+
+```
+src/
+├── styles/         global token + @layer stylesheet, typography & layout primitives   [A]
+├── layouts/        base layout (motion runtime + Global Header/Footer)                [A]
+├── components/     Global Header · Footer                                             [A]
+├── pages/          routes (currently one foundation placeholder, not the Homepage)    [A]
+├── scripts/        motion runtime — no library, per MOTION_NOTES.md                   [A]
+├── lib/i18n/       the frozen locale route map (§11.1) + UI message structure         [A]
+└── lib/content/    the frontend ↔ CMS data boundary — types, derivations, fixtures    [B]
 ```
 
 ---
@@ -105,7 +124,8 @@ Earlier prototypes are in `docs/archive/superseded/`. Motion is documented in
   (it does not change them). It also carries the reusable template for future `*_IMPLEMENTATION_NOTES.md`.
 - **Cross-page implementation standard** — `docs/implementation/IMPLEMENTATION_DOCUMENT_STANDARD.md` is a
   **known but currently unavailable** artifact. Its slot is **reserved**; recovering/recreating it is a
-  post-migration task. It is **not** reconstructed here. The folder is created when the Standard is supplied.
+  post-migration task. It is **not** reconstructed here. (The `docs/implementation/` folder now exists,
+  created by `TECHNICAL_ARCHITECTURE.md`; the Standard remains a separate, still-missing artifact.)
 
 ---
 
@@ -126,8 +146,13 @@ Note: `governance/DOCUMENTATION_RELEASE_v1.0.md` is the original freeze record, 
 
 ## Open questions (unresolved — do not invent)
 
-- **No production tech stack / CMS mapping / design tokens** yet — the true build gate. Start from
-  `CONTENT_MODEL.md` + `INFORMATION_ARCHITECTURE.md` when authoring the technical + CMS layers.
+- ~~No production tech stack / CMS mapping~~ — **resolved 2026-08-11** by
+  [`docs/implementation/TECHNICAL_ARCHITECTURE.md`](docs/implementation/TECHNICAL_ARCHITECTURE.md)
+  (Decision Log Batch 21). Pillar-hub slugs and EN route segments are also decided there (#76–77).
+- ~~Design tokens unextracted~~ — **resolved 2026-08-11 at I-1.** Extracted verbatim from the approved
+  HiFis into `src/styles/tokens.css`, which records the provenance and the reconciled divergences.
+  No display type scale was derived: the HiFis size display type per composition, so a global scale
+  would be a redesign, not an extraction.
 - **`IMPLEMENTATION_DOCUMENT_STANDARD.md`** — recover or recreate into the reserved `docs/implementation/`.
 - **Work Archive taxonomy reconciliation** — align the implementation notes' filter/metadata model to the
   frozen Content Model + locked IA before building Work Archive.

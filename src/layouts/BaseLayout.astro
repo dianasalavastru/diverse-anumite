@@ -1,0 +1,169 @@
+---
+/**
+ * BaseLayout — the base layout every page composes.
+ *
+ * OWNERSHIP: Workstream A, single-owner file (TECHNICAL_ARCHITECTURE.md §23.3,
+ * "base layout (motion runtime, Global Header/Footer) | A | every page composes
+ * it").
+ *
+ * It carries exactly four things and no page content:
+ *   1. the document shell and the one global stylesheet;
+ *   2. the page rhythm selection (see tokens.css);
+ *   3. Global Header + Footer;
+ *   4. the motion runtime.
+ */
+import GlobalFooter from '../components/GlobalFooter.astro';
+import GlobalHeader from '../components/GlobalHeader.astro';
+import {
+  counterpartPath,
+  hreflangAlternates,
+  otherLocale,
+  type Locale,
+  type RouteKey,
+} from '../lib/i18n/routes';
+import { ui } from '../lib/i18n/ui';
+import type { PageRhythm } from './rhythm';
+
+import '../styles/global.css';
+
+interface Props {
+  locale: Locale;
+  /**
+   * REQUIRED — see ./rhythm.ts. There is no default: the HiFis disagree on
+   * `--lh-body` 3-3 and on the inline-start gutter 4-2, and inventing a global
+   * default would be a design decision.
+   */
+  rhythm: PageRhythm;
+  title: string;
+  description?: string;
+  /** Which frozen route this page is, for nav state and hreflang. */
+  routeKey: RouteKey;
+  /**
+   * Localized slug per locale, for parameterized routes. A locale with no slug
+   * has no counterpart: §11.2 then disables the switcher and emits no hreflang
+   * pair. Omit entirely for static routes.
+   */
+  slugs?: Partial<Record<Locale, string>>;
+  /** `on-hero` for pages that open on a full-bleed dark hero. */
+  headerVariant?: 'default' | 'on-hero';
+  /** The footer's rail station, on pages that use the coordinate rail. */
+  footerStation?: number;
+}
+
+const {
+  locale,
+  rhythm,
+  title,
+  description,
+  routeKey,
+  slugs,
+  headerVariant = 'default',
+  footerStation,
+} = Astro.props;
+
+const t = ui(locale);
+const alternateLocale = otherLocale(locale);
+const counterpart = counterpartPath(routeKey, alternateLocale, slugs?.[alternateLocale]);
+const alternates = hreflangAlternates(routeKey, slugs);
+
+/** Absolute where `site` is configured, relative until it is (see astro.config). */
+const absolute = (path: string) => (Astro.site ? new URL(path, Astro.site).href : path);
+---
+
+<!doctype html>
+<!--
+  `anim-load` is rendered server-side rather than set by an inline script. The
+  HiFi uses a pre-paint inline <script>; doing that in production would force
+  `unsafe-inline` into script-src, which §19.1 forbids. Rendering the class is
+  equivalent and CSP-clean. Reduced motion needs no JS at all here: motion.css
+  resolves every staged element to its final state.
+-->
+<html lang={locale} class="anim-load" data-rhythm={rhythm}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+
+    {/* §12: reciprocal hreflang + x-default -> RO, emitted only where both
+        counterparts exist. Self-referencing canonical URLs also belong here and
+        are NOT emitted yet: they require the production origin, which
+        astro.config.mjs cannot set because no authoritative document names the
+        custom domain. */}
+    {
+      alternates.map((alt) => (
+        <link rel="alternate" hreflang={alt.hreflang} href={absolute(alt.path)} />
+      ))
+    }
+
+    <!--
+      No-JS fallback. The motion layer starts elements hidden and reveals them;
+      if the bundle never runs, they must not stay hidden. Reduced motion is
+      handled in CSS, so this covers only the scripting-disabled case.
+    -->
+    <noscript>
+      <style>
+        html.anim-load .rail,
+        html.anim-load .site-header .wm,
+        html.anim-load .site-header nav,
+        html.anim-load .site-header .menu,
+        .rv {
+          opacity: 1 !important;
+          transform: none !important;
+          clip-path: none !important;
+        }
+      </style>
+    </noscript>
+  </head>
+
+  <body>
+    {/* WCAG 2.2 AA (DECISIONS_LOG #78) — bypass blocks. The header is fixed and
+        appears before main in the DOM on every page. */}
+    <a class="skip-link" href="#main">{t.skipToContent}</a>
+
+    <GlobalHeader
+      locale={locale}
+      current={routeKey}
+      variant={headerVariant}
+      counterpart={counterpart}
+      counterpartLocale={alternateLocale}
+    />
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <GlobalFooter locale={locale} station={footerStation} />
+
+    <script>
+      import '../scripts/motion-runtime';
+    </script>
+
+    <style>
+      /* The skip link is the one piece of chrome with no HiFi precedent — the
+         HiFis have no skip link at all. It is required by WCAG 2.2 AA and is
+         styled to the existing token vocabulary (mono label voice, blue
+         activation) so it introduces no new visual language. It is visible only
+         when focused, so it changes nothing about the approved composition. */
+      .skip-link {
+        position: absolute;
+        left: -9999px;
+        top: 0;
+        z-index: 100;
+        background: var(--paper);
+        color: var(--blue);
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        padding: 12px 18px;
+        border: 1px solid var(--blue);
+      }
+
+      .skip-link:focus-visible {
+        left: var(--gutter-end);
+        top: 12px;
+      }
+    </style>
+  </body>
+</html>

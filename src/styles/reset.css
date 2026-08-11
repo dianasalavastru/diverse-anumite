@@ -1,0 +1,14 @@
+/* =============================================================================
+   reset.css — the box-model normalization the approved HiFis actually use.
+
+   All six HiFis open with exactly this one rule and nothing else. It is
+   reproduced verbatim rather than replaced with a larger third-party reset:
+   a heavier reset would change rendering the approved HiFis were reviewed
+   against, which §1.2 of TECHNICAL_ARCHITECTURE.md forbids.
+   ========================================================================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}

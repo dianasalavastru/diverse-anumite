@@ -1,0 +1,43 @@
+/* =============================================================================
+   global.css — the single global stylesheet entry point.
+
+   OWNERSHIP: Workstream A, single-owner file (TECHNICAL_ARCHITECTURE.md §23.3).
+   Every component touches it; it is the highest merge-conflict surface.
+   Import it exactly once, from the base layout.
+
+   The cascade layer order below is the frontend's structural contract. A layer
+   declared later always wins over an earlier one regardless of selector
+   specificity, so component authors never need `!important` to beat a base rule,
+   and page CSS never needs to out-specify a component.
+
+     reset        the HiFis' box-model normalization, nothing more
+     tokens       design tokens extracted verbatim from the approved HiFis
+     fonts        @font-face for the self-hosted faces (§9)
+     base         document defaults: body type, links, focus-visible
+     typography   the role-based type primitives that repeat across all HiFis
+     layout       the page frame: gutters, header offset, rhythm application
+     components   Global Header / Footer and every component built after them
+     motion       the motion layer, incl. the reduced-motion resolutions
+     utilities    last-resort single-purpose overrides
+
+   `motion` sits after `components` deliberately: MOTION_NOTES.md:62 requires
+   reduced motion to resolve every animated element to its final static state,
+   which means the motion layer must be able to override component transitions.
+
+   Progressive enhancement is mandatory (§14.0): `@layer` is itself an
+   enhancement over a working static layout. Browsers without layer support
+   apply all of this as one unlayered sheet in source order, which is the same
+   order as the layer list — so the result degrades to the intended cascade.
+   ========================================================================== */
+
+@layer reset, tokens, fonts, base, typography, layout, components, motion, utilities;
+
+@import './reset.css' layer(reset);
+@import './tokens.css' layer(tokens);
+@import './fonts.css' layer(fonts);
+@import './base.css' layer(base);
+@import './typography.css' layer(typography);
+@import './layout.css' layer(layout);
+@import './components/global-header.css' layer(components);
+@import './components/global-footer.css' layer(components);
+@import './motion.css' layer(motion);

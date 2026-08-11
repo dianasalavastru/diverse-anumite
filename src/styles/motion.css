@@ -1,0 +1,148 @@
+/* =============================================================================
+   motion.css — the global motion layer.
+
+   AUTHORITY: MOTION_NOTES.md (authoritative) + the HP motion layer, absorbed
+   verbatim (TECHNICAL_ARCHITECTURE.md §5.3, §13).
+
+   No library (MOTION_NOTES.md:9, upheld at §13): CSS transitions and keyframes,
+   IntersectionObserver, one rAF loop. This file carries only what is global —
+   the load sequence for the page chrome, the reveal family, and the
+   reduced-motion resolutions. Per-page motion (the hero scan, the carousel
+   focus transition, the point-cloud loop) belongs to those pages.
+
+   HP defines `.rv` twice: an early fade/rise block, then the motion layer at
+   the foot of the file which overrides it with the typed clip reveals. The
+   later block wins in the HiFi's own cascade and is the one MOTION_NOTES.md
+   §"Reveal family" describes, so it is the one transcribed here.
+   ========================================================================== */
+
+/* ---- Load sequence (non-blocking) ---------------------------------------
+   MOTION_NOTES.md §"Load sequence": markers -> hero wordmark + image ->
+   supporting copy -> navigation. Driven by `html.anim-load` set before paint
+   and `html.anim-ready` added on the second animation frame. The whole page is
+   present and usable throughout — only opacity/clip/width transition in, so
+   nothing blocks access. Skipped entirely under reduced motion.
+
+   Global chrome only. The hero stages live with the homepage. */
+
+html.anim-load .rail,
+html.anim-load .site-header .wm,
+html.anim-load .site-header nav,
+html.anim-load .site-header .menu {
+  opacity: 0;
+}
+
+.rail,
+.site-header .wm,
+.site-header nav,
+.site-header .menu {
+  transition: opacity var(--t-rev) var(--ease);
+}
+
+html.anim-ready .rail {
+  opacity: 1;
+}
+
+html.anim-ready .site-header .wm,
+html.anim-ready .site-header .menu {
+  opacity: 1;
+  transition-delay: 0.3s;
+}
+
+/* Navigation arrives last — the tail of the ~1.1s staged sequence. */
+html.anim-ready .site-header nav {
+  opacity: 1;
+  transition-delay: 1.05s;
+}
+
+/* ---- Reveal family -------------------------------------------------------
+   MOTION_NOTES.md §"Reveal family (not uniform fade-up)": `.rv` elements are
+   typed by content and revealed once.
+     head — headings: a vertical clip/mask reveal
+     img  — image blocks, carousels, curated blocks: a left->right clip wipe
+     meta — eyebrows, captions, metadata, controls: opacity + a small rise,
+            slightly delayed so it arrives after its heading/image
+   Stagger comes from per-type transition-delays, establishing reading order
+   without every element animating on its own timeline. */
+
+.rv {
+  opacity: 0;
+  transform: none;
+  transition:
+    opacity var(--t-rev) var(--ease),
+    transform var(--t-rev) var(--ease),
+    clip-path var(--t-rev) var(--ease);
+}
+
+.rv.in {
+  opacity: 1;
+}
+
+.rv--head {
+  clip-path: inset(0 0 108% 0);
+}
+
+.rv--head.in {
+  clip-path: inset(0 0 -8% 0);
+}
+
+.rv--img {
+  clip-path: inset(0 103% 0 0);
+  transition-delay: 0.06s;
+}
+
+.rv--img.in {
+  clip-path: inset(0 0 0 0);
+}
+
+.rv--meta {
+  transform: translateY(10px);
+  transition-delay: 0.18s;
+}
+
+.rv--meta.in {
+  transform: none;
+}
+
+/* ---- Reduced motion ------------------------------------------------------
+   MOTION_NOTES.md:62 / TECHNICAL_ARCHITECTURE §13: LAYOUT PARITY, not merely
+   disabled transitions — "Content and layout are identical with motion
+   removed." Every reveal, the load sequence and the chrome fade resolve to
+   their final static state instantly.
+
+   `!important` is used exactly as the HiFi uses it: these declarations must
+   beat any component's own transition, and this is the one place in the
+   codebase where that is the correct tool. */
+
+@media (prefers-reduced-motion: reduce) {
+  .rv,
+  .rv--head,
+  .rv--img,
+  .rv--meta {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+    transition: none !important;
+  }
+
+  .rail,
+  .site-header .wm,
+  .site-header nav,
+  .site-header .menu {
+    opacity: 1 !important;
+    transition: none !important;
+  }
+}
+
+/* ---- Cross-document view transitions -------------------------------------
+   TECHNICAL_ARCHITECTURE §13: the Archive -> Work Entry dissolve is a CSS
+   cross-document transition requiring no router, explicitly NOT Astro's
+   ClientRouter. §14.0 binds it: navigation must never depend on it, and
+   unsupporting browsers ignore the at-rule cleanly (plain document load).
+
+   Not enabled yet: the transition is a Work Archive / Work Entry behaviour and
+   its named parts belong with those pages (Phase 5-6). Enabling it globally
+   before those pages exist would apply an unreviewed transition site-wide.
+   The reduced-motion fallback is already specified upstream
+   (WORK_ARCHIVE_IMPLEMENTATION_NOTES.md:45 — "Reduced-motion falls back to
+   native navigation") and must be honoured when it is turned on. */

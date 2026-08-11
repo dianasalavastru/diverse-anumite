@@ -1,0 +1,88 @@
+---
+/**
+ * Footer — COMPONENT_INVENTORY.md §4.
+ *
+ * Responsibility: global nav echo + social + EU-funding acknowledgment +
+ * language. The EU-funding element lives here (IA Step 7), not as a page.
+ *
+ * VISUAL_DIRECTION_v2.0 §6 "The closing": the mascot returned large, the
+ * wordmark, QUIET TEXT LINKS for social and contact (not blue buttons), the
+ * EU-funding note small. §12 forbids a utility footer and a blue social-button
+ * strip — hence plain links with a drawn-in underline, nothing filled.
+ *
+ * Copy that Workstream C has not authored yet renders as nothing rather than as
+ * a placeholder: see src/lib/i18n/ui.ts. Social links are content and arrive
+ * with it; until then the column is omitted rather than faked.
+ */
+import { ui } from '../lib/i18n/ui';
+import { routePath, type Locale, type RouteKey } from '../lib/i18n/routes';
+
+interface Props {
+  locale: Locale;
+  /** Marks the footer as a rail station on pages that use the coordinate rail. */
+  station?: number;
+}
+
+const { locale, station } = Astro.props;
+const t = ui(locale);
+
+const navEcho: { key: RouteKey; label: string }[] = [
+  { key: 'about', label: t.nav.about },
+  { key: 'services', label: t.nav.services },
+  { key: 'workArchive', label: t.nav.workArchive },
+  { key: 'contact', label: t.nav.contact },
+];
+
+/**
+ * PENDING (Workstream C): social channels are content, not structure. The
+ * column renders only once they exist.
+ */
+const socialLinks: { label: string; href: string }[] = [];
+
+const hasEuNote = t.footer.euFunding.length > 0;
+const hasColophon = t.footer.colophon.length > 0;
+---
+
+<footer class="site-footer" data-station={station}>
+  <div class="big">
+    {/* The mascot slot. VISUAL_DIRECTION_v2.0 §12 pr. 14 — an adaptive
+        character, never a logo drop. The asset is not in the repository yet, so
+        the slot is left empty rather than filled with a stand-in. */}
+    <a class="wm" href={routePath('home', locale)}>diverse anumite</a>
+    {t.footer.statement && <p>{t.footer.statement}</p>}
+  </div>
+
+  <div class="col">
+    {t.footer.navGroup && <h4>{t.footer.navGroup}</h4>}
+    {
+      navEcho.map((item) => (
+        <a href={routePath(item.key as never, locale, undefined as never)}>{item.label}</a>
+      ))
+    }
+  </div>
+
+  {
+    socialLinks.length > 0 && (
+      <div class="col">
+        {t.footer.socialGroup && <h4>{t.footer.socialGroup}</h4>}
+        {socialLinks.map((link) => (
+          <a href={link.href}>{link.label}</a>
+        ))}
+      </div>
+    )
+  }
+
+  {
+    (hasEuNote || hasColophon) && (
+      <div class="eu">
+        {hasEuNote && (
+          <p>
+            <span class="fl" aria-hidden="true" />
+            {t.footer.euFunding}
+          </p>
+        )}
+        {hasColophon && <p class="measure">{t.footer.colophon}</p>}
+      </div>
+    )
+  }
+</footer>

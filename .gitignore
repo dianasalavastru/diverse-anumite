@@ -1,3 +1,39 @@
 .DS_Store
 *.DS_Store
 Thumbs.db
+
+# --- TECHNICAL_ARCHITECTURE.md §18 — no secret ever enters Git ---
+.env
+.env.*
+!.env.example
+.dev.vars
+
+# --- TECHNICAL_ARCHITECTURE.md §19.4 — raw survey sources never enter the repo ---
+# "Raw E57/LAS/LAZ source surveys never enter the CMS or the frontend pipeline."
+# A point cloud is measurable: raw captures carry georeferencing, provenance and
+# client identifiers, and heritage/institutional clients may hold contractual
+# restrictions. Only bounded, stripped web derivatives are publishable (§10.2),
+# and only with `capturePublicationCleared` set.
+#
+# Raw / vendor-native capture formats only. Web derivative formats are
+# deliberately NOT ignored here — a blanket rule would block the very assets
+# §10.2 says the pipeline is meant to produce.
+*.e57
+*.las
+*.laz
+*.ptx
+*.pts
+*.rcp
+*.rcs
+*.fls
+*.fws
+*.zfs
+*.zfprj
+
+# build output / tooling
+dist/
+.astro/
+node_modules/
+.wrangler/
+test-results/
+playwright-report/

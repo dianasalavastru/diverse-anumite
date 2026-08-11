@@ -1,0 +1,119 @@
+---
+/**
+ * Global Header — COMPONENT_INVENTORY.md §4.
+ *
+ * Purpose: persistent global wayfinding.
+ * Responsibility: Layer-2 task-first nav, NEVER shape-shifting
+ *   (NAV_DECISION_RECORD.md §3: "it never shape-shifts" between the homepage
+ *   and interior pages).
+ * Inputs: global nav items (Despre · Servicii · Proiecte · Contact · EN).
+ * Notes: additive to the homepage narrative; pillar hubs are NOT items here
+ *   (NAV_DECISION_RECORD.md §5.2 — hubs stay reachable via the homepage fork,
+ *   deep links and contextual back-paths).
+ *
+ * Styling lives in src/styles/components/global-header.css, inside the
+ * `components` cascade layer.
+ *
+ * NOT YET BUILT (deliberately, and out of scope for the I-1 foundation):
+ *   - the Servicii pillar-grouped dropdown (COMPONENT_INVENTORY.md §4 lists it
+ *     as an input; it depends on the Service objects, which are Workstream B);
+ *   - the small-viewport menu panel behind the `menu` control. The control is
+ *     rendered and focusable, but has no panel yet, so it is marked
+ *     `aria-expanded="false"` and `hidden` from assistive tech would be wrong —
+ *     it is instead disabled, which is honest about the current state.
+ */
+import { ui } from '../lib/i18n/ui';
+import { routePath, type Locale, type RouteKey } from '../lib/i18n/routes';
+
+interface Props {
+  locale: Locale;
+  /** The route currently rendered — marks the matching nav item as current. */
+  current?: RouteKey;
+  /** `on-hero` = the page opens on a full-bleed dark hero (Work Entry, Service). */
+  variant?: 'default' | 'on-hero';
+  /**
+   * Path of this page in the other locale, or `null` when the entity has no
+   * counterpart. §11.2 rule 5: the switcher is DISABLED with an accessible
+   * explanation — never a link that falls back to RO.
+   */
+  counterpart?: string | null;
+  /** The other locale, for the switcher's `hreflang`/`lang`. */
+  counterpartLocale: Locale;
+}
+
+const {
+  locale,
+  current,
+  variant = 'default',
+  counterpart = null,
+  counterpartLocale,
+} = Astro.props;
+
+const t = ui(locale);
+
+/**
+ * `language.label` in each locale's messages names the OTHER locale — the RO
+ * page offers "EN", the EN page offers "RO" (NAV_DECISION_RECORD.md §4, "+
+ * language toggle"). So it is read from the CURRENT locale's messages.
+ */
+const toggleLabel = t.language.label;
+
+const items: { key: RouteKey; label: string }[] = [
+  { key: 'about', label: t.nav.about },
+  { key: 'services', label: t.nav.services },
+  { key: 'workArchive', label: t.nav.workArchive },
+  { key: 'contact', label: t.nav.contact },
+];
+
+/** The Work Archive item stays current across its curated views and entries. */
+const workRoutes: RouteKey[] = [
+  'workArchive',
+  'workEntry',
+  'competitions',
+  'professionalExperience',
+];
+
+function isCurrent(key: RouteKey): boolean {
+  if (!current) return false;
+  if (key === 'workArchive') return workRoutes.includes(current);
+  if (key === 'services') return current === 'services' || current === 'service';
+  return current === key;
+}
+---
+
+<header class:list={['site-header', variant === 'on-hero' && 'on-hero']}>
+  <a class="wm" href={routePath('home', locale)}>diverse anumite</a>
+
+  <nav aria-label={t.primaryNavigation}>
+    {
+      items.map((item) => (
+        <a
+          href={routePath(item.key as never, locale, undefined as never)}
+          class:list={[isCurrent(item.key) && 'here']}
+          aria-current={isCurrent(item.key) ? 'page' : undefined}
+        >
+          {item.label}
+        </a>
+      ))
+    }
+
+    {
+      counterpart ? (
+        <a class="en" href={counterpart} hreflang={counterpartLocale} lang={counterpartLocale}>
+          {toggleLabel}
+        </a>
+      ) : (
+        <span
+          class="en"
+          aria-disabled="true"
+          lang={counterpartLocale}
+          title={t.language.unavailable || undefined}
+        >
+          {toggleLabel}
+        </span>
+      )
+    }
+  </nav>
+
+  <button class="menu" type="button" aria-expanded="false" disabled>{t.menu}</button>
+</header>

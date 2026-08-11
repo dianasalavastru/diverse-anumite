@@ -1,0 +1,47 @@
+/* =============================================================================
+   base.css — document defaults.
+
+   Every rule is the union of what the six approved HiFis apply to the document
+   itself. Nothing is added beyond them.
+   ========================================================================== */
+
+html {
+  /* HP/HUB/RC/WA/WE/SV — identical. */
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  /* Identical across all six HiFis except line-height, which is a member of the
+     page rhythm set (see tokens.css). */
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--read);
+  font-size: 16px;
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* MOTION_NOTES.md:54 — "Keyboard :focus-visible is at least as clear as pointer
+   hover". Transcribed from the HP motion layer, which scopes it to
+   a / button / .cap / .traverse; generalized to every focusable element so the
+   guarantee cannot be lost by a component forgetting to opt in. This is the
+   same visual result, applied more widely — not a new decision.
+   WCAG 2.2 AA (DECISIONS_LOG #78) makes focus appearance non-optional. */
+:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* HP/HUB — smooth scrolling is itself motion. */
+  html {
+    scroll-behavior: auto;
+  }
+}
