@@ -1,0 +1,65 @@
+---
+/**
+ * S-3 · What you get — the first half of the Page IA's
+ * "what-you-get / how-it-works / what-to-expect" module (Stage C).
+ *
+ * Responsibility (`SERVICE_PAGE_IA.md` S-3): "**reduce uncertainty by making the
+ * service tangible** — and set realistic expectations." Components
+ * (`SERVICE_WIREFRAME.md` S-3): "Section Header · Rich Text (deliverables ·
+ * process · what to expect)."
+ *
+ * Spatial composition, transcribed: "the concrete substance of the service,
+ * presented plainly and specifically — **practical over promotional**."
+ *
+ * ── ONE LIST, NOT SIX ILLUSTRATED CARDS ───────────────────────────────────
+ * The approved HiFi renders deliverables as six editorial objects, each with a
+ * hand-drawn SVG preview and a format badge — `.E57 / .RCP`, `.TIFF geo`,
+ * `.DWG / .PDF`, `.IFC / .RVT`, `web / .E57`, `.PDF`. `Service.deliverables` is
+ * `Localized<readonly string[]>`: one authored string per deliverable, with no
+ * format field, no description field and no per-item illustration. §5.3 rebuilds
+ * markup "from the Content Model, never from HiFi markup"; inventing three
+ * sub-fields so the page can look like the prototype is exactly the field
+ * invention this workstream must not do, and hard-coding six laser-scanning
+ * diagrams into a generic Service page would make it Scanare 3D's page forever.
+ *
+ * What survives is the *composition*: a set of evenly weighted objects on a
+ * ruled grid, each one deliverable, in the authored order. What is absent is the
+ * per-item artwork and the format badge. Both are reported as content-model
+ * gaps; if the owner wants them, they are two additive fields on the Service and
+ * one element each here.
+ *
+ * The list is ordered because the authoring order is editorial — the owner
+ * decides which deliverable a client reads first — so `<ol>` states that, and
+ * the CSS suppresses the numerals the HiFi's grid does not show.
+ */
+import { localize } from '../../lib/content';
+import type { Locale, Service } from '../../lib/content';
+import type { ServiceMessages } from '../../lib/i18n/service';
+
+interface Props {
+  service: Service;
+  locale: Locale;
+  copy: ServiceMessages;
+}
+
+const { service, locale, copy } = Astro.props;
+
+/* The module only renders when this is non-empty (`modules.ts`), so the
+   fallback is a type guard rather than an expected state. */
+const deliverables = localize(service.deliverables, locale) ?? [];
+---
+
+<div class="sv-deliverables">
+  <ol class="sv-objs" aria-label={copy.deliverables.listLabel}>
+    {
+      deliverables.map((deliverable, index) => (
+        <li class="sv-obj rv" data-rv="meta">
+          <span class="sv-obj-no mono" aria-hidden="true">
+            {String(index + 1).padStart(2, '0')}
+          </span>
+          <span class="sv-obj-name">{deliverable}</span>
+        </li>
+      ))
+    }
+  </ol>
+</div>

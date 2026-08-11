@@ -1,0 +1,140 @@
+---
+/**
+ * H-1 · Capability orientation — HUB_PAGE_IA Stage A, station 01
+ * ("I · ARRIVAL — Observation" in the approved RC Hub HiFi).
+ *
+ * Responsibility (Page IA H-1): "identify the capability and anchor a cold
+ * arrival to the one practice." Question answered: which capability is this / am
+ * I in the right place? Destination: About (light).
+ *
+ * Components (`PILLAR_HUB_WIREFRAME.md` H-1): Page Introduction (capability name
+ * + one-line positioning) · Hero (capability variant — optional opening media) ·
+ * a light text link to About.
+ *
+ * ── THE HEADER'S PILLAR INDICATOR IS NOT RENDERED ─────────────────────────
+ * The approved HiFi puts a `Pilon · Reality Capture` chip inside the global
+ * header. `NAV_DECISION_RECORD.md` §3 says the header "never shape-shifts"
+ * between the homepage and interior pages, and COMPONENT_INVENTORY.md fixes its
+ * Inputs as the four global nav items plus the language toggle — so a per-page
+ * indicator there would change a component every page composes, to solve a
+ * problem this module already owns. The capability name is the `<h1>`, which is
+ * the orientation the Page IA actually asks for and is what a cold arrival needs
+ * without the homepage.
+ *
+ * ── THE OPENING MEDIA IS CURATION, NEVER TAXONOMY ─────────────────────────
+ * The plate shows the leading **curated** work of the pillar, resolved by the
+ * page from `source.highlights('pillar-hub', …)`. With nothing placed it renders
+ * its authored tone and no photograph: `CONTENT_MODEL.md` §4 forbids deriving
+ * editorial choices from taxonomy alone, so no entry is promoted into the page's
+ * most prominent slot merely for being in the pillar. The composition is intact
+ * either way.
+ *
+ * ── THE PLATE OVERLAY IS AN INSTANCE-LEVEL PRESENTATION OPTION ────────────
+ * The coordinate grid, the two registration targets and the measuring scan are
+ * **Reality Capture's** treatment, not the template's. The RC HiFi describes the
+ * atmosphere it belongs to — "calmer, more precise, observational… expressed
+ * through subtle coordinate grids, registration targets, measured annotations" —
+ * and `styles/pages/pillar-hub.css` already fences that block as "the one block
+ * that is Reality Capture's rather than the template's".
+ *
+ * The approved Architecture & Design HiFi's arrival carries no graticule, no
+ * targets and no scan: its plate is the photograph, the studio coordinate line
+ * and the caption. So the overlay is passed in by the composition root
+ * (`overlay="measurement"`), and an instance that passes nothing gets the plain
+ * plate — the neutral treatment the A&D HiFi already authors. No new visual
+ * system is introduced, and no pillar name is tested in here.
+ *
+ * The RC HiFi's second, inset plate is not rendered: it is captioned "nor de
+ * puncte · 3D", and filling it with a project cover would present a photograph
+ * as a point cloud. The real one has a whole field of its own in H-4.
+ *
+ * The RC HiFi's `2 mm · 46.77°N` annotation loses its `2 mm`: a tolerance is
+ * `CaptureMetadata.accuracy` on one entry (§10.4), never a page decoration.
+ */
+import Plate from '../media/Plate.astro';
+import { localize } from '../../lib/content';
+import type { Locale, WorkEntrySummary } from '../../lib/content';
+import type { PillarHubMessages } from '../../lib/i18n/pillar-hub';
+import { routePath } from '../../lib/i18n/routes';
+import { MEASUREMENT_TARGETS, type HubPlateOverlay } from './hub';
+
+interface Props {
+  locale: Locale;
+  copy: PillarHubMessages['orientation'];
+  /** The leading curated entry of this pillar, or `null` when none is placed. */
+  hero: WorkEntrySummary | null;
+  /**
+   * The plate's technical overlay. `'measurement'` is Reality Capture's
+   * graticule-and-registration-target treatment; omitted is the plain plate the
+   * A&D HiFi authors. See the header.
+   */
+  overlay?: HubPlateOverlay | null;
+  station: number;
+}
+
+const { locale, copy, hero, overlay = null, station } = Astro.props;
+
+const heroTitle = hero ? localize(hero.title, locale) : null;
+const caption = [copy.heroIndex, heroTitle].filter(Boolean).join(' · ');
+---
+
+<section class="hub-arrival" data-station={station} aria-labelledby="capability">
+  <div class="hub-arrival-grid">
+    <div class="hub-arrival-lead">
+      <p class="eyebrow rv" data-rv="meta">{copy.eyebrow}</p>
+
+      {/* The break between the two words is presentational — `.sm` is a block,
+          so the space renders as nothing but keeps the accessible name two
+          words ("Reality Capture", not "RealityCapture"). */}
+      <h1 id="capability" class="rv" data-rv="head">
+        {copy.heading.lead} <span class="sm">{copy.heading.tail}</span>
+      </h1>
+
+      <p class="hub-thesis rv" data-rv="head">
+        {copy.thesis.lead} <span class="b">{copy.thesis.accent}</span> {copy.thesis.tail}
+      </p>
+    </div>
+
+    <div class="hub-arrival-media rv" data-rv="img">
+      <span class="hub-arrival-dim measure" aria-hidden="true">{copy.heroCoordinates}</span>
+
+      <div class="hub-plate">
+        <Plate
+          image={hero?.cover ?? null}
+          locale={locale}
+          alt={copy.heroFallbackAlt}
+          tone="#cbc6bc"
+          priority
+        />
+        {/* The measurement overlay — a coordinate grid, two registration targets
+            and the scan, transcribed from the RC HiFi. Decorative measurement
+            annotation, so `aria-hidden` and pointer-inert throughout. */}
+        {
+          overlay === 'measurement' && (
+            <Fragment>
+              <span class="gridlay" aria-hidden="true" />
+              {MEASUREMENT_TARGETS.map((target) => (
+                <span class="target" style={`left:${target.left};top:${target.top}`} aria-hidden="true">
+                  <i />
+                </span>
+              ))}
+              <span class="hub-scan" aria-hidden="true" />
+            </Fragment>
+          )
+        }
+        {caption && <span class="hub-plate-cap measure" aria-hidden="true">{caption}</span>}
+      </div>
+    </div>
+  </div>
+
+  <div class="hub-arrival-note rv" data-rv="meta">
+    <span class="ln" aria-hidden="true"></span>
+    <div>
+      <p>{copy.lead}</p>
+      {/* Wireframe H-1: "The About link is a quiet secondary affordance." */}
+      <a class="hub-quiet" href={routePath('about', locale)}>
+        {copy.aboutLink}<span class="ar" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </div>
+</section>

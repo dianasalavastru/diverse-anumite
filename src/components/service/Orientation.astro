@@ -1,0 +1,105 @@
+---
+/**
+ * S-1 · Service orientation (Page IA Stage A).
+ *
+ * Responsibility (`SERVICE_PAGE_IA.md` S-1): "identify the service and anchor a
+ * cold arrival to the parent pillar / practice."
+ *
+ * Components (`SERVICE_WIREFRAME.md` S-1): "Page Introduction (service name +
+ * one-line positioning) · Breadcrumb (parent Pillar Hub — the F1 back-path) · a
+ * light text link to About."
+ *
+ * Spatial composition, transcribed: "a calm opening that names the service
+ * first; the Breadcrumb sits quietly as orientation and back-path, **never an
+ * emphasized action**. Image-led if media is present, interface quiet around it."
+ *
+ * ── THE ARRIVAL ASSUMPTION GOVERNS THIS MODULE ────────────────────────────
+ * The Page IA's arrival note is unusually strong: the Service Page is "the
+ * site's most common **cold deep-link / search landing**… It must self-orient —
+ * it cannot assume the homepage or hub was seen." Hence a breadcrumb that names
+ * both the Services index and the parent Pillar Hub, a kicker that states which
+ * capability this is before the name is read, and the positioning line directly
+ * under the name.
+ *
+ * ── "IMAGE-LED IF MEDIA IS PRESENT" IS A CONDITIONAL, AND IT IS HONOURED ───
+ * `Service.hero` is nullable and many services will have none. The full-bleed
+ * dark opening is therefore not unconditional the way the Work Entry's is: with
+ * no hero the same content renders as a quiet paper-white introduction, which is
+ * what "image-led **if** media is present" asks for, rather than a black
+ * rectangle standing in for a photograph that does not exist. `Plate` handles the
+ * intermediate case (an authored asset that cannot yet be rendered) by painting
+ * its authored tone — see Plate.astro.
+ *
+ * ── WHAT THE HiFi HAS THAT THIS DOES NOT ──────────────────────────────────
+ * The approved HiFi's hero carries a measured badge — `2 mm · 46.77°N` — over
+ * the photograph. There is no accuracy field on `Service` and no coordinate
+ * field anywhere in `CONTENT_MODEL.md`; §10.4 is explicit that the service
+ * page's hardcoded `2 mm` is a prototype artifact and a false accuracy claim in
+ * production. It is absent, not approximated. The composition — kicker, large
+ * name, one positioning line, quiet breadcrumb — is unchanged.
+ */
+import Plate from '../media/Plate.astro';
+import { localize } from '../../lib/content';
+import type { Locale, Service } from '../../lib/content';
+import type { ServiceMessages } from '../../lib/i18n/service';
+import { routePath } from '../../lib/i18n/routes';
+import { pillarLabel, pillarRouteKey } from '../../lib/i18n/vocabulary';
+
+interface Props {
+  service: Service;
+  locale: Locale;
+  copy: ServiceMessages;
+  station: number;
+}
+
+const { service, locale, copy, station } = Astro.props;
+
+const name = localize(service.name, locale) ?? '';
+const positioning = localize(service.shortDescription, locale);
+
+const pillar = service.pillar;
+const pillarName = pillarLabel(pillar, locale);
+/** F1: the parent Pillar Hub, available from orientation onward (Page IA §4). */
+const hubHref = routePath(pillarRouteKey(pillar) as never, locale, undefined as never);
+
+/* Image-led only when there is an image to lead with. */
+const hasHero = service.hero !== null;
+---
+
+<section
+  class:list={['sv-orientation', hasHero && 'sv-orientation--media']}
+  data-station={station}
+  aria-labelledby="sv-title"
+>
+  {
+    hasHero && (
+      <div class="sv-hero-media" aria-hidden="true">
+        {/* Named by the <h1> beside it, so the plate is decorative rather than
+            repeating the service name into the accessible tree. */}
+        <Plate image={service.hero} locale={locale} tone="#3a352d" priority />
+        <div class="sv-hero-grad" />
+        <div class="sv-hero-scan" />
+      </div>
+    )
+  }
+
+  <div class="sv-orientation-in">
+    <nav class="sv-crumbs-nav" aria-label={copy.breadcrumb.label}>
+      <ol class="sv-crumbs">
+        <li><a href={routePath('services', locale)}>{copy.breadcrumb.services}</a></li>
+        <li><a href={hubHref}>{pillarName}</a></li>
+        <li aria-current="page">{name}</li>
+      </ol>
+    </nav>
+
+    <div class="sv-intro">
+      <p class="sv-kick mono">{copy.kicker.replace('{pillar}', pillarName)}</p>
+      <h1 id="sv-title">{name}</h1>
+      {positioning && <p class="sv-positioning">{positioning}</p>}
+      {/* Page IA S-1 destinations: "parent Hub (F1 back-path); About (light)."
+          Light means light — a text link in the supporting voice, never a second
+          action competing with S-5's single conversion action. */}
+      <p class="sv-about"><a href={routePath('about', locale)}>{copy.about}</a></p>
+    </div>
+  </div>
+</section>

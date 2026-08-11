@@ -31,50 +31,140 @@
  * a test suite that fails without a token pushes a developer toward committing one (§18). A
  * *build* has no such excuse — it cannot produce output without real content, so it must stop.
  *
- * ── SECRETS ────────────────────────────────────────────────────────────────────────────────
+ * ── SECRETS: WHY `import.meta.env` IS NOT USED HERE (S1) ───────────────────────────────────
+ *
+ * This module used to fall back to `import.meta.env` for local development. That put the read
+ * token **into a build artifact**, and the reason is worth stating precisely, because the
+ * obvious correction does not fix it.
+ *
+ * Vite replaces `import.meta.env` at transform time. It can rewrite a *static* member access
+ * (`import.meta.env.FOO`) to that one value — but when the object is referenced as a whole, as
+ * it is the moment you assign it to a variable and index it, Vite has no static member to
+ * rewrite and substitutes **the entire environment object** instead. The emitted SSR chunk
+ * therefore carried `Object.assign(__vite_import_meta_env__, { …every loaded .env variable… })`
+ * — token included — into `dist/chunks/` for the lifetime of the build.
+ *
+ * The trap: writing `import.meta.env.SANITY_READ_TOKEN` instead does not help. That form inlines
+ * the value *even more* directly. There is no spelling of `import.meta.env` that reads a secret
+ * without baking it into the bundle, because the whole mechanism is compile-time substitution.
+ *
+ * So the secret is not routed through the bundler at all. Both sources below are **runtime**
+ * reads performed by the build process: a real environment variable, or the `.env` file read
+ * from disk. Neither can be inlined, because at transform time there is nothing to inline —
+ * `readFileSync` is opaque to Vite. Enforced by `scripts/vite-plugin-credential-guard.mjs`,
+ * which inspects every emitted chunk *during* the build, including the transient ones.
  *
  * No value is written here; only the §18 variable *names* in `ENV` are, and they already live
  * in the committed `.env.example`. The token is read into a build-time closure and handed to
  * `client.ts`, which sends it as a request header and asserts it is never running in a browser.
  * Nothing in this module is reachable from a client bundle: it is imported from `.astro`
- * frontmatter only, which Astro executes at build and never ships (§6.1, 100% prerendered).
+ * frontmatter only, which Astro executes at build and never ships (§6.1, 100% prerendered) —
+ * asserted by `boundary.test.ts`.
  */
 
-import { ENV, ContentConfigError, resolveSanityConfig } from './config.js';
-import { createSanityContentSource, type ContentSource } from './source.js';
+import { readFileSync } from 'node:fs';
+
+import {
+  ENV,
+  ContentConfigError,
+  createSanityContentSource,
+  resolveSanityConfig,
+  type ContentSource,
+} from './server.js';
+
+/** The §18 variables this module resolves. Nothing else is read out of either source. */
+const WANTED = [ENV.projectId, ENV.dataset, ENV.readToken] as const;
 
 /**
- * Read the build environment.
- *
- * Two sources, in this precedence:
- *
- *   1. `process.env` — a real environment variable, which is how CI and the Cloudflare Pages
- *      build environment supply them (§18: encrypted build secrets, never a repository value).
- *   2. `import.meta.env` — Vite loads the root `.env` into it, and a variable without the
- *      `PUBLIC_` prefix is exposed to server-side build code *only*, never to a client bundle.
- *      This is the local-development path; `.gitignore` keeps that file out of Git.
- *
- * A real environment variable wins, matching `live.test.ts` so the harness and the build can
- * never be pointed at two different datasets by the same shell.
- *
  * `process` is read through `globalThis` rather than as a bare global: the web application's
  * TypeScript program is browser-typed on purpose (see `node-shims.d.ts`), and declaring a Node
  * global here would widen that surface for every file Workstream A owns.
- *
- * The `import.meta.env` reads are literal member accesses, not `vite[ENV.projectId]`. Vite's
- * transform only rewrites the literal form, so the dynamic one would silently read `undefined`
- * in a bundled context — the exact kind of quiet miss this module exists to make loud.
  */
-function buildEnv(): Record<string, string | undefined> {
-  const node =
-    (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env ?? {};
-  const vite = import.meta.env as unknown as Record<string, string | undefined>;
+interface NodeProcess {
+  readonly env?: Record<string, string | undefined>;
+  cwd?(): string;
+}
 
-  return {
-    [ENV.projectId]: node[ENV.projectId] ?? vite['SANITY_PROJECT_ID'],
-    [ENV.dataset]: node[ENV.dataset] ?? vite['SANITY_DATASET'],
-    [ENV.readToken]: node[ENV.readToken] ?? vite['SANITY_READ_TOKEN'],
-  };
+const nodeProcess = (): NodeProcess => (globalThis as { process?: NodeProcess }).process ?? {};
+
+/**
+ * A minimal `.env` reader — `KEY=value`, `#` comments, blank lines, optional surrounding quotes.
+ *
+ * Deliberately not `import.meta.env` (see the header) and deliberately not a dependency:
+ * `package.json` is Workstream A's single-owner file (§23.3), and this is a dozen lines. It is
+ * the same file Vite would have loaded, read the same way — the difference is *when*. Vite reads
+ * it at transform time and bakes the result into the output; this reads it at build time and
+ * keeps it in memory.
+ *
+ * Exported for `build-env.test.ts`, which exercises it on synthetic input only.
+ */
+export function parseEnvFile(source: string): Record<string, string> {
+  const values: Record<string, string> = {};
+
+  for (const raw of source.split('\n')) {
+    const line = raw.trim();
+    if (line.length === 0 || line.startsWith('#')) continue;
+
+    const separator = line.indexOf('=');
+    if (separator <= 0) continue;
+
+    const key = line.slice(0, separator).trim();
+    const value = line.slice(separator + 1).trim();
+    const quoted =
+      value.length >= 2 &&
+      ((value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'")));
+
+    values[key] = quoted ? value.slice(1, -1) : value;
+  }
+
+  return values;
+}
+
+/**
+ * Precedence, pure and testable: a real environment variable wins over the `.env` file.
+ *
+ * That ordering matches `live.test.ts`, so the harness and the build can never be pointed at two
+ * different datasets by the same shell. It is also what makes the two deployment paths work
+ * without a mode flag: Cloudflare Pages supplies encrypted build secrets as real environment
+ * variables and ships no `.env`, so the file read finds nothing and `process.env` answers;
+ * locally there is usually no exported variable, so the file answers.
+ *
+ * Only the three §18 names are carried through. A `.env` holding anything else — and a developer
+ * shell holding a great deal else — contributes nothing to what this build can see.
+ */
+export function selectBuildEnv(
+  processEnv: Record<string, string | undefined>,
+  fileEnv: Record<string, string | undefined>,
+): Record<string, string | undefined> {
+  const selected: Record<string, string | undefined> = {};
+  for (const name of WANTED) selected[name] = processEnv[name] ?? fileEnv[name];
+  return selected;
+}
+
+/**
+ * The `.env` file, if there is one.
+ *
+ * Resolved from the process working directory — the project root, which is where Astro runs and
+ * where Vite would itself look for `.env`. A missing file is the normal Cloudflare case and is
+ * not an error: `resolveSanityConfig` is what decides whether the result is sufficient, and it
+ * fails loudly by variable name when it is not.
+ *
+ * The read is deliberately unguarded by any existence check — one `try` covers a missing file, a
+ * directory, and a permission error alike, and none of them is distinguishable to a caller that
+ * is going to fall through to `process.env` regardless.
+ */
+function readEnvFile(): Record<string, string> {
+  const cwd = nodeProcess().cwd?.() ?? '.';
+  try {
+    return parseEnvFile(readFileSync(`${cwd}/.env`, 'utf8'));
+  } catch {
+    return {};
+  }
+}
+
+function buildEnv(): Record<string, string | undefined> {
+  return selectBuildEnv(nodeProcess().env ?? {}, readEnvFile());
 }
 
 /**

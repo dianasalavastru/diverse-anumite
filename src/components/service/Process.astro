@@ -1,0 +1,90 @@
+---
+/**
+ * S-3 · How it works, and with what — the second half of the Page IA's
+ * "what-you-get / how-it-works / what-to-expect" module (Stage C).
+ *
+ * Components (`SERVICE_WIREFRAME.md` S-3): "Rich Text (deliverables · process ·
+ * what to expect) · **Statistic ×n** (optional — reality-capture
+ * accuracy/specs)."
+ *
+ * ── THE PROCESS IS PROSE, AND MUST REMAIN UNDERSTANDABLE WITHOUT MOTION ───
+ * The approved HiFi expresses process as three measured diagrams, one of which
+ * animates on hover: two scatter fields converging onto shared targets, captioned
+ * "înregistrare · toleranță ± 2 mm — treceți cursorul". Two things make that
+ * impossible to carry into a generic Service page as-is.
+ *
+ * First, content: the diagrams describe *laser scanning* — station coverage,
+ * drone paths, registration onto targets. They are illustrations of one service,
+ * and `Service.process` is a single Portable Text field. There is no per-step
+ * model (no step object, no step illustration, no step index) in
+ * `CONTENT_MODEL.md` §2 or in `types.ts`, so a three-movement diagrammatic
+ * sequence cannot be authored for *any* service, let alone every one.
+ *
+ * Second, accessibility: the registration diagram's only explanation of what
+ * registration *is* is the movement itself, offered on hover and on
+ * `:focus-within`, with the meaning carried in a caption that tells the visitor
+ * to move a cursor. §14.1 and WCAG 2.2 AA require the same information without
+ * motion and without a pointer; MOTION_NOTES.md:54 requires movement never be
+ * the only signal. Authored prose satisfies both by construction — it is the
+ * same explanation, readable, selectable, translatable, and identical under
+ * `prefers-reduced-motion`.
+ *
+ * So the process renders as the authored Rich Text it is. The diagrams are
+ * reported as a content-model gap (an authored, alt-texted step model with
+ * per-step media would carry them honestly); they are not reproduced from the
+ * prototype, and no motion is introduced that carries meaning.
+ *
+ * ── EQUIPMENT & SPECS: REAL FIGURES, OR NOTHING ───────────────────────────
+ * §10.4 governs this list absolutely — "capture metadata is **real data, never
+ * computed**… these are technical claims made to institutional clients
+ * evaluating a surveying service". Every value here is an authored string from
+ * `Service.equipment` (the Studio field says it in the editor: "Real figures
+ * only — nothing here is calculated for you"). Nothing is defaulted, nothing is
+ * derived, and an unauthored list renders no block rather than a plausible one.
+ * The HiFi's "acuratețe 2 mm · Leica RTC360" appears here only if an owner typed
+ * it into that service.
+ */
+import RichText from '../RichText.astro';
+import { localize } from '../../lib/content';
+import type { Locale, Service } from '../../lib/content';
+import type { ServiceMessages } from '../../lib/i18n/service';
+
+interface Props {
+  service: Service;
+  locale: Locale;
+  copy: ServiceMessages;
+}
+
+const { service, locale, copy } = Astro.props;
+
+const process = localize(service.process, locale);
+const equipment = localize(service.equipment, locale) ?? [];
+---
+
+<div class="sv-process">
+  {
+    process && (
+      <div class="sv-process-body rv" data-rv="meta">
+        <RichText blocks={process} />
+      </div>
+    )
+  }
+
+  {
+    equipment.length > 0 && (
+      <div class="sv-specs rv" data-rv="meta">
+        <h3 class="sv-sublabel mono">{copy.process.equipment}</h3>
+        {/* No `data-fixture` marker here, deliberately. Elsewhere that attribute
+            flags a placeholder standing in for an asset that does not exist
+            (Plate.astro); every string below is an authored technical claim, and
+            marking it "fixture" would invert the meaning for anyone grepping a
+            built page for fabricated content. */}
+        <ul class="sv-spec-list">
+          {equipment.map((item) => (
+            <li class="mono">{item}</li>
+          ))}
+        </ul>
+      </div>
+    )
+  }
+</div>

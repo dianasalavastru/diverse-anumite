@@ -1,0 +1,70 @@
+---
+/**
+ * Service Preview Card — COMPONENT_INVENTORY.md §4.
+ *
+ * Purpose: preview one Service.
+ * Responsibility: help recognize a service and route to it.
+ * Inputs: Service name + short descriptor.
+ * Outputs: → the Service page.
+ * Appears on: Hub services overview (H-3), Services index.
+ * Notes (Inventory): "**recognition, not comparison/explanation.**"
+ *
+ * OWNERSHIP: Workstream A. It lives at the component root rather than under
+ * `pillar-hub/` for the same reason `WorkPreviewCard.astro` does: the Inventory
+ * names two surfaces for it, and the second one (the Services index) must extend
+ * this file instead of forking it. Only the hub instance is built today.
+ *
+ * ── IT SHOWS A NAME AND A LINE, AND NOTHING ELSE ──────────────────────────
+ * `ServiceSummary` (`types.ts`, "Recognition-level projection for H-3") also
+ * carries `hero` and `curation`, and the full `Service` carries deliverables,
+ * process and equipment. None of it is rendered. Page IA H-3: "The purpose is to
+ * help visitors recognize the appropriate service, **not to compare or explain
+ * services in depth** (this protects the Service pages' responsibility)", and
+ * IA Step 6 draws the same line from the other side — "Service owns the offering
+ * … cross-reference by **link not duplication**."
+ *
+ * That is also why nothing here says anything about a Service's *proof*. The
+ * hub does not render `demonstratedBy`, so a Service with zero demonstrating work
+ * (IA Step 6, F5 — "a valid published state") is previewed exactly like any
+ * other, with no count, no badge and no fabricated evidence. The F5 editorial
+ * empty state belongs to the Service page, which this workstream does not build.
+ *
+ * ── THE WHOLE ROW IS THE LINK ─────────────────────────────────────────────
+ * Composed as the approved HiFis' `.step` row — index, name, descriptor — with
+ * the row itself as one `<a>`, exactly as `WorkPreviewCard` makes a card one
+ * link: reachable by Tab, with its accessible name composed from the text it
+ * already shows, and `:focus-visible` outlining the same area the pointer gets.
+ * The section's own `<h2>` carries the outline level; the Service name is a
+ * `<span>` inside the link rather than a heading, so a list of services does not
+ * inject a run of headings into the document outline.
+ */
+import { localize } from '../lib/content';
+import type { Locale, ServiceSummary } from '../lib/content';
+
+interface Props {
+  service: ServiceSummary;
+  locale: Locale;
+  /** Destination — built by the caller from the frozen route map. */
+  href: string;
+  /** 1-based position, rendered as the HiFi's step numeral. Decorative. */
+  index: number;
+  /** The continuation cue. Visual only; the row is already named by its text. */
+  cta: string;
+}
+
+const { service, locale, href, index, cta } = Astro.props;
+
+const name = localize(service.name, locale);
+/* One-line positioning (S-1). Optional in the contract, so its absence is a
+   shorter row, never a placeholder sentence. */
+const positioning = localize(service.shortDescription, locale);
+---
+
+<a class="svc-row" href={href} data-service-id={service._id}>
+  <span class="n" aria-hidden="true">{String(index).padStart(2, '0')}</span>
+  <span class="t">{name}</span>
+  <span class="d">
+    {positioning}
+    <span class="go" aria-hidden="true">{cta} <span class="ar">→</span></span>
+  </span>
+</a>

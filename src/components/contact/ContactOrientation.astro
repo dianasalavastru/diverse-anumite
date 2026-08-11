@@ -1,0 +1,52 @@
+---
+/**
+ * C-1 · Contact orientation — `CONTACT_WIREFRAME.md` C-1 (Page IA Stage A).
+ *
+ * Responsibility realized: "confirm the visitor is in the right place to start a
+ * conversation, calmly and without a sales opening."
+ *
+ * Components (Inventory), both of them and nothing else: "Section Header (page
+ * intent) · Breadcrumb (parent context — orientation)."
+ *
+ * Spatial composition, transcribed: "a quiet, welcoming opening — a single clear
+ * statement that this is where to begin, **no hero pitch, no re-explanation of
+ * what the practice does**. The interface is calm and uncluttered; the tone is
+ * *'let's talk,'* not *'let me convince you.'*"
+ *
+ * ── THE BREADCRUMB IS ONE LEVEL, BECAUSE CONTACT IS ────────────────────────
+ * Contact is a standalone top-level page (IA Step 7, "Type: Standalone"), so its
+ * parent context is the Homepage and nothing else. The Work Entry's three-level
+ * crumb (archive → pillar → entry) has no equivalent here, and inventing an
+ * intermediate level would assert a hierarchy the IA does not have. Marked up as
+ * an ordered list inside a labelled `<nav>` — the same structure `Hero.astro`
+ * uses, so the two pages announce their crumbs identically.
+ *
+ * No coordinate rail and no section marker: both are instruments of the paced,
+ * multi-station page types (HP, HUB, RC, WE, SV), and Contact is a single
+ * uninterrupted act. `WorkArchive.astro` records the same reasoning for its own
+ * missing rail.
+ */
+import type { Locale } from '../../lib/content';
+import type { ContactMessages } from '../../lib/i18n/contact';
+import { routePath } from '../../lib/i18n/routes';
+
+interface Props {
+  locale: Locale;
+  copy: ContactMessages['orientation'];
+}
+
+const { locale, copy } = Astro.props;
+---
+
+<section class="c-intro" aria-labelledby="c-heading">
+  <nav class="c-crumbs-nav" aria-label={copy.breadcrumbLabel}>
+    <ol class="c-crumbs">
+      <li><a href={routePath('home', locale)}>{copy.home}</a></li>
+      <li aria-current="page">{copy.here}</li>
+    </ol>
+  </nav>
+
+  <p class="eyebrow rv" data-rv="meta">{copy.eyebrow}</p>
+  <h1 class="c-title rv" data-rv="head" id="c-heading">{copy.heading}</h1>
+  <p class="c-statement rv" data-rv="meta">{copy.statement}</p>
+</section>

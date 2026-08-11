@@ -1,0 +1,17 @@
+---
+/**
+ * `/reality-capture` — the Romanian Reality Capture Pillar Hub (locale route map
+ * §11.1, "Pillar hub B"; OD-1, DECISIONS_LOG.md #76).
+ *
+ * RO is the default locale and is not prefixed (`prefixDefaultLocale: false`).
+ * The page is composed in `components/pillar-hub/RealityCaptureHub.astro` so the
+ * two locale routes cannot drift apart.
+ *
+ * The RO and EN segments are identical here — `reality-capture` is used
+ * untranslated as a term of art in both locales, exactly as the frozen route map
+ * records it.
+ */
+import RealityCaptureHub from '../components/pillar-hub/RealityCaptureHub.astro';
+---
+
+<RealityCaptureHub locale="ro" />

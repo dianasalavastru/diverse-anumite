@@ -1,0 +1,57 @@
+---
+/**
+ * H-6 · Contact / next step — HUB_PAGE_IA Stage E, station 06.
+ *
+ * Responsibility (Page IA H-6): "a pillar-relevant path to start a conversation,
+ * without hard-selling." Destination: **Contact, with Topic prefilled to this
+ * pillar.** Consumes nothing (no inline form) — conversion depth lives on the
+ * Service pages and on Contact.
+ *
+ * Components (`PILLAR_HUB_WIREFRAME.md` H-6): Section Introduction / Rich Text
+ * (a quiet invitation) · CTA Group (primary → Contact). "One calm invitation, one
+ * primary action, no competing conversion prompts; appears at the end, after
+ * understanding has accumulated. The services and archive continuations above are
+ * navigation, kept distinct from this conversion action."
+ *
+ * This is the hub's **only** primary action. It is the one place on the page where
+ * blue is used as an action surface — VISUAL_DIRECTION_v2.0 §2.1 permits blue on
+ * "the single primary action" and forbids it "on stacks of buttons", which is
+ * satisfied by there being exactly one.
+ *
+ * ── THE PREFILL ───────────────────────────────────────────────────────────
+ * `?topic=<pillar>` and no `?regarding=` — `CONTACT_PAGE_IA.md` §"Prefill
+ * sources": "From a Hub → Topic = pillar (no Regarding)". The token is built in
+ * `hub.ts` from the frozen route map, not written here. Contact (C-2) is not yet
+ * implemented; §"Contact prefill contract" already binds it to ignore rather than
+ * echo a value it does not recognise, so emitting the link now cannot become an
+ * injection surface later.
+ */
+import SectionMarker from '../SectionMarker.astro';
+import type { PillarHubMessages } from '../../lib/i18n/pillar-hub';
+
+interface Props {
+  copy: PillarHubMessages['conversation'];
+  /** Contact with the pillar Topic prefilled. */
+  contactHref: string;
+  station: number;
+}
+
+const { copy, contactHref, station } = Astro.props;
+---
+
+<section class="hub-conversation" data-station={station} aria-labelledby="conversation-heading">
+  <SectionMarker copy={copy.marker} heading id="conversation-heading" />
+
+  <div class="hub-invite">
+    <p class="q rv" data-rv="head">
+      {copy.invitation.lead} <span class="b">{copy.invitation.accent}</span>{copy.invitation.tail}
+    </p>
+
+    <div class="rv" data-rv="meta">
+      <a class="hub-primary" href={contactHref}>
+        {copy.action}<span class="ar" aria-hidden="true">→</span>
+      </a>
+      <p class="note">{copy.note}</p>
+    </div>
+  </div>
+</section>

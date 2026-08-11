@@ -1,0 +1,60 @@
+---
+/**
+ * C-4 · Contact methods — `CONTACT_WIREFRAME.md` C-4 (Page IA Stage A/C).
+ * Component (Inventory): **Contact Methods Block**.
+ *
+ * Responsibility realized: "offer any direct channels (email and similar) for
+ * visitors who prefer them — **beside, not competing with, the form**."
+ *
+ * Spatial composition, transcribed: "a quiet, secondary affordance placed
+ * alongside or beneath the form … **never loud enough to fragment the single
+ * obvious path.** The form remains primary."
+ *
+ * ── IT RENDERS NOTHING TODAY, AND THAT IS THE CORRECT STATE ────────────────
+ * `contactChannels()` is empty — see the long note on it in
+ * `src/lib/i18n/contact.ts`. No product, IA or governance document names an
+ * inbox, a phone number or a social handle; `CONTACT_PAGE_IA.md` §"Open" still
+ * carries "Direct contact channels beyond the form (C-3 content)" as an
+ * unresolved dependency, and §10.4 forbids fabricated content in production
+ * output.
+ *
+ * So this module follows the `GlobalFooter` rule for unauthored content: the
+ * structure ships, the slot is absent until the content exists. Not an empty
+ * heading, not a stub row, not "email: coming soon" — nothing at all, because
+ * the form is the primary path (C-3) and works without it.
+ *
+ * Adding real channels is a one-line change in `contactChannels()`. Nothing in
+ * this file, in the composition, or in the stylesheet moves.
+ */
+import type { ContactChannel } from '../../lib/i18n/contact';
+
+interface Props {
+  /**
+   * Resolved by the composition rather than read here, so the page can decide
+   * whether the secondary region exists at all instead of rendering an empty
+   * container around a module that returned nothing.
+   */
+  channels: readonly ContactChannel[];
+}
+
+const { channels } = Astro.props;
+---
+
+{
+  channels.length > 0 && (
+    <ul class="c-methods rv" data-rv="meta">
+      {channels.map((channel) => (
+        <li class="c-method">
+          <span class="c-method-label">{channel.label}</span>
+          {channel.href ? (
+            <a class="c-method-value" href={channel.href}>
+              {channel.value}
+            </a>
+          ) : (
+            <span class="c-method-value">{channel.value}</span>
+          )}
+        </li>
+      ))}
+    </ul>
+  )
+}

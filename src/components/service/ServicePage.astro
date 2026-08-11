@@ -1,0 +1,221 @@
+---
+/**
+ * The Service page — composed once, rendered per locale, **for any published
+ * Service**.
+ *
+ * OWNERSHIP: Workstream A. Phase 6 of TECHNICAL_ARCHITECTURE.md §23.2: "Work
+ * Entry + **Service** + Hubs."
+ *
+ * ROUTES (§11.1, frozen): `/servicii/[serviciu]` · `/en/services/[service]`.
+ * The two route files hand this component a locale and an already-resolved
+ * Service, so the RO and EN pages cannot drift apart.
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ *  THIS IS THE GENERIC BLUEPRINT. IT IS NOT SCANARE 3D's PAGE.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * `SERVICE_PAGE_IA.md` line 3: "**One blueprint for every service**; all
+ * services share this Page IA and differ only in the content they consume." Line
+ * 170: Reality Capture and Architecture & Design services differ in "**content
+ * and UI-treatment differences only** — the Page IA (responsibility, flow,
+ * modules, routing) is identical." `SERVICE_WIREFRAME.md` is subtitled "the
+ * canonical structural wireframe for a Service page — the template from which
+ * every concrete Service page is realized."
+ *
+ * The approved HiFi prototypes one service and hard-codes its content: three
+ * laser-scanning process diagrams, six deliverable illustrations with file-format
+ * badges, four FAQ answers, a `2 mm` accuracy badge, a Leica RTC360, three named
+ * projects and a 48-hour response promise. Not one of those is a field. This file
+ * therefore carries the HiFi's *composition* — a measured opening, prose that
+ * resolves the problem before the solution, concrete substance, proof, one quiet
+ * action — over whatever a given Service document actually holds. Which modules
+ * appear is decided in `modules.ts`, and only there.
+ *
+ * ── MODULE ORDER IS THE WIREFRAME'S ───────────────────────────────────────
+ *   S-1 orientation → S-2 problem recognition → S-3 solution understanding
+ *   (deliverables, then process) → S-4 representative evidence → S-5 conversation
+ *
+ * "Every transition removes one more source of uncertainty, so that by S-5
+ * nothing stands between understanding and action."
+ *
+ * ── CONTENT: THE I-3 CONTRACT ─────────────────────────────────────────────
+ * Every value on this page comes from Workstream B's `ContentSource`. This file
+ * arranges; it does not define. Locale scoping (§7.1) — including the scoping of
+ * `demonstratedBy` — happens inside the source before anything reaches a
+ * component, so no module here re-filters by locale.
+ *
+ * ── WHAT IS DELIBERATELY NOT HERE ─────────────────────────────────────────
+ *   · **FAQ / Accordion.** Optional and *Future* upstream; no field carries
+ *     question/answer pairs. See `modules.ts`.
+ *   · **Per-deliverable illustrations and format badges.** See Deliverables.astro.
+ *   · **Diagrammatic process movements.** See Process.astro — also an
+ *     accessibility finding, not only a content one.
+ *   · **The contact aside** (email, coordinates, response time). See
+ *     Conversion.astro; those belong to Contact.
+ *   · **JSON-LD.** §12 asks for `Service` per Service page and a
+ *     `BreadcrumbList`; both need a self-referencing absolute URL, and
+ *     `astro.config.mjs` has no `site` because no authoritative document names
+ *     the production domain — the same blocker BaseLayout and the Work Entry
+ *     record. Reported, not silently dropped.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Conversion from './Conversion.astro';
+import CoordinateRail from '../CoordinateRail.astro';
+import Deliverables from './Deliverables.astro';
+import Orientation from './Orientation.astro';
+import ProblemFit from './ProblemFit.astro';
+import Process from './Process.astro';
+import Proof from './Proof.astro';
+import SectionMarker from '../SectionMarker.astro';
+import ViewTransition from '../ViewTransition.astro';
+
+import { localize } from '../../lib/content';
+import type { Locale, Service, WorkEntry } from '../../lib/content';
+import { serviceMessages } from '../../lib/i18n/service';
+import { captureSubject, serviceComposition, stationLabel } from './modules';
+
+interface Props {
+  service: Service;
+  locale: Locale;
+  /**
+   * Full Work Entries, indexed by id — the join `demonstratedBy` cannot make on
+   * its own (it is a summary projection with no capture metadata). Used for one
+   * thing only: resolving the S-4 point-cloud subject. Empty is valid.
+   */
+  entries: ReadonlyMap<string, WorkEntry>;
+}
+
+const { service, locale, entries } = Astro.props;
+
+const copy = serviceMessages(locale);
+const composition = serviceComposition(service, locale);
+const stations = composition.stations;
+
+const name = localize(service.name, locale) ?? '';
+const cloudSubject = captureSubject(service, entries);
+
+/**
+ * §11.2 rule 4 and the hreflang emitter: the counterpart pair is emitted only
+ * where both exist. `slug.en` is `null` on an untranslated Service, which is
+ * exactly what `BaseLayout` needs to disable the language switcher and emit no
+ * alternates — no separate branch here.
+ */
+const slugs = {
+  ro: service.slug.ro,
+  ...(service.slug.en ? { en: service.slug.en } : {}),
+};
+
+/**
+ * SEO title/description are authored per locale and never derived. An unauthored
+ * SEO title falls back to the service's own name — the same string the page
+ * shows, not a constructed one. An unauthored description emits no meta tag:
+ * §12's "authored, not derived" rule applies to it as much as to `alt`. The
+ * Content Model makes the Service page its own SEO target (§2, §6), so this is
+ * the one page type where an unauthored description is worth reporting rather
+ * than shrugging at.
+ */
+const seoTitle = localize(service.seo.title, locale) ?? name;
+const seoDescription = localize(service.seo.description, locale) ?? undefined;
+
+/** The marker's station number is composed, never hard-coded — see i18n/service.ts. */
+const marker = (key: keyof typeof copy.markers, station: number) => ({
+  no: stationLabel(station),
+  ...copy.markers[key],
+});
+---
+
+<BaseLayout
+  locale={locale}
+  rhythm="service"
+  routeKey="service"
+  slugs={slugs}
+  title={seoTitle}
+  description={seoDescription}
+  headerVariant={service.hero ? 'on-hero' : 'default'}
+  footerStation={composition.footerStation}
+>
+  {/* §14.0 progressive enhancement: the opening's staged elements are gated on
+      a class the motion runtime adds. With scripting disabled they must resolve,
+      not stay hidden. Reduced motion needs nothing here — service.css already
+      resolves it in CSS. */}
+  <Fragment slot="head">
+    <noscript>
+      <style>
+        html.anim-load .sv-orientation-in {
+          opacity: 1 !important;
+        }
+        html.anim-load .sv-hero-media {
+          transform: none !important;
+        }
+      </style>
+    </noscript>
+  </Fragment>
+
+  <CoordinateRail slot="rail" stations={composition.footerStation} />
+
+  <Orientation
+    service={service}
+    locale={locale}
+    copy={copy}
+    station={stations.orientation ?? 1}
+  />
+
+  {
+    stations.problem && (
+      <section class="sv-section sv-problem-section" data-station={stations.problem} aria-labelledby="sv-problem-h">
+        <SectionMarker copy={marker('problem', stations.problem)} heading id="sv-problem-h" />
+        <ProblemFit service={service} locale={locale} copy={copy} />
+      </section>
+    )
+  }
+
+  {
+    stations.deliverables && (
+      <section class="sv-section" data-station={stations.deliverables} aria-labelledby="sv-deliverables-h">
+        <SectionMarker
+          copy={marker('deliverables', stations.deliverables)}
+          heading
+          id="sv-deliverables-h"
+        />
+        <Deliverables service={service} locale={locale} copy={copy} />
+      </section>
+    )
+  }
+
+  {
+    stations.process && (
+      <section class="sv-section" data-station={stations.process} aria-labelledby="sv-process-h">
+        <SectionMarker copy={marker('process', stations.process)} heading id="sv-process-h" />
+        <Process service={service} locale={locale} copy={copy} />
+      </section>
+    )
+  }
+
+  {/* S-4 is unconditional — F5 swaps the surface, never the module. */}
+  <section
+    class="sv-section sv-proof-section"
+    data-station={stations.proof}
+    aria-labelledby="sv-proof-h"
+  >
+    <SectionMarker copy={marker('proof', stations.proof ?? 1)} heading id="sv-proof-h" />
+    <Proof service={service} locale={locale} copy={copy} captureSubject={cloudSubject} />
+  </section>
+
+  <section
+    class="sv-section sv-conversion-section"
+    data-station={stations.conversion}
+    aria-labelledby="sv-conversion-h"
+  >
+    <SectionMarker
+      copy={marker('conversion', stations.conversion ?? 1)}
+      heading
+      id="sv-conversion-h"
+    />
+    <Conversion service={service} locale={locale} copy={copy} />
+  </section>
+
+  {/* The Service half of the §13 dissolve: S-4's proof cards continue into Work
+      Entries, which is the same archive → entry transition the shared component
+      already carries. Opted into per page, exactly as §13 requires. */}
+  <ViewTransition />
+</BaseLayout>

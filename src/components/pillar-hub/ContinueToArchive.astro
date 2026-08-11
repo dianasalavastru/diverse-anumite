@@ -1,0 +1,74 @@
+---
+/**
+ * H-5 · Continue-to-archive — HUB_PAGE_IA Stage E, station 05
+ * ("VII · CONTINUATION" in the approved RC Hub HiFi).
+ *
+ * Responsibility (Page IA H-5): "route to full breadth for the visitor who wants
+ * everything." Destination: **the Work Archive filtered to this pillar.**
+ * Components (wireframe H-5): CTA Group. "A single quiet continuation to breadth;
+ * **navigational, not a conversion prompt.**"
+ *
+ * ── WHY IT IS A SEPARATE MODULE AND NOT H-4's CTA ─────────────────────────
+ * The wireframe permits either ("may be authored as H-4's CTA"). It is authored
+ * separately because the declared reading progression puts exploration **after**
+ * the offering — "evidence before offering, offering before breadth" — and
+ * folding H-5 into H-4 would move breadth back in front of H-3. H-4 keeps its own
+ * module CTA regardless: Page IA §3's shared highlight rule makes a curated
+ * module's continuation mandatory, so the two links share a destination by
+ * design, in two different roles.
+ *
+ * ── THE CROSS-PILLAR DOOR ─────────────────────────────────────────────────
+ * `HUB_PAGE_IA.md` §1: "cross-links to the other pillar may exist as **supporting
+ * navigation**, but are never part of the primary information flow", and the
+ * approved HiFi places exactly one such door here. It is second, quieter, and
+ * carries no conversion weight.
+ *
+ * ── WHAT IS NOT HERE ──────────────────────────────────────────────────────
+ * The HiFi's third door is Contact. It is not rendered in this group: the
+ * wireframe requires the hub's **single primary (conversion) action** to sit in
+ * H-6, "kept distinct" from the navigation above it, and three visually identical
+ * doors would make the conversion read as a third navigation option. H-6 follows
+ * immediately below with that one action.
+ */
+import SectionMarker from '../SectionMarker.astro';
+import type { PillarHubMessages } from '../../lib/i18n/pillar-hub';
+
+interface Props {
+  copy: PillarHubMessages['continue'];
+  /** `/proiecte?pillar=reality-capture` — built from the frozen contracts. */
+  archiveHref: string;
+  /** The other pillar's hub — supporting navigation only. */
+  crossPillarHref: string;
+  station: number;
+}
+
+const { copy, archiveHref, crossPillarHref, station } = Astro.props;
+
+const doors = [
+  { key: 'archive', href: archiveHref, copy: copy.archive },
+  { key: 'cross', href: crossPillarHref, copy: copy.crossPillar },
+];
+---
+
+<section class="hub-continue" data-station={station} aria-labelledby="continue-heading">
+  <SectionMarker copy={copy.marker} heading id="continue-heading" />
+
+  <p class="hub-frame rv" data-rv="head">
+    {copy.frame.lead} <span class="b">{copy.frame.accent}</span> {copy.frame.tail}
+  </p>
+
+  <div class="hub-doors">
+    {
+      doors.map((door) => (
+        <a class:list={['hub-door', 'rv', door.key === 'cross' && 'quiet']} data-rv="meta" href={door.href}>
+          <span class="k">{door.copy.kind}</span>
+          <span class="t">
+            {door.copy.title}
+            <span class="ar" aria-hidden="true">→</span>
+          </span>
+          <span class="d">{door.copy.body}</span>
+        </a>
+      ))
+    }
+  </div>
+</section>

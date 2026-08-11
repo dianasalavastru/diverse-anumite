@@ -1,0 +1,54 @@
+---
+/**
+ * `/en/services/[service]` — the English Service page (locale route map §11.1,
+ * EN segments approved by OD-2 / `DECISIONS_LOG.md` #77).
+ *
+ * The RO counterpart is `/servicii/[serviciu]`. Both hand the same composition a
+ * locale and a resolved Service; nothing about the page differs by locale except
+ * the content the query layer scopes.
+ *
+ * ── §11.2, ENFORCED BY THE PATH SET, NOT BY A RUNTIME BRANCH ──────────────
+ * `source.services('en')` returns only Services that are EN-published **and**
+ * carry an EN slug (`derive.ts` `isEnAvailable`). An untranslated Service
+ * therefore generates no path here at all, which is §11.2 rule 7 exactly: a
+ * clean 404, never a redirect to RO and never RO content under an EN URL. There
+ * is no fallback branch to review because there is no fallback.
+ *
+ * The same call also scopes `demonstratedBy` (`source.ts` `scopeService`), so an
+ * EN page's proof set contains only EN-published Work Entries — an RO-rich,
+ * EN-thin Service correctly renders F5 here while showing its proof in Romanian.
+ *
+ * `workEntries('en')` is likewise EN-scoped, so the S-4 point-cloud subject can
+ * only ever be an entry this locale actually has a page for.
+ */
+import ServicePage from '../../../components/service/ServicePage.astro';
+import { contentSource } from '../../../lib/content/build-source';
+import { localize } from '../../../lib/content';
+import { indexById } from '../../../components/homepage/highlights';
+import type { Service, WorkEntry } from '../../../lib/content';
+
+export async function getStaticPaths() {
+  const source = contentSource();
+
+  const [services, workEntries] = await Promise.all([
+    source.services('en'),
+    source.workEntries('en'),
+  ]);
+  const entries = indexById(workEntries);
+
+  return services
+    .map((service) => {
+      const slug = localize(service.slug, 'en');
+      // Guaranteed non-null by the EN gate above; kept as a type guard.
+      return slug ? { params: { service: slug }, props: { service, entries } } : null;
+    })
+    .filter((path): path is NonNullable<typeof path> => path !== null);
+}
+
+const { service, entries } = Astro.props as {
+  service: Service;
+  entries: ReadonlyMap<string, WorkEntry>;
+};
+---
+
+<ServicePage service={service} locale="en" entries={entries} />

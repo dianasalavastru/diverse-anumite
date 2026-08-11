@@ -1,0 +1,215 @@
+---
+/**
+ * The Reality Capture Pillar Hub — composed once, rendered per locale.
+ *
+ * OWNERSHIP: Workstream A. Phase 6 of TECHNICAL_ARCHITECTURE.md §23.2
+ * ("Work Entry + Service + Hubs").
+ *
+ * MODULE ORDER is the wireframe's, which is the Page IA's information flow with
+ * its one permitted flex taken:
+ *   H-1 Orientation → H-2 Framing & use-cases → **H-4 Curated work** →
+ *   **H-3 Services** → H-5 Continue-to-archive → H-6 Contact.
+ * `PILLAR_HUB_WIREFRAME.md` §"Module reading order": "This template orders
+ * representative work before the services offering — *evidence before offering*…
+ * a permitted Page-IA flex and a deliberate, retained decision." The stations
+ * 01…07 on the coordinate rail are that sequence made visible, with the footer
+ * as station 07 exactly as the approved HiFi's rail has it.
+ *
+ * ── WHAT THIS PAGE IS NOT ─────────────────────────────────────────────────
+ * Not a second homepage (single-capability focus; the one cross-pillar link is
+ * supporting navigation in H-5). Not a Service page (H-3 routes, it does not
+ * sell). **Not a second Work Archive** — H-4 renders curated placements only and
+ * every route to breadth is the pillar-filtered archive
+ * (`/proiecte?pillar=reality-capture`). Not About (H-1 links, lightly).
+ *
+ * ── ONE BLUEPRINT, TWO INSTANCES ──────────────────────────────────────────
+ * The six module components below take copy and data as props and know nothing
+ * about Reality Capture; this file is the instance. `ArchitectureDesignHub.astro`
+ * is the other one — the same six components, a second message set, and the two
+ * presentation options this instance takes and that one does not: the plate's
+ * `overlay="measurement"` and H-4's `copy.pointCloud` (§10.1). No component
+ * branches on a pillar name.
+ *
+ * ── CONTENT ───────────────────────────────────────────────────────────────
+ * Every content-shaped value comes from Workstream B's `ContentSource` (I-3,
+ * live Sanity — `build-source.ts`). No GROQ, no CMS coupling, no second content
+ * model: this file selects and arranges. Locale scoping (§7.1), discovery order
+ * (§7.6), placement membership (§7.5) and Service ordering all happen inside the
+ * source, before anything reaches a component.
+ *
+ * ── WHAT IS NOT HERE ──────────────────────────────────────────────────────
+ * No point-cloud renderer — `media/PointCloudField.astro` carries the mount
+ * contract and the §19.4 publication gate, and the page is complete without
+ * Workstream D (§10.2, §14.0: the viewer "degrades to its static poster"). No
+ * canonical URL emission (blocked on the production origin — see BaseLayout). No
+ * `@view-transition`: §13 scopes the cross-document dissolve to Archive → Work
+ * Entry, and the hub is neither end of it.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CoordinateRail from '../CoordinateRail.astro';
+import ContinueToArchive from './ContinueToArchive.astro';
+import Conversation from './Conversation.astro';
+import CuratedWork from './CuratedWork.astro';
+import Framing from './Framing.astro';
+import Orientation from './Orientation.astro';
+import ServicesOverview from './ServicesOverview.astro';
+
+import type { Locale, Pillar } from '../../lib/content';
+import { realityCaptureHubMessages } from '../../lib/i18n/pillar-hub';
+
+/* ── I-3 — live Sanity, one call, exactly as every other page does it ─────── */
+import { contentSource } from '../../lib/content/build-source';
+const source = contentSource();
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+import { indexById, pointCloudSubject } from '../homepage/highlights';
+import {
+  HUB_HIGHLIGHT_LIMIT,
+  contactTopicHref,
+  indexServicesById,
+  instrumentReadouts,
+  pillarArchiveHref,
+  pillarHubHref,
+  servicesInPillar,
+  useCaseSectors,
+} from './hub';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const copy = realityCaptureHubMessages(locale);
+
+const PILLAR: Pillar = 'reality-capture';
+/** The supporting cross-link in H-5. Two pillars are locked by the Content Model. */
+const OTHER_PILLAR: Pillar = 'architecture-design';
+
+const [placed, scoped, entries, serviceSummaries, services] = await Promise.all([
+  /* H-4 — placements only (`CONTENT_MODEL.md` §4). */
+  source.highlights('pillar-hub', PILLAR, locale),
+  /* The point-cloud field's candidate set: this pillar's archive, in discovery
+     order. Same rule the Homepage applies — a *capability* selection over B's
+     order, not a second editorial one. */
+  source.workArchive(locale, PILLAR),
+  /* Capture metadata and `capturePublicationCleared` live on the full entry, not
+     on the archive projection, and deliberately stay there (§19.4). */
+  source.workEntries(locale),
+  /* H-3 — the recognition projection `types.ts` names for this module. */
+  source.serviceSummaries(locale, PILLAR),
+  /* H-2 only — `sectors` and `equipment` are authored on the full Service and are
+     absent from the recognition projection. Order still comes from the line
+     above; this is a field lookup, never a second ordering. */
+  source.services(locale),
+]);
+
+const highlights = placed.slice(0, HUB_HIGHLIGHT_LIMIT);
+
+/**
+ * H-1's opening media: the leading curated work of this pillar — curation only,
+ * for the same reason H-4 is placements-only. With nothing placed the plate
+ * renders its authored tone and no photograph.
+ */
+const hero = highlights[0] ?? null;
+
+const pillarServices = servicesInPillar(services, PILLAR);
+const useCases = useCaseSectors(pillarServices);
+const instruments = instrumentReadouts(serviceSummaries, indexServicesById(pillarServices), locale);
+
+/**
+ * Stations 01…07 — six narrative modules plus the footer, matching the approved
+ * HiFi's rail. Passed down rather than hard-coded per section so the rail and the
+ * sections cannot drift apart. H-3 hides itself when the pillar publishes no
+ * Services; its stop then simply never activates, which is the same inert state
+ * the rail already has above the first section.
+ */
+/**
+ * Authored plate tones for H-4's focus track, transcribed from this HiFi's
+ * documentation traverse. An instance value, not a template one — the A&D HiFi
+ * authors its own sequence (see `CuratedWork.astro`).
+ */
+const TONES = ['#c2bdb2', '#b7b1a5', '#ccc7bd', '#bdb7ab', '#c7c2b6', '#b4afa2'] as const;
+
+const STATIONS = {
+  orientation: 1,
+  framing: 2,
+  work: 3,
+  services: 4,
+  continue: 5,
+  conversation: 6,
+  footer: 7,
+} as const;
+---
+
+<BaseLayout
+  locale={locale}
+  rhythm="pillar-hub"
+  routeKey="pillarHubRealityCapture"
+  title={copy.meta.title}
+  description={copy.meta.description}
+  footerStation={STATIONS.footer}
+>
+  {/* §14.0, progressive enhancement. The opening plate's load sequence is gated
+      on a class the motion runtime adds; with scripting disabled it must resolve,
+      not stay clipped. Reduced motion needs nothing here — pillar-hub.css already
+      resolves it in CSS. `.rv` itself is covered by the layout's own noscript. */}
+  <Fragment slot="head">
+    <noscript>
+      <style>
+        html.anim-load .hub-plate .plate-img,
+        html.anim-load .hub-plate .plate-fixture {
+          clip-path: none !important;
+        }
+      </style>
+    </noscript>
+  </Fragment>
+
+  <CoordinateRail slot="rail" stations={STATIONS.footer} />
+
+  <Orientation
+    locale={locale}
+    copy={copy.orientation}
+    hero={hero}
+    overlay="measurement"
+    station={STATIONS.orientation}
+  />
+
+  <Framing
+    locale={locale}
+    copy={copy.framing}
+    useCases={useCases}
+    instruments={instruments}
+    station={STATIONS.framing}
+  />
+
+  <CuratedWork
+    locale={locale}
+    copy={copy.work}
+    entries={highlights}
+    pointCloudSubject={pointCloudSubject(scoped, indexById(entries))}
+    tones={TONES}
+    cadence="docs"
+    archiveHref={pillarArchiveHref(PILLAR, locale)}
+    station={STATIONS.work}
+  />
+
+  <ServicesOverview
+    locale={locale}
+    copy={copy.services}
+    services={serviceSummaries}
+    station={STATIONS.services}
+  />
+
+  <ContinueToArchive
+    copy={copy.continue}
+    archiveHref={pillarArchiveHref(PILLAR, locale)}
+    crossPillarHref={pillarHubHref(OTHER_PILLAR, locale)}
+    station={STATIONS.continue}
+  />
+
+  <Conversation
+    copy={copy.conversation}
+    contactHref={contactTopicHref(PILLAR, locale)}
+    station={STATIONS.conversation}
+  />
+</BaseLayout>

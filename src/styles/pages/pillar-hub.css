@@ -1,0 +1,814 @@
+/* =============================================================================
+   pillar-hub.css — the authored Pillar Hub composition.
+
+   AUTHORITY: `docs/pages/pillar-hub/reality-capture-hub-measured-reality-hifi-v1.html`
+   (owner-approved 2026-08-10) + `PILLAR_HUB_WIREFRAME.md` + `MOTION_NOTES.md` +
+   `VISUAL_DIRECTION_v2.0.md`. TECHNICAL_ARCHITECTURE.md §5.3: "Verbatim
+   absorption applies to: design tokens, CSS, and the motion layer." Everything
+   below is that absorption; §1.2 binds it — implementation "may not simplify an
+   approved HiFi's visual or interaction result."
+
+   ── SCOPE, AND WHY THE FILE IS NAMED FOR THE TEMPLATE ─────────────────────
+   `PILLAR_HUB_WIREFRAME.md` is "the canonical structural wireframe for a Pillar
+   Hub… from which **both** concrete hubs are realized", and §"Pillar inheritance"
+   makes the module set, composition, hierarchy and responsive intent identical
+   across the two. The rules here are that shared composition; the only
+   RC-specific block is the technical overlay (coordinate grid + registration
+   targets), fenced and labelled below. **Both instances are built and both
+   compose these rules unchanged** — the Architecture & Design hub simply passes
+   no overlay, so the fenced block never applies to it. Nothing here presumes
+   either instance's content.
+
+   The rhythm tokens (`--pad-quiet`, `--pad-loud`, `--gutter-start`, `--lh-body`)
+   are already extracted in tokens.css under `[data-rhythm="pillar-hub"]`, where
+   the note records that HUB and RC define them identically. They are not
+   repeated here.
+
+   ── RULES THAT DIFFER FROM THE HiFi, AND WHY ──────────────────────────────
+     1. shared tokens/primitives replace repeated literals (`--pad-quiet`,
+        `.bleed`, `.eyebrow`, `.measure`, `.smark`);
+     2. `--ink-40` never carries functional text — it measures 3.51:1 on white,
+        below WCAG 2.2 AA (DECISIONS_LOG #78). Every such role takes `--ink-60`
+        (5.56:1), which is already an authored colour in the same files. This is
+        the identical correction typography.css records at I-3;
+     3. hover-only states are paired with `:focus-visible` throughout
+        (MOTION_NOTES.md:54 — keyboard indication at least as clear as hover);
+     4. the load sequence keys off `html.anim-load` / `html.anim-ready` (rendered
+        server-side by BaseLayout) instead of the HiFi's `html.preload` /
+        `html.ready`, which needed an inline script §19.1 forbids;
+     5. the HiFi's comparison slider and its `.twin` canvas are **not** here —
+        see the fenced notes at their sections.
+
+   Section numbering follows the wireframe's module identifiers (H-1…H-6), not
+   the HiFi's roman numerals, because the module order is the wireframe's.
+   ========================================================================== */
+
+/* ---- Shared hub furniture ------------------------------------------------ */
+
+/* The quiet secondary affordance the wireframe requires in H-1 ("never an
+   emphasized action"). Same construction as the Homepage's `.quiet-link` — mono
+   label voice, `--ink-60`, the blue underline draw-in the global nav already
+   uses — declared per page rather than shared, because homepage.css owns that
+   selector and no page should reach into another page's composition. */
+.hub-quiet {
+  /* WCAG 2.2 AA, SC 2.5.8 (Target Size — Minimum): the target's box must be at
+     least 24 × 24 CSS px. As `inline-block` with an 11px mono label the About
+     link measured ≈121 × 18 — wide enough, 6px short in height, and none of the
+     standard exceptions applies: it is not inline in a sentence, it is not
+     spaced far enough from other targets to qualify under the spacing
+     alternative, and there is no equivalent control elsewhere on the page.
+
+     The box is grown, not the type. `line-height: 1` makes the text box exactly
+     the font size so the height is deterministic rather than dependent on the
+     font's `normal` metrics, and the flex centring distributes the remaining
+     6.5px above and below. The label, its colour, its weight and its underline
+     draw-in are untouched, so the wireframe's "quiet secondary affordance…
+     never an emphasized action" still reads exactly as authored — the top
+     margin absorbs the added leading so the optical rhythm is unchanged. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  line-height: 1;
+  margin-block-start: 15px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-60);
+  position: relative;
+}
+
+.hub-quiet::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 100%;
+  /* Measured from the padded box rather than the text box, so the underline sits
+     the same ~4px below the glyphs it did before the box grew. */
+  bottom: 2px;
+  height: 1.5px;
+  background: var(--blue);
+  transition: right 0.3s var(--ease);
+}
+
+.hub-quiet:hover::after,
+.hub-quiet:focus-visible::after {
+  right: 0;
+}
+
+.hub-quiet .ar,
+.hub-modcta a .ar {
+  color: var(--blue);
+  margin-inline-start: 8px;
+  display: inline-block;
+  transition: transform 0.3s var(--ease);
+}
+
+.hub-quiet:hover .ar,
+.hub-quiet:focus-visible .ar,
+.hub-modcta a:hover .ar,
+.hub-modcta a:focus-visible .ar {
+  transform: translateX(5px);
+}
+
+/* H-4's module CTA — the canonical continuation. Navigation, kept visually
+   distinct from the one conversion action in H-6. */
+.hub-modcta {
+  margin-block-start: clamp(26px, 4vh, 44px);
+}
+
+.hub-modcta a {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* The label + provenance pair above H-2's live readouts. */
+.hub-sublabel {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-block-end: 16px;
+}
+
+.hub-sublabel .k {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.hub-sublabel .n {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--ink-60);
+}
+
+/* ---- The RC instance's technical overlay --------------------------------
+   The one block that is Reality Capture's rather than the template's. The HiFi:
+   "The atmosphere shifts: calmer, more precise, observational… expressed through
+   subtle coordinate grids, registration targets, measured annotations… NOT a new
+   language."
+
+   `--blue-08` is an area fill, which VISUAL_DIRECTION_v2.0 §2.1 forbids for blue
+   — except this is not colour-as-decoration: it is a measurement graticule at 8%
+   over a photograph, which is precisely "measurement" in §2.1's permitted list,
+   and tokens.css already promoted the token because RC and SV define it
+   identically. It never appears on paper, only over media. */
+
+.gridlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--blue-08) 1px, transparent 1px),
+    linear-gradient(90deg, var(--blue-08) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+.target {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.target::before,
+.target::after {
+  content: "";
+  position: absolute;
+  background: var(--blue);
+}
+
+.target::before {
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  transform: translateX(-0.5px);
+}
+
+.target::after {
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  transform: translateY(-0.5px);
+}
+
+.target i {
+  position: absolute;
+  inset: 4px;
+  border: 1px solid var(--blue);
+  border-radius: 50%;
+}
+
+/* ============================ H-1 · ORIENTATION ==========================
+   HiFi §"I · ARRIVAL — Observation": an asymmetric layered opening that names
+   the capability first, with the media beside it rather than above it. */
+
+.hub-arrival {
+  position: relative;
+  padding: clamp(96px, 13vh, 150px) 0 var(--pad-loud);
+}
+
+.hub-arrival-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: clamp(24px, 4vw, 64px);
+  align-items: end;
+}
+
+.hub-arrival-lead {
+  position: relative;
+  z-index: 2;
+  padding-block-end: clamp(10px, 4vh, 50px);
+}
+
+.hub-arrival-lead .eyebrow {
+  color: var(--blue);
+  margin-block-end: clamp(20px, 4vh, 40px);
+}
+
+.hub-arrival-lead h1 {
+  font-family: var(--pixel);
+  font-weight: 500;
+  font-size: clamp(46px, 8.5vw, 132px);
+  line-height: 0.92;
+  letter-spacing: 0.01em;
+}
+
+/* The capability's second word drops to a new line at half size — the HiFi's
+   `h1 .sm`. It is one heading, so the break is presentational only. */
+.hub-arrival-lead h1 .sm {
+  display: block;
+  font-size: 0.52em;
+}
+
+.hub-thesis {
+  margin-block-start: clamp(22px, 3.5vh, 40px);
+  font-family: var(--read);
+  font-weight: 600;
+  font-size: clamp(20px, 2.3vw, 30px);
+  line-height: 1.16;
+  letter-spacing: -0.02em;
+  max-width: 22ch;
+}
+
+.hub-thesis .b {
+  color: var(--blue);
+}
+
+.hub-arrival-media {
+  position: relative;
+  height: clamp(380px, 64vh, 660px);
+}
+
+.hub-arrival-dim {
+  position: absolute;
+  right: 8px;
+  top: -26px;
+  z-index: 5;
+  color: var(--blue);
+  font-size: 11px;
+}
+
+.hub-plate {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #cbc6bc;
+}
+
+/* The grade sits on the MEDIA, never on the frame. The HiFi writes it as
+   `.arr-main img{filter:grayscale(.5) contrast(1.05)}` — on the image — and the
+   distinction is load-bearing here: `filter` applies to a whole subtree, so
+   grading the container would desaturate the registration targets and the scan
+   by 50% and quietly turn electric blue into indigo. §2.1 makes blue a signal
+   that is "saturated and bold where it does appear"; a half-strength measurement
+   mark is not that signal. */
+.hub-plate .plate-img,
+.hub-plate .plate-fixture {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(0.5) contrast(1.05);
+}
+
+.hub-plate-cap {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 4;
+  /* The caption carries an authored project title, which has no length bound —
+     so it wraps inside the plate rather than running past its edge. */
+  max-width: calc(100% - 24px);
+  font-size: 11px;
+  line-height: 1.4;
+  /* On the plate tone, `--ink-60` measures 3.27:1; `--ink` measures 10.48:1 on
+     the same ground and is already the authored colour of the Homepage's
+     equivalent caption row (I-3). Same note as there applies at I-6: text over
+     arbitrary photography needs a guaranteed treatment. */
+  color: var(--ink);
+}
+
+/* The measuring bar that sweeps the opening plate once on load — the HiFi's
+   `.scan`, "reading as measurement/documentation". */
+.hub-scan {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  background: var(--blue);
+  opacity: 0;
+  box-shadow: 0 0 16px 3px rgba(43, 43, 230, 0.6);
+  pointer-events: none;
+}
+
+html.anim-ready .hub-scan {
+  animation: hub-scan 1.6s var(--slow) 0.6s both;
+}
+
+@keyframes hub-scan {
+  0% {
+    left: 0;
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.9;
+  }
+  88% {
+    opacity: 0.6;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+/* The plate is clipped before paint and wiped open once the runtime is ready —
+   `html.preload`/`html.ready` in the HiFi. See BaseLayout for why the class is
+   server-rendered. */
+html.anim-load .hub-plate .plate-img,
+html.anim-load .hub-plate .plate-fixture {
+  clip-path: inset(0 0 100% 0);
+}
+
+.hub-plate .plate-img,
+.hub-plate .plate-fixture {
+  transition: clip-path 1.3s var(--slow);
+}
+
+html.anim-ready .hub-plate .plate-img,
+html.anim-ready .hub-plate .plate-fixture {
+  clip-path: inset(0 0 0 0);
+}
+
+.hub-arrival-note {
+  margin-block-start: clamp(40px, 7vh, 90px);
+  max-width: 62ch;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: clamp(20px, 3vw, 44px);
+}
+
+.hub-arrival-note .ln {
+  width: 1px;
+  background: var(--blue);
+  opacity: 0.5;
+}
+
+.hub-arrival-note p {
+  color: var(--ink-60);
+  font-size: clamp(16px, 1.5vw, 18px);
+}
+
+@media (max-width: 820px) {
+  .hub-arrival-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .hub-arrival-media {
+    height: 60vh;
+    margin-block-start: 30px;
+  }
+
+  .hub-arrival-note {
+    grid-template-columns: 1fr;
+  }
+
+  .hub-arrival-note .ln {
+    display: none;
+  }
+}
+
+/* ============================ H-2 · FRAMING ==============================
+   HiFi §"II · MANIFESTO — the central question": prose-led framing, one idea,
+   the second column receding. */
+
+.hub-framing {
+  padding: var(--pad-quiet) 0 var(--pad-loud);
+}
+
+.hub-question {
+  font-family: var(--read);
+  font-weight: 600;
+  font-size: clamp(26px, 3.9vw, 54px);
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  max-width: 24ch;
+}
+
+.hub-question .b {
+  color: var(--blue);
+}
+
+.hub-framing-body {
+  margin-block-start: clamp(40px, 6vh, 72px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(30px, 5vw, 80px);
+  max-width: 112ch;
+}
+
+.hub-framing-body p {
+  font-size: clamp(16px, 1.4vw, 18px);
+  line-height: 1.7;
+}
+
+.hub-framing-body p + p {
+  margin-block-start: 18px;
+}
+
+.hub-framing-body .quiet p {
+  color: var(--ink-60);
+}
+
+/* The live readouts. "Any statistics support rather than dominate (evidence over
+   claims)" — wireframe H-2 — so both sit below the prose at label scale, not as
+   a display-size figure row. */
+.hub-usecases,
+.hub-instruments {
+  margin-block-start: clamp(40px, 6vh, 72px);
+  border-block-start: 1px solid var(--hair);
+  padding-block-start: clamp(24px, 3vh, 36px);
+}
+
+.hub-usecases ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px clamp(16px, 2vw, 30px);
+}
+
+.hub-usecases li {
+  font-family: var(--read);
+  font-size: clamp(16px, 1.5vw, 19px);
+  color: var(--ink);
+  position: relative;
+  padding-inline-start: 16px;
+}
+
+/* A registration tick before each use-case — the same measurement mark the
+   `.target` uses, reduced to one stroke. */
+.hub-usecases li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.72em;
+  width: 8px;
+  height: 1px;
+  background: var(--blue);
+}
+
+.hub-instruments dl {
+  display: grid;
+  gap: clamp(12px, 2vh, 20px);
+}
+
+.hub-instruments .r {
+  display: grid;
+  grid-template-columns: minmax(12ch, 22ch) 1fr;
+  gap: clamp(14px, 2vw, 32px);
+  align-items: baseline;
+  padding-block-end: clamp(12px, 2vh, 20px);
+  border-block-end: 1px solid var(--hair-2);
+}
+
+.hub-instruments dt {
+  font-family: var(--read);
+  font-weight: 600;
+  font-size: 15.5px;
+}
+
+.hub-instruments dd {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  /* Load-bearing technical text, so never `--ink-40` (see rule 2 above). */
+  color: var(--ink-60);
+}
+
+@media (max-width: 820px) {
+  .hub-framing-body {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .hub-instruments .r {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
+/* ============================ H-4 · CURATED WORK =========================
+   HiFi §"IV · FOCUS CAROUSEL". The wireframe calls this module "the emotional
+   and visual center of the Hub — where the page should breathe", so it takes the
+   quiet rhythm on both sides.
+
+   ── WHAT IS NOT TRANSCRIBED ───────────────────────────────────────────────
+   The HiFi's "realitate ↔ măsurat" comparison slider (§"COMPARISON") is not
+   built. It shows one photograph twice, with hand-placed annotations (`3.84 m`,
+   `h 2.71 m`) and registration targets drawn over the second copy — a measured
+   survey that does not exist, of a building the page has not surveyed. There is
+   no field pairing a Work Entry with a measured overlay of the same frame
+   (`CONTENT_MODEL.md` §1 has one flat gallery), so the module could only ever
+   render invented measurements over an ordinary photo. §10.4 forbids exactly
+   that. Reported as a contract gap, not faked.
+
+   Likewise the HiFi's `.twin` canvas: the point cloud is the shared
+   `PointCloudField` seam (components/point-cloud-field.css) and no renderer is
+   styled anywhere in this codebase — §10.3, §23.3. */
+
+.hub-work {
+  padding: var(--pad-loud) 0 var(--pad-quiet);
+  position: relative;
+}
+
+.hub-work-head {
+  margin-block-end: clamp(28px, 4vh, 48px);
+  max-width: 46ch;
+}
+
+.hub-work-head h3 {
+  font-family: var(--pixel);
+  font-weight: 500;
+  font-size: clamp(26px, 3.2vw, 44px);
+  line-height: 1;
+}
+
+.hub-work-head .sub {
+  margin-block-start: 12px;
+  color: var(--ink-60);
+  font-size: 15px;
+}
+
+/* The hub's track carries larger frames than the Homepage's — the HiFi sets the
+   card to `min(72vw,720px)` at 16/10 against the Homepage's `min(44vw,420px)` at
+   3/2. Scoped to this page rather than added as a third cadence to
+   components/focus-carousel.css, so the shared component is untouched: the
+   `pages` layer sits after `components` precisely so a page may re-compose a
+   shared component (global.css). */
+.hub-work .proj {
+  width: min(64vw, 640px);
+}
+
+.hub-work .proj .pimg {
+  aspect-ratio: 16 / 10;
+}
+
+@media (max-width: 820px) {
+  .hub-work .proj {
+    width: 82vw;
+  }
+}
+
+/* ============================ H-3 · SERVICES =============================
+   The rows themselves are the Service Preview Card
+   (components/service-preview-card.css). This is only the module frame. */
+
+.hub-services {
+  padding: var(--pad-loud) 0;
+}
+
+.hub-services-intro {
+  max-width: 46ch;
+  color: var(--ink-60);
+  font-size: clamp(16px, 1.5vw, 18px);
+  margin-block-end: clamp(30px, 5vh, 56px);
+}
+
+/* The HiFi's `.steps` frame: a full-strength rule opens the set, hairlines
+   separate the rows. */
+.hub-service-rows {
+  border-block-start: 1px solid var(--ink);
+}
+
+.hub-service-rows > div:last-child .svc-row {
+  border-block-end: 1px solid var(--hair);
+}
+
+/* ============================ H-5 · CONTINUE =============================
+   HiFi §"VII · CONTINUATION". "A single quiet continuation to breadth;
+   navigational, not a conversion prompt" — so the doors carry no fill, no
+   button shape and no blue surface. The HiFi's third door (Contact) moves to
+   H-6, where the wireframe puts the page's one primary action. */
+
+.hub-continue {
+  padding: var(--pad-loud) 0 0;
+}
+
+.hub-frame {
+  font-family: var(--read);
+  font-weight: 600;
+  font-size: clamp(22px, 2.7vw, 36px);
+  letter-spacing: -0.02em;
+  max-width: 24ch;
+  margin-block-end: clamp(36px, 5vh, 64px);
+}
+
+.hub-frame .b {
+  color: var(--blue);
+}
+
+.hub-doors {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(16px, 2vw, 30px);
+  border-block-start: 1px solid var(--ink);
+}
+
+.hub-door {
+  display: block;
+  position: relative;
+  padding: clamp(28px, 4vh, 48px) 0;
+  border-block-end: 1px solid var(--hair);
+  color: inherit;
+  transition: padding-inline-start 0.5s var(--slow);
+}
+
+.hub-door:hover,
+.hub-door:focus-visible {
+  padding-inline-start: 14px;
+}
+
+.hub-door .k {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-60);
+}
+
+.hub-door .t {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--pixel);
+  font-size: clamp(24px, 2.8vw, 38px);
+  line-height: 1;
+  margin: 14px 0 10px;
+}
+
+.hub-door .t .ar {
+  color: var(--blue);
+  transition: transform 0.4s var(--slow);
+}
+
+.hub-door:hover .t .ar,
+.hub-door:focus-visible .t .ar {
+  transform: translateX(10px);
+}
+
+.hub-door .d {
+  display: block;
+  color: var(--ink-60);
+  font-size: 14.5px;
+  max-width: 30ch;
+}
+
+/* The cross-pillar link is supporting navigation, never part of the primary
+   flow (HUB_PAGE_IA §1) — so it reads one step quieter than the canonical
+   continuation beside it. */
+.hub-door.quiet .t {
+  font-size: clamp(20px, 2.2vw, 28px);
+  color: var(--ink-60);
+}
+
+@media (max-width: 820px) {
+  .hub-doors {
+    grid-template-columns: 1fr;
+    border-block-start: none;
+  }
+
+  .hub-door {
+    border-block-start: 1px solid var(--hair);
+  }
+}
+
+/* ============================ H-6 · CONVERSATION =========================
+   "One calm invitation, one primary action, no competing conversion prompts."
+   This is the only place on the page where blue is an action surface
+   (VISUAL_DIRECTION_v2.0 §2.1 permits it on "the single primary action"). */
+
+.hub-conversation {
+  padding: var(--pad-loud) 0 var(--pad-quiet);
+}
+
+.hub-invite {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: clamp(24px, 4vw, 64px);
+  align-items: end;
+}
+
+.hub-invite .q {
+  font-family: var(--read);
+  font-weight: 600;
+  font-size: clamp(24px, 3.2vw, 44px);
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  max-width: 20ch;
+}
+
+.hub-invite .q .b {
+  color: var(--blue);
+}
+
+.hub-primary {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--paper);
+  background: var(--blue);
+  padding: 16px 26px;
+  transition: background 0.3s var(--ease);
+}
+
+.hub-primary:hover,
+.hub-primary:focus-visible {
+  background: var(--ink);
+}
+
+.hub-primary .ar {
+  margin-inline-start: 10px;
+  display: inline-block;
+  transition: transform 0.3s var(--ease);
+}
+
+.hub-primary:hover .ar,
+.hub-primary:focus-visible .ar {
+  transform: translateX(5px);
+}
+
+.hub-invite .note {
+  margin-block-start: 16px;
+  color: var(--ink-60);
+  font-size: 14px;
+  max-width: 34ch;
+}
+
+@media (max-width: 820px) {
+  .hub-invite {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+}
+
+/* ---- Reduced motion ------------------------------------------------------
+   MOTION_NOTES.md:62 / §13: LAYOUT PARITY. Every hub-authored transition and the
+   opening scan resolve to their final static state; the reveal family and the
+   global chrome are already resolved in motion.css. */
+
+@media (prefers-reduced-motion: reduce) {
+  .hub-scan {
+    display: none !important;
+  }
+
+  .hub-plate .plate-img,
+  .hub-plate .plate-fixture {
+    clip-path: none !important;
+    transition: none !important;
+  }
+
+  .hub-quiet::after,
+  .hub-quiet .ar,
+  .hub-modcta a .ar,
+  .hub-door,
+  .hub-door .t .ar,
+  .hub-primary,
+  .hub-primary .ar {
+    transition: none !important;
+  }
+}

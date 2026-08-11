@@ -1,0 +1,54 @@
+---
+/**
+ * C-2 · Context summary — Topic / Regarding. `CONTACT_WIREFRAME.md` C-2
+ * (Page IA Stage B), "**the page's signature responsibility**".
+ *
+ * Component (Inventory): Context Summary Block — on Contact, the **Topic
+ * Summary**. Responsibility realized: "show the visitor that the architecture
+ * already knows why they are here — **continuity of context**."
+ *
+ * Spatial composition, transcribed: "a calm, reassuring acknowledgement placed
+ * **before** the form … **Understated, never a banner or a sell.** When no
+ * context carried over, it degrades gracefully to the neutral broad-Topic
+ * framing (default **'Not sure'**), never an empty or awkward slot."
+ *
+ * ── WHY THE SERVER RENDERS THE NEUTRAL STATE, ALWAYS ───────────────────────
+ * The site is 100% prerendered (§6.1) and the prefill lives in the query string,
+ * which no build-time render can read. So this module ships in its neutral state
+ * on every load and the island upgrades it in place when `?topic=`/`?regarding=`
+ * resolve. That ordering is not a compromise — the neutral state is a SPECIFIED
+ * state, it is the majority arrival (Homepage, global nav, search all carry no
+ * prefill per `CONTACT_PAGE_IA.md` §"Prefill sources"), and a visitor with no JS
+ * sees a complete, correct, unapologetic version of this module rather than a
+ * gap.
+ *
+ * ── NOTHING FROM THE URL IS EVER PRINTED HERE ──────────────────────────────
+ * The templates below carry `{service}` and `{topic}` placeholders, and the
+ * island fills them from the RESOLVED prefill — an authored Service name and a
+ * Pillar label, both matched out of the CMS catalogue by `prefill.ts`. An
+ * unrecognised parameter resolves to nothing and this module stays neutral,
+ * which is §23.1's "ignored rather than echoed" made visible.
+ *
+ * No live region. This module reaches its final state during page load, before
+ * anyone is reading it; announcing it would interrupt with something the visitor
+ * is about to read anyway.
+ */
+import type { ContactMessages } from '../../lib/i18n/contact';
+
+interface Props {
+  copy: ContactMessages['context'];
+}
+
+const { copy } = Astro.props;
+---
+
+<p class="c-context rv" data-rv="meta" data-context>
+  <span class="c-context-label">{copy.label}</span>
+  <span
+    class="c-context-value"
+    data-context-value
+    data-neutral={copy.neutral}
+    data-topic-only={copy.topicOnly}
+    data-with-service={copy.withService}>{copy.neutral}</span
+  >
+</p>

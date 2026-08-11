@@ -1,0 +1,241 @@
+---
+/**
+ * C-3 · Enquiry form — `CONTACT_WIREFRAME.md` C-3 (Page IA Stage C).
+ * Component (Inventory): **Contact Form**.
+ *
+ * Responsibility realized: "frictionless initiation — the **one simple form**,
+ * context prefilled, details deferred to follow-up."
+ *
+ * Spatial composition, transcribed: "the **primary action of the page and its
+ * visual center of gravity** — a short, unintimidating form with generous
+ * spacing and **no field expansion per service** … **Minimal cognitive effort:**
+ * the fewest fields that still start a real conversation. **One obvious primary
+ * button; no competing calls to action.**"
+ *
+ * The field set is frozen by IA Step 7 and restated at `CONTACT_PAGE_IA.md` C-4:
+ * name · email · message + the optional broad Topic selector. See `enquiry.ts` —
+ * adding a field is an IA change, not an implementation one.
+ *
+ * ── THE FORM WORKS BEFORE THE ISLAND DOES ──────────────────────────────────
+ * §14.0 makes progressive enhancement mandatory. This is a real `<form>` with a
+ * real `action` and `method`, so with scripting unavailable it performs a native
+ * POST to the same endpoint the island calls. Native constraint validation
+ * (`required`, `type="email"`) is the no-JS error layer; the island calls
+ * `noValidate` on itself at startup and takes over, because the browser's
+ * built-in bubbles cannot be associated with a field the way §"ACCESSIBILITY"
+ * requires, cannot survive a focus move, and are not styleable to the system.
+ *
+ * ── ACCESSIBILITY (WCAG 2.2 AA — DECISIONS_LOG #78) ────────────────────────
+ *   1.3.1 / 3.3.2  every control has a real `<label for>`; hints are persistent
+ *                  text associated through `aria-describedby`, never placeholder
+ *                  text (a placeholder disappears on entry and fails 3.3.2).
+ *   3.3.1 / 3.3.3  each field owns a permanently-present error node referenced by
+ *                  `aria-describedby`; the island writes the message into it,
+ *                  sets `aria-invalid`, and moves focus to the first failure.
+ *   1.3.5          `autocomplete` tokens on the two fields that have them —
+ *                  `name` and `email`. There is no valid token for a free-text
+ *                  message, so none is invented.
+ *   2.4.6 / 4.1.2  the required marker is decorative (`aria-hidden`); `required`
+ *                  carries the semantics, and the note above the fields explains
+ *                  the asterisk for sighted visitors.
+ *   4.1.3          one polite status region for submission outcomes, always in
+ *                  the DOM so it can announce (a `hidden` live region cannot).
+ *
+ * ── WHAT THIS MODULE DOES NOT DO ───────────────────────────────────────────
+ *   · **No Turnstile widget.** §19.3 puts Turnstile verification server-side and
+ *     Phase 7 owns it. Its client widget is a third-party script that §19.1's CSP
+ *     does not admit today, so no script tag and no placeholder container is
+ *     emitted; the seam is documented in the report instead of mocked in markup.
+ *   · **No honeypot.** Turnstile is the specified anti-abuse mechanism; a second,
+ *     unspecified one adds a field assistive technology can stumble into for a
+ *     benefit the architecture has already assigned elsewhere.
+ *   · **No subject line.** §19.3 — the Function composes it from the machine
+ *     Topic/Regarding values alone. Nothing here builds one.
+ */
+import type { Locale } from '../../lib/content';
+import type { ContactMessages } from '../../lib/i18n/contact';
+import { pillarLabel } from '../../lib/i18n/vocabulary';
+import { ENQUIRY_ENDPOINT, TOPIC_CHOICES, TOPIC_NOT_SURE } from './enquiry';
+
+interface Props {
+  locale: Locale;
+  copy: ContactMessages;
+}
+
+const { locale, copy } = Astro.props;
+const form = copy.form;
+
+/** id triplet per field: the control, its hint, its error node. */
+const ids = (field: string) => ({
+  control: `c-${field}`,
+  hint: `c-${field}-hint`,
+  error: `c-${field}-error`,
+});
+
+/**
+ * `aria-describedby` lists only ids that exist. The error node always exists
+ * (empty until the island writes to it); the hint node exists only when
+ * Workstream C has authored a hint, since the PENDING convention renders an
+ * unauthored string as an absent element.
+ */
+const describedBy = (field: string, hint: string) => {
+  const { hint: hintId, error: errorId } = ids(field);
+  return [hint ? hintId : null, errorId].filter(Boolean).join(' ');
+};
+
+/**
+ * The message for every failure a field can have, carried on that field's error
+ * node as data attributes.
+ *
+ * The island reads them from the DOM rather than importing the message table,
+ * so only the locale actually rendered reaches the client — the same trade
+ * `work-archive.ts` makes for its count nouns. An error the field cannot have
+ * (`invalid` on a name) is simply absent, and Astro drops the attribute.
+ *
+ * Attribute spelling matters: `data-too-long` is what `dataset.tooLong` reads,
+ * and `tooLong` is the identifier `enquiry.ts` returns.
+ */
+const errorData = (errors: Readonly<Record<string, string>>) => ({
+  'data-required': errors.required,
+  'data-invalid': errors.invalid,
+  'data-too-long': errors.tooLong,
+});
+
+const name = ids('name');
+const email = ids('email');
+const topic = ids('topic');
+const message = ids('message');
+
+/** IA Step 7's three options in its order; "Not sure" is the default selection. */
+const topicOptions = TOPIC_CHOICES.map((value) => ({
+  value,
+  label: value === TOPIC_NOT_SURE ? form.topicNotSure : pillarLabel(value, locale),
+}));
+---
+
+<form
+  class="c-form"
+  action={ENQUIRY_ENDPOINT}
+  method="post"
+  data-contact-form
+  data-endpoint={ENQUIRY_ENDPOINT}
+  data-invalid-summary={form.invalidSummary}
+  aria-labelledby="c-form-legend"
+>
+  <h2 class="c-form-legend" id="c-form-legend">{form.legend}</h2>
+  <p class="c-required-note measure">{form.requiredNote}</p>
+
+  <div class="c-field">
+    <label class="c-label" for={name.control}>
+      {form.name.label}<span class="c-req" aria-hidden="true">{form.requiredMark}</span>
+    </label>
+    <input
+      class="c-input"
+      id={name.control}
+      name="name"
+      type="text"
+      autocomplete="name"
+      required
+      aria-describedby={describedBy('name', form.name.hint)}
+      data-field="name"
+    />
+    {form.name.hint && <p class="c-hint" id={name.hint}>{form.name.hint}</p>}
+    <p class="c-error" id={name.error} data-error-for="name" {...errorData(form.name.errors)}></p>
+  </div>
+
+  <div class="c-field">
+    <label class="c-label" for={email.control}>
+      {form.email.label}<span class="c-req" aria-hidden="true">{form.requiredMark}</span>
+    </label>
+    <input
+      class="c-input"
+      id={email.control}
+      name="email"
+      type="email"
+      inputmode="email"
+      autocomplete="email"
+      spellcheck="false"
+      required
+      aria-describedby={describedBy('email', form.email.hint)}
+      data-field="email"
+    />
+    {form.email.hint && <p class="c-hint" id={email.hint}>{form.email.hint}</p>}
+    <p class="c-error" id={email.error} data-error-for="email" {...errorData(form.email.errors)}></p>
+  </div>
+
+  {/* The optional broad Topic selector. A native `<select>`: its state is
+      announced by the platform, it is keyboard operable with no authored ARIA,
+      and the island sets its value from the prefill — the same control the
+      visitor can then change, rather than a second, read-only echo of context. */}
+  <div class="c-field c-field--topic">
+    <label class="c-label" for={topic.control}>{form.topic.label}</label>
+    <span class="c-sel">
+      <select
+        class="c-select"
+        id={topic.control}
+        name="topic"
+        aria-describedby={form.topic.hint ? topic.hint : undefined}
+        data-field="topic"
+      >
+        {
+          topicOptions.map((option) => (
+            <option value={option.value} selected={option.value === TOPIC_NOT_SURE}>
+              {option.label}
+            </option>
+          ))
+        }
+      </select>
+    </span>
+    {form.topic.hint && <p class="c-hint" id={topic.hint}>{form.topic.hint}</p>}
+  </div>
+
+  <div class="c-field">
+    <label class="c-label" for={message.control}>
+      {form.message.label}<span class="c-req" aria-hidden="true">{form.requiredMark}</span>
+    </label>
+    <textarea
+      class="c-input c-textarea"
+      id={message.control}
+      name="message"
+      rows="7"
+      required
+      aria-describedby={describedBy('message', form.message.hint)}
+      data-field="message"></textarea>
+    {form.message.hint && <p class="c-hint" id={message.hint}>{form.message.hint}</p>}
+    <p class="c-error" id={message.error} data-error-for="message" {...errorData(form.message.errors)}></p>
+  </div>
+
+  {/* Carries the validated Service slug on the no-JS POST. The island sets it
+      from the resolved prefill; it is never written from the raw query string,
+      and an unrecognised `?regarding=` leaves it empty. */}
+  <input type="hidden" name="regarding" value="" data-regarding />
+
+  {/* VISUAL_DIRECTION_v2.0 §6 / §12: the primary action is "a single precise
+      blue activation — **not a filled button block**". Same vocabulary as the
+      Homepage invitation and the Work Entry's onward contact link: a small blue
+      mark, the label, and the arrow that travels on hover and focus. */}
+  <div class="c-submit-row">
+    <button class="c-submit" type="submit" data-submit>
+      <span class="box" aria-hidden="true"></span>
+      <span data-submit-label data-idle={form.submit} data-busy={form.submitting}>{form.submit}</span>
+      <span class="ar" aria-hidden="true">→</span>
+    </button>
+  </div>
+
+  {/* One polite region for every submission outcome. Never `hidden`: a hidden
+      live region does not announce. It is empty at rest and CSS collapses it. */}
+  <p
+    class="c-status"
+    role="status"
+    aria-live="polite"
+    data-form-status
+    data-failed={copy.status.failed}
+    data-unavailable={copy.status.unavailable}
+  ></p>
+
+  {/* PENDING (C + legal) — §19.6 records that the consent determination "is a
+      legal determination, not an engineering one", and the Privacy page it would
+      link to is not built and has no key in the frozen route map. Rendered only
+      once the string exists; no link is invented for it. */}
+  {copy.privacy && <p class="c-privacy measure">{copy.privacy}</p>}
+</form>

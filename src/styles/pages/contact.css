@@ -1,0 +1,598 @@
+/* =============================================================================
+   contact.css — the Contact page composition.
+
+   AUTHORITY: `docs/pages/contact/CONTACT_PAGE_IA.md` +
+   `docs/pages/contact/CONTACT_WIREFRAME.md` (both authoritative) +
+   `VISUAL_DIRECTION_v2.0.md`.
+
+   ── THIS PAGE HAS NO APPROVED HiFi ──────────────────────────────────────────
+   `README.md` §"Open questions": "**Contact** has a Page IA + wireframe but **no
+   HiFi**"; §22 keeps "Contact HiFi" open. Every other page stylesheet in this
+   directory is a verbatim absorption of an approved file (§5.3). This one cannot
+   be, so it is governed by a stricter rule instead:
+
+     **Nothing here is a new visual decision. Every value is either an existing
+     token, or a rule transcribed from an existing page stylesheet with its
+     source named.**
+
+   Concretely, the whole page is built from five things the system already has:
+
+     1. the mono label voice (`.eyebrow`, `.measure`, typography.css);
+     2. the hairline rule (`--hair`) as the only separator, exactly as
+        `.invite .contact .row` and `.specs .r` use it;
+     3. the blue mark + travelling arrow + drawn underline of the single
+        activation — transcribed from `.we-onward-contact` (work-entry.css) and
+        `.invite .act` (homepage.css);
+     4. the quiet underlined select — transcribed from `.sel select`
+        (work-archive.css), copied rather than shared because that rule belongs
+        to the archive's stylesheet and cross-importing a page layer would
+        couple two page types that have no reason to move together;
+     5. the page rhythm of the Service pages (`--pad-quiet`, `--pad-loud`,
+        `--gutter-*`), selected by `rhythm="service"` on the layout — see
+        `ContactPage.astro` for why no `contact` rhythm set was invented.
+
+   ── THE ONE THING THE SYSTEM DOES NOT HAVE: AN ERROR APPEARANCE ─────────────
+   No HiFi contains a form, so no approved file styles an invalid field, and
+   `tokens.css` is explicit that the three colours are the whole palette: "There
+   is deliberately no `--blue-bg`, no tint ramp and no second accent". A red
+   would be a fourth colour and a new semantic — a design decision, and not one
+   an implementation may make.
+
+   So an error is expressed WITHOUT colour: the field's resting underline
+   thickens to a full-strength ink rule, and the message appears beneath it in
+   the mono voice at full `--ink` (15.6:1). That satisfies WCAG 1.4.1 by not
+   depending on colour at all, and 3.3.1 through the associated message text
+   (`EnquiryForm.astro`). It is deliberately understated and it is FLAGGED: an
+   error appearance belongs in the Contact HiFi, and this is a placeholder for
+   an owner decision, not a substitute for one.
+   ========================================================================== */
+
+/* =============================================================================
+   The page frame
+   ========================================================================== */
+
+.c-page {
+  /* The wireframe's whole composition is a single reading column: "the
+     interface is calm and uncluttered", "the form stacks to full width".
+     Measure, not a centred wrapper — layout.css already establishes the
+     asymmetric gutters and no HiFi centres anything. */
+  max-width: 78ch;
+}
+
+/* ---- C-1 · Orientation ---------------------------------------------------
+   Pacing transcribed from `.wa-intro`: the page opens high, because a visitor
+   who came here to act should not have to scroll to find out that they can. */
+
+.c-intro {
+  padding-block: clamp(96px, 13vh, 150px) clamp(28px, 4vh, 44px);
+}
+
+/* The breadcrumb, on the white ground. `.we-crumbs` is the same structure over
+   a dark hero; the geometry is transcribed and only the colours change side. */
+.c-crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 8px;
+  list-style: none;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--ink-60);
+  margin-block-end: clamp(24px, 4vh, 40px);
+}
+
+/* `--ink-60`, not `--ink-40`: 3.51:1 vs the 4.5:1 WCAG 2.2 AA requires for text
+   below 24px, and this is an 11px role. The same correction typography.css
+   applies system-wide (DECISIONS_LOG #78). `--ink-40` stays for non-text. */
+.c-crumbs li + li::before {
+  content: '/';
+  margin-inline-end: 8px;
+  color: var(--ink-60);
+}
+
+.c-crumbs a {
+  text-decoration: underline;
+  text-decoration-color: var(--hair);
+  text-underline-offset: 4px;
+  transition: text-decoration-color var(--t-state) var(--ease);
+}
+
+.c-crumbs a:hover,
+.c-crumbs a:focus-visible {
+  text-decoration-color: var(--blue);
+  color: var(--ink);
+}
+
+/* The current page is the last crumb and is not a link — a self-link is a
+   wayfinding dead end, and `aria-current="page"` already states position. It is
+   distinguished from its siblings by the ABSENCE of the underline rather than by
+   a lighter ink: at 11px, the token quiet enough to read as "not a link"
+   (`--ink-40`, 3.51:1) is below the AA text threshold. */
+.c-crumbs [aria-current='page'] {
+  color: var(--ink-60);
+}
+
+.c-title {
+  /* Sized in the same band as the Work Archive's H1 (`.wa-intro h1`), not
+     larger: C-1 is explicitly "no hero pitch", and the wireframe's emphasis
+     hierarchy puts the FORM at the centre of gravity, not the title. */
+  font-family: var(--read);
+  font-weight: 600;
+  font-size: clamp(38px, 6vw, 76px);
+  letter-spacing: -0.03em;
+  line-height: 0.98;
+  margin-block-start: 10px;
+}
+
+.c-statement {
+  margin-block-start: clamp(18px, 2.6vh, 28px);
+  max-width: 46ch;
+  color: var(--ink-60);
+  font-size: clamp(15px, 1.15vw, 17px);
+}
+
+/* =============================================================================
+   C-2 · Context summary — the signature moment
+
+   "Understated, never a banner or a sell." So: no box, no fill, no icon — a
+   single hairline-bounded line in the instrument voice, which is the system's
+   established way of stating a fact about the current state (`.wa-context`).
+   ========================================================================== */
+
+.c-context {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  padding-block: 14px;
+  border-block: 1px solid var(--hair);
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+.c-context-label {
+  color: var(--ink-60);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+}
+
+.c-context-value {
+  color: var(--ink);
+}
+
+/* =============================================================================
+   C-3 · The enquiry form — the visual centre of gravity
+   ========================================================================== */
+
+/* `[hidden]` is a UA rule, and an author `display` in the `pages` layer beats
+   it — so a page stylesheet that sets `display` on an element the island hides
+   silently disables hiding it. Restated here, and again on `.c-confirm` below,
+   because on this page that failure would leave a completed form keyboard-
+   reachable behind its own confirmation. */
+.c-body[hidden] {
+  display: none;
+}
+
+.c-body {
+  display: grid;
+  gap: clamp(48px, 8vh, 96px);
+  padding-block: clamp(40px, 6vh, 72px) var(--pad-quiet);
+}
+
+.c-form {
+  max-width: 46ch;
+}
+
+.c-form-legend {
+  font-family: var(--read);
+  font-weight: 600;
+  font-size: clamp(20px, 2vw, 26px);
+  letter-spacing: -0.015em;
+}
+
+.c-required-note {
+  margin-block-start: 8px;
+}
+
+.c-field {
+  margin-block-start: clamp(26px, 3.6vh, 38px);
+}
+
+.c-label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-60);
+  margin-block-end: 8px;
+}
+
+.c-req {
+  color: var(--blue);
+  margin-inline-start: 4px;
+}
+
+/* The control. An underline and nothing else — the same "quiet underlined
+   control" the archive's selects use, at reading size because these carry a
+   visitor's own words rather than a facet token.
+
+   ── ONE CORRECTION AGAINST THE ARCHIVE'S RULE ────────────────────────────
+   `.sel select` draws its underline in `--hair` (#e8e4dc, 1.2:1 on paper). That
+   is sound there: the control always shows its own option text, so the TEXT
+   identifies it. An empty text field has no text, and then the underline is the
+   only thing that says a control is present — which puts it under WCAG 2.2 AA
+   1.4.11 Non-text Contrast and its 3:1 floor. `--ink-40` (#8f887e) measures
+   3.51:1 and is the token typography.css explicitly reserves for exactly this:
+   "`--ink-40` remains in use for non-text and decorative surfaces". No new
+   value enters the system, and the control stays quiet. */
+.c-input {
+  width: 100%;
+  font-family: var(--read);
+  font-size: 16px; /* never below 16px: smaller triggers zoom-on-focus in iOS Safari */
+  line-height: 1.5;
+  color: var(--ink);
+  background: none;
+  border: none;
+  border-block-end: 1px solid var(--ink-40);
+  border-radius: 0;
+  padding: 10px 2px;
+  appearance: none;
+  transition:
+    border-color var(--t-state) var(--ease),
+    background-color var(--t-state) var(--ease);
+}
+
+.c-input:hover {
+  border-block-end-color: var(--ink);
+}
+
+/* The base `:focus-visible` outline (base.css) is additive to this; the blue
+   underline is what makes the focused FIELD legible at a glance, matching
+   MOTION_NOTES.md:54's parity requirement. */
+.c-input:focus-visible {
+  border-block-end-color: var(--blue);
+  border-block-end-width: 2px;
+  padding-block-end: 9px; /* hold the baseline while the rule thickens */
+}
+
+.c-textarea {
+  resize: vertical;
+  min-height: 9lh;
+}
+
+.c-hint {
+  margin-block-start: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--ink-60);
+}
+
+/* ---- The invalid state — see the header note on why it carries no colour -- */
+
+.c-input[aria-invalid='true'] {
+  border-block-end-color: var(--ink);
+  border-block-end-width: 2px;
+  padding-block-end: 9px;
+}
+
+.c-error {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  margin-block-start: 8px;
+  padding-inline-start: 10px;
+  border-inline-start: 2px solid var(--ink);
+}
+
+/* Empty at rest. The node must stay in the DOM — `aria-describedby` points at
+   it — but it must not occupy the composition until it says something. */
+.c-error:empty {
+  display: none;
+}
+
+/* ---- The Topic selector --------------------------------------------------
+   Transcribed from `.sel` / `.sel select` (work-archive.css), at reading size
+   and without the lowercase transform: these options are proper names from the
+   frozen Pillar vocabulary, not facet tokens. */
+
+.c-sel {
+  position: relative;
+  display: inline-block;
+}
+
+.c-sel select {
+  font-family: var(--read);
+  font-size: 16px;
+  color: var(--ink);
+  background: none;
+  border: none;
+  border-block-end: 1px solid var(--ink-40);
+  border-radius: 0;
+  padding: 10px 28px 10px 2px;
+  /* 2.5.8 sets 24px as the AA floor; 44px is the comfortable-touch size the
+     rest of the controls already reach through their own line box, and the
+     select is brought up to match rather than left as the one small target. */
+  min-block-size: 44px;
+  cursor: pointer;
+  appearance: none;
+  transition: border-color var(--t-state) var(--ease);
+}
+
+.c-sel select:hover {
+  border-block-end-color: var(--ink);
+}
+
+.c-sel select:focus-visible {
+  border-block-end-color: var(--blue);
+}
+
+.c-sel::after {
+  content: '▾';
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 9px;
+  color: var(--ink-60);
+  pointer-events: none;
+}
+
+/* ---- The single primary action -------------------------------------------
+   VISUAL_DIRECTION_v2.0 §6: "a single precise blue activation — **not a filled
+   button block**"; §12 "Things we never do": "Never use filled, button-heavy
+   CTAs". Transcribed from `.we-onward-contact a` (the blue mark, the drawn
+   underline) and `.invite .act` (the travelling arrow).
+
+   The padding and `min-block-size` are not decoration: they bring the target to
+   ≥44px, comfortably past WCAG 2.2 AA 2.5.8's 24px minimum, and keep it there at
+   mobile sizes where the label's line box alone would leave it at 39px. */
+
+.c-submit-row {
+  margin-block-start: clamp(32px, 4.5vh, 48px);
+}
+
+.c-submit {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: none;
+  border: none;
+  padding: 12px 2px;
+  min-block-size: 44px;
+  cursor: pointer;
+}
+
+.c-submit .box {
+  width: 10px;
+  height: 10px;
+  background: var(--blue);
+  flex: 0 0 auto;
+}
+
+.c-submit .ar {
+  color: var(--blue);
+  display: inline-block;
+  transition: transform var(--t-state) var(--slow);
+}
+
+.c-submit:hover .ar,
+.c-submit:focus-visible .ar {
+  transform: translateX(6px);
+}
+
+.c-submit::after {
+  content: '';
+  position: absolute;
+  inset: auto 2px 6px 22px;
+  height: 1.5px;
+  background: var(--blue);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--t-state) var(--ease);
+}
+
+.c-submit:hover::after,
+.c-submit:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* Submitting. The control stays in place and stays announced — only its label
+   and its availability change. */
+.c-submit[disabled] {
+  cursor: progress;
+  color: var(--ink-60);
+}
+
+.c-submit[disabled] .box {
+  background: var(--ink-40);
+}
+
+.c-status {
+  margin-block-start: 20px;
+  max-width: 46ch;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  padding-inline-start: 10px;
+  border-inline-start: 2px solid var(--ink);
+}
+
+.c-status:empty {
+  display: none;
+}
+
+.c-privacy {
+  margin-block-start: 20px;
+  max-width: 46ch;
+}
+
+/* =============================================================================
+   C-4 · Contact methods · C-5 · Response expectation
+
+   Both are "quiet, secondary … never loud enough to fragment the single obvious
+   path". Both render nothing today (see `lib/i18n/contact.ts`); the rules stand
+   so that authoring content turns them on without a stylesheet change.
+   ========================================================================== */
+
+.c-secondary {
+  display: grid;
+  gap: clamp(20px, 3vh, 32px);
+  max-width: 46ch;
+}
+
+/* Hairline rows — transcribed from `.invite .contact .row` (homepage.css). */
+.c-methods {
+  list-style: none;
+}
+
+.c-method {
+  padding-block: 12px;
+  border-block-end: 1px solid var(--hair);
+}
+
+.c-method:first-child {
+  padding-block-start: 0;
+}
+
+.c-method-label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-60);
+  margin-block-end: 4px;
+}
+
+.c-method-value {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink);
+}
+
+a.c-method-value {
+  text-decoration: underline;
+  text-decoration-color: var(--hair);
+  text-underline-offset: 4px;
+  transition: text-decoration-color var(--t-state) var(--ease);
+}
+
+a.c-method-value:hover,
+a.c-method-value:focus-visible {
+  text-decoration-color: var(--blue);
+}
+
+.c-expectation {
+  color: var(--ink-60);
+  font-size: 15px;
+  max-width: 42ch;
+}
+
+/* =============================================================================
+   C-6 · Confirmation — "calm closure, not a new funnel"
+   ========================================================================== */
+
+.c-confirm {
+  padding-block: clamp(40px, 6vh, 72px) var(--pad-quiet);
+  max-width: 46ch;
+}
+
+/* The confirmation replaces the form in place, so it must not be reachable —
+   by pointer, keyboard or screen reader — before it does. `hidden` does that;
+   this restates it against any later rule that sets `display` on the section. */
+.c-confirm[hidden] {
+  display: none;
+}
+
+.c-confirm-heading {
+  font-family: var(--read);
+  font-weight: 600;
+  font-size: clamp(26px, 3.4vw, 42px);
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+.c-confirm-body {
+  margin-block-start: clamp(16px, 2.4vh, 24px);
+  color: var(--ink-60);
+  font-size: clamp(15px, 1.15vw, 17px);
+}
+
+/* The one onward link, quiet and optional (wireframe C-6: "any return links are
+   optional and quiet"). Deliberately not the blue activation — the activation
+   of this page was the send, and it has already happened. */
+.c-confirm-onward {
+  margin-block-start: clamp(28px, 4vh, 40px);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.c-confirm-onward .ar {
+  color: var(--blue);
+  margin-inline-start: 8px;
+  display: inline-block;
+  transition: transform var(--t-state) var(--slow);
+}
+
+.c-confirm-onward a:hover .ar,
+.c-confirm-onward a:focus-visible .ar {
+  transform: translateX(6px);
+}
+
+/* =============================================================================
+   Responsive — "the form stacks to full width; the primary button stays obvious
+   and reachable" (wireframe C-3 responsive intent)
+   ========================================================================== */
+
+@media (max-width: 640px) {
+  .c-form,
+  .c-secondary,
+  .c-status,
+  .c-privacy,
+  .c-confirm {
+    max-width: none;
+  }
+
+  .c-sel,
+  .c-sel select {
+    width: 100%;
+  }
+
+  /* One row, full width, still a text action rather than a filled block. */
+  .c-submit {
+    justify-content: flex-start;
+    width: 100%;
+  }
+}
+
+/* =============================================================================
+   Reduced motion — MOTION_NOTES.md:62 / §13: layout parity, not merely disabled
+   transitions. Nothing on this page moves except the arrow travel and the
+   underline draw, and both resolve to their resting state.
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .c-submit .ar,
+  .c-submit::after,
+  .c-confirm-onward .ar,
+  .c-input,
+  .c-sel select {
+    transition: none !important;
+  }
+}

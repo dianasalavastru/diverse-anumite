@@ -1,0 +1,157 @@
+---
+/**
+ * The Contact page — composed once, rendered per locale.
+ *
+ * OWNERSHIP: Workstream A. Phase 7 of TECHNICAL_ARCHITECTURE.md §23.2 is
+ * "**Contact** — Function, Turnstile, Resend, prefills"; this is the frontend
+ * half of it. **The Function, Turnstile verification and Resend are explicitly
+ * NOT built here** — see `enquiry.ts` for the seam and the report for what
+ * remains.
+ *
+ * MODULE ORDER is the wireframe's reading progression, verbatim: "**Orientation
+ * → context acknowledged → the simple ask → alternatives → what happens next →
+ * clean confirmation**" (C-1 · C-2 · C-3 · C-4 · C-5 · C-6).
+ *
+ * ── VISUAL EMPHASIS, AS DECLARED ───────────────────────────────────────────
+ * `CONTACT_WIREFRAME.md` §"Visual emphasis hierarchy": the enquiry form is "the
+ * primary action and visual center of gravity", context acknowledgement second,
+ * response expectation third, "**Everything else … supports the single step
+ * rather than competing with it. Nothing on the page is loud.**"
+ *
+ * ── NO HiFi. THE CONSEQUENCES, STATED ──────────────────────────────────────
+ * `README.md` §"Open questions": "**Contact** has a Page IA + wireframe but **no
+ * HiFi**", and §22 keeps "Contact HiFi" open. Two decisions follow, and both
+ * choose reuse over invention:
+ *
+ *   1. **Rhythm.** `tokens.css` has no `contact` rhythm set and says so:
+ *      "A page type with no approved HiFi (Contact, About) has no rhythm set
+ *      here and cannot be built until one is authored upstream." No set is
+ *      added — inventing pacing values IS the redesign that note prevents.
+ *      The page composes with `rhythm="service"`, an existing authored set,
+ *      because Service is the page type Contact reads most like: a single
+ *      editorial column, generous pacing, one conversion action at its end.
+ *      Nothing new enters `tokens.css`, and swapping to a Contact set when one
+ *      is authored is one prop.
+ *   2. **Vocabulary.** Every element on this page is built from the existing
+ *      system — the mono label voice, the hairline rules, the quiet `.sel`
+ *      select, the blue-mark activation of the Homepage invitation. The form
+ *      controls have no precedent in any of the six HiFis (none of them contains
+ *      a form), so they are composed from the smallest set of existing tokens
+ *      that yields an accessible control: hairline underline, ink text, blue on
+ *      focus. See the header of `styles/pages/contact.css`.
+ *
+ * ── CONTENT: THE SAME I-3 SWAP POINT ───────────────────────────────────────
+ * One content read, and it is not page copy: the Service catalogue the prefill
+ * layer validates `?regarding=` against, locale-scoped by `ContentSource` before
+ * it reaches this file. There is no Contact document in the CMS and none is
+ * added — `studio/schemaTypes/index.ts` holds "two documents and one reference
+ * list" and adding a third is a Workstream B schema change.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ConfirmationState from './ConfirmationState.astro';
+import ContactMethods from './ContactMethods.astro';
+import ContactOrientation from './ContactOrientation.astro';
+import ContextSummary from './ContextSummary.astro';
+import EnquiryForm from './EnquiryForm.astro';
+import ResponseExpectation from './ResponseExpectation.astro';
+import ViewTransition from '../ViewTransition.astro';
+
+import { localize, type Locale } from '../../lib/content';
+import { contactChannels, contactMessages } from '../../lib/i18n/contact';
+import { pillarLabel } from '../../lib/i18n/vocabulary';
+import type { PrefillService } from './prefill';
+
+/* ── I-3 — the one content read on this page ───────────────────────────────── */
+import { contentSource } from '../../lib/content/build-source';
+const source = contentSource();
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const copy = contactMessages(locale);
+const channels = contactChannels(locale);
+
+/**
+ * The catalogue `?regarding=` is validated against — "known Service slugs"
+ * (§23.1), scoped to the locale by `serviceSummaries` before it arrives here, so
+ * an untranslated Service cannot be named on the EN page (§11.2 applied to
+ * context rather than to routing).
+ *
+ * Each entry carries the authored NAME and the derived pillar LABEL alongside
+ * the slug, because C-2 and C-6 display those and never the token from the URL.
+ * A Service whose slug or name is missing in this locale is dropped rather than
+ * half-rendered.
+ */
+const services = await source.serviceSummaries(locale);
+
+const catalogue = services
+  .map((service) => {
+    const slug = localize(service.slug, locale);
+    const name = localize(service.name, locale);
+    if (!slug || !name) return null;
+    return { slug, name, pillar: service.pillar } satisfies PrefillService;
+  })
+  .filter((service): service is PrefillService => service !== null);
+
+/**
+ * What the island needs to render an acknowledgement, serialized onto one
+ * attribute.
+ *
+ * A `data-` attribute rather than an inline `<script type="application/json">`:
+ * §19.1's CSP carries "no `unsafe-inline` in `script-src`", and an attribute is
+ * unambiguously outside `script-src` in every implementation. Astro escapes the
+ * value, and nothing in it is visitor-supplied — it is CMS content plus the
+ * frozen pillar labels.
+ */
+const prefillCatalogue = JSON.stringify({
+  services: catalogue,
+  pillars: {
+    'architecture-design': pillarLabel('architecture-design', locale),
+    'reality-capture': pillarLabel('reality-capture', locale),
+  },
+});
+
+/** C-4 and C-5 are both PENDING today; without either there is no aside to draw. */
+const hasSecondary = channels.length > 0 || copy.expectation !== '';
+---
+
+<BaseLayout
+  locale={locale}
+  rhythm="service"
+  routeKey="contact"
+  title={copy.meta.title}
+  description={copy.meta.description}
+>
+  <ViewTransition />
+
+  <div class="c-page" data-contact data-prefill={prefillCatalogue}>
+    <ContactOrientation locale={locale} copy={copy.orientation} />
+
+    {/* The signature moment (C-2) sits between orientation and the form, which
+        is where the wireframe places it: "a calm, reassuring acknowledgement
+        placed **before** the form". */}
+    <ContextSummary copy={copy.context} />
+
+    <div class="c-body">
+      <EnquiryForm locale={locale} copy={copy} />
+
+      {
+        hasSecondary && (
+          <aside class="c-secondary">
+            <ContactMethods channels={channels} />
+            <ResponseExpectation copy={copy.expectation} />
+          </aside>
+        )
+      }
+    </div>
+
+    <ConfirmationState locale={locale} copy={copy.confirmation} />
+  </div>
+
+  <script>
+    import '../../scripts/islands/contact';
+  </script>
+</BaseLayout>

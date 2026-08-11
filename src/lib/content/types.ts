@@ -458,6 +458,20 @@ export interface WorkArchiveItem extends WorkEntrySummary {
   readonly location: Localized<string> | null;
 }
 
+/**
+ * IA §5.1: Professional Experience is grouped by Employer — grouping metadata, not its own page.
+ *
+ * The grouping is *computed* by `source.ts`/`groupByEmployer`, but the shape is content contract,
+ * so it is declared here with everything else a component may render. Declaring it beside the
+ * function that builds it put a rendered shape behind the build-time half of the boundary, and
+ * `CuratedViews.astro` then had to reach through `index.ts` into `source.ts` to name it — which
+ * is precisely the import edge that carried the query layer into the browser (B4, §8).
+ */
+export interface EmployerGroup {
+  readonly employer: Employer;
+  readonly entries: readonly WorkArchiveItem[];
+}
+
 /** The minimum a Work Entry needs to point at a Service in a filter or link (ADDED AT I-3). */
 export interface ServiceRef {
   readonly _id: string;

@@ -50,6 +50,7 @@
 @import './components/rich-text.css' layer(components);
 @import './components/media-plate.css' layer(components);
 @import './components/work-preview-card.css' layer(components);
+@import './components/service-preview-card.css' layer(components);
 @import './components/focus-carousel.css' layer(components);
 @import './components/point-cloud-field.css' layer(components);
 @import './components/gallery.css' layer(components);
@@ -57,4 +58,7 @@
 @import './pages/homepage.css' layer(pages);
 @import './pages/work-entry.css' layer(pages);
 @import './pages/work-archive.css' layer(pages);
+@import './pages/pillar-hub.css' layer(pages);
+@import './pages/service.css' layer(pages);
+@import './pages/contact.css' layer(pages);
 @import './motion.css' layer(motion);

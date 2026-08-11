@@ -1,0 +1,109 @@
+/* =============================================================================
+   Service Preview Card.
+
+   AUTHORITY: COMPONENT_INVENTORY.md §4 "Service Preview Card" —
+   "*Notes:* recognition, not comparison/explanation."
+
+   ── NO HiFi RENDERS THIS COMPONENT ────────────────────────────────────────
+   Neither approved pillar-hub HiFi has a services module (see
+   `pillar-hub/ServicesOverview.astro` for why it is built anyway), and the
+   Services index has no HiFi at all. So there is nothing to transcribe verbatim
+   here, and §5.3's "verbatim absorption" has no source.
+
+   Rather than invent a look, the row is composed **entirely from vocabulary the
+   approved HiFis already carry**: it is the `.step` row that both hub HiFis use
+   for their method sequence — a pixel numeral in blue, a reading-voice title, a
+   quiet descriptor, a hairline between rows and a 14px inset on hover, eased on
+   `--slow`. Every declaration below has a counterpart in
+   `reality-capture-hub-measured-reality-hifi-v1.html` §"III · METHOD"; only the
+   content differs. No new visual language is introduced, which is the bar
+   COMPONENT_INVENTORY.md §7 sets for anything that is not already drawn.
+
+   Hover states are paired with `:focus-visible` throughout (MOTION_NOTES.md:54 —
+   keyboard indication at least as clear as hover), which the HiFi's `.step:hover`
+   does not do because its rows are inert `<div>`s.
+   ========================================================================== */
+
+.svc-row {
+  display: grid;
+  grid-template-columns: 8ch 1.1fr 1.3fr;
+  gap: clamp(18px, 3vw, 54px);
+  align-items: baseline;
+  padding: clamp(22px, 3.4vh, 38px) 0;
+  border-block-start: 1px solid var(--hair);
+  color: inherit;
+  transition: padding-inline-start 0.5s var(--slow);
+}
+
+.svc-row:hover,
+.svc-row:focus-visible {
+  padding-inline-start: 14px;
+}
+
+/* The step numeral — the pixel voice as a coordinate marker (§2.5). */
+.svc-row .n {
+  font-family: var(--pixel);
+  font-size: clamp(20px, 2.2vw, 30px);
+  color: var(--blue);
+  line-height: 1;
+}
+
+.svc-row .t {
+  font-family: var(--read);
+  font-weight: 600;
+  font-size: clamp(18px, 1.9vw, 24px);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.svc-row .d {
+  color: var(--ink-60);
+  font-size: 15.5px;
+  display: block;
+}
+
+/* The continuation cue. `aria-hidden` in the markup — the row is already named
+   by its own text, and repeating "See the service" into every accessible name
+   would give a list of links one shared name (WCAG 2.4.4). It is never the only
+   signal of interactivity (MOTION_NOTES.md:54): the whole row is the link, and
+   focus-visible outlines it. */
+.svc-row .go {
+  display: block;
+  margin-block-start: 10px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-60);
+}
+
+.svc-row .go .ar {
+  color: var(--blue);
+  margin-inline-start: 8px;
+  display: inline-block;
+  transition: transform 0.4s var(--slow);
+}
+
+.svc-row:hover .go .ar,
+.svc-row:focus-visible .go .ar {
+  transform: translateX(10px);
+}
+
+@media (max-width: 820px) {
+  .svc-row {
+    grid-template-columns: 6ch 1fr;
+    gap: 10px clamp(14px, 4vw, 24px);
+  }
+
+  /* The descriptor drops under the name and clears the numeral column. */
+  .svc-row .d {
+    grid-column: 2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .svc-row,
+  .svc-row .go .ar {
+    transition: none !important;
+  }
+}

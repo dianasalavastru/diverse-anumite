@@ -1,0 +1,81 @@
+---
+/**
+ * C-6 · Completion / confirmation — `CONTACT_WIREFRAME.md` C-6 (Page IA Stage E).
+ * Component (Inventory): **Confirmation Message** · CTA Group (optional, light).
+ *
+ * Responsibility realized: "confirm receipt and that the enquiry reached the
+ * right context; close the loop without scattering the visitor."
+ *
+ * Spatial composition, transcribed: "a clean confirmation that echoes the
+ * context — *'Your enquiry about [Service] has been received.'* **Avoid forced
+ * onward navigation:** the goal was reached; any return links are optional and
+ * quiet. **Calm closure, not a new funnel.**"
+ *
+ * ── ONE STATE OF ONE PAGE, NOT A SECOND URL ────────────────────────────────
+ * `CONTACT_PAGE_IA.md` C-6 makes confirmation a state ("submission → one inbox"
+ * → "confirmation"), not a route. A `/contact/multumim` page would be a URL the
+ * frozen route map (§11.1) does not have, and it would let a visitor land on a
+ * receipt for an enquiry they never sent. So the confirmation ships hidden
+ * beside the form and the island swaps them.
+ *
+ * ── IT IS SHOWN FOR EXACTLY ONE OUTCOME ────────────────────────────────────
+ * `enquiry.ts` classifies a submission as `sent` | `failed` | `unavailable`, and
+ * only `sent` reaches this module. In particular the pre-Phase-7 `unavailable`
+ * state — the endpoint does not exist yet — never renders a confirmation, which
+ * is the single most important thing this page must not get wrong.
+ *
+ * ── FOCUS AND ANNOUNCEMENT ─────────────────────────────────────────────────
+ * `tabindex="-1"` so the island can move focus here when the form it replaces
+ * disappears (WCAG 2.2 AA 2.4.3 — focus must not be lost to `document.body`),
+ * and the heading is what gets announced on arrival. The region is `hidden`
+ * until then, so nothing about it is perceivable — or reachable by keyboard —
+ * while the form is still the page.
+ *
+ * The one onward link is the Homepage, quiet and optional, exactly as the
+ * wireframe qualifies it. No hub link is added: the visitor's pillar is known
+ * only when a prefill carried it, and offering a different destination depending
+ * on how someone arrived at a completed conversation is the scattering C-6
+ * forbids.
+ */
+import type { Locale } from '../../lib/content';
+import type { ContactMessages } from '../../lib/i18n/contact';
+import { routePath } from '../../lib/i18n/routes';
+
+interface Props {
+  locale: Locale;
+  copy: ContactMessages['confirmation'];
+}
+
+const { locale, copy } = Astro.props;
+---
+
+<section
+  class="c-confirm"
+  id="c-confirmation"
+  aria-labelledby="c-confirm-heading"
+  tabindex="-1"
+  data-confirmation
+  hidden
+>
+  <h2 class="c-confirm-heading" id="c-confirm-heading">{copy.heading}</h2>
+
+  {/* The three receipt shapes: plain, pillar-echoing, service-echoing. The
+      island picks one from the RESOLVED prefill and fills it with authored
+      labels — never with the query string (§23.1). */}
+  <p
+    class="c-confirm-body"
+    data-confirmation-body
+    data-plain={copy.body}
+    data-topic={copy.bodyTopic}
+    data-service={copy.bodyService}
+  >
+    {copy.body}
+  </p>
+
+  <p class="c-confirm-onward">
+    <a href={routePath('home', locale)}>
+      {copy.home}
+      <span class="ar" aria-hidden="true">→</span>
+    </a>
+  </p>
+</section>

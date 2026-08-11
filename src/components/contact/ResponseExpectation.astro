@@ -1,0 +1,34 @@
+---
+/**
+ * C-5 · Expectations / response — `CONTACT_WIREFRAME.md` C-5 (Page IA Stage D).
+ * Component (Inventory): **Response Expectations**.
+ *
+ * Responsibility realized: "remove post-submission uncertainty by stating what
+ * happens next (how, and roughly when a reply comes)."
+ *
+ * Spatial composition, transcribed: "a short, reassuring statement near the
+ * form — *'You'll hear back within [timeframe].'* **No artificial urgency, no
+ * persuasion, no countdown** — only calm, honest expectation-setting."
+ *
+ * ── THE TIMEFRAME IS A FACT NOBODY HAS AUTHORED ────────────────────────────
+ * The wireframe itself writes it as a bracketed slot, `[timeframe]`, and
+ * `CONTACT_PAGE_IA.md` §"Open" lists "the stated response-time expectation (C-5
+ * content)" among the page's unresolved dependencies. The Homepage ships a
+ * placeholder row ("in cel mult 48h (substituent)"), but a response time on the
+ * page where an enquiry is actually sent is a commitment a visitor plans
+ * around — it is exactly the class of value §10.4 keeps out of production
+ * output.
+ *
+ * So the string is PENDING (empty) and this module renders nothing. What the
+ * page loses is reassurance; what it would lose by guessing is the honesty the
+ * whole "calm principle" rests on. The moment C authors a timeframe, one string
+ * in `lib/i18n/contact.ts` turns this module on.
+ */
+interface Props {
+  copy: string;
+}
+
+const { copy } = Astro.props;
+---
+
+{copy && <p class="c-expectation rv" data-rv="meta">{copy}</p>}

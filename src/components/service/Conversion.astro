@@ -1,0 +1,105 @@
+---
+/**
+ * S-5 · Contact / conversion (Page IA Stage E).
+ *
+ * Responsibility (`SERVICE_PAGE_IA.md` S-5): "the primary forward action,
+ * without a persuasion-only pitch." Components (`SERVICE_WIREFRAME.md` S-5):
+ * "Section Introduction / Rich Text (a quiet invitation) · CTA Group (primary →
+ * Contact, with **Topic = pillar** and **Regarding = this service** prefilled)."
+ *
+ * Spatial composition, transcribed: "**one calm invitation, one primary action,
+ * no competing prompts**; appears at the end, after understanding and proof have
+ * accumulated. The 'see more' and hub back-path above are navigation, kept
+ * distinct from this conversion action."
+ *
+ * VISUAL_DIRECTION_v2.0 §6 says the same thing about its form: "a **quiet
+ * invitation** with the action as a single precise blue activation — not a
+ * filled button block", and §12's "Things we never do" forbids "filled,
+ * button-heavy CTAs". Both links here are text links; blue appears once.
+ *
+ * ── THE PREFILL IS THE FROZEN CONTRACT, AND NOTHING MORE ──────────────────
+ * §23.1: "Query parameters are `?topic=` (broad pillar-level) and `?regarding=`
+ * (the originating Service slug), per IA Step 7's two-prefill model. **Emitted
+ * by Service pages** and Pillar Hubs; consumed by Contact (C-2 Topic Summary).
+ * Values are validated against the route map and known Service slugs; an
+ * unrecognised value is ignored rather than echoed — it must never reach the
+ * email subject (§19.3)."
+ *
+ * This page is one of the two named emitters, so it emits both — and only both.
+ * The query string is not assembled here: `contact/prefill.ts` holds the one
+ * emitter and the parser together, so the spelling this page produces is the
+ * spelling Contact accepts, checked directly in `prefill.test.ts`. `topic` is the
+ * parent hub's localized route segment (`pillarTopicParam`, declared once in
+ * vocabulary.ts, derived from the frozen route table so it cannot disagree with
+ * the route it names); `regarding` is this Service's slug **in the active
+ * locale**, because slugs are localized per entity (§7.1) and an RO slug arriving
+ * at `/en/contact` would fail Contact's own validation. Both are URL-encoded by
+ * the emitter; Contact re-validates on receipt, which is where §19.3 puts the
+ * responsibility.
+ *
+ * ── THE HUB BACK-PATH IS NAVIGATION, NOT A SECOND CTA ─────────────────────
+ * F1 requires the back-path be "available from orientation onward" (Page IA §4),
+ * and S-5 is the last chance to offer it. It is rendered in the supporting voice
+ * beside the action, never as a second primary — the wireframe's "one primary
+ * action" test, and its validation line "'see more' and hub back-path are
+ * navigation, kept distinct".
+ *
+ * ── WHAT THE HiFi HAS THAT THIS DOES NOT ──────────────────────────────────
+ * The approved HiFi's contact block carries an aside of three rows — an email
+ * address, a workshop location with coordinates, and a "răspuns în cel mult 48h"
+ * response-time promise. None is a field on any content object; the last is a
+ * service-level commitment no document authorizes this page to make. IA Step 7
+ * and Page IA S-5 both put the inbox and its details on Contact — "it is not
+ * Contact (it provides the path + service-aware prefill)". The aside is absent.
+ */
+import type { Locale, Service } from '../../lib/content';
+import type { ServiceMessages } from '../../lib/i18n/service';
+import { localize } from '../../lib/content';
+import { routePath } from '../../lib/i18n/routes';
+import { pillarLabel, pillarRouteKey } from '../../lib/i18n/vocabulary';
+import { contactPrefillQuery } from '../contact/prefill';
+
+interface Props {
+  service: Service;
+  locale: Locale;
+  copy: ServiceMessages;
+}
+
+const { service, locale, copy } = Astro.props;
+
+const pillar = service.pillar;
+const pillarName = pillarLabel(pillar, locale);
+const hubHref = routePath(pillarRouteKey(pillar) as never, locale, undefined as never);
+
+/**
+ * RO is required to publish at all (`validation.ts`) and the EN route only
+ * exists when the EN slug does (§11.2), so a missing slug here is unreachable —
+ * but `regarding` is omitted rather than emitted empty if it ever happened. A
+ * present-but-empty parameter is precisely the "unrecognised value" §23.1 says
+ * Contact must ignore, and not emitting it is cheaper than making Contact ignore it.
+ */
+const serviceSlug = localize(service.slug, locale);
+
+const contactHref = `${routePath('contact', locale)}${contactPrefillQuery(
+  { topic: pillar, regarding: serviceSlug },
+  locale,
+)}`;
+---
+
+<div class="sv-conversion">
+  <p class="sv-invite rv" data-rv="head">{copy.conversion.invitation}</p>
+
+  <p class="sv-conversion-act rv" data-rv="meta">
+    <a class="sv-action sv-action--primary" href={contactHref}>
+      <span class="box" aria-hidden="true"></span>
+      {copy.conversion.contact}
+      <span class="ar" aria-hidden="true">→</span>
+    </a>
+  </p>
+
+  <p class="sv-conversion-back rv" data-rv="meta">
+    <a class="sv-backpath" href={hubHref}>
+      {copy.conversion.hub.replace('{pillar}', pillarName)}
+    </a>
+  </p>
+</div>

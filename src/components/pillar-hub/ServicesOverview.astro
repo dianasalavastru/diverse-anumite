@@ -1,0 +1,98 @@
+---
+/**
+ * H-3 · Services overview — HUB_PAGE_IA Stage C, station 04.
+ *
+ * Responsibility (Page IA H-3): "present the pillar's services and route to each;
+ * the hub is the gateway, not the seller. The purpose is to help visitors
+ * **recognize** the appropriate service, not to compare or explain services in
+ * depth." The hub is the canonical **parent** of its Service pages (the F1
+ * back-path target).
+ *
+ * Components (`PILLAR_HUB_WIREFRAME.md` H-3): Section Header · Service Preview
+ * Card ×n (→ the pillar's Service pages). "A clear, calm set of service entries
+ * of comparable weight — recognition, not a feature comparison."
+ *
+ * ── THIS MODULE EXISTS BECAUSE THE IA REQUIRES IT, NOT THE HiFi ───────────
+ * **Neither approved hub HiFi renders H-3.** The RC Hub HiFi has no services
+ * section at all, and the A&D Hub HiFi collapses the whole module into a single
+ * "Serviciu · Cum lucram" door in its closing grid. README.md §"Authority model"
+ * resolves the direction without ambiguity: "If a HiFi contradicts the IA or
+ * Content Model, the IA / Content Model win", and H-3 is load-bearing — it is the
+ * hub's Stage C, the reason the hub is the Service pages' canonical parent, and
+ * one of the four concentration points the wireframe declares. So the module is
+ * built, and it is built from vocabulary the approved HiFis already carry: the
+ * `.step` row (numeral · name · descriptor, with the hover inset) that both hubs
+ * use for their method sequence. No new visual language is introduced.
+ *
+ * ── THE TAXONOMY IS NOT HARDCODED ─────────────────────────────────────────
+ * The set is `source.serviceSummaries(locale, 'reality-capture')` — live Service
+ * objects, filtered by their **authored** `pillar` (IA §2.3, "Service → Pillar")
+ * and ordered by B's curation comparator. The wireframe's parenthetical "(RC: 3D
+ * laser scanning, drone photogrammetry)" is an illustration of the pillar's
+ * content, not a fixed list: `CONTENT_MODEL.md` §2 makes Service a first-class
+ * content object the owner authors without touching code, so a Scanner / Drone /
+ * Heritage triad written into this component would be exactly the hardcoded
+ * taxonomy the Content Model exists to prevent.
+ *
+ * ── ZERO SERVICES ─────────────────────────────────────────────────────────
+ * The module is not rendered at all. COMPONENT_INVENTORY.md's Empty State is
+ * scoped to the Work Archive and the Service page, and the Demonstrated Service
+ * Block sets the precedent for this exact shape — "hidden when absent (**no empty
+ * module**)". An empty Services overview would advertise an offering that has not
+ * been published; its absence advertises nothing.
+ */
+import SectionMarker from '../SectionMarker.astro';
+import ServicePreviewCard from '../ServicePreviewCard.astro';
+import { localize } from '../../lib/content';
+import type { Locale, ServiceSummary } from '../../lib/content';
+import type { PillarHubMessages } from '../../lib/i18n/pillar-hub';
+import { routePath } from '../../lib/i18n/routes';
+
+interface Props {
+  locale: Locale;
+  copy: PillarHubMessages['services'];
+  /** This pillar's Services, curation-ordered and locale-scoped by B. */
+  services: readonly ServiceSummary[];
+  station: number;
+}
+
+const { locale, copy, services, station } = Astro.props;
+
+/**
+ * Both the slug and the name are required for a Service to publish in a locale
+ * (`validation.ts`), and `source.serviceSummaries` has already dropped anything
+ * unavailable in this locale (§7.1, §11.2) — so this is a type guard, not an
+ * expected state. A Service that somehow lacks a slug is dropped rather than
+ * rendered as a dead row.
+ */
+const routed = services
+  .map((service) => {
+    const slug = localize(service.slug, locale);
+    return slug ? { service, href: routePath('service', locale, slug) } : null;
+  })
+  .filter((entry): entry is NonNullable<typeof entry> => entry !== null);
+---
+
+{
+  routed.length > 0 && (
+    <section class="hub-services" data-station={station} aria-labelledby="services-heading">
+      <SectionMarker copy={copy.marker} heading id="services-heading" />
+
+      <p class="hub-services-intro rv" data-rv="meta">{copy.intro}</p>
+
+      <div class="hub-service-rows">
+        {routed.map((entry, index) => (
+          <div class="rv" data-rv="meta">
+            <ServicePreviewCard
+              service={entry.service}
+              locale={locale}
+              href={entry.href}
+              index={index + 1}
+              cta={copy.cta}
+            />
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}

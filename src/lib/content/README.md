@@ -19,8 +19,10 @@ workstreams editing them re-creates exactly the drift §7.1 exists to prevent.
 | `source.ts` | `ContentSource` — the interface pages consume, and the I-3 swap point. |
 | `build-source.ts` | The build-time `ContentSource` the pages actually call. Reads the environment; throws rather than falling back. |
 | `fixtures.ts` | Placeholder data, generated through the real query layer. **Never ships.** Tests only. |
-| `index.ts` | The import surface. Deliberately does not re-export fixtures or `build-source.ts`. |
+| `index.ts` | **The browser-safe import surface.** Types, derivations, ordering, validation — nothing more. |
+| `server.ts` | **The build-time import surface.** The `ContentSource` factories, the connection config, the transport error, the draft assertion. |
 | `live.test.ts` | The live CMS handshake (B3). Skips without credentials; proves the contract against a real dataset with them. |
+| `boundary.test.ts` | The §8/§18 regression guard (B4). Walks the client module graph and fails if a `<script>` can reach the query layer. |
 | `node-shims.d.ts` | Minimal `node:fs`/`node:child_process` types for `live.test.ts`, so no dependency is added to A's `package.json`. |
 
 ## How to consume it
@@ -62,8 +64,24 @@ is the §23.4 I-3 contract, and it held.
   normalization.
 - **Capture publication is gated here, not only in the CMS** (§19.4). A point-cloud derivative
   is dropped from build output unless `capturePublicationCleared` is true.
-- **No GROQ in components** (§8). Queries live behind this boundary; `groq.ts` is not exported
-  from `index.ts`.
+- **No GROQ in components — and none in the browser** (§8). The boundary has **two doors**, and
+  which one a file may use is decided by whether a `<script>` block can reach it:
+
+  | Door | Contains | Who may import it |
+  | --- | --- | --- |
+  | `index.ts` | types, derivations, ordering, validation | anything — components, islands, shared modules |
+  | `server.ts` | `ContentSource` factories, config, transport, draft assertion | `build-source.ts` and tests only |
+
+  This is enforced, not agreed. `boundary.test.ts` walks the module graph from every `<script>`
+  block in every `.astro` file and fails on the import chain; `npm run build` then runs
+  `scripts/verify-client-bundles.mjs` over `dist/` and fails on the emitted bytes.
+
+  Until B4 there was one door, and `index.ts` re-exported `source.ts`. Because
+  `components/work-archive/archive-state.ts` is imported by the archive's composition *and* by
+  its island, that single edge put every GROQ projection string into
+  `dist/_astro/WorkArchive.*.js`. Tree-shaking did not save it: `groq.ts` builds its projections
+  with top-level `projection(...)` calls, which Rollup cannot prove pure. Reachability, not
+  elimination, is the property that has to hold.
 
 ## Why fixtures cannot drift from queries
 
@@ -85,6 +103,10 @@ curated views, and both Work Entry routes — reads live Sanity through `build-s
 imports `fixtures.ts`. The schema and Studio are in [`studio/`](../../../studio/README.md). Not
 built yet: the contact Pages Function (§19.3), the preview environment (§6.2), and the publish
 webhook (§17).
+
+**The content boundary is hardened (B4).** No GROQ string, no transport code, no credential and no
+credential *name* is reachable from a browser bundle — asserted from the source graph on every
+`npm test` and from the emitted output on every `npm run build`.
 
 - `live.test.ts` is the complete verification suite. It self-skips without credentials and runs
   the whole §7/§8/§11.2/§18/§19.4/§23.4 contract against a real dataset with them.

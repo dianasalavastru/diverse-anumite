@@ -1,0 +1,178 @@
+---
+/**
+ * H-4 · Curated work — HUB_PAGE_IA Stage D, station 03. **The emotional and
+ * visual center of the Hub** (`PILLAR_HUB_WIREFRAME.md` H-4).
+ *
+ * Responsibility (Page IA H-4): "show curated proof for this capability… to
+ * demonstrate the breadth and quality of the capability, **not** to provide
+ * comprehensive project browsing (this protects the Work Archive's
+ * responsibility)."
+ *
+ * Components (wireframe H-4): Section Header · Work Preview Card ×n · CTA Group
+ * (module CTA → the pillar-filtered Work Archive).
+ *
+ * ── PLACEMENTS ONLY ───────────────────────────────────────────────────────
+ * The set is `source.highlights('pillar-hub', 'reality-capture', locale)` —
+ * `HIGHLIGHT_SLOTS` names `pillar-hub` for exactly this module (`types.ts`), and
+ * `CONTENT_MODEL.md` §4 defines a curated strip as "taxonomy filter ∩ curation
+ * flag, ordered by Editorial Priority" while forbidding landing pages from
+ * deriving editorial choices from taxonomy alone. A pillar with no placements
+ * therefore renders its framing and its continuation and **no cards** — the same
+ * resolution the Homepage's M-4 reached at I-3, and the honest signal that the
+ * pillar is uncurated. No empty-state message is invented: COMPONENT_INVENTORY.md
+ * scopes Empty State to the Work Archive (A-6) and the Service page (S-4/F5).
+ *
+ * ── THE POINT CLOUD IS AN INSTANCE-LEVEL MEDIA TREATMENT ──────────────────
+ * Page IA H-4 *Future:* "Reality-Capture-specific media treatment (e.g.
+ * point-cloud) — UI-phase, not IA", and the wireframe's Pillar inheritance says
+ * H-4 varies by "RC media may be point-cloud/orthophoto; **A&D
+ * renders/drawings**". TECHNICAL_ARCHITECTURE.md §10.1 tabulates the verified
+ * result against the six approved HiFis: Reality Capture Hub **yes**,
+ * Architecture & Design Hub **no**.
+ *
+ * So the field renders **only for an instance that supplies `copy.pointCloud`**
+ * — the distinction is carried by the message set the composition root passes
+ * in, never by a `pillar === …` test in here, and never by a second copy of this
+ * module. An instance that omits the copy renders no capture field at all;
+ * rendering the seam with a `null` subject instead would put "point cloud —
+ * asset in preparation" onto a page §10.1 says has none, i.e. advertise a
+ * capability that pillar does not offer.
+ *
+ * For the instance that does supply it, it is the section's crescendo and the
+ * **existing seam** — `PointCloudField` renders the poster, the honest readout
+ * and Workstream D's mount contract, with the §19.4 publication gate applied
+ * inside it. No renderer is implemented here and none is required for this page
+ * to be complete (§10.2, §14.0: "The point-cloud viewer degrades to its static
+ * poster").
+ *
+ * ── THE OTHER TWO INSTANCE OPTIONS ────────────────────────────────────────
+ * `tones` and `cadence` are the plate sequence and the carousel rhythm each
+ * approved HiFi authors for its own focus track. They are transcribed values,
+ * so they belong to the instance rather than to the template; passing them in
+ * keeps both hubs' authored output exactly what their HiFis specify while the
+ * module, its responsibility, its component set and its composition stay one.
+ *
+ * ── THE MODULE CTA IS FIXED ───────────────────────────────────────────────
+ * Page IA §3's shared highlight rule: "a curated module's CTA **always**
+ * continues to its canonical destination (here, the pillar-filtered Work
+ * Archive); individual content items are a wireframe-phase decision." The
+ * wireframe takes the second half: "individual cards may link to Work Entries",
+ * which is what the Work Preview Card does.
+ */
+import FocusCarousel from '../FocusCarousel.astro';
+import PointCloudField from '../media/PointCloudField.astro';
+import SectionMarker from '../SectionMarker.astro';
+import WorkPreviewCard from '../WorkPreviewCard.astro';
+import { localize } from '../../lib/content';
+import type { Locale, WorkEntry, WorkEntrySummary } from '../../lib/content';
+import type { PillarHubMessages } from '../../lib/i18n/pillar-hub';
+import { routePath } from '../../lib/i18n/routes';
+
+interface Props {
+  locale: Locale;
+  /**
+   * The instance's H-4 copy. `copy.pointCloud` present ⇒ the capture field
+   * renders; absent ⇒ it does not exist on this page (§10.1).
+   */
+  copy: PillarHubMessages['work'];
+  /** Curated pillar-hub placements, already ordered and locale-scoped by B. */
+  entries: readonly WorkEntrySummary[];
+  /**
+   * The one entry the capture field is about (§10.4, §19.4). Only meaningful for
+   * an instance that supplies `copy.pointCloud`; `null` there means the seam
+   * renders its honest "nothing publishable yet" readout.
+   */
+  pointCloudSubject?: WorkEntry | null;
+  /**
+   * Authored plate tones for the focus track, transcribed from the instance's
+   * own approved HiFi. The hub's track carries six frames where the Homepage's
+   * carries three or four, so each sequence is six long and is indexed modulo
+   * its own length.
+   */
+  tones: readonly string[];
+  /** The carousel rhythm the instance's HiFi authors — 'docs' is tighter, portrait. */
+  cadence?: 'default' | 'docs';
+  /** `/proiecte?pillar=reality-capture` — built from the frozen contracts. */
+  archiveHref: string;
+  station: number;
+}
+
+const {
+  locale,
+  copy,
+  entries,
+  pointCloudSubject = null,
+  tones,
+  cadence,
+  archiveHref,
+  station,
+} = Astro.props;
+
+/**
+ * The Work Entry route needs the entity's own localized slug — §7.1 makes slugs
+ * localized per entity, so they can never be derived from one another.
+ */
+const entryHref = (entry: WorkEntrySummary): string | null => {
+  const slug = localize(entry.slug, locale);
+  return slug ? routePath('workEntry', locale, slug) : null;
+};
+---
+
+<section class="hub-work" data-station={station} aria-labelledby="work-heading">
+  <SectionMarker copy={copy.marker} heading id="work-heading" />
+
+  <div class="hub-work-head rv" data-rv="head">
+    <h3>{copy.title}</h3>
+    <p class="sub">{copy.intro}</p>
+  </div>
+
+  {
+    entries.length > 0 && (
+      <FocusCarousel
+        id="hub-work"
+        label={copy.carousel.label}
+        roleDescription={copy.carousel.roleDescription}
+        previousLabel={copy.carousel.previous}
+        nextLabel={copy.carousel.next}
+        positionLabel={copy.carousel.position}
+        cadence={cadence}
+        count={entries.length}
+      >
+        {entries.map((entry, index) => {
+          const href = entryHref(entry);
+          return href ? (
+            <WorkPreviewCard
+              entry={entry}
+              locale={locale}
+              href={href}
+              index={index + 1}
+              tone={tones[index % tones.length]}
+              focused={index === 0}
+            />
+          ) : null;
+        })}
+      </FocusCarousel>
+    )
+  }
+
+  {/* The crescendo — the seam, never a renderer. Present only for the instance
+      whose HiFi has one (§10.1); see the header. */}
+  {
+    copy.pointCloud && (
+      <PointCloudField
+        locale={locale}
+        label={copy.pointCloud.label}
+        hint={copy.pointCloud.hint}
+        posterAlt={copy.pointCloud.posterAlt}
+        unavailable={copy.pointCloud.unavailable}
+        subject={pointCloudSubject}
+      />
+    )
+  }
+
+  <div class="hub-modcta rv" data-rv="meta">
+    <a href={archiveHref}>
+      {copy.cta}<span class="ar" aria-hidden="true">→</span>
+    </a>
+  </div>
+</section>

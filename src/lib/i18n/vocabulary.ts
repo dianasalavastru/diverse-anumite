@@ -39,7 +39,7 @@ import type {
   Sector,
   Status,
 } from '../content';
-import type { Locale, RouteKey } from './routes';
+import { ROUTES, type Locale, type RouteKey } from './routes';
 
 /* -------------------------------------------------------------------------- */
 /* Entry Type                                                                  */
@@ -137,6 +137,38 @@ const PILLAR_ARCHIVE_PARAMS: Readonly<Record<Pillar, string>> = {
 
 export function pillarArchiveParam(value: Pillar): string {
   return PILLAR_ARCHIVE_PARAMS[value];
+}
+
+/**
+ * Pillar (content identity) → the **Contact prefill** `?topic=` token.
+ *
+ * A fourth namespace, and the one place it is declared. TECHNICAL_ARCHITECTURE.md
+ * §23.1 freezes the contract: "Query parameters are `?topic=` (broad
+ * pillar-level) and `?regarding=` (the originating Service slug), per IA Step
+ * 7's two-prefill model. **Emitted by Service pages and Pillar Hubs**; consumed
+ * by Contact (C-2 Topic Summary). Values are **validated against the route map**
+ * and known Service slugs; an unrecognised value is ignored rather than echoed."
+ *
+ * "Validated against the route map" is what fixes the token: it is the parent
+ * Pillar Hub's **localized final path segment** from the frozen table in
+ * `routes.ts` — `arhitectura-design` / `reality-capture` in RO,
+ * `architecture-design` / `reality-capture` in EN. Derived from the table rather
+ * than re-listed, so a token can never disagree with the route it names.
+ *
+ * It is localized because its companion is: `?regarding=` is "the originating
+ * Service slug", and slugs are localized per entity (§7.1). A Contact page
+ * reached from `/en/services/…` receives two EN tokens, one from `/servicii/…`
+ * two RO ones.
+ *
+ * Deliberately NOT the archive token (`architecture`) and NOT the content
+ * identifier (`architecture-design` in both locales): those are the two
+ * namespaces `types.ts` already warns are distinct, and neither is "the route
+ * map". Contact is Workstream-owned and unbuilt; this emits the frozen contract
+ * and invents nothing beyond it.
+ */
+export function pillarTopicParam(value: Pillar, locale: Locale): string {
+  const path = ROUTES[PILLAR_ROUTE_KEYS[value]].path[locale];
+  return path.slice(path.lastIndexOf('/') + 1);
 }
 
 /* -------------------------------------------------------------------------- */

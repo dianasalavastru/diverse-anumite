@@ -1,6 +1,8 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 
+import { credentialGuard } from './scripts/vite-plugin-credential-guard.mjs';
+
 /**
  * Production architecture: TECHNICAL_ARCHITECTURE.md
  *   §3   stack — Astro 5, output: 'static', islands
@@ -39,6 +41,18 @@ export default defineConfig({
     build: {
       assetsInlineLimit: 0,
     },
+
+    /**
+     * §18: "No secret ever reaches the browser." Asserted here rather than only on `dist/`,
+     * because Astro's static build emits its SSR chunks into `dist/chunks/` and removes them
+     * before the build exits — a post-build scan is structurally blind to them, and one of them
+     * is exactly where an inlined credential would land (B4/S1). A `generateBundle` hook sees
+     * every chunk of every output in memory, transient ones included.
+     *
+     * The plugin is Workstream B's; this two-line registration is the only cross-owner edit it
+     * needs. See `scripts/vite-plugin-credential-guard.mjs`.
+     */
+    plugins: [credentialGuard()],
   },
 
   i18n: {

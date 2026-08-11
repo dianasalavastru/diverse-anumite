@@ -1,0 +1,18 @@
+---
+/**
+ * `/en/architecture-design` — the English Architecture & Design Pillar Hub
+ * (locale route map §11.1, "Pillar hub A"; OD-2, DECISIONS_LOG.md #77).
+ *
+ * The hub has no entity behind it, so — like Home — both locale counterparts
+ * always exist and §11.2's missing-translation suppression never applies to the
+ * route itself. Its *aggregate* modules are still locale-scoped (§7.1): a Work
+ * Entry or a Service that is not EN-published is absent here, which is what keeps
+ * H-3 and H-4 from linking at pages the EN build does not generate.
+ *
+ * Every EN string it renders is placeholder copy, marked as such in
+ * `src/lib/i18n/architecture-design-hub.ts` (PENDING Workstream C).
+ */
+import ArchitectureDesignHub from '../../components/pillar-hub/ArchitectureDesignHub.astro';
+---
+
+<ArchitectureDesignHub locale="en" />

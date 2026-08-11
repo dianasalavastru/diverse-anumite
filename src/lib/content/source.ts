@@ -49,6 +49,7 @@ import { compareCurated, discoveryOrder, type PillarScope } from './order.js';
 import type { SanityConfig } from './config.js';
 import type {
   Employer,
+  EmployerGroup,
   HighlightSlot,
   Locale,
   Pillar,
@@ -56,17 +57,17 @@ import type {
   ServiceSummary,
   WorkArchiveItem,
   WorkEntry,
-  WorkEntrySummary,
 } from './types.js';
 
 /** The two curated routes IA §2.2 commits to as real, indexable URLs. */
 export type CuratedView = 'competitions' | 'professionalExperience';
 
-/** IA §5.1: Professional Experience is grouped by Employer — grouping metadata, not its own page. */
-export interface EmployerGroup {
-  readonly employer: Employer;
-  readonly entries: readonly WorkArchiveItem[];
-}
+/**
+ * IA §5.1's Employer grouping. The shape lives in `types.ts` — it is rendered by a component, and
+ * a rendered shape must be reachable from the browser-safe half of the boundary (§8, B4). It is
+ * re-exported here so the build-time surface still reads as one piece.
+ */
+export type { EmployerGroup } from './types.js';
 
 export interface ContentSource {
   /** Full Work Entries available in `locale`. Used for static path generation. */

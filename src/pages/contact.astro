@@ -1,0 +1,12 @@
+---
+/**
+ * `/contact` — the Romanian Contact page (locale route map §11.1, Contact / RO).
+ *
+ * RO is the default locale and is not prefixed (`prefixDefaultLocale: false`).
+ * The page is composed in `components/contact/ContactPage.astro` so the two
+ * locale routes cannot drift apart.
+ */
+import ContactPage from '../components/contact/ContactPage.astro';
+---
+
+<ContactPage locale="ro" />

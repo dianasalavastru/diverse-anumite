@@ -1,0 +1,700 @@
+/* =============================================================================
+   service.css — the authored Service page composition.
+
+   AUTHORITY: `docs/pages/service/service-page-measured-reality-hifi-v1.html`
+   (owner-approved 2026-08-10) + `VISUAL_DIRECTION_v2.0.md` + `MOTION_NOTES.md`
+   + `SERVICE_WIREFRAME.md` for structure.
+   TECHNICAL_ARCHITECTURE.md §5.3: "Verbatim absorption applies to: design
+   tokens, CSS, and the motion layer." §1.2 binds it: implementation "may not
+   simplify an approved HiFi's visual or interaction result."
+
+   The HiFi's own header states the intent: "The Hub introduces the discipline;
+   this page explains ONE service — the problem it solves, how it works, what
+   you receive, where it is proven, and how to begin." The wireframe fixes the
+   emphasis hierarchy this file expresses: **the solution is the strongest
+   visual idea** (S-2 + S-3), then representative evidence (S-4), then contact
+   (S-5); orientation, breadcrumb and chrome support the decision rather than
+   compete with it.
+
+   ── RULES THAT DIFFER FROM THE HiFi, AND WHY ──────────────────────────────
+   Each differs only in HOW the same result is produced, or because the HiFi's
+   version has no field behind it. Each says so at the point of difference.
+
+     1. shared tokens and primitives replace repeated literals — `--pad-loud`,
+        `--pad-quiet`, `--gutter-*`, `.bleed`, `.smark`, `.mono`;
+     2. `--ink-40` is raised to `--ink-60` on every text role, for the WCAG 2.2
+        AA reason typography.css records (3.51:1 vs the required 4.5:1);
+     3. hover-only states are paired with `:focus-visible` throughout
+        (MOTION_NOTES.md:54 — keyboard indication at least as clear as hover);
+     4. the hero is CONDITIONAL on `Service.hero` — "image-led **if** media is
+        present" (`SERVICE_WIREFRAME.md` S-1). A service with no lead image gets
+        the same opening on paper rather than a black rectangle;
+     5. the proof grid is the shared Work Preview Card, not the HiFi's fourth
+        card implementation (`.scard`) — one card everywhere, per the Inventory;
+     6. five HiFi sections have no CSS here at all, because they have no content
+        field: the process diagrams, the per-deliverable illustrations and format
+        badges, the FAQ accordion, the hero's `2 mm · 46.77°N` badge, and the
+        contact aside. See the component files for each.
+   ========================================================================== */
+
+/* ---- I · S-1 ORIENTATION -------------------------------------------------
+   Transcribed from `.hero` + `.hero-top` + `.hero-btm`. Two states of one
+   composition: with media it is the HiFi's full-bleed measured opening; without
+   media it is the same reading order on paper, which is what the wireframe's
+   conditional asks for. Nothing about the sequence — breadcrumb, kicker, name,
+   positioning — changes between them. */
+
+.sv-orientation {
+  position: relative;
+}
+
+/* No-media state: the opening still clears the fixed header and still opens on
+   a quiet beat, using the page's own rhythm rather than a new literal. The
+   breadcrumb keeps its distance from the name — in the media state that
+   separation comes from `justify-content: space-between` over a full viewport;
+   with no image there is nothing to space against, so it is stated. */
+.sv-orientation:not(.sv-orientation--media) .sv-orientation-in {
+  padding-block-start: calc(var(--header-h) + var(--pad-loud));
+  padding-block-end: var(--pad-loud);
+}
+
+.sv-orientation:not(.sv-orientation--media) .sv-intro {
+  margin-block-start: clamp(40px, 6vh, 72px);
+}
+
+.sv-orientation--media {
+  height: 100vh;
+  min-height: 560px;
+  overflow: hidden;
+  background: var(--ink);
+  margin-inline-start: calc(-1 * var(--gutter-start));
+  margin-inline-end: calc(-1 * var(--gutter-end));
+}
+
+.sv-hero-media {
+  position: absolute;
+  inset: 0;
+  transform: scale(1.06);
+  transition: transform 1.8s var(--slow);
+}
+
+html.anim-ready .sv-hero-media {
+  transform: scale(1);
+}
+
+.sv-hero-media .plate-img,
+.sv-hero-media .plate-fixture {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(0.5) contrast(1.05);
+}
+
+/* `.hero-grad` — what keeps the name and breadcrumb at contrast over any
+   photograph. Not decoration: it is the reason the white text passes AA. */
+.sv-hero-grad {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(20, 17, 12, 0.5) 0%,
+    rgba(20, 17, 12, 0.05) 30%,
+    rgba(20, 17, 12, 0.1) 55%,
+    rgba(20, 17, 12, 0.7) 100%
+  );
+}
+
+/* `.hero-scan` — the single measuring pass on load. Ambient, meaningless, and
+   resolved to nothing under reduced motion (below). */
+.sv-hero-scan {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  background: var(--blue);
+  opacity: 0;
+  box-shadow: 0 0 16px 3px rgba(43, 43, 230, 0.6);
+}
+
+html.anim-ready .sv-orientation--media .sv-hero-scan {
+  animation: sv-scan 1.7s var(--slow) 0.6s both;
+}
+
+@keyframes sv-scan {
+  0% {
+    left: 0;
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.9;
+  }
+  88% {
+    opacity: 0.6;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+.sv-orientation--media .sv-orientation-in {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  color: var(--paper);
+  padding-inline-start: var(--gutter-start);
+  padding-inline-end: var(--gutter-end);
+  padding-block: clamp(84px, 12vh, 110px) clamp(40px, 7vh, 72px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* The staged opening (MOTION_NOTES.md §"Load sequence"). Resolved by
+   `anim-ready`, by the noscript block in ServicePage.astro, and by reduced
+   motion below — three independent paths to the final state. */
+html.anim-load .sv-orientation-in {
+  opacity: 0;
+  transition: opacity var(--t-major) var(--slow) 0.3s;
+}
+
+html.anim-ready .sv-orientation-in {
+  opacity: 1;
+}
+
+/* ---- Breadcrumb — orientation and back-path, "never an emphasized action" */
+
+.sv-crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 8px;
+  list-style: none;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--ink-60);
+}
+
+.sv-crumbs li + li::before {
+  content: "/";
+  margin-inline-end: 8px;
+  color: var(--ink-40);
+}
+
+.sv-crumbs a:hover,
+.sv-crumbs a:focus-visible {
+  color: var(--blue);
+}
+
+.sv-orientation--media .sv-crumbs {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.sv-orientation--media .sv-crumbs li + li::before {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.sv-orientation--media .sv-crumbs a:hover,
+.sv-orientation--media .sv-crumbs a:focus-visible {
+  color: var(--paper);
+}
+
+/* ---- Page Introduction — the service name first -------------------------- */
+
+.sv-kick {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-60);
+  margin-block-end: 16px;
+}
+
+.sv-orientation--media .sv-kick {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.sv-intro h1 {
+  font-family: var(--pixel);
+  font-weight: 500;
+  font-size: clamp(38px, 7.2vw, 116px);
+  line-height: 0.92;
+  letter-spacing: 0.01em;
+}
+
+.sv-positioning {
+  margin-block-start: 20px;
+  font-weight: 500;
+  font-size: clamp(16px, 1.8vw, 22px);
+  line-height: 1.4;
+  max-width: 40ch;
+  color: var(--ink-60);
+}
+
+.sv-orientation--media .sv-positioning {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+/* "a light text link to About" — light means light. */
+.sv-about {
+  margin-block-start: 22px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-60);
+}
+
+.sv-about a {
+  border-block-end: 1px solid var(--hair);
+  padding-block-end: 2px;
+}
+
+.sv-about a:hover,
+.sv-about a:focus-visible {
+  color: var(--blue);
+  border-color: var(--blue);
+}
+
+.sv-orientation--media .sv-about {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.sv-orientation--media .sv-about a {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.sv-orientation--media .sv-about a:hover,
+.sv-orientation--media .sv-about a:focus-visible {
+  color: var(--paper);
+  border-color: var(--paper);
+}
+
+/* ---- Section rhythm ------------------------------------------------------
+   `.why` opens on the quiet beat; every later section runs at the loud one.
+   Transcribed from the HiFi's `padding: var(--pad-quiet) 0 var(--pad-loud)` and
+   `padding: var(--pad-loud) 0`. */
+
+.sv-section {
+  padding-block: var(--pad-loud);
+}
+
+.sv-problem-section {
+  padding-block-start: var(--pad-quiet);
+}
+
+.sv-conversion-section {
+  padding-block-end: var(--pad-quiet);
+}
+
+/* ---- II · S-2 PROBLEM & FIT ----------------------------------------------
+   "prose-led, focused on the visitor's situation". The HiFi sets its lead
+   question at display size and drops the body into two columns; the same
+   composition here, with the *authored* prose in the columns rather than
+   hand-written copy. */
+
+.sv-lead .rich-text > p:first-child {
+  font-weight: 600;
+  font-size: clamp(26px, 3.9vw, 54px);
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  max-width: 22ch;
+  color: var(--ink);
+}
+
+.sv-problem-body {
+  margin-block-start: clamp(40px, 6vh, 72px);
+  max-width: 112ch;
+}
+
+/* The HiFi's two-column body. `columns` rather than a grid because the number
+   of authored paragraphs is unknown — a grid would need the copy split into two
+   halves by hand, which is authoring the content from the stylesheet. */
+.sv-problem-body .rich-text {
+  columns: 2;
+  column-gap: clamp(30px, 5vw, 80px);
+}
+
+.sv-problem-body .rich-text > * {
+  break-inside: avoid;
+}
+
+.sv-problem-body .rich-text p {
+  font-size: clamp(16px, 1.4vw, 18px);
+  line-height: 1.7;
+}
+
+@media (max-width: 820px) {
+  .sv-problem-body .rich-text {
+    columns: 1;
+  }
+}
+
+/* Use-cases: "a calm, evenly-weighted set" — no emphasis, no ranking, no
+   links (they are display here, not the Archive's filters). */
+.sv-sublabel {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-60);
+  font-weight: 400;
+  margin-block-end: 16px;
+}
+
+.sv-usecases {
+  margin-block-start: clamp(36px, 5vh, 60px);
+}
+
+.sv-usecase-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  list-style: none;
+}
+
+.sv-usecase-list li {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  border: 1px solid var(--hair);
+  padding: 6px 12px;
+}
+
+/* ---- III · S-3 DELIVERABLES ----------------------------------------------
+   Transcribed from `.objs` / `.obj`: an evenly weighted set on a ruled grid,
+   opened by a full-width hairline and closed by one under each object. The
+   HiFi's per-object illustration and format badge have no field — see
+   Deliverables.astro — so each object is its number and its authored name. */
+
+.sv-objs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(20px, 2.4vw, 40px);
+  border-block-start: 1px solid var(--ink);
+  list-style: none;
+}
+
+.sv-obj {
+  padding-block: clamp(24px, 3vh, 34px);
+  border-block-end: 1px solid var(--hair);
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+
+.sv-obj-no {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--blue);
+  flex: 0 0 auto;
+}
+
+.sv-obj-name {
+  font-family: var(--pixel);
+  font-size: clamp(19px, 2vw, 24px);
+  line-height: 1.1;
+}
+
+@media (max-width: 900px) {
+  .sv-objs {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .sv-objs {
+    grid-template-columns: 1fr;
+    border-block-start: none;
+  }
+
+  .sv-obj {
+    border-block-start: 1px solid var(--hair);
+  }
+}
+
+/* ---- IV · S-3 PROCESS & SPECS -------------------------------------------
+   Prose, at the HiFi's `.move .txt` reading size. The diagram column is absent
+   (Process.astro records why — no step model, and the HiFi's only explanation of
+   registration is a hover animation), so the prose takes the measure rather than
+   half a two-column grid. */
+
+.sv-process-body .rich-text {
+  max-width: 68ch;
+}
+
+.sv-process-body .rich-text p {
+  font-size: clamp(15.5px, 1.4vw, 17px);
+  line-height: 1.7;
+  color: var(--ink-60);
+}
+
+.sv-process-body .rich-text h3 {
+  font-family: var(--read);
+  font-weight: 600;
+  font-size: clamp(20px, 2.2vw, 28px);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.sv-specs {
+  margin-block-start: clamp(36px, 5vh, 60px);
+  border-block-start: 1px solid var(--hair);
+  padding-block-start: clamp(22px, 3vh, 32px);
+}
+
+.sv-spec-list {
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  max-width: 60ch;
+}
+
+.sv-spec-list li {
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+
+.sv-spec-list li::before {
+  content: "· ";
+  color: var(--blue);
+}
+
+/* ---- V · S-4 PROOF -------------------------------------------------------
+   "the work is the protagonist… presented as proof of *this* service, not a
+   general gallery." The card is the shared Work Preview Card in its `focus`
+   variant, so its own stylesheet governs the card; this file governs the set. */
+
+.sv-cloud-block {
+  margin-block-end: clamp(40px, 6vh, 72px);
+}
+
+.sv-cloud-source {
+  margin-block-start: 14px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-60);
+}
+
+.sv-cloud-source a:hover,
+.sv-cloud-source a:focus-visible {
+  color: var(--blue);
+}
+
+.sv-cloud-source .ar {
+  color: var(--blue);
+  display: inline-block;
+  transition: transform var(--t-state) var(--slow);
+}
+
+.sv-cloud-source a:hover .ar,
+.sv-cloud-source a:focus-visible .ar {
+  transform: translateX(6px);
+}
+
+.sv-proof-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(18px, 2vw, 32px);
+  list-style: none;
+}
+
+@media (max-width: 820px) {
+  .sv-proof-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .sv-proof-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* "see more" → the pillar-filtered archive. Navigation, kept visually distinct
+   from S-5's single conversion action. */
+.sv-see-more {
+  margin-block-start: clamp(30px, 4vh, 50px);
+  border-block-start: 1px solid var(--hair);
+  padding-block-start: clamp(22px, 3vh, 32px);
+}
+
+.sv-more {
+  font-family: var(--pixel);
+  font-size: clamp(19px, 2.1vw, 26px);
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  line-height: 1;
+  position: relative;
+}
+
+.sv-more .ar {
+  color: var(--blue);
+  transition: transform var(--t-state) var(--slow);
+}
+
+.sv-more::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0 100%;
+  bottom: -6px;
+  height: 2px;
+  background: var(--blue);
+  transition: inset-inline-end var(--t-state) var(--slow);
+}
+
+.sv-more:hover .ar,
+.sv-more:focus-visible .ar {
+  transform: translateX(10px);
+}
+
+.sv-more:hover::after,
+.sv-more:focus-visible::after {
+  inset-inline-end: 0;
+}
+
+/* ---- F5 · the Empty State, service variant -------------------------------
+   Page IA S-4: an editorial note + a Contact CTA + the Hub back-path, and
+   "never an empty grid/carousel/counter". There is no grid rule here, no
+   placeholder card and no count — the surface is prose and two links, sized so
+   the section reads as deliberate rather than as a gap where work should be. */
+
+.sv-empty {
+  border-block-start: 1px solid var(--hair);
+  padding-block-start: clamp(24px, 3vh, 36px);
+}
+
+.sv-empty-note {
+  font-size: clamp(17px, 1.8vw, 22px);
+  line-height: 1.5;
+  max-width: 46ch;
+  color: var(--ink-60);
+}
+
+.sv-empty-actions {
+  margin-block-start: clamp(26px, 4vh, 40px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 18px 40px;
+}
+
+/* ---- VI · S-5 CONVERSION -------------------------------------------------
+   Transcribed from `.contact-in` / `.contact .q` / `.contact .act`: one calm
+   invitation, one primary action, no competing prompts. The HiFi's three-row
+   aside is absent — Conversion.astro records why. */
+
+.sv-conversion {
+  border-block-start: 1px solid var(--ink);
+  padding-block-start: clamp(34px, 5vh, 60px);
+}
+
+.sv-invite {
+  font-weight: 600;
+  font-size: clamp(26px, 3.6vw, 50px);
+  line-height: 1.06;
+  letter-spacing: -0.025em;
+  max-width: 18ch;
+}
+
+.sv-conversion-act {
+  margin-block-start: 34px;
+}
+
+/* The single blue activation of the page (§2.1) — a mark, not a button.
+   VISUAL_DIRECTION_v2.0 §12: "Never use filled, button-heavy CTAs." */
+.sv-action {
+  font-family: var(--pixel);
+  color: var(--blue);
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  line-height: 1;
+}
+
+.sv-action--primary {
+  font-size: clamp(22px, 2.5vw, 32px);
+}
+
+.sv-action .box {
+  width: 12px;
+  height: 12px;
+  background: var(--blue);
+  flex: 0 0 auto;
+}
+
+.sv-action .ar {
+  transition: transform var(--t-state) var(--slow);
+}
+
+.sv-action:hover .ar,
+.sv-action:focus-visible .ar {
+  transform: translateX(8px);
+}
+
+/* The F1 back-path in both places it appears (F5 and S-5): navigation voice,
+   deliberately below the conversion action in weight. */
+.sv-backpath {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--ink-60);
+}
+
+.sv-backpath .ar {
+  color: var(--blue);
+  display: inline-block;
+  transition: transform var(--t-state) var(--slow);
+}
+
+.sv-backpath:hover,
+.sv-backpath:focus-visible {
+  color: var(--blue);
+}
+
+.sv-backpath:hover .ar,
+.sv-backpath:focus-visible .ar {
+  transform: translateX(6px);
+}
+
+.sv-conversion-back {
+  margin-block-start: 26px;
+}
+
+/* ---- Reduced motion ------------------------------------------------------
+   MOTION_NOTES.md:62 — every animated element resolves to its final static
+   state. The scan is removed rather than stilled: it carries no information
+   (nothing on the page depends on it), and a frozen blue bar across a
+   photograph would read as a defect. `motion.css` already handles the shared
+   `.rv` family; only this page's own motion is resolved here. */
+@media (prefers-reduced-motion: reduce) {
+  .sv-hero-media,
+  html.anim-ready .sv-hero-media {
+    transform: none;
+    transition: none;
+  }
+
+  .sv-hero-scan,
+  html.anim-ready .sv-orientation--media .sv-hero-scan {
+    display: none;
+    animation: none;
+  }
+
+  html.anim-load .sv-orientation-in,
+  html.anim-ready .sv-orientation-in {
+    opacity: 1;
+    transition: none;
+  }
+
+  .sv-action .ar,
+  .sv-backpath .ar,
+  .sv-cloud-source .ar,
+  .sv-more .ar,
+  .sv-more::after {
+    transition: none;
+  }
+}

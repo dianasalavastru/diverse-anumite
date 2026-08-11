@@ -1,0 +1,18 @@
+---
+/**
+ * `/arhitectura-design` — the Romanian Architecture & Design Pillar Hub (locale
+ * route map §11.1, "Pillar hub A"; OD-1, DECISIONS_LOG.md #76).
+ *
+ * RO is the default locale and is not prefixed (`prefixDefaultLocale: false`).
+ * The page is composed in `components/pillar-hub/ArchitectureDesignHub.astro` so
+ * the two locale routes cannot drift apart.
+ *
+ * The hub is deliberately **not** a global-nav item (`NAV_DECISION_RECORD.md`
+ * §5.2; COMPONENT_INVENTORY.md "Global Header"): it is reached from the homepage
+ * pillar branch, from deep links and search, and from the F1 contextual
+ * back-paths on Service pages and Work Entries.
+ */
+import ArchitectureDesignHub from '../components/pillar-hub/ArchitectureDesignHub.astro';
+---
+
+<ArchitectureDesignHub locale="ro" />

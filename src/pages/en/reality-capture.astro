@@ -1,0 +1,14 @@
+---
+/**
+ * `/en/reality-capture` — the English Reality Capture Pillar Hub (locale route
+ * map §11.1, "Pillar hub B"; OD-2, DECISIONS_LOG.md #77).
+ *
+ * The composition is shared with the RO route; only `locale` differs. Every
+ * aggregate the hub renders is locale-scoped inside `ContentSource` (§7.1), so
+ * the EN page shows only EN-published Services and Work Entries and never
+ * substitutes RO content under an EN URL (§11.2).
+ */
+import RealityCaptureHub from '../../components/pillar-hub/RealityCaptureHub.astro';
+---
+
+<RealityCaptureHub locale="en" />

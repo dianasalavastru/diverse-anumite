@@ -1,0 +1,60 @@
+---
+/**
+ * `/servicii/[serviciu]` — the Romanian Service page (locale route map §11.1).
+ *
+ * RO is the default locale and is not prefixed (`prefixDefaultLocale: false`).
+ * The page itself is composed in `components/service/ServicePage.astro` so the
+ * two locale routes cannot drift apart.
+ *
+ * ── STATIC PATHS ARE THE i18n GATE ────────────────────────────────────────
+ * §6.1 is 100% static prerendering, so the set of generated paths *is* the set
+ * of pages that exist. `source.services(locale)` returns only Services available
+ * in this locale, which makes §11.2 structural rather than a runtime check: an
+ * untranslated Service generates no EN page, and `/en/<untranslated>` is a clean
+ * 404 rather than a redirect to RO.
+ *
+ * Slugs are the canonical ones authored in Sanity (§7.1, IA §2.2) — nothing here
+ * derives, transliterates or normalizes one. `/servicii/` is a namespace with no
+ * curated routes, so the per-locale reservation (§7.7) does not apply; format is
+ * enforced at authoring time (`validation.ts`, and the Studio's slug field).
+ *
+ * ── WHY THIS ROUTE LOADS WORK ENTRIES TOO ─────────────────────────────────
+ * S-4 may show the point cloud of a demonstrating project (see
+ * `components/service/modules.ts` `captureSubject`). `Service.demonstratedBy` is
+ * a summary projection and carries no capture metadata, so the full entries are
+ * resolved once here — in `getStaticPaths`, so the cost is one fetch for the
+ * whole route, not one per service — and handed down as an index. A build with
+ * no cleared surveys simply resolves no subject.
+ */
+import ServicePage from '../../components/service/ServicePage.astro';
+import { contentSource } from '../../lib/content/build-source';
+import { localize } from '../../lib/content';
+import { indexById } from '../../components/homepage/highlights';
+import type { Service, WorkEntry } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const source = contentSource();
+
+  const [services, workEntries] = await Promise.all([
+    source.services('ro'),
+    source.workEntries('ro'),
+  ]);
+  const entries = indexById(workEntries);
+
+  return services
+    .map((service) => {
+      const slug = localize(service.slug, 'ro');
+      // RO is required to publish at all (`validation.ts`), so this is a type
+      // guard rather than an expected state.
+      return slug ? { params: { serviciu: slug }, props: { service, entries } } : null;
+    })
+    .filter((path): path is NonNullable<typeof path> => path !== null);
+}
+
+const { service, entries } = Astro.props as {
+  service: Service;
+  entries: ReadonlyMap<string, WorkEntry>;
+};
+---
+
+<ServicePage service={service} locale="ro" entries={entries} />

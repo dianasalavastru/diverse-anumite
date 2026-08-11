@@ -1,0 +1,107 @@
+---
+/**
+ * H-2 · Capability framing & use-cases — HUB_PAGE_IA Stage B, station 02
+ * ("II · MANIFESTO — the central question" in the approved RC Hub HiFi).
+ *
+ * Responsibility (Page IA H-2): "frame what the capability is *for* and where it
+ * applies" — framing, not a formal definition. It has no destination of its own;
+ * it leads into the evidence.
+ *
+ * Components (`PILLAR_HUB_WIREFRAME.md` H-2): Section Introduction (framing) ·
+ * Rich Text (what it's for + use-cases) · Statistic ×n (optional — capability
+ * facts, e.g. equipment/accuracy for Reality Capture).
+ *
+ * ── THE USE-CASES ARE LIVE SECTOR VALUES ──────────────────────────────────
+ * Page IA H-2 *Consumes:* "capability framing + use-cases (Sector/use-case-
+ * relevant…)". Sector is a frozen axis and `Service.sectors` is authored as
+ * "Sector-relevant use-cases (S-2)", so the set comes from the pillar's live
+ * Services (`hub.ts` → `useCaseSectors`) rather than from copy — the hub cannot
+ * advertise a use-case the practice has published no service for. Labels come
+ * from the shared `vocabulary.ts` map, so the same axis reads identically here
+ * and in the archive's Sector control.
+ *
+ * ── THE "STATISTIC" SLOT RENDERS EQUIPMENT, NOT FIGURES ───────────────────
+ * The approved HiFi's "Masurat" row prints `2 mm` (typical field accuracy), `1:1`,
+ * `7` site types and `2` methods. Three have no field anywhere in the frozen
+ * Content Model; the fourth exists only as `CaptureMetadata.accuracy` on a single
+ * Work Entry, describing one survey. §10.4: "a decorative multiplier surviving
+ * into production is a false accuracy claim… these are technical claims made to
+ * institutional clients evaluating a surveying service." So the row is not
+ * rendered, and the optional slot carries the one capability-level technical fact
+ * the contract does hold — `Service.equipment` (`CONTENT_MODEL.md`:31), verbatim,
+ * attributed to the Service that declares it.
+ *
+ * Both sub-modules disappear entirely when the live content carries nothing.
+ * The wireframe marks the statistics "optional", and the framing prose alone
+ * still discharges H-2's responsibility.
+ */
+import SectionMarker from '../SectionMarker.astro';
+import type { Locale, Sector } from '../../lib/content';
+import type { PillarHubMessages } from '../../lib/i18n/pillar-hub';
+import { sectorLabel } from '../../lib/i18n/vocabulary';
+import type { InstrumentReadout } from './hub';
+
+interface Props {
+  locale: Locale;
+  copy: PillarHubMessages['framing'];
+  /** Live use-cases — the Sectors this pillar's Services declare. */
+  useCases: readonly Sector[];
+  /** Live capability facts — the equipment those Services declare. */
+  instruments: readonly InstrumentReadout[];
+  station: number;
+}
+
+const { locale, copy, useCases, instruments, station } = Astro.props;
+---
+
+<section class="hub-framing" data-station={station} aria-labelledby="framing-heading">
+  <SectionMarker copy={copy.marker} heading id="framing-heading" />
+
+  <p class="hub-question rv" data-rv="head">
+    {copy.question.lead} <span class="b">{copy.question.accent}</span>{copy.question.tail}
+  </p>
+
+  <div class="hub-framing-body">
+    <div class="col rv" data-rv="meta">
+      {copy.primary.map((paragraph) => <p>{paragraph}</p>)}
+    </div>
+    <div class="col quiet rv" data-rv="meta">
+      {copy.secondary.map((paragraph) => <p>{paragraph}</p>)}
+    </div>
+  </div>
+
+  {
+    useCases.length > 0 && (
+      <div class="hub-usecases rv" data-rv="meta">
+        <div class="hub-sublabel">
+          <span class="k">{copy.useCases.label}</span>
+          <span class="n">{copy.useCases.note}</span>
+        </div>
+        <ul>
+          {useCases.map((sector) => (
+            <li>{sectorLabel(sector, locale)}</li>
+          ))}
+        </ul>
+      </div>
+    )
+  }
+
+  {
+    instruments.length > 0 && (
+      <div class="hub-instruments rv" data-rv="meta">
+        <div class="hub-sublabel">
+          <span class="k">{copy.instruments.label}</span>
+          <span class="n">{copy.instruments.note}</span>
+        </div>
+        <dl>
+          {instruments.map((row) => (
+            <div class="r">
+              <dt>{row.service}</dt>
+              <dd class="mono">{row.equipment.join(' · ')}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    )
+  }
+</section>

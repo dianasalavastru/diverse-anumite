@@ -1,0 +1,185 @@
+---
+/**
+ * S-4 · Proof / demonstrated work (Page IA Stage D).
+ *
+ * Responsibility (`SERVICE_PAGE_IA.md` S-4): "**trust through relevant
+ * evidence** — proof must demonstrate **this specific service**, never simply
+ * show unrelated projects. Demonstrate, don't browse (protects the Work
+ * Archive's responsibility)."
+ *
+ * Components (`SERVICE_WIREFRAME.md` S-4): "Section Header · Work Preview Card
+ * ×n (the demonstrating Work Entries) · CTA Group ('see more' → pillar-filtered
+ * Work Archive)." Spatial composition: "the work is the protagonist… presented
+ * as proof of *this* service, not a general gallery. **This module is the
+ * decisive proof moment of the page.**"
+ *
+ * ── THE PROOF SET IS DERIVED, NEVER AUTHORED HERE ─────────────────────────
+ * `Service.demonstratedBy` is reversed from `WorkEntry.services` by the query
+ * layer (`DECISIONS_LOG.md` #36/#38: "one canonical Service object referenced,
+ * not copied" — the Service holds no list of its own). It arrives already
+ * locale-scoped and curation-ordered (`source.ts` `scopeService`), so this
+ * component neither filters nor sorts: doing either would be a second, quieter
+ * curation layer the owner cannot see or change.
+ *
+ * Locale scoping matters here more than anywhere else on the page. Under `/en/`
+ * the set contains only EN-published entries, so a proof card can never link to
+ * a Work Entry that §11.2 guarantees does not exist — and an RO-rich, EN-thin
+ * service correctly reaches F5 in EN while showing its proof in RO.
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ *  F5 — ZERO DEMONSTRATING ENTRIES IS A VALID PUBLISHED STATE
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Page IA S-4, verbatim: "with **zero** linked entries, the page remains fully
+ * publishable — replace the proof set with a concise editorial message (relevant
+ * examples being added) + a **Contact CTA** + the **Hub back-path**; never an
+ * empty grid/carousel/counter. **The absence of linked Work Entries must never
+ * reduce confidence in the service itself.**"
+ *
+ * So the module renders in both states and swaps its surface. In F5 there is no
+ * grid element, no carousel, no count, and no "see more" — the wireframe's F5
+ * paragraph names exactly three things and the module renders exactly those
+ * three. The rest of the page (S-1…S-3, S-5) is untouched, which is what keeps
+ * a proof-thin service credible.
+ *
+ * ── "SEE MORE" USES THE FROZEN FILTER CONTRACT ────────────────────────────
+ * Page IA S-4: module "see more" → the **pillar-filtered Work Archive**. §23.5
+ * freezes the archive URL and gives each pillar exactly one contextual
+ * refinement — Discipline for A&D, **Service for RC**. For a Reality Capture
+ * service the localized Service slug is therefore a legal, frozen narrowing of
+ * the same destination, and it lands the visitor on the archive already showing
+ * this service's work rather than the whole pillar. For A&D, Service is not the
+ * exposed refinement under that scope (`archive-state.ts` `contextualFacet`), so
+ * emitting it would produce a parameter the archive discards — the pillar filter
+ * alone is used. Both tokens come from the single declarations in
+ * `vocabulary.ts`; nothing is concatenated from a Pillar value.
+ *
+ * ── THE POINT-CLOUD FIELD ─────────────────────────────────────────────────
+ * A Service has no point cloud; a project does. `modules.ts` `captureSubject`
+ * explains the whole rule. What arrives here is either `null` or one
+ * demonstrating Work Entry whose survey is published and clearance-gated, and it
+ * is handed to the existing seam unchanged — no renderer, no second gate, no
+ * assembled readout. It sits at the head of the proof set because that is what
+ * it is: the measured evidence of this service, credited and linked to the
+ * project it belongs to.
+ */
+import PointCloudField from '../media/PointCloudField.astro';
+import WorkPreviewCard from '../WorkPreviewCard.astro';
+import { localize } from '../../lib/content';
+import type { Locale, Service, WorkEntry } from '../../lib/content';
+import type { ServiceMessages } from '../../lib/i18n/service';
+import { routePath } from '../../lib/i18n/routes';
+import { pillarArchiveParam, pillarLabel, pillarRouteKey } from '../../lib/i18n/vocabulary';
+
+interface Props {
+  service: Service;
+  locale: Locale;
+  copy: ServiceMessages;
+  /** Resolved by `modules.ts` `captureSubject`; `null` on every other service. */
+  captureSubject: WorkEntry | null;
+}
+
+const { service, locale, copy, captureSubject } = Astro.props;
+
+const pillar = service.pillar;
+const pillarName = pillarLabel(pillar, locale);
+const hubHref = routePath(pillarRouteKey(pillar) as never, locale, undefined as never);
+
+/**
+ * One card per demonstrating entry. An entry whose slug is missing in this
+ * locale cannot be linked and is dropped — the query layer's scoping makes that
+ * a type guard rather than an expected state, and a card with no destination
+ * would be proof the visitor cannot open.
+ */
+const cards = service.demonstratedBy
+  .map((entry) => {
+    const slug = localize(entry.slug, locale);
+    return slug ? { entry, href: routePath('workEntry', locale, slug) } : null;
+  })
+  .filter((card): card is NonNullable<typeof card> => card !== null);
+
+/** §23.5's frozen URL, built from the two single-declaration token maps. */
+const serviceSlug = localize(service.slug, locale);
+const seeMoreParams = new URLSearchParams({ pillar: pillarArchiveParam(pillar) });
+if (pillar === 'reality-capture' && serviceSlug) seeMoreParams.set('service', serviceSlug);
+const seeMoreHref = `${routePath('workArchive', locale)}?${seeMoreParams.toString()}`;
+
+/* The cloud names the project it came from, so the readout beside it can never
+   be read as a claim about a different survey (§10.4). */
+const captureTitle = captureSubject ? (localize(captureSubject.title, locale) ?? '') : '';
+const captureSlug = captureSubject ? localize(captureSubject.slug, locale) : null;
+---
+
+<div class="sv-proof">
+  {
+    cards.length === 0 ? (
+      /* ── F5 ────────────────────────────────────────────────────────────
+         The Empty State component, service variant (`COMPONENT_INVENTORY.md`
+         scopes it to A-6 and to S-4/F5 and to nowhere else). Editorial note,
+         Contact CTA, Hub back-path — and nothing that counts, grids or
+         carousels an absent set. */
+      <div class="sv-empty rv" data-rv="meta" data-empty-state="service-proof">
+        <p class="sv-empty-note">{copy.proof.empty.note}</p>
+        <p class="sv-empty-actions">
+          <a class="sv-action" href={routePath('contact', locale)}>
+            <span class="box" aria-hidden="true" />
+            {copy.proof.empty.contact}
+          </a>
+          <a class="sv-backpath" href={hubHref}>
+            {copy.proof.empty.hub.replace('{pillar}', pillarName)}
+            <span class="ar" aria-hidden="true">
+              →
+            </span>
+          </a>
+        </p>
+      </div>
+    ) : (
+      <>
+        {captureSubject && (
+          <div class="sv-cloud-block">
+            <PointCloudField
+              locale={locale}
+              label={copy.proof.cloud.label.replace('{work}', captureTitle)}
+              hint={copy.proof.cloud.hint}
+              posterAlt={copy.proof.cloud.posterAlt}
+              unavailable={copy.proof.cloud.unavailable}
+              subject={captureSubject}
+            />
+            {captureSlug && (
+              <p class="sv-cloud-source rv" data-rv="meta">
+                <a href={routePath('workEntry', locale, captureSlug)}>
+                  {copy.proof.cloud.source} — {captureTitle}
+                  <span class="ar" aria-hidden="true">
+                    →
+                  </span>
+                </a>
+              </p>
+            )}
+          </div>
+        )}
+
+        <ul class="sv-proof-grid" aria-label={copy.proof.listLabel}>
+          {cards.map((card, index) => (
+            <li class="sv-proof-item rv" data-rv="img">
+              <WorkPreviewCard
+                entry={card.entry}
+                locale={locale}
+                href={card.href}
+                index={index + 1}
+              />
+            </li>
+          ))}
+        </ul>
+
+        <p class="sv-see-more rv" data-rv="meta">
+          <a class="sv-more" href={seeMoreHref}>
+            {copy.proof.seeMore.replace('{pillar}', pillarName)}
+            <span class="ar" aria-hidden="true">
+              →
+            </span>
+          </a>
+        </p>
+      </>
+    )
+  }
+</div>

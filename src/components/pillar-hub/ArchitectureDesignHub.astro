@@ -1,0 +1,226 @@
+---
+/**
+ * The Architecture & Design Pillar Hub — composed once, rendered per locale.
+ *
+ * OWNERSHIP: Workstream A (A5). Phase 6 of TECHNICAL_ARCHITECTURE.md §23.2
+ * ("Work Entry + Service + **Hubs**").
+ *
+ * ROUTES (§11.1, frozen; OD-1, DECISIONS_LOG.md #76): `/arhitectura-design` ·
+ * `/en/architecture-design`. The two route files hand this component a locale, so
+ * the RO and EN pages cannot drift apart.
+ *
+ * ── ONE BLUEPRINT, TWO INSTANCES ──────────────────────────────────────────
+ * `HUB_PAGE_IA.md`: "**One blueprint, two instances** — the Architecture & Design
+ * Hub and the Reality Capture Hub — sharing this Page IA and differing only in
+ * the content they consume." `PILLAR_HUB_WIREFRAME.md` §"Pillar inheritance"
+ * fixes what may not vary: "module set and order · component composition ·
+ * spatial hierarchy · reading flow · editorial pacing · visual emphasis hierarchy
+ * · responsive intent."
+ *
+ * This file honours that literally. **All six** module components are the shared
+ * ones the Reality Capture instance composes, consumed unchanged and rendering
+ * into the same `styles/pages/pillar-hub.css` composition. The two differences
+ * are instance-level presentation options the shared components take as props,
+ * not variants of them:
+ *
+ *   H-1 · no `overlay` — the RC coordinate-grid / registration-target treatment
+ *         is Reality Capture's, and the approved A&D HiFi's arrival has none;
+ *   H-4 · no `copy.pointCloud` — §10.1's verified table gives this hub **no**
+ *         capture field, so the shared module renders none.
+ *
+ * **No shared component, stylesheet or token is modified by this instance**, and
+ * no component tests a pillar name.
+ *
+ * ── MODULE ORDER IS THE WIREFRAME'S ───────────────────────────────────────
+ *   H-1 Orientation → H-2 Framing & use-cases → **H-4 Curated work** →
+ *   **H-3 Services** → H-5 Continue-to-archive → H-6 Contact.
+ * §"Module reading order": "This template orders representative work before the
+ * services offering — *evidence before offering*… a permitted Page-IA flex and a
+ * deliberate, retained decision." Stations 01…07 on the coordinate rail are that
+ * sequence made visible, with the footer as station 07.
+ *
+ * ── WHAT THIS PAGE IS NOT ─────────────────────────────────────────────────
+ * Not a second homepage — a single-capability primary flow, with the one
+ * cross-pillar link demoted to supporting navigation in H-5 (`HUB_PAGE_IA.md` §1).
+ * Not a Service page — H-3 routes, it does not sell. **Not a second Work
+ * Archive** — H-4 renders curated placements only, there is no filter, no grid and
+ * no per-pillar archive route, and every route to breadth is the canonical
+ * filtered archive `/proiecte?pillar=architecture`. Not About — H-1 links, lightly.
+ *
+ * ── CONTENT ───────────────────────────────────────────────────────────────
+ * Every content-shaped value comes from Workstream B's `ContentSource` (I-3, live
+ * Sanity — `build-source.ts`). No GROQ, no fixtures, no CMS coupling, no second
+ * content model: this file selects and arranges. Locale scoping (§7.1), discovery
+ * order (§7.6), placement membership (§7.5) and Service ordering all happen inside
+ * the source, before anything reaches a component.
+ *
+ * ── WHAT IS NOT HERE ──────────────────────────────────────────────────────
+ * **No point-cloud field.** §10.1's verified table gives the Architecture & Design
+ * Hub `no`; the capture centrepiece is the Reality Capture instance's H-4 media
+ * treatment. No canonical URL or JSON-LD emission (blocked on the production
+ * origin — see BaseLayout). No `@view-transition`: §13 scopes the cross-document
+ * dissolve to Archive → Work Entry, and the hub is neither end of it.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ContinueToArchive from './ContinueToArchive.astro';
+import CuratedWork from './CuratedWork.astro';
+import Conversation from './Conversation.astro';
+import CoordinateRail from '../CoordinateRail.astro';
+import Framing from './Framing.astro';
+import Orientation from './Orientation.astro';
+import ServicesOverview from './ServicesOverview.astro';
+
+import type { Locale, Pillar } from '../../lib/content';
+import { architectureDesignHubMessages } from '../../lib/i18n/architecture-design-hub';
+
+/* ── I-3 — live Sanity, one call, exactly as every other page does it ─────── */
+import { contentSource } from '../../lib/content/build-source';
+const source = contentSource();
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+import {
+  HUB_HIGHLIGHT_LIMIT,
+  contactTopicHref,
+  indexServicesById,
+  instrumentReadouts,
+  pillarArchiveHref,
+  pillarHubHref,
+  servicesInPillar,
+  useCaseSectors,
+} from './hub';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const copy = architectureDesignHubMessages(locale);
+
+const PILLAR: Pillar = 'architecture-design';
+/** The supporting cross-link in H-5. Two pillars are locked by the Content Model. */
+const OTHER_PILLAR: Pillar = 'reality-capture';
+
+const [placed, serviceSummaries, services] = await Promise.all([
+  /* H-4 — placements only (`CONTENT_MODEL.md` §4). */
+  source.highlights('pillar-hub', PILLAR, locale),
+  /* H-3 — the recognition projection `types.ts` names for this module, filtered
+     by the Service's own authored pillar and ordered by B's curation comparator. */
+  source.serviceSummaries(locale, PILLAR),
+  /* H-2 only — `sectors` and `equipment` are authored on the full Service and are
+     absent from the recognition projection. Order still comes from the line
+     above; this is a field lookup, never a second ordering. */
+  source.services(locale),
+]);
+
+/**
+ * A display bound on an already-selected, already-ordered set — it changes no
+ * membership and no order (`hub.ts`).
+ */
+const highlights = placed.slice(0, HUB_HIGHLIGHT_LIMIT);
+
+/**
+ * H-1's opening media: the leading curated work of this pillar — curation only,
+ * for the same reason H-4 is placements-only. With nothing placed the plate
+ * renders its authored tone and no photograph, and the composition is intact.
+ */
+const hero = highlights[0] ?? null;
+
+const pillarServices = servicesInPillar(services, PILLAR);
+const useCases = useCaseSectors(pillarServices);
+const instruments = instrumentReadouts(serviceSummaries, indexServicesById(pillarServices), locale);
+
+/**
+ * Authored plate tones for H-4's focus track, transcribed from the approved A&D
+ * Hub HiFi. An instance value: the RC HiFi authors its own sequence.
+ */
+const TONES = ['#cbc6bc', '#c6c1b7', '#bdb7ab', '#c7c2b6', '#b4afa2', '#c2bdb2'] as const;
+
+/**
+ * Stations 01…07 — six narrative modules plus the footer, matching the approved
+ * HiFi's rail exactly. Passed down rather than hard-coded per section so the rail
+ * and the sections cannot drift apart. H-3 hides itself when the pillar publishes
+ * no Services; its stop then simply never activates, which is the same inert
+ * state the rail already has above the first section.
+ */
+const STATIONS = {
+  orientation: 1,
+  framing: 2,
+  work: 3,
+  services: 4,
+  continue: 5,
+  conversation: 6,
+  footer: 7,
+} as const;
+---
+
+<BaseLayout
+  locale={locale}
+  rhythm="pillar-hub"
+  routeKey="pillarHubArchitectureDesign"
+  title={copy.meta.title}
+  description={copy.meta.description}
+  footerStation={STATIONS.footer}
+>
+  {/* §14.0, progressive enhancement. The opening plate's load sequence is gated
+      on a class the motion runtime adds; with scripting disabled it must resolve,
+      not stay clipped. Reduced motion needs nothing here — pillar-hub.css already
+      resolves it in CSS. `.rv` itself is covered by the layout's own noscript. */}
+  <Fragment slot="head">
+    <noscript>
+      <style>
+        html.anim-load .hub-plate .plate-img,
+        html.anim-load .hub-plate .plate-fixture {
+          clip-path: none !important;
+        }
+      </style>
+    </noscript>
+  </Fragment>
+
+  <CoordinateRail slot="rail" stations={STATIONS.footer} />
+
+  <Orientation
+    locale={locale}
+    copy={copy.orientation}
+    hero={hero}
+    station={STATIONS.orientation}
+  />
+
+  <Framing
+    locale={locale}
+    copy={copy.framing}
+    useCases={useCases}
+    instruments={instruments}
+    station={STATIONS.framing}
+  />
+
+  {/* No `pointCloudSubject` and, in `copy.work`, no `pointCloud` — so the shared
+      H-4 renders no capture field at all (§10.1). */}
+  <CuratedWork
+    locale={locale}
+    copy={copy.work}
+    entries={highlights}
+    tones={TONES}
+    archiveHref={pillarArchiveHref(PILLAR, locale)}
+    station={STATIONS.work}
+  />
+
+  <ServicesOverview
+    locale={locale}
+    copy={copy.services}
+    services={serviceSummaries}
+    station={STATIONS.services}
+  />
+
+  <ContinueToArchive
+    copy={copy.continue}
+    archiveHref={pillarArchiveHref(PILLAR, locale)}
+    crossPillarHref={pillarHubHref(OTHER_PILLAR, locale)}
+    station={STATIONS.continue}
+  />
+
+  <Conversation
+    copy={copy.conversation}
+    contactHref={contactTopicHref(PILLAR, locale)}
+    station={STATIONS.conversation}
+  />
+</BaseLayout>
