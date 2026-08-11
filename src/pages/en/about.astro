@@ -1,0 +1,18 @@
+---
+/**
+ * `/en/about` — the English About page (locale route map §11.1, EN segments
+ * approved by OD-2 / `DECISIONS_LOG.md` #77).
+ *
+ * §11.2's EN gate is a *content* rule — it governs entities with an
+ * `enPublished` flag and a localized slug. About is a static route with no
+ * content object behind it, so both locales exist unconditionally and the
+ * hreflang pair is reciprocal, exactly as it is for `/contact` and `/proiecte`.
+ *
+ * What the gate's spirit does still bind: no RO string is served here. Where the
+ * EN copy is unauthored the slot is absent, never a machine translation of a
+ * Romanian placeholder (see `lib/i18n/about.ts`).
+ */
+import AboutPage from '../../components/about/AboutPage.astro';
+---
+
+<AboutPage locale="en" />

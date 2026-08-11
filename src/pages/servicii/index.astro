@@ -1,0 +1,51 @@
+---
+/**
+ * `/servicii` — the Romanian Services index (locale route map §11.1; IA §2.1).
+ *
+ * The route key already existed in the frozen route map and the Global Header
+ * already linked to it; only the page file was missing, which is why the locked
+ * nav item resolved to a 404. See `ServicesIndexPage.astro` for the four
+ * authorities that require this page.
+ *
+ * A static route beside a dynamic one: Astro resolves `/servicii` here and
+ * `/servicii/<slug>` in `[serviciu].astro`. IA §2.2's reserved-slug policy
+ * covers the `/proiecte/` curated routes only, so no Service slug is reserved
+ * against this file — and none needs to be, because a static route takes
+ * precedence over a dynamic sibling. Flagged in the report as a validator gap
+ * for Workstream B to close if it wants belt and braces.
+ */
+import ServicesIndexPage from '../../components/services-index/ServicesIndexPage.astro';
+import { contentSource } from '../../lib/content/build-source';
+
+/* ── I-3 — live Sanity, no fixture fallback ────────────────────────────────── */
+const source = contentSource();
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * `serviceSummaries` is the recognition-level projection this page needs — name,
+ * slug, pillar, one-line positioning — already locale-scoped and curation-ordered
+ * by B. The full `Service` is deliberately not resolved: IA §2.5 forbids this
+ * page from carrying detail, so loading deliverables and process here would be
+ * loading what it must not show.
+ */
+const [services, architecture, realityCapture] = await Promise.all([
+  source.serviceSummaries('ro'),
+  source.highlights('pillar-hub', 'architecture-design', 'ro'),
+  source.highlights('pillar-hub', 'reality-capture', 'ro'),
+]);
+
+/**
+ * Representative media per pillar — the leading curated work, exactly as
+ * `Homepage.astro` composes M-2's `gatewayMedia`. Curation only: nothing is
+ * promoted here by taxonomy, and a pillar with no placement (or a placement with
+ * no cover, which is every entry in the dataset today) yields `null` and renders
+ * the authored plate. See `ServicesIndexPage.astro` for why the `pillar-hub`
+ * slot is the one read.
+ */
+const media = {
+  'architecture-design': architecture[0] ?? null,
+  'reality-capture': realityCapture[0] ?? null,
+};
+---
+
+<ServicesIndexPage locale="ro" services={services} media={media} />

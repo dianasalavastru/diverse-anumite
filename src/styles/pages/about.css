@@ -1,0 +1,130 @@
+/* =============================================================================
+   about.css — the About (Despre) composition.
+
+   AUTHORITY: none directly. About has no Page IA, no wireframe and no HiFi
+   (`README.md` §"Open questions"), so nothing here is transcribed. Every value
+   is an existing token or an existing type role; the composition is the
+   smallest one that renders what IA Step 7 specifies — a name, a statement, the
+   EU-funding context, and three equal onward paths.
+
+   The file is short because the page is. It will need revisiting when an About
+   Page IA and copy exist; that is a redesign to be authored upstream, not
+   guessed here.
+   ========================================================================== */
+
+/* ── CORRECTED AT THE VISUAL-QA PASS ────────────────────────────────────────
+   This opened on `calc(var(--header-h) + var(--pad-quiet))` and closed on
+   `--pad-quiet` — ~290px of void above three lines of content and ~220px below
+   them, which made a deliberately sparse page read as a broken one. The values
+   below are the system's pattern for a page opening under the fixed header with
+   no hero (`.wa-intro`, transcribed by `.c-intro` for the same reason). The
+   page stays sparse, because it *is* sparse until C authors its copy — it simply
+   no longer looks like a rendering failure. */
+.ab-page {
+  padding-block: clamp(96px, 13vh, 150px) var(--pad-loud);
+  max-width: 68ch;
+}
+
+/* Blue, matching the page-opening kicker on the archive and both hubs. */
+.ab-eyebrow {
+  color: var(--blue);
+  margin-block-end: 18px;
+}
+
+/* `.wa-intro h1` — the standalone-page masthead scale. */
+.ab-title {
+  font-family: var(--pixel);
+  font-weight: 500;
+  font-size: clamp(40px, 6.5vw, 92px);
+  line-height: 0.92;
+  letter-spacing: 0.01em;
+}
+
+/* The practice statement — this page's whole substance, once authored. Sized as
+   the lead prose role the other pages use for their opening paragraph. */
+.ab-statement {
+  margin-block-start: clamp(30px, 4vh, 52px);
+  font-size: clamp(17px, 1.8vw, 22px);
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+/* The EU-funding context (IA Step 7; DECISIONS_LOG #45). Supporting voice — it
+   is context on this page, not the acknowledgment itself, which is a site-wide
+   footer element. */
+.ab-funding {
+  margin-block-start: clamp(26px, 3.5vh, 40px);
+  font-size: clamp(15px, 1.4vw, 17px);
+  line-height: 1.6;
+  color: var(--ink-60);
+}
+
+/* ---- Onward paths --------------------------------------------------------
+   IA Step 7 / DECISIONS_LOG #47: "No dominant CTA; clear onward paths to Work,
+   Services, Contact." Three links on one rule, in one row, at one size — the
+   structural meaning of "no dominant". VISUAL_DIRECTION_v2.0 §12 forbids filled
+   button CTAs, which this would fail first if any one of them were emphasized. */
+
+.ab-onward {
+  margin-block-start: clamp(44px, 6vh, 80px);
+  border-block-start: 1px solid var(--ink);
+  padding-block-start: clamp(22px, 3vh, 32px);
+}
+
+.ab-onward-h {
+  margin-block-end: 16px;
+}
+
+.ab-onward-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 40px;
+  list-style: none;
+}
+
+/* `min-height` for WCAG 2.2 AA SC 2.5.8 (Target Size — Minimum): at the 19px
+   floor of the clamp the text box is 19px tall, 5px short of 24. The box grows,
+   the type does not — the same correction `.hub-quiet` documents for the About
+   link on the hub, and it avoids having to lean on the Spacing exception. */
+.ab-onward-list a {
+  font-family: var(--pixel);
+  font-size: clamp(19px, 2.1vw, 26px);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 24px;
+  line-height: 1;
+  position: relative;
+}
+
+.ab-onward-list .ar {
+  color: var(--blue);
+  transition: transform var(--t-state) var(--slow);
+}
+
+.ab-onward-list a::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0 100%;
+  bottom: -6px;
+  height: 2px;
+  background: var(--blue);
+  transition: inset-inline-end var(--t-state) var(--slow);
+}
+
+.ab-onward-list a:hover .ar,
+.ab-onward-list a:focus-visible .ar {
+  transform: translateX(8px);
+}
+
+.ab-onward-list a:hover::after,
+.ab-onward-list a:focus-visible::after {
+  inset-inline-end: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ab-onward-list .ar,
+  .ab-onward-list a::after {
+    transition: none;
+  }
+}

@@ -1,0 +1,17 @@
+---
+/**
+ * `/despre` — the Romanian About page (locale route map §11.1; IA §2.1).
+ *
+ * The route key and the global-nav item both already existed; only the page file
+ * was missing, which is why a locked nav item resolved to a 404. See
+ * `AboutPage.astro` for what this page may and may not contain, and for what
+ * remains outstanding.
+ *
+ * No content read: IA Step 7 types About "Standalone", and nothing upstream
+ * makes its copy CMS-managed. There is deliberately no `contentSource()` call
+ * here.
+ */
+import AboutPage from '../components/about/AboutPage.astro';
+---
+
+<AboutPage locale="ro" />

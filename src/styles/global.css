@@ -61,4 +61,6 @@
 @import './pages/pillar-hub.css' layer(pages);
 @import './pages/service.css' layer(pages);
 @import './pages/contact.css' layer(pages);
+@import './pages/services-index.css' layer(pages);
+@import './pages/about.css' layer(pages);
 @import './motion.css' layer(motion);

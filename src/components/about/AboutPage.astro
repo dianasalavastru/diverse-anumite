@@ -1,0 +1,141 @@
+---
+/**
+ * About (Despre) — `/despre` · `/en/about`.
+ *
+ * OWNERSHIP: Workstream A.
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ *  THIS PAGE IS A STRUCTURALLY CORRECT SHELL, NOT A FINISHED PAGE.
+ *  IT IS BUILT TO STOP LYING BY 404, NOT TO CLAIM THE PAGE IS DONE.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * **Required.** IA §2.1 puts `/despre` in the locked sitemap; IA §2.5 gives it a
+ * responsibility ("About — trust in architect/practice. *Not:* deep
+ * portfolio/service pitch"); IA Step 7's per-page table gives it an entry
+ * ("**About (Despre)** — Trust in architect/practice; carries EU-funded
+ * expansion narrative … **No dominant CTA**; clear onward paths to Work,
+ * Services, Contact"; `DECISIONS_LOG.md` #45, #47); and NAV_DECISION_RECORD.md
+ * §4 locks "Despre" as one of four global-nav items, mapped to About. Four
+ * components already link here (homepage Arrival and Credibility, the hub's
+ * Orientation, the Service page's S-1). Retargeting the nav item was considered
+ * and rejected: the nav table and its mapping are locked, and changing them is
+ * an upstream amendment, not an implementation fix.
+ *
+ * **Unspecified.** `README.md` §"Open questions": About "is a defined page type
+ * with **no Page IA, wireframe, or HiFi** (no `docs/pages/about/` yet)."
+ * `PAGE_IA_INDEX.md` §2 covers six page types and About is not among them.
+ * `tokens.css` names it directly as a page type that "has no rhythm set here and
+ * cannot be built until one is authored upstream."
+ *
+ * So the page renders **only what an authoritative document actually states**:
+ *
+ *   · its name — the locked nav label, not new copy;
+ *   · the practice statement slot — IA §2.5's responsibility. PENDING (C),
+ *     absent while empty;
+ *   · the EU-funding context slot — IA Step 7 / #45 assign it here. PENDING
+ *     (C + governance: the programme's publicity rules are an open question);
+ *   · three onward paths of equal weight to Work, Services and Contact —
+ *     IA Step 7 / #47, and "no dominant CTA" is why they are three equal text
+ *     links and not a hero button.
+ *
+ * And it renders **nothing else**. No biography, no founding year, no studio
+ * history, no client list, no awards, no team, no photograph, no counts, no
+ * "years of experience", no address or response-time promise. Every one of those
+ * would be a fabricated claim about a real person, which is what §10.4 forbids
+ * for a point count and forbids far more strongly here. The nearest authored
+ * material — `PROJECT_CONTEXT.md` — is an internal brief written *about* the
+ * project, not published copy, and repurposing it as public prose would put
+ * words in the owner's mouth.
+ *
+ * **Rhythm.** No `about` set exists and none is added — inventing pacing values
+ * is the redesign `tokens.css` warns against. The page composes with
+ * `rhythm="service"`, the same borrow and the same reasoning Contact used for
+ * the same reason: a single editorial column with generous pacing. Swapping to
+ * an authored set later is one prop.
+ *
+ * **What remains.** Until C authors the statement and the funding narrative, and
+ * until an About Page IA exists, this page resolves and orients but does not yet
+ * build trust — it cannot. That is reported as the outstanding item, not papered
+ * over. The fix is a message-file edit plus, ideally, an upstream Page IA; no
+ * component here needs to change.
+ *
+ * **No CMS schema.** `studio/schemaTypes/index.ts` holds "two documents and one
+ * reference list", and nothing upstream requires About content to be
+ * CMS-managed — IA Step 7 types it "Standalone". Adding an `about` document type
+ * would be a Workstream B schema change made on no authority.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ViewTransition from '../ViewTransition.astro';
+
+import type { Locale } from '../../lib/content';
+import { aboutMessages } from '../../lib/i18n/about';
+import { routePath } from '../../lib/i18n/routes';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const copy = aboutMessages(locale);
+
+/**
+ * IA Step 7 names three, in this order, and gives none of them primacy. They are
+ * rendered as one set of equal text links — the structural expression of "no
+ * dominant CTA". Every destination is a real route from the frozen map.
+ */
+const onward = [
+  { href: routePath('workArchive', locale), label: copy.onward.work },
+  { href: routePath('services', locale), label: copy.onward.services },
+  { href: routePath('contact', locale), label: copy.onward.contact },
+];
+---
+
+<BaseLayout
+  locale={locale}
+  rhythm="service"
+  routeKey="about"
+  title={copy.meta.title}
+  description={copy.meta.description || undefined}
+>
+  <ViewTransition />
+
+  <section class="ab-page" aria-labelledby="ab-title">
+    <p class="ab-eyebrow eyebrow rv" data-rv="meta">{copy.eyebrow}</p>
+    <h1 id="ab-title" class="ab-title rv" data-rv="head">{copy.heading}</h1>
+
+    {/* PENDING (C). An empty slot renders no element — never a placeholder
+        sentence presented as the practice's own words. */}
+    {copy.statement && <p class="ab-statement rv" data-rv="meta">{copy.statement}</p>}
+
+    {
+      copy.funding && (
+        <p class="ab-funding rv" data-rv="meta">
+          {copy.funding}
+        </p>
+      )
+    }
+
+    {/* A content list, not a `<nav>` landmark. The Work Entry's W-7 and the
+        Service page's S-5 render their onward paths the same way: the page
+        already has one named navigation landmark in the header, and a second
+        unnamed one — unavoidable while `onward.label` is PENDING — would be a
+        landmark a screen-reader user cannot tell apart from it. */}
+    <div class="ab-onward rv" data-rv="meta">
+      {copy.onward.label && <h2 class="ab-onward-h eyebrow">{copy.onward.label}</h2>}
+      <ul class="ab-onward-list">
+        {
+          onward.map((path) => (
+            <li>
+              <a href={path.href}>
+                {path.label}
+                <span class="ar" aria-hidden="true">
+                  →
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+</BaseLayout>

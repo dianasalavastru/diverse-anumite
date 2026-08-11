@@ -50,9 +50,25 @@ interface Props {
   index: number;
   /** The continuation cue. Visual only; the row is already named by its text. */
   cta: string;
+  /**
+   * Presentation variant — media/caption treatment only, never a second
+   * responsibility (COMPONENT_INVENTORY.md §5: "variants, not new components";
+   * `WorkPreviewCard.astro` carries the same two-variant shape for the same
+   * reason).
+   *
+   *   `row`      the hub's H-3 step row — three columns across the full measure.
+   *              Unchanged, and the default, so the hub instance is untouched.
+   *   `compact`  the Services index, where two pillar columns share the width.
+   *              The same three readings — numeral, name, descriptor + cue — in
+   *              two columns instead of three, at tighter vertical pacing.
+   *
+   * The variant changes layout density only: same content, same link, same
+   * accessible name, same focus and hover behaviour.
+   */
+  variant?: 'row' | 'compact';
 }
 
-const { service, locale, href, index, cta } = Astro.props;
+const { service, locale, href, index, cta, variant = 'row' } = Astro.props;
 
 const name = localize(service.name, locale);
 /* One-line positioning (S-1). Optional in the contract, so its absence is a
@@ -60,7 +76,11 @@ const name = localize(service.name, locale);
 const positioning = localize(service.shortDescription, locale);
 ---
 
-<a class="svc-row" href={href} data-service-id={service._id}>
+<a
+  class:list={['svc-row', variant === 'compact' && 'svc-row--compact']}
+  href={href}
+  data-service-id={service._id}
+>
   <span class="n" aria-hidden="true">{String(index).padStart(2, '0')}</span>
   <span class="t">{name}</span>
   <span class="d">

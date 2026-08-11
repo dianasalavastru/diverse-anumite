@@ -17,10 +17,12 @@
   "//": "The Studio type-checks the shared content contract (validation rules, types, vocabularies) so the schema and the query layer cannot drift. Two files in that directory are excluded because they belong to the *web app's* program, not this one, and nothing here imports either.",
   "// node-shims.d.ts": "It declares a minimal `node:fs`/`node:child_process` for the web app's browser-typed program, and the Studio already has real `@types/node`. Two declarations of the same module collide.",
   "// build-source.ts": "It reads `import.meta.env`, which is Vite's build-time surface — typed by `astro/client` in the web app and absent here. The Studio has no build to resolve a `ContentSource` for; `astro check` is what covers this file.",
+  "// nav-routes.test.ts": "Same reason as build-source.ts, one surface over: it reads `import.meta.glob` to enumerate `src/pages/**`, which is Vite's own API and exists only inside the web app's program. The Studio has no pages to glob. `astro check` and `vitest` both cover this file where it actually runs.",
   "exclude": [
     "node_modules",
     "dist",
     "../src/lib/content/node-shims.d.ts",
-    "../src/lib/content/build-source.ts"
+    "../src/lib/content/build-source.ts",
+    "../src/lib/i18n/nav-routes.test.ts"
   ]
 }

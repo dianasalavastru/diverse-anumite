@@ -1,0 +1,353 @@
+---
+/**
+ * The Services index — `/servicii` · `/en/services`.
+ *
+ * OWNERSHIP: Workstream A.
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ *  WHY THIS PAGE EXISTS — AND WHY IT IS NOT AN INVENTION
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * It was built to close a 404 on a locked global-nav item, so the first duty of
+ * this header is to show that the page was *already specified* and simply never
+ * sequenced. Four independent authorities require it:
+ *
+ *   1. **IA §2.1 sitemap** — "`/servicii`  Services index — opens with the
+ *      two-pillar fork", with `/servicii/[serviciu]` nested beneath it.
+ *   2. **IA §2.5 page-type responsibilities** — "**Services Index** — orient &
+ *      route (forked by pillar); **task-oriented entry point** — forks directly
+ *      to grouped Service pages (the Pillar Hub is not a required stop).
+ *      *Not:* detail/sell; never a flat list."
+ *   3. **NAV_DECISION_RECORD.md §5(1)** — task-first global navigation is valid
+ *      "**only while all three hold**", the first being "Servicii and Proiecte
+ *      both expose the two pillars internally — each opens with a co-equal
+ *      pillar fork, never a flat mixed list." The page is therefore a
+ *      *precondition of the locked navigation model*, not an optional extra.
+ *   4. **COMPONENT_INVENTORY.md** — Service Preview Card, "*Appears on:* Hub
+ *      services overview (H-3), **Services index**." The component this page
+ *      composes was assigned to it before either was built.
+ *
+ * IA Step 6 (M1) adds the intent this page serves: "the **Services index** lets
+ * visitors who already know what they need browse grouped Service pages
+ * directly, without first passing through the Pillar Hub."
+ *
+ * ── NO PAGE IA, NO WIREFRAME, NO HiFi — AND WHAT THAT CONSTRAINS ──────────
+ * `PAGE_IA_INDEX.md` §2 covers **six** page types and the Services index is not
+ * among them; no `docs/pages/services-index/` exists. That is a real gap, and it
+ * is reported rather than filled here. Its consequence is a discipline, not a
+ * blocker: this page renders **only** what IA §2.5 and NAV §5(1) name — a fork
+ * by pillar, and grouped Service links — and nothing a Page IA would otherwise
+ * have decided. No hero, no statistics, no comparison, no editorial narrative,
+ * no per-service detail. IA §2.5's "*Not:* detail/sell" is the test each element
+ * had to pass.
+ *
+ * **Rhythm.** `tokens.css` has no `services-index` set, and its own note is that
+ * "a page type with no approved HiFi … has no rhythm set here and cannot be
+ * built until one is authored upstream." None is added — inventing pacing values
+ * is the redesign that note prevents. The page composes with `rhythm="pillar-hub"`,
+ * an existing authored set, because the hub is the page type this reads most
+ * like: an overview that groups Service Preview Cards under section markers.
+ * Contact set the same precedent for the same reason. Swapping to a dedicated
+ * set when one is authored is one prop.
+ *
+ * ── THE TAXONOMY IS THE AUTHORED ONE ──────────────────────────────────────
+ * Groups come from `PILLARS` (`types.ts`) and each Service's **authored**
+ * `pillar` field (IA §2.3, "Service → Pillar"). Pillar display names come from
+ * the single declaration in `vocabulary.ts`. Nothing here enumerates services,
+ * invents a group, or hardcodes a name — `CONTENT_MODEL.md` §2 makes Service a
+ * first-class object the owner authors without touching code, and §6 makes a new
+ * service "a new *value* or a new *Service object*, not a new hard-coded section".
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ *  PILLAR MEDIA — SOURCED FROM AN EXISTING CONTRACT, OR NOT AT ALL
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * The composition gives each pillar a visual area. No image is invented,
+ * downloaded, hardcoded or substituted for it, and no CMS field was added.
+ *
+ * **The precedent.** The site already has a co-equal two-pillar fork with
+ * per-pillar media: the Homepage's M-2. `Homepage.astro` sources it as "M-2's
+ * representative media: the leading curated work of each pillar" —
+ * `highlights(slot, pillar, locale)[0]`, then `Plate` renders `.cover`. This
+ * page does exactly that, one call and one fallback, with no new concept
+ * between them.
+ *
+ * **The slot.** `HIGHLIGHT_SLOTS` is a frozen two-value set — `homepage` and
+ * `pillar-hub` — and there is no `services-index` slot. Adding one would be a
+ * Workstream B schema change made to satisfy a layout, which is precisely what
+ * is forbidden. So the routes read `pillar-hub`: of the two, it is the slot
+ * whose meaning is "the work the owner curated to represent this pillar", which
+ * is what a pillar-level fork needs. That is a *reuse* of a slot authored for a
+ * neighbouring surface, and it is flagged in the report for B and the owner to
+ * ratify. If they decline, the plates fall back to their authored tone and no
+ * code changes.
+ *
+ * **What actually renders today.** The dataset currently contains **zero image
+ * assets** — no Service `hero`, no Work Entry `cover`, nothing. Three states
+ * therefore exist, in this precedence, and the box is the same size in all three:
+ *
+ *   1. a curated Sanity cover — production, and always wins;
+ *   2. under `DEV_VISUAL_MEDIA=true`, a temporary local visual-QA image from this
+ *      pillar's own pool (`lib/dev/visual-media.ts`). Never content, never
+ *      deployed — `verify-no-dev-media` fails the build that tries;
+ *   3. the authored plate with the measurement graticule — the site's existing
+ *      treatment for media that does not exist yet, not a placeholder pretending
+ *      to be a photograph.
+ *
+ * The composition is designed for state 1 and degrades to state 3 without moving
+ * a pixel of layout, which is what makes it safe to review under state 2. The
+ * missing media contract is reported separately rather than papered over.
+ *
+ * ── EMPTINESS, HONESTLY ───────────────────────────────────────────────────
+ * A pillar with no published Service in this locale renders **no group** — the
+ * precedent the hub's H-3 module set ("an empty Services overview would advertise
+ * an offering that has not been published; its absence advertises nothing"), and
+ * the reason COMPONENT_INVENTORY.md scopes the Empty State component to the Work
+ * Archive and the Service page and to nowhere else. With no services at all, the
+ * page renders its orientation and stops: no group scaffolding, no counter, no
+ * fabricated "coming soon" claim. The route still resolves, which is what the
+ * global nav requires of it.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Plate from '../media/Plate.astro';
+import ServicePreviewCard from '../ServicePreviewCard.astro';
+import ViewTransition from '../ViewTransition.astro';
+
+import { localize, PILLARS } from '../../lib/content';
+import type { Locale, Pillar, ServiceSummary, WorkEntrySummary } from '../../lib/content';
+/* DEVELOPMENT ONLY — the pool a pillar's box draws from. Returns a folder name and
+   nothing else; `Plate` consults the overlay only after real media has already failed,
+   and the overlay is inert without `DEV_VISUAL_MEDIA=true`. */
+import { devServicePool, devVisualImage } from '../../lib/dev/visual-media';
+import { routePath } from '../../lib/i18n/routes';
+import { servicesIndexMessages } from '../../lib/i18n/services-index';
+import { pillarLabel, pillarRouteKey } from '../../lib/i18n/vocabulary';
+
+interface Props {
+  locale: Locale;
+  /** Locale-scoped and curation-ordered by `ContentSource` before it arrives. */
+  services: readonly ServiceSummary[];
+  /**
+   * Representative media per pillar — the leading curated work of that pillar,
+   * or `null`. See the "PILLAR MEDIA" note in the header for where it comes
+   * from and why nothing new was authored to get it. `null` for both pillars is
+   * the state the dataset is in today and renders the authored plate.
+   */
+  media?: Readonly<Partial<Record<Pillar, WorkEntrySummary | null>>>;
+}
+
+const { locale, services, media = {} } = Astro.props;
+const copy = servicesIndexMessages(locale);
+
+/**
+ * The fork. `PILLARS` is the frozen order (`CONTENT_MODEL.md` §3: Architecture &
+ * Design, then Reality Capture) and IA §3.2 forbids structural primacy of either
+ * pillar — so the two groups are rendered identically, in the model's own order,
+ * with no featured slot and no difference in weight. "Co-equal" is the word
+ * NAV §5(1) uses.
+ *
+ * Both the slug and the name are required to publish in a locale
+ * (`validation.ts`), and `serviceSummaries` has already dropped anything
+ * unavailable here (§7.1, §11.2) — so the guards below are type guards, not
+ * expected states. A Service missing either is dropped rather than rendered as a
+ * dead row.
+ */
+const groups = PILLARS.map((pillar: Pillar) => ({
+  pillar,
+  label: pillarLabel(pillar, locale),
+  hubHref: routePath(pillarRouteKey(pillar) as never, locale, undefined as never),
+  cover: media[pillar]?.cover ?? null,
+  /**
+   * Whether the plate will end up **empty**, which is the only state the
+   * graticule belongs in.
+   *
+   * `Plate` resolves its own media in three steps — Sanity cover, then the
+   * visual-QA overlay, then the authored tone — and this component has to reach
+   * the same answer to decide whether to draw an overlay on top of it. So it
+   * asks the same function `Plate` asks, exactly as `ServicePage.astro` and
+   * `Orientation.astro` both call `devServiceHero` rather than each guessing:
+   * two components agreeing about one box is not optional, and the way to
+   * guarantee it is one shared call, not two expressions that can drift.
+   *
+   * `devVisualImage` returns `null` in every build that did not opt in, so
+   * without the flag this collapses to `cover === null` exactly as before.
+   */
+  empty:
+    (media[pillar]?.cover ?? null) === null &&
+    devVisualImage(devServicePool(pillar), `services-index:${pillar}`) === null,
+  entries: services
+    .filter((service) => service.pillar === pillar)
+    .map((service) => {
+      const slug = localize(service.slug, locale);
+      const name = localize(service.name, locale);
+      return slug && name ? { service, href: routePath('service', locale, slug) } : null;
+    })
+    .filter((entry): entry is NonNullable<typeof entry> => entry !== null),
+})).filter((group) => group.entries.length > 0);
+
+/**
+ * ── NO COORDINATE RAIL (corrected at the visual-QA pass) ──────────────────
+ * The first implementation rendered one, with a stop per group. It was removed,
+ * for two reasons that are both contract, not taste.
+ *
+ * **The rail's page set excludes index pages.** `CoordinateRail.astro`:
+ * "Present in HP, HUB, RC, WE and SV (**absent from WA**)", and `layout.css`
+ * repeats it. The one page type the rail is authored *out* of is the Work
+ * Archive — the browse/index surface. The Services index is that surface's
+ * sibling: IA §2.5 gives it "orient & route", the same router responsibility,
+ * and `WorkArchive.astro` accordingly carries no rail and no `SectionMarker`
+ * stations either. Contact, the other HiFi-less page, has no rail for the same
+ * reason. A rail here was inherited from borrowing the hub's rhythm, not from
+ * the rail's own contract.
+ *
+ * **It measured something that is not authored.** Every other rail indexes a
+ * fixed composition — the Work Entry's nine modules, the hub's six. This one's
+ * length changed with the dataset: four stops with both pillars published, three
+ * with one, two with none. A scale whose divisions depend on how much content an
+ * editor happened to publish is not a measurement, and it implied an authored
+ * structure this page does not have. MOTION_NOTES.md gives the rail a job —
+ * tracking the active station — and there is no authored station sequence here
+ * for it to track.
+ *
+ * The `data-station` attributes went with it: they exist only for the rail
+ * tracker, and annotating nothing is worse than annotating nothing visibly. The
+ * header's settle-to-solid is in the same runtime block but is guarded
+ * separately, so it is unaffected.
+ */
+---
+
+<BaseLayout
+  locale={locale}
+  rhythm="pillar-hub"
+  routeKey="services"
+  title={copy.meta.title}
+  description={copy.meta.description || undefined}
+>
+  <ViewTransition />
+
+  {/* The masthead. Compact by construction: a label, the page's question, and
+      the framing line if C has authored one. Nothing is reserved for content
+      that does not exist. */}
+  <section class="si-masthead" aria-labelledby="si-title">
+    <p class="si-eyebrow eyebrow rv" data-rv="meta">{copy.eyebrow}</p>
+    <h1 id="si-title" class="si-title rv" data-rv="head">{copy.heading}</h1>
+    {copy.intro && <p class="si-intro rv" data-rv="meta">{copy.intro}</p>}
+    {
+      groups.length === 0 && copy.empty && (
+        <p class="si-empty rv" data-rv="meta">
+          {copy.empty}
+        </p>
+      )
+    }
+  </section>
+
+  {/* The fork itself — one grid, two cells, so the two pillars are read
+      together rather than one after the other. NAV §5(1) asks for "a co-equal
+      pillar fork"; side by side is the composition that states it, and the
+      Homepage's own M-2 fork is likewise a single grid holding both. */}
+  {
+    groups.length > 0 && (
+      <div class="si-fork">
+        {groups.map((group, index) => (
+          <section
+            class="si-group"
+            data-pillar={group.pillar}
+            aria-labelledby={`si-${group.pillar}`}
+          >
+            {/* ── THE PILLAR IS A HEADING, NOT A LABEL ────────────────────
+                Composed here rather than with `SectionMarker`. The Marker's job
+                is "labels one section" and its `.lbl` is the 11px mono label
+                voice — correct where a section is *annotated*, wrong where the
+                name IS the page's second-level hierarchy. On a two-cell fork the
+                pillar name is the thing the visitor chooses between, so it takes
+                the pixel display voice the site already gives every page-level
+                name (`.wa-intro h1`, `.hub-arrival-lead h1`, `.si-title`), one
+                step down from the page's own `<h1>`. No new voice, no new scale
+                — the same `var(--pixel)` display role at a smaller clamp.
+
+                The numeral stays blue and technical, above the name: the
+                homepage's M-2 numbers its two co-equal capabilities the same way
+                (`.cap .cnum`), and IA §3.2 allows an editorial order while
+                forbidding structural primacy. Both cells render on one identical
+                rule, so the order is a sequence and never an emphasis. The name
+                wraps naturally at the column measure — it is never split by hand,
+                because the label has exactly one declaration in `vocabulary.ts`. */}
+            <p class="si-num" aria-hidden="true">
+              {String(index + 1).padStart(2, '0')}
+            </p>
+            <h2 class="si-pillar rv" data-rv="head" id={`si-${group.pillar}`}>
+              {group.label}
+            </h2>
+
+            {/* PILLAR MEDIA — a substantial region, at a fixed ratio, whatever
+                fills it. `Plate` paints the curated cover when the CMS holds one;
+                failing that, and only under `DEV_VISUAL_MEDIA`, the visual-QA
+                overlay paints a temporary local image drawn from this pillar's
+                own pool; failing both, the authored plate stays. **The geometry
+                is identical in all three states** — the ratio is on this frame,
+                not on the image — so the composition never collapses when a
+                photograph is absent and never reflows when one arrives.
+
+                The graticule is drawn only over the empty plate: it marks the
+                box as instrument ground rather than as a missing asset, and
+                laying it over a photograph would be an overlay neither HiFi
+                authors outside Reality Capture.
+
+                Decorative and inert throughout — the pillar is already named by
+                the heading above it, so the plate repeats nothing into the
+                accessible tree. */}
+            <div class="si-plate rv" data-rv="img">
+              {/* `priority`, i.e. `loading="eager"` + `fetchpriority="high"`.
+                  Both pillar plates sit in the first viewport at every desktop
+                  size — they are this page's LCP candidates and the whole point
+                  of the composition. `Plate`'s default is `loading="lazy"`,
+                  which is right for a card in a long archive and wrong here: it
+                  left the second plate blank for the first seconds of a page
+                  whose acceptance criterion is that both photographs are visible
+                  without scrolling. Two images, both primary content — the same
+                  call the Homepage's hero and the Work Entry's hero already make. */}
+              <Plate
+                image={group.cover}
+                locale={locale}
+                tone="var(--paper)"
+                priority
+                devKey={`services-index:${group.pillar}`}
+                devPool={devServicePool(group.pillar)}
+              />
+              {group.empty && <span class="si-gridlay" aria-hidden="true" />}
+            </div>
+
+            <div class="si-rows">
+              {group.entries.map((entry, position) => (
+                <div class="rv" data-rv="meta">
+                  <ServicePreviewCard
+                    service={entry.service}
+                    locale={locale}
+                    href={entry.href}
+                    index={position + 1}
+                    cta={copy.cta}
+                    variant="compact"
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Secondary, deliberately: NAV §5(2) keeps hubs "reachable and
+                cross-linked" outside the global nav, while IA Step 6 (M1) keeps
+                the hub off the Services task flow's critical path. It closes the
+                cell, in the navigation voice, below the direct Service access it
+                must not compete with. */}
+            <p class="si-hub rv" data-rv="meta">
+              <a href={group.hubHref}>
+                {copy.hub.replace('{pillar}', group.label)}
+                <span class="ar" aria-hidden="true">
+                  →
+                </span>
+              </a>
+            </p>
+          </section>
+        ))}
+      </div>
+    )
+  }
+</BaseLayout>

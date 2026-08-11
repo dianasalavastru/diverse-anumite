@@ -1,0 +1,307 @@
+/* =============================================================================
+   services-index.css — the Services index composition.
+
+   AUTHORITY: there is **no HiFi for this page type** (`PAGE_IA_INDEX.md` covers
+   six page types and the Services index is not one of them). So nothing here is
+   transcribed from an approved HiFi, and nothing here is invented either: every
+   value is an existing token, or a rule already authored for a neighbouring page
+   whose source is named at the point of reuse.
+
+   VISUAL_DIRECTION_v2.0 §12 principle 10, "Consistency in system, variety in
+   composition", is the licence for that reuse; COMPONENT_INVENTORY.md §7 is the
+   constraint on inventing instead ("Prefer extending an existing component over
+   creating a new one").
+
+   ── THE DENSITY PASS ──────────────────────────────────────────────────────
+   The first build stacked the two pillars vertically under a masthead sized for a
+   page with a hero. It was correct and far too tall: ~300px of void above a
+   two-line masthead, a doubled section beat below it, and one full screen of
+   scrolling per pillar for three rows of text.
+
+   The composition is now a **compact masthead over a two-column fork**, so both
+   pillars are read together — which is also what NAV §5(1)'s "co-equal pillar
+   fork" describes, and how the Homepage's own M-2 fork is built (one grid holding
+   both capabilities, not one after the other). Rows use the Service Preview
+   Card's `compact` variant. Nothing about the page's IA, content or routing
+   changed; only how much screen it takes to read.
+
+   ── PALETTE ───────────────────────────────────────────────────────────────
+   White ground, ink text, hairline rules, blue as the single accent — the
+   existing palette, unchanged. The reference mockup's warm panels and tinted
+   backgrounds are deliberately **not** carried over: the reference governs
+   density, hierarchy, rhythm and media placement only. The one warm value used is
+   `#f1ede6`, which is the existing `--hair-2` token and is the authored plate
+   tone the site already paints under absent photography.
+   ========================================================================== */
+
+/* ---- Masthead ------------------------------------------------------------
+   IA §2.5: this page "orients & routes". The opening is a label, the question
+   the page answers, and the framing line if C has authored one — no hero, no
+   lead image, no statistic.
+
+   ── THE OPENING IS THIS PAGE'S OWN, NOT A BORROWED ONE ───────────────────
+   Two earlier passes took the opening beat from other pages: first `--pad-quiet`
+   (the hub's, sized for a 132px heading over a 660px media plate), then
+   `clamp(96px, 13vh, 150px)` (the Work Archive's, via `.c-intro`). Both left
+   more air above the masthead than this page earns.
+
+   The reuse rule is "consistency in system, variety in composition"
+   (VISUAL_DIRECTION_v2.0 §12 principle 10) — the *system* is the token
+   vocabulary and the type roles, not one page's vertical rhythm. An index whose
+   entire job is to route should not inherit the pacing of a page that opens on
+   an editorial hero. The value below clears the fixed header and adds one small
+   beat, and nothing more: the fork starts within the first screen at every
+   desktop size.
+
+   Nothing else changed — the roles, the voices and the tokens are the same. */
+
+.si-masthead {
+  padding-block: calc(var(--header-h) + clamp(22px, 3.2vh, 40px)) clamp(18px, 2.2vh, 28px);
+}
+
+/* Blue, as the page-opening kicker is on every page that has one — `.wa-intro
+   .kick` and `.hub-arrival-lead .eyebrow` are both blue. VISUAL_DIRECTION_v2.0
+   §2.1 scopes blue to activation and measurement, and this is the same
+   orientation role those two carry, not a new use. */
+.si-eyebrow {
+  color: var(--blue);
+  margin-block-end: 14px;
+}
+
+/* Transcribed from `.wa-intro h1`, not from the hub's `clamp(46px, 8.5vw,
+   132px)`. The archive is this page's structural sibling — both are indexes
+   under the fixed header — and the hub's larger scale belongs to a page that
+   opens on a capability statement over media. */
+.si-title {
+  font-family: var(--pixel);
+  font-weight: 500;
+  font-size: clamp(36px, 5.4vw, 78px);
+  line-height: 0.94;
+  letter-spacing: 0.01em;
+  max-width: 22ch;
+}
+
+.si-intro {
+  margin-block-start: 18px;
+  font-size: clamp(15px, 1.4vw, 18px);
+  line-height: 1.55;
+  max-width: 52ch;
+  color: var(--ink-60);
+}
+
+/* The zero-services state. Prose in the supporting voice — no grid, no counter,
+   no placeholder row standing in for an offering that is not published. */
+.si-empty {
+  margin-block-start: clamp(26px, 3.5vh, 40px);
+  border-block-start: 1px solid var(--hair);
+  padding-block-start: clamp(20px, 2.6vh, 28px);
+  font-size: clamp(16px, 1.6vw, 19px);
+  line-height: 1.55;
+  max-width: 46ch;
+  color: var(--ink-60);
+}
+
+/* ---- The fork ------------------------------------------------------------
+   NAV_DECISION_RECORD.md §5(1): "a co-equal pillar fork, never a flat mixed
+   list." Co-equality is enforced structurally: one grid, two equal tracks, one
+   rule for both cells — no `:first-child` emphasis, no featured treatment, no
+   size or order weighting. IA §3.2 ("no structural primacy of either pillar") is
+   why that matters, and it is verifiable rather than asserted: diffing the two
+   cells' computed styles yields no difference.
+
+   Collapses to one column at 900px, which is where `layout.css` already hides the
+   coordinate rail — the same breakpoint the rest of the site treats as the end of
+   the wide composition. */
+
+.si-fork {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(24px, 3vw, 48px);
+  padding-block-end: var(--pad-loud);
+}
+
+@media (max-width: 900px) {
+  .si-fork {
+    grid-template-columns: 1fr;
+    gap: clamp(36px, 6vh, 56px);
+  }
+}
+
+/* Each cell is framed by a hairline, not filled. VISUAL_DIRECTION_v2.0 §12
+   forbids the panel-and-fill idiom the reference mockup uses; a hairline frame is
+   the site's own way of bounding a region (`.smark`, `.svc-row`, `.si-rows`, the
+   footer rules) and keeps the ground white. */
+/* Each cell is opened by a full-strength rule, not filled. VISUAL_DIRECTION_v2.0
+   §12 forbids the panel-and-fill idiom the reference mockup uses; a rule is the
+   site's own way of opening a region (`.hub-service-rows`, `.sv-conversion`,
+   `.objs`) and keeps the ground white. `--ink` rather than `--hair` because this
+   rule opens the page's second-level hierarchy — the hairlines below it separate
+   the rows *within* a pillar, and the two must not read at the same weight. */
+.si-group {
+  display: flex;
+  flex-direction: column;
+  border-block-start: 1px solid var(--ink);
+  padding-block-start: clamp(14px, 1.8vh, 20px);
+}
+
+/* ---- Pillar identity ---------------------------------------------------
+   The numeral is the technical coordinate — blue, mono, small — and the name is
+   the heading it introduces. Same pairing as the homepage's `.cap .cnum` over
+   `.cap .cname`, at this page's scale. */
+
+.si-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--blue);
+  margin-block-end: 8px;
+}
+
+/* The pixel display voice, one step below the page `<h1>`: `.si-title` runs
+   `clamp(36px, 5.4vw, 78px)` across the full measure, and this runs at roughly
+   half the width, so it clamps against the *column* rather than the viewport.
+   No new voice and no new scale — the same role every page-level name already
+   uses (VISUAL_DIRECTION_v2.0 §2.5, §10). `max-width` in `ch` lets a two-word
+   pillar break naturally at the measure; the label is never split by hand. */
+.si-pillar {
+  font-family: var(--pixel);
+  font-weight: 500;
+  font-size: clamp(26px, 2.9vw, 46px);
+  line-height: 0.96;
+  letter-spacing: 0.01em;
+  max-width: 14ch;
+  margin-block-end: clamp(16px, 2vh, 24px);
+}
+
+/* ---- Pillar media ------------------------------------------------------
+   The frame is authored; the photograph is not (see ServicesIndexPage.astro).
+   `Plate` fills it with the curated cover when one exists and with the plate tone
+   when it does not, and the graticule marks the empty state as measurement rather
+   than as a missing asset. */
+
+/* ── A REGION, NOT A BAND ─────────────────────────────────────────────────
+   An earlier pass capped this at ~150px because the dataset held no photography
+   and a large empty frame was decoration. That reasoning is now retired: the
+   visual-QA overlay populates these boxes, real Sanity media will populate them,
+   and the page has to be composed for the state it is designed to reach rather
+   than the state its test data happens to be in.
+
+   `aspect-ratio` on the FRAME, not on the image, is what keeps the promise that
+   the layout does not collapse without a photograph: the box occupies the same
+   space when it holds a Sanity cover, when it holds a temporary visual-QA image,
+   and when it holds neither. Nothing reflows when media arrives.
+
+   16/9 rather than 3/2: at a half-measure column 3/2 would be ~410px and push
+   the Service list out of the first screen, which is the failure this whole pass
+   exists to correct. 16/9 is also the ratio the site already uses for its wide
+   media boxes.
+
+   The ground stays `--paper` and the empty state is the blue graticule over
+   white inside a hairline — the site's own instrument ground. The reference
+   mockup's tinted panel is deliberately not carried over. */
+.si-plate {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--paper);
+  border: 1px solid var(--hair);
+  margin-block-end: clamp(18px, 2.4vh, 26px);
+}
+
+.si-plate .plate-img,
+.si-plate .plate-fixture {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The grade sits on the MEDIA, never on the frame — the distinction
+   `pillar-hub.css` records, because `filter` applies to a whole subtree and would
+   desaturate the blue graticule with it. */
+.si-plate .plate-img {
+  filter: grayscale(0.5) contrast(1.05);
+}
+
+/* Transcribed from `.gridlay` (pillar-hub.css), at the same 44px pitch and the
+   same `--blue-08`. It is the measurement treatment both hubs already use, and it
+   is the reason the empty plate reads as instrument ground rather than as a grey
+   rectangle. Decorative and inert. */
+.si-gridlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--blue-08) 1px, transparent 1px),
+    linear-gradient(90deg, var(--blue-08) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+/* ---- The Service set ---------------------------------------------------
+   Transcribed from `.hub-service-rows`, which frames the identical set of
+   `.svc-row`s on the hub: "The HiFi's `.steps` frame: a full-strength rule opens
+   the set, hairlines separate the rows." `margin-block-end: auto` lets the hub
+   continuation sit at the foot of the cell, so two cells with different numbers
+   of services still align their closing links. */
+
+/* `--hair`, not `--ink`: the cell's own opening rule above is the full-strength
+   one, and the list is subordinate to the pillar it belongs to. Two rules of
+   equal weight in one cell would flatten the hierarchy this pass exists to
+   build. */
+.si-rows {
+  border-block-start: 1px solid var(--hair);
+  margin-block-end: auto;
+}
+
+.si-rows > div:last-child .svc-row {
+  border-block-end: 1px solid var(--hair);
+}
+
+/* ---- Hub continuation --------------------------------------------------
+   The navigation voice, deliberately below the direct Service access it must not
+   compete with (IA Step 6 M1: the hub is not a mandatory stop). */
+
+.si-hub {
+  margin-block-start: clamp(18px, 2.4vh, 26px);
+}
+
+/* WCAG 2.2 AA, SC 2.5.8 (Target Size — Minimum): the target box must be at least
+   24 × 24 CSS px. As a bare 12px mono link this measured ≈18px tall — the same
+   6px shortfall `.hub-quiet` documents for the About link, and none of the
+   standard exceptions applies here either. The box is grown, not the type:
+   `line-height: 1` makes the text box exactly the font size so the height is
+   deterministic, and the flex centring distributes the remainder. */
+.si-hub a {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 24px;
+  line-height: 1;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-60);
+}
+
+.si-hub .ar {
+  color: var(--blue);
+  display: inline-block;
+  transition: transform var(--t-state) var(--slow);
+}
+
+.si-hub a:hover,
+.si-hub a:focus-visible {
+  color: var(--blue);
+}
+
+.si-hub a:hover .ar,
+.si-hub a:focus-visible .ar {
+  transform: translateX(6px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .si-hub .ar {
+    transition: none;
+  }
+}

@@ -1,0 +1,33 @@
+---
+/**
+ * `/en/services` — the English Services index (locale route map §11.1, EN
+ * segments approved by OD-2 / `DECISIONS_LOG.md` #77).
+ *
+ * `serviceSummaries('en')` applies the §7.1 EN gate before anything reaches the
+ * composition, so a Service that is not EN-published — or that carries no EN
+ * slug — never appears in this index and never gets a link to a page §11.2
+ * guarantees does not exist. The RO index and the EN index can therefore differ
+ * in content while sharing one composition, which is the intended behaviour, not
+ * a discrepancy.
+ */
+import ServicesIndexPage from '../../../components/services-index/ServicesIndexPage.astro';
+import { contentSource } from '../../../lib/content/build-source';
+
+/* ── I-3 — live Sanity, no fixture fallback ────────────────────────────────── */
+const source = contentSource();
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+const [services, architecture, realityCapture] = await Promise.all([
+  source.serviceSummaries('en'),
+  source.highlights('pillar-hub', 'architecture-design', 'en'),
+  source.highlights('pillar-hub', 'reality-capture', 'en'),
+]);
+
+/** Locale-scoped by the source, so an untranslated entry cannot supply EN media. */
+const media = {
+  'architecture-design': architecture[0] ?? null,
+  'reality-capture': realityCapture[0] ?? null,
+};
+---
+
+<ServicesIndexPage locale="en" services={services} media={media} />
