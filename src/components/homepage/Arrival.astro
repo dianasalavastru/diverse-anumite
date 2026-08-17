@@ -53,7 +53,7 @@ const caption = [copy.heroIndex, heroTitle].filter(Boolean).join(' · ');
    one, so the opening frame matches that project's card elsewhere on the page. */
 const devKey = hero ? `${hero._id}:home-hero` : 'homepage:hero';
 const devPool = hero
-  ? poolForPillar(hero.pillars.primary, hero.pillars.secondary, devKey)
+  ? poolForPillar(hero.pillar, devKey)
   : 'architecture';
 ---
 

@@ -108,22 +108,29 @@ describe('deterministic selection', () => {
 
 describe('pool routing', () => {
   it('sends each pillar to its own pool', () => {
-    expect(poolForPillar('architecture-design', [])).toBe('architecture');
-    expect(poolForPillar('reality-capture', [])).toBe('reality-capture');
+    expect(poolForPillar('architecture-design')).toBe('architecture');
+    expect(poolForPillar('reality-capture')).toBe('reality-capture');
   });
 
-  it('routes a cross-pillar entry deterministically to one of the two relevant pools', () => {
-    const key = 'da-test-i4-work-cross:card';
-    const pool = poolForPillar('architecture-design', ['reality-capture'], key);
-    expect(['architecture', 'reality-capture']).toContain(pool);
-    expect(poolForPillar('architecture-design', ['reality-capture'], key)).toBe(pool);
+  /*
+   * STAGE 5 replaces the cross-pillar routing case. A project has one authored Pillar, so the
+   * "belongs to both, pick deterministically" branch is unreachable and the parameter it needed
+   * is gone. What remains worth asserting is that routing is total and stable.
+   */
+  it('routes every pillar to a real pool, stably', () => {
+    for (const pillar of ['architecture-design', 'reality-capture'] as const) {
+      const pool = poolForPillar(pillar, 'da-test:card');
+      expect(['architecture', 'reality-capture']).toContain(pool);
+      expect(poolForPillar(pillar, 'da-test:card')).toBe(pool);
+    }
   });
 
   it('never routes a project surface to the general pool', () => {
     // `general/` is for surfaces that claim nothing about a pillar — the homepage credibility
     // figure. A Work Entry must never draw from it, or a Reality Capture card could show an
     // interior photograph.
-    expect(poolForPillar('architecture-design', ['reality-capture'], 'a')).not.toBe('general');
+    expect(poolForPillar('architecture-design', 'a')).not.toBe('general');
+    expect(poolForPillar('reality-capture', 'a')).not.toBe('general');
     expect(devServicePool('architecture-design')).not.toBe('general');
   });
 

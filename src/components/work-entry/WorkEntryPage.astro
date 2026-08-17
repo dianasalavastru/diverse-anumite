@@ -208,7 +208,7 @@ const seoDescription = localize(entry.seo.description, locale) ?? undefined;
         <SectionMarker copy={copy.markers.related} heading id="we-related-h" />
         <RelatedWork
           related={entry.relatedWork}
-          pillar={entry.pillars.primary}
+          pillar={entry.pillar}
           locale={locale}
           copy={copy}
         />
@@ -222,7 +222,7 @@ const seoDescription = localize(entry.seo.description, locale) ?? undefined;
     aria-labelledby="we-onward-h"
   >
     <SectionMarker copy={copy.markers.onward} heading id="we-onward-h" />
-    <Onward pillar={entry.pillars.primary} locale={locale} copy={copy} />
+    <Onward pillar={entry.pillar} locale={locale} copy={copy} />
   </section>
 
   {/* One Media Viewer per page, shared by every inspectable gallery item. It is

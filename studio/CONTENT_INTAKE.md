@@ -32,45 +32,96 @@ layer already returns the frozen shape from that dataset.
 
 ---
 
-## 2. What C needs per Work Entry
+## 2. What C needs per project
+
+> **⚠ REWRITTEN 2026-08-13, updated 2026-08-14 for `docs/product/CONTENT_MODEL.md` v3.1 (CLIENT-VALIDATED).**
+> Discipline ("field of work") and Entry Type ("kind of project") are **removed from the model**, and so
+> are **Attribution ("whose work it is"), Office/Employer, Roles ("what you did") and the Credit
+> statement** — crediting is now just **Colaboratori** and **Echipă**. The Studio
+> schema does **not yet** implement v3.0 — see `docs/product/PROJECT_MODEL_IMPACT.md` §2 for the
+> sequencing. **Intake must not start against the old schema**, or every entry authored will need
+> re-classifying by hand. The table below is what the Studio will ask for, and the checklist C
+> should collect material against in the meantime.
 
 This is the intake form. Everything on it maps to exactly one field group in the Studio, and the
 group names below are the tab names the editor sees.
 
-### Required — the entry cannot be published without them
+### Always required — both pillars
 
-| What | Studio location | Why it is required |
+| What | Why it is required |
+| --- | --- |
+| **Capability (Pillar)** — Arhitectura & Design *or* Reality Capture | exactly one; it decides which Services may be chosen (v3.0 §2) |
+| **Services** — one or more, from the chosen capability | mandatory, multi-select; **they decide which other fields are required** (v3.0 §5, §7) |
+| **Sector** — **exactly one** of the seven | mandatory, single-select; classification and filtering only, never activates a field (v3.1 §11.1). Genuinely mixed projects use *Mixed-use & dezvoltări* |
+| Romanian title | root locale (§11.1) |
+| Romanian URL slug | the route (§11.1). Lowercase, hyphenated, ASCII — OD-8 authors RO without diacritics |
+| Year | sorts the archive (IA Step 5) |
+| Status | **În dezvoltare · În desfășurare · Finalizat · Nerealizat** — one value, both capabilities |
+| Client | required in both pillars under v3.0 |
+| Cover image + Romanian alt text | required in both pillars under v3.0 |
+| Gallery | required in both pillars under v3.0 |
+
+### Required by capability
+
+| What | Arhitectura & Design | Reality Capture |
 | --- | --- | --- |
-| Romanian title | Name & address → Title | root locale (§11.1) |
-| Romanian URL slug | Name & address → URL slug → Romanian | the route (§11.1). Lowercase, hyphenated, ASCII — OD-8 authors RO without diacritics |
-| Main field of work | What it is → Field of work → Main field | **Pillar is derived from this** (§7.4) and is never typed in |
-| Kind of project | What it is → Kind of project → Mainly | drives the detail layout (`CONTENT_MODEL.md` §3) |
-| Whose work it is | Credit → Whose work is it | Independent · Collaboration · Studio |
-| How it came about | Credit → How it came about | self-initiated vs client-commissioned |
-| Year | Facts → Year | sorts the archive (IA Step 5) |
-| Status | Facts → Status | Built/Realized · Unbuilt/Proposal · In progress · Delivered |
+| **Description** | **required** | **optional** — deliberate, client-validated (v3.0 §6) |
+| Collaborators · Team | optional base fields | not base fields; may be activated as optional by a Service |
+
+**Crediting is Colaboratori and Echipa, and nothing else.** An office, a co-author or a partner
+practice is named in one of those two lists. There is no "whose work it is", no Office field, no
+"what you did" list and no Credit statement — all four are retired (v3.1 §12).
+
+### Required by the Services chosen — the merge rule
+
+Requirements from several Services are **additive**, and the strongest wins:
+**MANDATORY > OPTIONAL > NOT APPLICABLE.** One field on the project, however many Services ask for it.
+
+| If the project has this Service | it must also carry |
+| --- | --- |
+| Proiectare de arhitectura | **Location**, **Area** (Awards optional) |
+| Design interior | **Location**, **Area** (Awards optional) |
+| Vizualizare 3D | Location (optional) |
+| Design mobilier | **Implementation company** |
+| Scanare laser 3D | **Equipment**, **Location**, **Area** |
+| Scan-to-BIM | **Location**, **Area** (Collaborators, Team optional) |
+| Fotografie de arhitectura | **Equipment**, **Location** |
+| Vizualizare de arhitectura | Location, Collaborators, Team (all optional) |
+
+*Example:* Design interior + Design mobilier ⇒ Location **and** Area **and** Implementation company
+are all required; Awards stays optional.
 
 ### Conditionally required — the Studio blocks publication without them
 
 | When | Also required |
 | --- | --- |
-| Whose work it is = **Studio** | an **Office** (Credit → Office) *and* a Credit statement. Professional Experience groups by the Office (IA §5.1) |
-| Whose work it is = **Collaboration** | a Credit statement |
-| Kind of project = **Visualization Commission** | a Credit statement — the images are yours, the building design is not (`CONTENT_MODEL.md`:60) |
 | **Published in English** is on | an English title **and** an English slug. Otherwise no EN page is generated at all (§11.2) |
 | A point cloud is attached | **Cleared to publish the point cloud** must be on, and a poster image must exist (§19.4, §10.2) |
 
-### Strongly wanted — warnings, never blockers
+There are no other conditional rules. The Studio/Collaboration credit-statement rules that used to
+sit here are **gone with the fields they policed** (v3.1).
 
-Cover image + Romanian alt text · Description (RO, and EN if publishing in English) · Location ·
-Sector · What you did (roles) · Services this demonstrates · Related projects · Point count, when a
-point cloud is published (never estimated — §10.4).
+### Optional everywhere
+
+**Labels** — CONCURS · PROIECT DE DIPLOMA. Any combination, including both or neither. A Label never
+changes which fields are required. Related projects · Point count, when a point cloud is published
+(never estimated — §10.4).
 
 ### Deliberately absent
 
-**Pillar.** It is derived from the field of work and shown read-only under each project's name in
-the Studio list. If it reads wrong, the field of work is wrong — the pillar is not editable
-(§7.4).
+**Discipline ("field of work") and Entry Type ("kind of project")** — removed (v3.0 §12). A
+competition is now a **Label** on a project that still declares its real Services, not a kind of
+project.
+
+**"Whose work it is" (Attribution), Office, "What you did" (Roles) and the Credit statement
+(Authorship)** — removed (v3.1 §12). Do not collect material for them.
+
+**Drone photogrammetry is not a Service.** It describes the practice's capability and appears in
+older briefs on that basis, but it is not selectable and no project may be tagged with it. The
+Reality Capture list is exactly the four services above.
+
+**Vizualizare 3D and Vizualizare de arhitectura are two different services**, deliberately — one
+under each capability. The similar names are intentional; pick by the project's capability.
 
 ---
 
@@ -79,31 +130,33 @@ the Studio list. If it reads wrong, the field of work is wrong — the pillar is
 The reference graph only points one way, so entering content in this order means never revisiting a
 document to add a link:
 
-1. **Offices** (if any Studio-attributed work is coming). Created from inside a project's Credit
-   tab — they are absent from the global "create new" menu by design.
-2. **Services.** They are referenced by Work Entries, so they must exist first. A Service with zero
+1. **Services.** They are referenced by Work Entries, so they must exist first. A Service with zero
    demonstrating projects is a **fully publishable state** (IA Step 6, F5): the page shows an
    editorial note and a contact prompt, never an empty grid. Do not hold a Service back waiting for
    proof.
-3. **Work Entries**, Romanian first, all five before any English.
-4. **Links** — `Services this demonstrates` and `Related projects`, once every target exists. The
+2. **Projects**, Romanian first, all five before any English.
+3. **Links** — `Services this demonstrates` and `Related projects`, once every target exists. The
    Work Entry stores the Service reference and the Service page derives its proof list by reversing
    it (`DECISIONS_LOG.md` #38). C never edits the link from the Service side; there is no field for
    it.
-5. **Curation** — Emphasis & order. Placements, priority and size. This is the layer that decides
+4. **Curation** — Emphasis & order. Placements, priority and size. This is the layer that decides
    what the homepage shows, and it is independent of taxonomy: re-curating never re-classifies
    (`CONTENT_MODEL.md` §4).
-6. **English**, per entry, last. Turn on *Published in English* only once the English title, slug
+5. **English**, per entry, last. Turn on *Published in English* only once the English title, slug
    and body exist.
 
 ## 4. The I-4 coverage requirement
 
 §23.4 does not ask for five arbitrary entries. The set must include:
 
-- [ ] one **cross-pillar** entry — a second field of work whose pillar differs from the first, so
-      Pillar derivation is exercised in both directions;
-- [ ] one **Studio-attributed** entry with an Office and a scoped Credit statement, so the Credits
-      Block and Professional Experience grouping are exercised;
+- [ ] **one project per capability, and one pair of *linked* projects across the two capabilities** —
+      v3.0 removes cross-pillar entries, so the pair exercises the related-projects relationship that
+      replaced them;
+- [ ] one project with **two or more Services whose field requirements collide** (e.g. Vizualizare 3D
+      + Proiectare de arhitectura, where Location is optional for one and mandatory for the other),
+      so the MANDATORY > OPTIONAL merge rule is exercised against real content;
+- [ ] one entry carrying both **Colaboratori and Echipa**, so the Credits Block is exercised — and
+      one carrying neither, so its absence is exercised too;
 - [ ] at least two entries carrying **Emphasis → Priority** and a homepage placement, so discovery
       order has something to order;
 - [ ] at least one entry **not** published in English, so §11.2 is exercised against real content

@@ -1,5 +1,8 @@
 # `studio/` — the Sanity Studio
 
+> **⚠ 2026-08-13 — this file describes the schema/code as it is TODAY, which is the *superseded* v2.1 taxonomy.** `docs/product/CONTENT_MODEL.md` **v3.1** (CLIENT-VALIDATED) removes **Discipline**, **Entry Type / Project Type**, **Attribution**, **Employer**, **Roles**, **Authorship** and **Commissioning context**; makes **Pillar authored** rather than derived; makes **Services** mandatory and multi-select; and closes **Sector** and **Status** as mandatory single-select vocabularies. Nothing here has been changed yet — the migration is sequenced in `docs/product/PROJECT_MODEL_IMPACT.md` §2. Read that before touching any of this.
+
+
 **Owner: Workstream B (CMS / backend).** Per
 [`docs/implementation/TECHNICAL_ARCHITECTURE.md`](../docs/implementation/TECHNICAL_ARCHITECTURE.md)
 §23.3, `studio/**` is B's. It is a **separate application** with its own `package.json`,

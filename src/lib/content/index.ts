@@ -41,3 +41,7 @@ export * from './types.js';
 export * from './derive.js';
 export * from './order.js';
 export * from './validation.js';
+/* Pure data + one fold, added at migration Stage 1. It imports `types.js` and nothing else, so
+   it adds no edge to the import graph the rule above protects. Nothing consumes it yet; the
+   Studio and `normalize.ts` become its callers at Stage 8. */
+export * from './requirements.js';

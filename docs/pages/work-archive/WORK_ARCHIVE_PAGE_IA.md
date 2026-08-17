@@ -1,5 +1,7 @@
 # Work Archive Page IA — authoritative blueprint
 
+> **⚠ AMENDED 2026-08-13 — simplified project model.** `docs/product/CONTENT_MODEL.md` v3.0 (CLIENT-VALIDATED) removes **Discipline** and **Entry Type / Project Type**. The filter set at lines 99 and 173 is superseded: the shared filters are now **Sector + Label**, and **Service is the contextual refinement in both pillars**. Structure, routes and page responsibilities are unchanged. Impact inventory and sequencing: `docs/product/PROJECT_MODEL_IMPACT.md` — **do not change filters or schema from this document.**
+
 The Work Archive defined as an **information-architecture object** — the **canonical browse surface** of the Work model. **One archive**, exposed through a pillar scope, a small filter set, and curated views (editorial slices). Its responsibility is deliberately narrow and protected: help visitors **discover and browse** work — nothing more.
 
 Authoritative inputs (do not reopen or reinterpret): `HOMEPAGE_PAGE_IA.md`, `HUB_PAGE_IA.md`, `SERVICE_PAGE_IA.md`, `WORK_ENTRY_PAGE_IA.md`, `INFORMATION_ARCHITECTURE.md`, `CONTENT_MODEL.md` (frozen v2.1), `NAV_DECISION_RECORD.md`, `ARCHITECTURE_REVIEW_02.md`, `DECISIONS_LOG.md`.

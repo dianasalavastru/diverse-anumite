@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
  *
  * SCOPE DISCIPLINE. These tests assert only what Workstream A still decides.
  * Locale scoping, discovery order, pillar membership, placement filtering,
- * curated-view membership and employer grouping are Workstream B's shared
+ * curated-view membership is Workstream B's shared
  * contracts, covered by B's own suites — asserting them again here would fork
  * one contract into two places, which is the drift §7.1 exists to prevent.
  *
@@ -15,8 +15,7 @@ import { describe, expect, it } from 'vitest';
  */
 
 import { createFixtureContentSource } from '../../lib/content/fixtures';
-import { derivePillars } from '../../lib/content';
-import type { Curation, WorkArchiveItem, WorkEntry } from '../../lib/content';
+import type { Curation, Pillar, WorkArchiveItem, WorkEntry } from '../../lib/content';
 
 import { HIGHLIGHT_LIMIT, indexById, mountableDerivative, pointCloudSubject } from './highlights';
 
@@ -35,49 +34,39 @@ const curation = (overrides: Partial<Curation> = {}): Curation => ({
 
 function item(
   id: string,
-  pillar: 'architecture' | 'reality-capture' = 'architecture',
+  pillar: Pillar = 'architecture-design',
 ): WorkArchiveItem {
-  const discipline = { primary: pillar, secondary: [] } as const;
   return {
     _id: id,
     title: { ro: id, en: id },
     slug: { ro: id, en: id },
     enPublished: true,
-    pillars: derivePillars(discipline),
-    entryType: { primary: 'design-project', secondary: [] },
-    sectors: [],
+    pillar,
+    labels: [],
+    sector: 'cultural-patrimoniu',
     year: 2024,
-    status: 'built-realized',
+    status: 'finalizat',
     cover: null,
     curation: curation(),
-    discipline,
     services: [],
-    attribution: 'independent',
-    employer: null,
     location: { ro: 'Oras', en: 'City' },
+    galleryPreview: [],
   };
 }
 
 function entry(id: string, capture: WorkEntry['capture'], cleared: boolean): WorkEntry {
-  const discipline = { primary: 'reality-capture', secondary: [] } as const;
   return {
     _id: id,
     _type: 'workEntry',
     title: { ro: id, en: id },
     slug: { ro: id, en: id },
     enPublished: true,
-    discipline,
-    pillars: derivePillars(discipline),
-    entryType: { primary: 'survey-documentation', secondary: [] },
-    attribution: 'independent',
-    commissioning: 'client-commissioned',
-    employer: null,
-    sectors: [],
-    roles: null,
+    pillar: 'architecture-design',
+    labels: [],
+    sector: 'cultural-patrimoniu',
     services: [],
     relatedWork: [],
     description: null,
-    authorship: null,
     cover: null,
     gallery: [],
     capture,
@@ -87,11 +76,13 @@ function entry(id: string, capture: WorkEntry['capture'], cleared: boolean): Wor
       location: null,
       client: null,
       collaborators: [],
-      status: 'delivered',
+      status: 'finalizat',
       awards: null,
       area: null,
       team: [],
       deliverables: null,
+      equipment: [],
+      implementationCompany: null,
     },
     curation: curation(),
     seo: { title: null, description: null },
@@ -100,7 +91,6 @@ function entry(id: string, capture: WorkEntry['capture'], cleared: boolean): Wor
 
 const withDerivative: WorkEntry['capture'] = {
   accuracy: null,
-  equipment: [],
   software: [],
   pointCount: 1000,
   derivative: {
@@ -119,7 +109,6 @@ const withDerivative: WorkEntry['capture'] = {
 
 const withoutDerivative: WorkEntry['capture'] = {
   accuracy: null,
-  equipment: [],
   software: [],
   pointCount: null,
   derivative: null,
@@ -169,7 +158,7 @@ describe('pointCloudSubject — which entry the field is about', () => {
   });
 
   it('never reads capture data off an Architecture & Design entry', () => {
-    expect(pointCloudSubject([item('cleared', 'architecture')], indexById([cleared]))).toBeNull();
+    expect(pointCloudSubject([item('cleared', 'architecture-design')], indexById([cleared]))).toBeNull();
   });
 
   it('is null when no Reality Capture entry carries capture metadata', () => {

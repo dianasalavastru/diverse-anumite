@@ -16,26 +16,24 @@
 import { defineArrayMember, defineField, defineType } from 'sanity'
 
 import {
-  ATTRIBUTION_OPTIONS,
-  COMMISSIONING_OPTIONS,
-  DISCIPLINE_OPTIONS,
-  ENTRY_TYPE_OPTIONS,
+  PILLAR_OPTIONS,
+  SECTOR_OPTIONS,
+  LABEL_OPTIONS,
   enPublishedField,
   localizedSlugField,
 } from './fields'
-import { DISCIPLINE_TO_PILLAR, type Discipline } from '../../src/lib/content/types'
 import { SANITY_API_VERSION } from '../../src/lib/content/config'
+import type { Pillar, ServiceKey } from '../../src/lib/content/types'
 import {
-  SLUG_PATTERN,
   toSanityResult,
   toSanityWarning,
-  validateAssignment,
-  validateAuthorship,
   validateCaptureGate,
-  validateEmployerScope,
   validateEnAvailability,
   validateNotRawCaptureSource,
   validateVocabulary,
+  validateFieldRequirements,
+  validateServicePillarConsistency,
+  validateServicesPresent,
   validateWorkEntrySlug,
 } from '../../src/lib/content/validation'
 
@@ -45,38 +43,121 @@ interface WorkEntryDraft {
   readonly title?: { ro?: string; en?: string }
   readonly slug?: { ro?: { current?: string }; en?: { current?: string } }
   readonly enPublished?: boolean
-  readonly discipline?: { primary?: string; secondary?: string[] }
-  readonly entryType?: { primary?: string; secondary?: string[] }
-  readonly attribution?: string
-  readonly employer?: { _ref?: string }
-  readonly authorship?: { ro?: string; en?: string }
+  readonly pillar?: string
+  readonly labels?: string[]
   readonly description?: { ro?: unknown[]; en?: unknown[] }
   readonly capture?: {
     pointCount?: number
     derivative?: { asset?: { asset?: { _ref?: string } }; poster?: { asset?: { _ref?: string } } }
   }
   readonly capturePublicationCleared?: boolean
+  readonly sector?: string
+  readonly cover?: unknown
+  readonly gallery?: unknown[]
+  readonly services?: readonly { _ref?: string }[]
+  readonly metadata?: {
+    year?: number
+    status?: string
+    client?: string
+    location?: { ro?: string }
+    area?: number
+    awards?: { ro?: string[] }
+    equipment?: string[]
+    collaborators?: string[]
+    team?: string[]
+    implementationCompany?: string
+  }
 }
 
-const isRealityCapture = (document: WorkEntryDraft | undefined): boolean => {
-  const discipline = document?.discipline
-  return (
-    discipline?.primary === 'reality-capture' ||
-    (discipline?.secondary ?? []).includes('reality-capture')
+/** The Survey group is Reality Capture's, and Pillar is now authored rather than derived. */
+const isRealityCapture = (document: WorkEntryDraft | undefined): boolean =>
+  document?.pillar === 'reality-capture'
+
+/**
+ * The v3.1 Service contract, checked at the document level — STAGE 8.
+ *
+ * This is where the **exact** answer lives. A field's `hidden` callback can only ask a
+ * synchronous, Pillar-level question (see `conditional()` in `objects.ts`), because Sanity hands
+ * it unresolved `{_ref}` objects. Here the rule is async, so it resolves the referenced Services
+ * and reads their real **keys** — never their titles or slugs, which the owner may change at any
+ * time without moving a single requirement (v3.1 §14.3).
+ *
+ * Three rules, all imported, none restated: Services present, Services belonging to the
+ * project's own Pillar, and every mandatory field actually filled in. `requirements.ts` is the
+ * only place the table exists, and `normalize.ts` calls the identical functions at build time —
+ * so the Studio blocks exactly what the build would refuse.
+ */
+async function validateServiceContract(
+  document: WorkEntryDraft | undefined,
+  client: { fetch: <T>(query: string, params?: Record<string, unknown>) => Promise<T> },
+) {
+  const refs = (document?.services ?? [])
+    .map((service) => service?._ref)
+    .filter((ref): ref is string => Boolean(ref))
+
+  const present = validateServicesPresent(refs.length)
+  if (present.length > 0) return present
+
+  const referenced = await client.fetch<readonly { key?: string; pillar?: string; name?: string }[]>(
+    '*[_type == "service" && _id in $refs]{ key, pillar, "name": name.ro }',
+    { refs: [...refs, ...refs.map((ref) => `drafts.${ref}`)] },
   )
-}
 
-/** §7.4's derivation table, applied for the editor-visible readout. Never stored. */
-function derivedPillarLabel(document: WorkEntryDraft | undefined): string {
-  const primary = document?.discipline?.primary as Discipline | undefined
-  if (!primary || !(primary in DISCIPLINE_TO_PILLAR)) return 'capability not yet determined'
-  const pillar = DISCIPLINE_TO_PILLAR[primary]
-  const secondary = (document?.discipline?.secondary ?? [])
-    .map((value) => DISCIPLINE_TO_PILLAR[value as Discipline])
-    .filter((value) => value && value !== pillar)
+  /*
+   * A Service with no `key` is legacy data — the field is required, unique and immutable on
+   * every Service authored since Stage 8, so only documents predating it can lack one. Such a
+   * Service activates nothing, which would let a project through carrying only its Pillar's
+   * base requirements. That is a silent under-enforcement, so it is reported instead: the
+   * project is blocked and the offending Service is named, exactly as a wrong-Pillar reference
+   * is. Nothing is guessed, and nothing is dropped quietly.
+   */
+  const unkeyed = referenced.filter((service) => !service.key)
+  if (unkeyed.length > 0) {
+    return [
+      {
+        level: 'error' as const,
+        path: 'services',
+        message:
+          `${unkeyed.length === 1 ? 'This Service has' : 'These Services have'} no capability key yet: ` +
+          `${unkeyed.map((service) => service.name ?? '(untitled)').join(', ')}. ` +
+          'Open each one and set its key — until then it activates no fields, and this project cannot be checked against the model. (CONTENT_MODEL.md v3.1 §14.3)',
+      },
+    ]
+  }
 
-  const label = pillar === 'reality-capture' ? 'Reality Capture' : 'Architecture & Design'
-  return secondary.length > 0 ? `${label} (also shown under the other capability)` : label
+  const services = referenced
+    .filter((service): service is { key: ServiceKey; pillar: Pillar; name?: string } =>
+      Boolean(service.key) && Boolean(service.pillar),
+    )
+    .map((service) => ({ key: service.key, pillar: service.pillar, name: service.name }))
+
+  const pillar = document?.pillar as Pillar | undefined
+  const consistency = validateServicePillarConsistency(pillar, services)
+  if (consistency.length > 0 || !pillar) return consistency
+
+  const metadata = document?.metadata
+  return validateFieldRequirements(
+    pillar,
+    services.map((service) => service.key),
+    {
+      services: refs.length > 0,
+      sector: Boolean(document?.sector),
+      title: Boolean(document?.title?.ro?.trim()),
+      year: typeof metadata?.year === 'number',
+      status: Boolean(metadata?.status),
+      client: Boolean(metadata?.client?.trim()),
+      description: (document?.description?.ro ?? []).length > 0,
+      cover: Boolean(document?.cover),
+      gallery: (document?.gallery ?? []).length > 0,
+      location: Boolean(metadata?.location?.ro?.trim()),
+      area: typeof metadata?.area === 'number',
+      awards: (metadata?.awards?.ro ?? []).length > 0,
+      equipment: (metadata?.equipment ?? []).length > 0,
+      collaborators: (metadata?.collaborators ?? []).length > 0,
+      team: (metadata?.team ?? []).length > 0,
+      implementationCompany: Boolean(metadata?.implementationCompany?.trim()),
+    },
+  )
 }
 
 export const workEntry = defineType({
@@ -156,165 +237,100 @@ export const workEntry = defineType({
     },
 
     /* ── Classification — CONTENT_MODEL.md §3 ─────────────────────────────── */
+    /**
+     * STAGE 5: the `discipline` object is deleted and **Pillar is authored here**.
+     *
+     * Pillar used to be worked out from the field of work and shown read-only, and a second
+     * field of work could put one project under both capabilities. v3.1 §2 replaces all of
+     * that: one project, one capability, chosen by the editor. Work spanning both is two
+     * projects linked under Links → Related projects.
+     *
+     * A radio group, not a list of checkboxes: exactly one value, always.
+     */
     defineField({
-      name: 'discipline',
-      title: 'Field of work',
-      type: 'object',
+      name: 'pillar',
+      title: 'Capability',
+      type: 'string',
       group: 'classification',
+      options: { list: [...PILLAR_OPTIONS], layout: 'radio' },
       description:
-        'Which capability this belongs to is worked out from this, and is never set by hand: Architecture, Interior Design and Visualization all sit under Architecture & Design; Reality Capture sits under Reality Capture. Add a second field of work to have the project appear under both capabilities.',
-      fields: [
-        defineField({
-          name: 'primary',
-          title: 'Main field',
-          type: 'string',
-          options: { list: [...DISCIPLINE_OPTIONS], layout: 'radio' },
-          validation: (Rule) => Rule.required(),
-        }),
-        defineField({
-          name: 'secondary',
-          title: 'Also',
-          type: 'array',
-          of: [defineArrayMember({ type: 'string' })],
-          options: { list: [...DISCIPLINE_OPTIONS] },
-        }),
-      ],
+        'Which capability this project belongs to. Exactly one. A project that spans both — a survey and the design that followed it — is two projects, linked to each other under Links.',
       validation: (Rule) =>
-        Rule.custom((value: WorkEntryDraft['discipline']) =>
-          toSanityResult(
-            validateAssignment(value?.primary, value?.secondary, 'discipline', 'discipline'),
-          ),
+        Rule.required().custom((value: string | undefined) =>
+          toSanityResult(validateVocabulary(value, 'pillar', 'pillar')),
         ),
     }),
 
+    /**
+     * STAGE 4: the `entryType` field is deleted and **Project Labels** take its place — a
+     * different kind of field, not a rename.
+     *
+     * Entry Type was mandatory, single-primary, and answered "what *is* this project". Labels
+     * are optional, multiple and answer "does this project have a special characteristic". Four
+     * of the five old values are simply retired; only `competition-entry`'s meaning survives, as
+     * the `competition` Label (`CONTENT_MODEL.md` v3.1 §10, §12).
+     *
+     * Checkboxes rather than a radio group, because the two are **not mutually exclusive**: a
+     * diploma project entered in a competition carries both, and that is a valid state the
+     * editor must be able to express in one field.
+     */
     defineField({
-      name: 'entryType',
-      title: 'Kind of project',
-      type: 'object',
-      group: 'classification',
-      description:
-        'What the project *is* — not how far along it is. Whether something was built belongs under Facts → Status.',
-      fields: [
-        defineField({
-          name: 'primary',
-          title: 'Mainly',
-          type: 'string',
-          options: { list: [...ENTRY_TYPE_OPTIONS], layout: 'radio' },
-          validation: (Rule) => Rule.required(),
-        }),
-        defineField({
-          name: 'secondary',
-          title: 'Also',
-          type: 'array',
-          of: [defineArrayMember({ type: 'string' })],
-          options: { list: [...ENTRY_TYPE_OPTIONS] },
-        }),
-      ],
-      validation: (Rule) =>
-        Rule.custom((value: WorkEntryDraft['entryType']) =>
-          toSanityResult(validateAssignment(value?.primary, value?.secondary, 'entryType', 'entryType')),
-        ),
-    }),
-
-    defineField({
-      name: 'sectors',
-      title: 'Sector',
+      name: 'labels',
+      title: 'Labels',
       type: 'array',
       group: 'classification',
       of: [defineArrayMember({ type: 'string' })],
-      options: { layout: 'tags' },
+      options: { list: [...LABEL_OPTIONS], layout: 'grid' },
+      initialValue: [],
       description:
-        'The kind of place or programme: residential · hospitality · office · cultural · heritage · industrial · infrastructure · education, or a new one. Lowercase, hyphenated.',
+        'Optional marks. Tick any that apply — a project can carry both, or neither. A label says something special about the project; it never changes which other fields you have to fill in.',
       validation: (Rule) =>
-        Rule.custom((value: string[] | undefined) => {
-          const bad = (value ?? []).filter((sector) => !SLUG_PATTERN.test(sector))
-          return bad.length === 0
-            ? true
-            : `Use lowercase hyphenated values so a sector is one thing everywhere. Fix: ${bad.join(', ')}.`
-        }),
+        Rule.unique().custom((value: string[] | undefined) =>
+          toSanityResult((value ?? []).flatMap((label) => validateVocabulary(label, 'label', 'labels'))),
+        ),
     }),
 
-    /* ── Credit — the three-way split, CONTENT_MODEL.md:60 ────────────────── */
+    /**
+     * STAGE 6: `sectors` (a free-string tag array) becomes `sector` — one required value from a
+     * closed seven-value vocabulary (v3.1 §11.1).
+     *
+     * The old ad-hoc `SLUG_PATTERN` check is deleted with it: it only enforced *shape*, because
+     * the axis was open and any lowercase-hyphenated token was legal. Membership is what
+     * matters now, and `validateVocabulary` is the same rule the build applies.
+     *
+     * A radio group, not tags: exactly one value, always. Genuinely mixed-use work uses
+     * *Mixed-use & dezvoltări*, which is why one value is always sufficient.
+     */
     defineField({
-      name: 'attribution',
-      title: 'Whose work is it',
+      name: 'sector',
+      title: 'Sector',
       type: 'string',
-      group: 'credits',
-      options: { list: [...ATTRIBUTION_OPTIONS], layout: 'radio' },
-      description: 'Shown on the page. This is never offered to visitors as a filter.',
+      group: 'classification',
+      options: { list: [...SECTOR_OPTIONS], layout: 'radio' },
+      description:
+        'The kind of place or programme this project is. Exactly one — a project that genuinely mixes uses is Mixed-use & dezvoltări.',
       validation: (Rule) =>
         Rule.required().custom((value: string | undefined) =>
-          toSanityResult(validateVocabulary(value, 'attribution', 'attribution')),
+          toSanityResult(validateVocabulary(value, 'sector', 'sector')),
         ),
     }),
 
-    defineField({
-      name: 'commissioning',
-      title: 'How it came about',
-      type: 'string',
-      group: 'credits',
-      options: { list: [...COMMISSIONING_OPTIONS], layout: 'radio' },
-      validation: (Rule) =>
-        Rule.required().custom((value: string | undefined) =>
-          toSanityResult(validateVocabulary(value, 'commissioning', 'commissioning')),
-        ),
-    }),
-
-    defineField({
-      name: 'employer',
-      title: 'Office',
-      type: 'reference',
-      to: [{ type: 'employer' }],
-      group: 'credits',
-      description:
-        'Only for work done inside an office. Professional Experience groups projects by this.',
-      hidden: ({ document }) => (document as WorkEntryDraft)?.attribution !== 'studio',
-      validation: (Rule) =>
-        Rule.custom((value: { _ref?: string } | undefined, context: { document?: unknown }) =>
-          toSanityResult(
-            validateEmployerScope((context.document as WorkEntryDraft)?.attribution, Boolean(value?._ref)),
-          ),
-        ),
-    }),
-
-    defineField({
-      name: 'roles',
-      title: 'What you did',
-      type: 'localizedStringList',
-      group: 'credits',
-      description: 'The specific things you performed. Shown on the page; never a filter.',
-    }),
-
-    defineField({
-      name: 'authorship',
-      title: 'Credit statement',
-      type: 'localizedString',
-      group: 'credits',
-      description:
-        'One sentence saying exactly what is yours and what is not — e.g. "Visualization by [you]; building design by [firm]". This is what keeps the site honest about visualization, collaboration and office work.',
-      validation: (Rule) => [
-        Rule.custom((value: { ro?: string } | undefined, context: { document?: unknown }) => {
-          const document = context.document as WorkEntryDraft | undefined
-          return toSanityResult(
-            validateAuthorship(
-              document?.entryType?.primary,
-              document?.attribution,
-              Boolean(value?.ro?.trim()),
-            ),
-          )
-        }),
-        Rule.custom((value: { ro?: string } | undefined, context: { document?: unknown }) => {
-          const document = context.document as WorkEntryDraft | undefined
-          return toSanityWarning(
-            validateAuthorship(
-              document?.entryType?.primary,
-              document?.attribution,
-              Boolean(value?.ro?.trim()),
-            ),
-          )
-        }).warning(),
-      ],
-    }),
+    /*
+     * ── Credit ────────────────────────────────────────────────────────────
+     *
+     * STAGE 3: `attribution`, `commissioning`, `roles` and `authorship` are deleted, together
+     * with both `validateAuthorship` attachments (an error rule and a `.warning()` rule on the
+     * same field). `CONTENT_MODEL.md` v3.1 §12 retires all four and §13 makes crediting the job
+     * of two optional lists — Collaborators and Team — which live on `metadata`, not here.
+     *
+     * Nothing replaces them. There is no successor field, no Label, and no Service-keyed
+     * authorship rule: retiring the concept and re-triggering it from a Service would be the
+     * same requirement wearing a different name (`DECISIONS_LOG.md` #91).
+     *
+     * The `credits` field group is left declared but currently holds no field. It is not
+     * removed here because Stage 8 moves the crediting fields into it; removing and restoring a
+     * group inside one migration would churn the editor's tab order twice.
+     */
 
     /* ── Evidence ─────────────────────────────────────────────────────────── */
     defineField({ name: 'description', title: 'Description', type: 'localizedRichText', group: 'evidence' }),
@@ -347,14 +363,42 @@ export const workEntry = defineType({
     }),
 
     /* ── Relationships — IA §2.3, Step 6 ──────────────────────────────────── */
+    /**
+     * STAGE 8 — Services are **mandatory, 1..N, and scoped to the project's own capability**
+     * (v3.1 §2). The selection is what activates this project's conditional fields (§5, §7), so
+     * an empty list is not an incomplete project but an unclassifiable one.
+     *
+     * The picker is filtered to the chosen capability — the same `options.filter` mechanism
+     * `relatedWork` below already uses. A filter is an authoring affordance, though, not a
+     * constraint: it does not clear a reference already made, so switching capability leaves
+     * incompatible selections in place. The document-level rule at the foot of this file names
+     * them and blocks; **it never empties the field on the editor's behalf.**
+     */
     defineField({
       name: 'services',
       title: 'Services this demonstrates',
       type: 'array',
       group: 'relationships',
-      of: [defineArrayMember({ type: 'reference', to: [{ type: 'service' }] })],
+      of: [
+        defineArrayMember({
+          type: 'reference',
+          to: [{ type: 'service' }],
+          options: {
+            filter: ({ document }: { document: { pillar?: string } }) => ({
+              filter: 'pillar == $pillar',
+              params: { pillar: document?.pillar ?? '' },
+            }),
+          } as never,
+        }),
+      ],
       description:
-        'Each service page shows the projects that demonstrate it. The link is stored here only — you never edit it from the service side.',
+        'Which of your services this project demonstrates. At least one, and only services from the capability you chose above — they decide which other fields you have to fill in. Each service page shows the projects that demonstrate it; the link is stored here only.',
+      validation: (Rule) =>
+        Rule.required()
+          .min(1)
+          .custom((value: unknown[] | undefined) =>
+            toSanityResult(validateServicesPresent((value ?? []).length)),
+          ),
     }),
     defineField({
       name: 'relatedWork',
@@ -400,12 +444,12 @@ export const workEntry = defineType({
    */
   validation: (Rule) =>
     Rule.custom(async (document: WorkEntryDraft | undefined, context) => {
+      const client = context.getClient({ apiVersion: SANITY_API_VERSION })
       const derivative = document?.capture?.derivative
       const assetRef = derivative?.asset?.asset?._ref
 
       let filenameIssues: ReturnType<typeof validateNotRawCaptureSource> = []
       if (assetRef) {
-        const client = context.getClient({ apiVersion: SANITY_API_VERSION })
         const originalFilename = await client.fetch<string | null>(
           '*[_id == $ref][0].originalFilename',
           { ref: assetRef },
@@ -421,6 +465,7 @@ export const workEntry = defineType({
           cleared: document?.capturePublicationCleared ?? false,
           pointCount: document?.capture?.pointCount ?? null,
         }),
+        ...(await validateServiceContract(document, client)),
       ])
     }),
 
@@ -429,26 +474,27 @@ export const workEntry = defineType({
    * pillar an entry will default to." The subtitle carries it, computed from the same derivation
    * table the build uses — it is displayed, never stored, because Pillar is not an editable field.
    */
+  /**
+   * STAGE 5: the subtitle reads the AUTHORED pillar. §7.4's read-only derived readout existed
+   * because the editor could not see which capability a project would land in; now they choose
+   * it, so the subtitle simply echoes the choice.
+   */
   preview: {
     select: {
       title: 'title.ro',
-      primary: 'discipline.primary',
-      secondary: 'discipline.secondary',
+      pillar: 'pillar',
       year: 'metadata.year',
       media: 'cover',
       enPublished: 'enPublished',
     },
     prepare: (selection: Record<string, unknown>) => {
-      const document = {
-        discipline: {
-          primary: selection.primary as string | undefined,
-          secondary: (selection.secondary as string[] | undefined) ?? [],
-        },
-      }
+      const pillar =
+        PILLAR_OPTIONS.find((option) => option.value === selection.pillar)?.title ??
+        'capability not yet chosen'
       const en = selection.enPublished ? '' : ' · RO only'
       return {
         title: (selection.title as string) || 'Untitled project',
-        subtitle: `${selection.year ?? '—'} · ${derivedPillarLabel(document)}${en}`,
+        subtitle: `${selection.year ?? '—'} · ${pillar}${en}`,
         media: selection.media as never,
       }
     },

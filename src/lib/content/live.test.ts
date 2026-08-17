@@ -44,7 +44,6 @@ import { createContentClient, type ContentClient } from './client.js';
 import { ENV, PRODUCTION_PERSPECTIVE, resolveSanityConfig, type SanityConfig } from './config.js';
 import { createFixtureContentSource } from './fixtures.js';
 import {
-  QUERY_ALL_EMPLOYERS,
   QUERY_ALL_SERVICES,
   QUERY_ALL_SERVICE_SUMMARIES,
   QUERY_ALL_WORK_ENTRIES,
@@ -61,17 +60,28 @@ import {
 } from './groq.js';
 import { createSanityContentSource, type ContentSource } from './source.js';
 import {
-  validateAssignment,
-  validateAuthorship,
   validateCaptureGate,
-  validateEmployerScope,
   validateEnAvailability,
+  validateFieldRequirements,
+  validateServicePillarConsistency,
+  validateServicesPresent,
   validateVocabulary,
   validateWorkEntrySlug,
   errorsOf,
+  type FieldPresence,
+  type ReferencedService,
   type ValidationIssue,
 } from './validation.js';
-import { DISCIPLINE_TO_PILLAR, type Discipline } from './types.js';
+import {
+  PILLARS,
+  PROJECT_LABELS,
+  SECTORS,
+  SERVICE_KEYS,
+  SERVICE_KEY_TO_PILLAR,
+  STATUSES,
+  type Pillar,
+  type ServiceKey,
+} from './types.js';
 import { RESERVED_SLUGS, type Locale } from '../i18n/routes.js';
 
 const REPO_ROOT = new URL('../../../', import.meta.url);
@@ -163,6 +173,26 @@ interface SeedDocument {
  * discovering the problem in a failing production build". A file the directory holds and this
  * function skipped would be exactly the content nothing checks.
  */
+/**
+ * The seed's own Service documents, keyed by id — what the Stage 8 rules need to turn a
+ * `{_ref}` into a `(key, pillar)` pair. The Studio does the same fetch at authoring time; this
+ * resolves it locally because the seed is self-contained.
+ */
+function indexSeedServices(seed: readonly SeedDocument[]): ReadonlyMap<string, ReferencedService> {
+  const index = new Map<string, ReferencedService>();
+  for (const document of seed) {
+    if (document._type !== 'service') continue;
+    const key = document.key as ServiceKey | undefined;
+    if (!key) continue;
+    index.set(document._id, {
+      key,
+      pillar: document.pillar as Pillar,
+      name: (document.name as { ro?: string } | undefined)?.ro,
+    });
+  }
+  return index;
+}
+
 function readSeed(): readonly SeedDocument[] {
   return readdirSync(SEED_DIRECTORY)
     .filter((name) => name.endsWith('.ndjson'))
@@ -175,29 +205,40 @@ function readSeed(): readonly SeedDocument[] {
     );
 }
 
-/** Mirrors the document-level rules in `studio/schemaTypes/workEntry.ts`. */
-function validateSeedWorkEntry(document: SeedDocument): ValidationIssue[] {
+/**
+ * Mirrors the document-level rules in `studio/schemaTypes/workEntry.ts`.
+ *
+ * STAGE 2 dropped `validateEmployerScope`; STAGE 3 drops `validateAuthorship` and the
+ * Attribution/Commissioning vocabulary checks, because the Studio dropped all of them.
+ *
+ * STAGE 5 drops `validateAssignment` on `discipline` and adds `pillar`; STAGE 6 adds `sector`,
+ * because the Studio did.
+ *
+ * The seeds still carry `employer`, `attribution`, `commissioning`, `roles`, `authorship`,
+ * `entryType` and `discipline` — they are rewritten at Stage 9, not now — and an undeclared
+ * field is simply not validated, exactly as it is not projected. That tolerance is the point:
+ * legacy keys must stay harmless. This block must keep mirroring the Studio, so a rule may only
+ * be dropped here when it is dropped there.
+ *
+ * **What the seeds now genuinely fail is `pillar` and `sector`** — see the two cases below,
+ * which pin that gap precisely rather than hiding it.
+ */
+function validateSeedWorkEntry(
+  document: SeedDocument,
+  serviceKeysById: ReadonlyMap<string, ReferencedService>,
+): ValidationIssue[] {
   const title = document.title as { ro?: string; en?: string } | undefined;
   const slug = document.slug as { ro?: { current?: string }; en?: { current?: string } } | undefined;
-  const discipline = document.discipline as { primary?: string; secondary?: string[] } | undefined;
-  const entryType = document.entryType as { primary?: string; secondary?: string[] } | undefined;
   const metadata = document.metadata as { year?: number; status?: string } | undefined;
-  const attribution = document.attribution as string | undefined;
-
   return [
     ...(slug?.ro?.current ? validateWorkEntrySlug(slug.ro.current, 'ro', 'slug.ro') : []),
     ...(slug?.en?.current ? validateWorkEntrySlug(slug.en.current, 'en', 'slug.en') : []),
-    ...validateAssignment(discipline?.primary, discipline?.secondary, 'discipline', 'discipline'),
-    ...validateAssignment(entryType?.primary, entryType?.secondary, 'entryType', 'entryType'),
-    ...validateVocabulary(attribution, 'attribution', 'attribution'),
-    ...validateVocabulary(document.commissioning as string, 'commissioning', 'commissioning'),
-    ...validateVocabulary(metadata?.status, 'status', 'metadata.status'),
-    ...validateEmployerScope(attribution, Boolean(document.employer)),
-    ...validateAuthorship(
-      entryType?.primary,
-      attribution,
-      Boolean((document.authorship as { ro?: string } | undefined)?.ro?.trim()),
+    ...validateVocabulary(document.pillar as string | undefined, 'pillar', 'pillar'),
+    ...validateVocabulary(document.sector as string | undefined, 'sector', 'sector'),
+    ...((document.labels as string[] | undefined) ?? []).flatMap((label) =>
+      validateVocabulary(label, 'label', 'labels'),
     ),
+    ...validateVocabulary(metadata?.status, 'status', 'metadata.status'),
     ...validateEnAvailability({
       enPublished: Boolean(document.enPublished),
       titleEn: Boolean(title?.en?.trim()),
@@ -214,11 +255,74 @@ function validateSeedWorkEntry(document: SeedDocument): ValidationIssue[] {
       cleared: Boolean(document.capturePublicationCleared),
       pointCount: (document.capture as { pointCount?: number } | undefined)?.pointCount ?? null,
     }),
+    /*
+     * STAGE 8 — the Services rules, added here so the pre-flight keeps representing the WHOLE
+     * blocking contract rather than the part of it that predates v3.1.
+     *
+     * `validateServicePillarConsistency` and `validateFieldRequirements` both need an authored
+     * Pillar, and no seed has one yet (asserted below). They are wired in regardless: the
+     * moment Stage 9 writes a Pillar, both start reporting against these same seeds, which is
+     * the point of wiring them now rather than remembering to later.
+     */
+    ...validateServicesPresent(((document.services as unknown[] | undefined) ?? []).length),
+    ...(isPillar(document.pillar)
+      ? [
+          ...validateServicePillarConsistency(
+            document.pillar,
+            seedReferencedServices(document, serviceKeysById),
+          ),
+          ...validateFieldRequirements(
+            document.pillar,
+            seedReferencedServices(document, serviceKeysById).map((service) => service.key),
+            seedFieldPresence(document),
+          ),
+        ]
+      : []),
   ];
+}
+
+const isPillar = (value: unknown): value is Pillar =>
+  typeof value === 'string' && (PILLARS as readonly string[]).includes(value);
+
+/** The Services a seed document references, resolved through the seed's own Service documents. */
+function seedReferencedServices(
+  document: SeedDocument,
+  serviceKeysById: ReadonlyMap<string, ReferencedService>,
+): ReferencedService[] {
+  return ((document.services as { _ref?: string }[] | undefined) ?? [])
+    .map((reference) => (reference._ref ? serviceKeysById.get(reference._ref) : undefined))
+    .filter((service): service is ReferencedService => service !== undefined);
+}
+
+/** Which canonical fields a seed document actually fills. */
+function seedFieldPresence(document: SeedDocument): FieldPresence {
+  const metadata = (document.metadata ?? {}) as Record<string, unknown>;
+  const filled = (value: unknown): boolean =>
+    Array.isArray(value) ? value.length > 0 : value !== undefined && value !== null && value !== '';
+
+  return {
+    title: filled(document.title),
+    services: ((document.services as unknown[] | undefined) ?? []).length > 0,
+    sector: filled(document.sector),
+    year: filled(metadata.year),
+    status: filled(metadata.status),
+    cover: filled(document.cover),
+    gallery: filled(document.gallery),
+    description: filled((document.description as { ro?: unknown[] } | undefined)?.ro),
+    location: filled(metadata.location),
+    client: filled(metadata.client),
+    area: filled(metadata.area),
+    collaborators: filled(metadata.collaborators),
+    team: filled(metadata.team),
+    awards: filled(metadata.awards),
+    equipment: filled(metadata.equipment),
+    implementationCompany: filled(metadata.implementationCompany),
+  };
 }
 
 describe('Seed pre-flight — every studio/seed/*.ndjson', () => {
   const seed = readSeed();
+  const serviceKeysById = indexSeedServices(seed);
 
   it('holds unique ids and resolvable references', () => {
     const ids = new Set(seed.map((document) => document._id.replace(/^drafts\./, '')));
@@ -245,53 +349,166 @@ describe('Seed pre-flight — every studio/seed/*.ndjson', () => {
     }
   });
 
-  it('passes every blocking validation rule the Studio attaches (§7.2, §7.7, §11.2, §19.4)', () => {
+  /**
+   * STAGE 9 — the transitional gap allowances are gone.
+   *
+   * Stages 5–8 pinned an expected FAILURE set (`KNOWN_STAGE_9_GAPS`, `SEEDS_WITHOUT_SERVICES`,
+   * "no Service carries a key") because the seeds predated the contract and a suite that simply
+   * dropped the checks would have stopped proving anything. The seeds now satisfy the contract,
+   * so those enumerations are deleted rather than narrowed: what follows asserts the POSITIVE
+   * v3.1 shape, and a regression fails as a plain contract violation instead of falling out of
+   * a hand-maintained allowance list.
+   *
+   * ── THE ONE REMAINING EXCEPTION, AND WHY IT IS NOT A CONTRACT EXCEPTION ────────────────────
+   *
+   * `cover` and `gallery` are [M] in both Pillar bases (`CONTENT_MODEL.md` §4, §6) and stay
+   * mandatory everywhere — `requirements.ts`, `normalize.ts` and the Studio all enforce them
+   * without exception. But they are **Sanity asset references**, and NDJSON cannot carry an
+   * asset: a seed file can only name an asset id that already exists in the target dataset.
+   *
+   * That makes their absence here a property of the *migration source format*, not of the
+   * content model. The seed corpus is therefore validated at two distinct levels:
+   *
+   *   TEXTUAL CONTRACT COMPLETE   every blocking rule passes except the two media fields
+   *   MEDIA HYDRATION PENDING     `cover` and `gallery` are filled in the dataset after import
+   *
+   * The live suite below runs against the imported dataset and enforces the **full** contract
+   * with no exception. A seed document is not a valid final Work Entry until it is hydrated.
+   */
+  const MEDIA_HYDRATION_FIELDS = ['cover', 'gallery'];
+
+  it('is TEXTUAL CONTRACT COMPLETE — every blocking rule passes but media hydration', () => {
+    const workEntries = seed.filter((candidate) => candidate._type === 'workEntry');
+    expect(workEntries.length).toBeGreaterThan(0);
+
+    for (const document of workEntries) {
+      const blocking = errorsOf(validateSeedWorkEntry(document, serviceKeysById)).filter(
+        (issue) => !MEDIA_HYDRATION_FIELDS.includes(issue.path),
+      );
+      expect(
+        blocking.map((issue) => `${document._id} ${issue.path}: ${issue.message}`),
+        `${document._id} must satisfy the whole textual contract`,
+      ).toEqual([]);
+    }
+  });
+
+  it('is MEDIA HYDRATION PENDING — and that is the ONLY thing outstanding', () => {
+    /* Stated as an equality, not as a tolerance: every entry is missing exactly these two and
+       nothing else. When the hydration step is folded into the seed corpus itself this case
+       becomes `toEqual([])` and the distinction above disappears. */
     for (const document of seed.filter((candidate) => candidate._type === 'workEntry')) {
-      const blocking = errorsOf(validateSeedWorkEntry(document));
-      expect(blocking.map((issue) => `${document._id} ${issue.path}: ${issue.message}`)).toEqual([]);
+      const paths = [
+        ...new Set(errorsOf(validateSeedWorkEntry(document, serviceKeysById)).map((issue) => issue.path)),
+      ].sort();
+      expect(paths, `${document._id}: unexpected blocking rule(s)`).toEqual(MEDIA_HYDRATION_FIELDS);
+    }
+  });
+
+  it('carries an authored Pillar, Sector, Status and Labels on every Work Entry (v3.1 §2, §10, §11)', () => {
+    for (const document of seed.filter((candidate) => candidate._type === 'workEntry')) {
+      expect(PILLARS, `${document._id}.pillar`).toContain(document.pillar);
+      expect(SECTORS, `${document._id}.sector`).toContain(document.sector);
+      expect(STATUSES, `${document._id}.metadata.status`).toContain(
+        (document.metadata as { status?: string } | undefined)?.status,
+      );
+      for (const label of (document.labels as string[] | undefined) ?? []) {
+        expect(PROJECT_LABELS, `${document._id}.labels`).toContain(label);
+      }
+      // Labels are a set, not a list — the same label twice is a data error, not a display one.
+      const labels = (document.labels as string[] | undefined) ?? [];
+      expect(new Set(labels).size, `${document._id}: duplicate label`).toBe(labels.length);
+    }
+  });
+
+  it('gives every Service a canonical, unique key inside its own Pillar (v3.1 §14.3)', () => {
+    const services = seed.filter((candidate) => candidate._type === 'service');
+    expect(services.length).toBeGreaterThan(0);
+
+    const keys = services.map((service) => service.key as ServiceKey);
+    for (const service of services) {
+      expect(SERVICE_KEYS, `${service._id}.key`).toContain(service.key);
+      expect(
+        SERVICE_KEY_TO_PILLAR[service.key as ServiceKey],
+        `${service._id}: key and pillar disagree`,
+      ).toBe(service.pillar);
+    }
+    // One document per key: two Services claiming the same capability is not a supported shape.
+    expect(new Set(keys).size, 'duplicate Service key in the seed corpus').toBe(keys.length);
+    expect(serviceKeysById.size).toBe(services.length);
+  });
+
+  it('demonstrates at least one Service per project, all inside the project\'s Pillar (v3.1 §2)', () => {
+    for (const document of seed.filter((candidate) => candidate._type === 'workEntry')) {
+      const referenced = seedReferencedServices(document, serviceKeysById);
+      expect(referenced.length, `${document._id} must demonstrate a Service`).toBeGreaterThan(0);
+      expect(
+        referenced.length,
+        `${document._id}: a Service reference does not resolve to a keyed Service`,
+      ).toBe(((document.services as unknown[] | undefined) ?? []).length);
+      for (const service of referenced) {
+        expect(service.pillar, `${document._id} → ${service.key}`).toBe(document.pillar);
+      }
+    }
+  });
+
+  it('holds no retired taxonomy field anywhere in the corpus (v3.1 §12)', () => {
+    /* The data-side counterpart of Stage 10's grep gate. `sectors` is retired **on Work
+       Entries only** — `Service.sectors` is a live plural field (decided 2026-08-14), so the
+       check is typed rather than global. */
+    const RETIRED = ['discipline', 'disciplines', 'entryType', 'attribution', 'commissioning', 'roles', 'authorship', 'employer'];
+    for (const document of seed) {
+      expect(document._type, 'the employer document type is retired').not.toBe('employer');
+      for (const field of RETIRED) {
+        expect(document[field], `${document._id}.${field} survived the migration`).toBeUndefined();
+      }
+      if (document._type === 'workEntry') {
+        expect(document.sectors, `${document._id}.sectors survived the migration`).toBeUndefined();
+      }
     }
   });
 
   /** The coverage the live suite below depends on. A seed that lost one of these would pass vacuously. */
   it('covers the states the live suite asserts against', () => {
     const workEntries = seed.filter((document) => document._type === 'workEntry');
-    const services = seed.filter((document) => document._type === 'service');
 
     expect(seed.some((document) => document._id.startsWith('drafts.')), 'a draft, to prove exclusion').toBe(true);
     expect(workEntries.some((entry) => entry.enPublished === false), 'an RO-only entry, to prove the EN gate').toBe(true);
-    expect(
-      workEntries.some((entry) => (entry.services as unknown[] | undefined)?.length),
-      'an entry referencing a Service, to prove the reverse join',
-    ).toBe(true);
     expect(workEntries.some((entry) => entry.capture), 'capture metadata, to prove the §19.4 gate').toBe(true);
-    /**
-     * §7.4 needs *both* shapes to be exercised, and they look identical if you only count
-     * secondary disciplines: `architecture + [interior-design]` is multi-discipline but
-     * single-pillar, while `reality-capture + [architecture]` is genuinely cross-pillar.
-     * Counting disciplines instead of pillars is what made the live derivation test wrong.
-     */
-    const pillarSets = workEntries.map((entry) => {
-      const discipline = entry.discipline as { primary?: Discipline; secondary?: Discipline[] };
-      return new Set(
-        [discipline.primary, ...(discipline.secondary ?? [])]
-          .filter((value): value is Discipline => Boolean(value))
-          .map((value) => DISCIPLINE_TO_PILLAR[value]),
-      );
-    });
 
-    expect(
-      pillarSets.some((pillars) => pillars.size > 1),
-      'an entry whose disciplines span two pillars, to prove cross-pillar derivation',
-    ).toBe(true);
-    expect(
-      workEntries.some(
-        (entry, index) =>
-          ((entry.discipline as { secondary?: string[] })?.secondary ?? []).length > 0 &&
-          (pillarSets[index] as Set<string>).size === 1,
+    /*
+     * F5 — a Service that is publishable with zero demonstrating entries. It used to be carried
+     * by `da-test-service-unlinked`, an anonymous fixture named only by its role; the canonical
+     * Service documents replaced it at Stage 9, so the invariant is asserted structurally
+     * instead of by document id: some Service in the corpus is demonstrated by nothing.
+     */
+    const demonstrated = new Set(
+      workEntries.flatMap((entry) =>
+        ((entry.services as { _ref?: string }[] | undefined) ?? []).map((reference) => reference._ref),
       ),
-      'an entry with a second discipline inside one pillar, to prove the exclusion rule',
+    );
+    const services = seed.filter((document) => document._type === 'service');
+    expect(
+      services.some((service) => !demonstrated.has(service._id)),
+      'a Service with zero demonstrating entries, to prove F5',
     ).toBe(true);
-    expect(services.length, 'a linked and an unlinked Service, to prove F5').toBeGreaterThanOrEqual(2);
+    expect(
+      services.some((service) => demonstrated.has(service._id)),
+      'a Service with demonstrating entries, to prove the reverse join',
+    ).toBe(true);
+
+    /* Both Pillars, and a project demonstrating more than one Service — the merge rule (§8)
+       needs a live document to resolve against, not only a fixture. */
+    for (const pillar of PILLARS) {
+      expect(workEntries.some((entry) => entry.pillar === pillar), `a ${pillar} project`).toBe(true);
+    }
+    expect(
+      workEntries.some((entry) => ((entry.services as unknown[] | undefined) ?? []).length > 1),
+      'a multi-Service project, to exercise the §8 merge against real data',
+    ).toBe(true);
+    expect(
+      workEntries.some((entry) => ((entry.labels as string[] | undefined) ?? []).includes('competition')),
+      'a Competition-labelled project, so the curated view is not empty',
+    ).toBe(true);
   });
 });
 
@@ -449,11 +666,6 @@ describe.skipIf(missing.length > 0)('Live Sanity handshake', () => {
       });
     }
 
-    it('employers resolve', async () => {
-      const employers = await client.fetch<readonly Record<string, unknown>[]>(QUERY_ALL_EMPLOYERS);
-      expect(employers.length).toBeGreaterThan(0);
-    });
-
     it('a by-slug lookup returns a single document, not an array', async () => {
       const entries = await client.fetch<readonly RawWorkEntry[]>(QUERY_ALL_WORK_ENTRIES);
       const slug = entries.find((entry) => entry.slug?.ro)?.slug?.ro as string;
@@ -593,62 +805,49 @@ describe.skipIf(missing.length > 0)('Live Sanity handshake', () => {
       expect(empty?.name.ro).toBeTruthy();
     });
 
-    it('scopes an Employer to Studio attribution (CONTENT_MODEL.md:50)', async () => {
+    /**
+     * STAGE 2 — the Employer-scope invariant is gone with the field, and the Professional
+     * Experience grouping with the view (`DECISIONS_LOG.md` #97). Replaced by the assertion
+     * that the retired shape genuinely no longer reaches the frontend, even though the seeded
+     * dataset still contains `employer` documents and references until Stage 9 rewrites it.
+     */
+    it('never surfaces a retired Employer reference, even from un-migrated documents', async () => {
       for (const entry of await live.workEntries('ro')) {
-        if (entry.employer) expect(entry.attribution).toBe('studio');
+        expect(entry, `${entry._id} still carries an employer`).not.toHaveProperty('employer');
       }
-      const grouped = await live.professionalExperience('ro');
-      expect(grouped.length, 'the seed must contain a Studio-attributed entry').toBeGreaterThan(0);
+      for (const item of await live.workArchive('ro')) {
+        expect(item, `${item._id} still carries an employer`).not.toHaveProperty('employer');
+      }
     });
   });
 
   /* ── 6. Derivation and order ───────────────────────────────────────────── */
 
   describe('derivation (§7.4) and discovery order (§7.6)', () => {
-    it('derives Pillar from Discipline and never queries a stored pillar', async () => {
+    it('queries the stored pillar and exposes exactly one per project', async () => {
       const raw = await client.fetch<readonly RawWorkEntry[]>(QUERY_ALL_WORK_ENTRIES);
       for (const document of raw) {
-        expect(Object.keys(document)).not.toContain('pillar');
-        expect(Object.keys(document)).not.toContain('pillars');
+        /* STAGE 5 inverts this assertion. The projection used NOT to select a pillar, because
+           Pillar was derived; it now selects the authored field, and must never select a
+           plural one. */
+        expect(Object.keys(document), document._id ?? '').toContain('pillar');
+        expect(Object.keys(document), document._id ?? '').not.toContain('pillars');
+        expect(Object.keys(document), document._id ?? '').not.toContain('discipline');
       }
 
       const entries = await live.workEntries('ro');
 
       /**
-       * §7.4 derives secondary pillars "deduplicated and excluding the primary", so a *second
-       * discipline* is not the same thing as a *second pillar*. Both directions are asserted,
-       * because getting only the first one right is how the rule silently degrades into
-       * "any multi-discipline entry appears in both pillar views."
+       * STAGE 5 — the derivation assertions are replaced.
+       *
+       * They proved §7.4's rule that a *second discipline* is not the same as a *second
+       * pillar*. Both the rule and the axis it read are retired: every project carries exactly
+       * one authored Pillar, so what is asserted now is that invariant, live.
        */
-      const crossPillar = entries.filter((entry) => entry.pillars.secondary.length > 0);
-      const samePillar = entries.filter(
-        (entry) => entry.discipline.secondary.length > 0 && entry.pillars.secondary.length === 0,
-      );
-
-      // Different pillars → the entry surfaces in both views (`CONTENT_MODEL.md`:63).
-      expect(crossPillar.length, 'the seed must contain a genuinely cross-pillar entry').toBeGreaterThan(0);
-      for (const entry of crossPillar) {
-        const disciplinePillars = new Set(
-          [entry.discipline.primary, ...entry.discipline.secondary].map(
-            (discipline) => DISCIPLINE_TO_PILLAR[discipline],
-          ),
-        );
-        expect(disciplinePillars.size, `${entry._id}: secondary pillar without a second pillar`).toBeGreaterThan(1);
-        expect(entry.pillars.secondary).not.toContain(entry.pillars.primary);
-      }
-
-      // Same pillar → a second discipline, and deliberately no second pillar.
-      expect(
-        samePillar.length,
-        'the seed must contain a multi-discipline entry whose disciplines share one pillar',
-      ).toBeGreaterThan(0);
-      for (const entry of samePillar) {
-        const disciplinePillars = new Set(
-          [entry.discipline.primary, ...entry.discipline.secondary].map(
-            (discipline) => DISCIPLINE_TO_PILLAR[discipline],
-          ),
-        );
-        expect(disciplinePillars.size, `${entry._id}: disciplines do not in fact share a pillar`).toBe(1);
+      for (const entry of entries) {
+        expect(PILLARS, `${entry._id}: pillar outside the closed vocabulary`).toContain(entry.pillar);
+        expect(entry, `${entry._id}: a plural pillar shape survived`).not.toHaveProperty('pillars');
+        expect(entry, `${entry._id}: Discipline survived`).not.toHaveProperty('discipline');
       }
     });
 
@@ -768,7 +967,6 @@ describe.skipIf(missing.length > 0)('Live Sanity handshake', () => {
         ['workArchive', () => fixture.workArchive('ro'), () => live.workArchive('ro')],
         ['services', () => fixture.services('ro'), () => live.services('ro')],
         ['serviceSummaries', () => fixture.serviceSummaries('ro'), () => live.serviceSummaries('ro')],
-        ['employers', () => fixture.employers(), () => live.employers()],
       ] as const;
 
       for (const [name, fromFixture, fromLive] of methods) {
@@ -780,13 +978,32 @@ describe.skipIf(missing.length > 0)('Live Sanity handshake', () => {
       }
     });
 
-    it('carries no raw-shape leakage — the live source returns the contract, not the projection', async () => {
+    it('carries no raw-shape leakage — the projection is a closed allow-list, not a spread', async () => {
+      /*
+       * STAGE 9 — this probe is restated, because the thing it used to measure stopped existing.
+       *
+       * It compared key sets: `pillars` was raw-only until Stage 5, then `_type` was
+       * contract-only until Stage 8 added it to `WORK_ENTRY_FIELDS`. Both are now on both sides,
+       * and that is not drift — every projection is generated from its own field map under
+       * `satisfies Record<keyof Raw…, string>`, so raw and contract keys agree *by construction*.
+       * A key-set difference is no longer available as a signal, and inventing a new key to
+       * differ on would be measuring the test rather than the code.
+       *
+       * What the probe actually protects is that the projection **selects** rather than
+       * spreads. Sanity attaches `_rev`, `_createdAt`, `_updatedAt` and `_originalId` to every
+       * stored document; none is in any field map, so none may appear on either side. If a
+       * projection were ever replaced by `...`, these would arrive first and this fails.
+       */
       const [rawEntry] = await client.fetch<readonly RawWorkEntry[]>(QUERY_ALL_WORK_ENTRIES);
       const [normalized] = await live.workEntries('ro');
-      // The raw projection has no `pillars`; the contract does. If these ever matched, the
-      // normalizer had been bypassed.
-      expect(Object.keys(rawEntry as object)).not.toContain('pillars');
-      expect(Object.keys(normalized as object)).toContain('pillars');
+      const SYSTEM_KEYS = ['_rev', '_createdAt', '_updatedAt', '_originalId'];
+
+      for (const key of SYSTEM_KEYS) {
+        expect(Object.keys(rawEntry as object), `raw leaked ${key}`).not.toContain(key);
+        expect(Object.keys(normalized as object), `contract leaked ${key}`).not.toContain(key);
+      }
+      expect(Object.keys(rawEntry as object).sort()).toEqual(Object.keys(WORK_ENTRY_FIELDS).sort());
+      expect(Object.keys(normalized as object)).not.toContain('pillars');
     });
   });
 
@@ -801,7 +1018,6 @@ describe.skipIf(missing.length > 0)('Live Sanity handshake', () => {
           live.workArchive('ro'),
           live.services('ro'),
           live.serviceSummaries('ro'),
-          live.employers(),
         ]),
       );
       expect(payload).not.toContain(config.token);
@@ -832,14 +1048,17 @@ describe.skipIf(missing.length > 0)('Live Sanity handshake', () => {
       for (const service of services) {
         for (const entry of service.demonstratedBy ?? []) {
           expect(Object.keys(entry).sort()).toEqual(
-            ['_id', 'title', 'slug', 'enPublished', 'discipline', 'entryType', 'sectors', 'year', 'status', 'cover', 'curation'].sort(),
+            ['_id', 'title', 'slug', 'enPublished', 'pillar', 'labels', 'sector', 'year', 'status', 'cover', 'curation'].sort(),
           );
         }
       }
 
       for (const item of archive) {
         for (const service of item.services ?? []) {
-          expect(Object.keys(service).sort()).toEqual(['_id', 'slug']);
+          /* STAGE 8: the archive's Service refs carry `key` and `pillar` — the archive filter
+             refines by Service and the card states the capability, and both read the key
+             rather than the slug (v3.1 §14.3). */
+          expect(Object.keys(service).sort()).toEqual(['_id', 'key', 'pillar', 'slug'].sort());
         }
       }
 

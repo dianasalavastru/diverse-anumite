@@ -6,13 +6,14 @@
  * the one place the page's *composition* is decided, so the decision is unit
  * tested rather than spread across nine templates.
  *
- * ── ONE BLUEPRINT, ALL ENTRY TYPES (M3) ───────────────────────────────────
+ * ── ONE BLUEPRINT, EVERY PROJECT (M3) ─────────────────────────────────────
  * `WORK_ENTRY_PAGE_IA.md` §3: a universal base (W-1, W-2, W-3, W-5, W-6, W-7)
- * plus an optional **W-4** layer toggled by Entry Type, and "a cross-pillar /
- * composite entry (P10) may enable more than one module." Entry Types differ in
- * "content and module-toggle differences only — the Page IA … is identical."
- * That is exactly what this file expresses: one ordered list, filtered by what
- * the entry actually carries.
+ * plus an optional **W-4** layer, and "a cross-pillar / composite entry (P10)
+ * may enable more than one module." Projects differ in "content and
+ * module-toggle differences only — the Page IA … is identical." That is exactly
+ * what this file expresses: one ordered list, filtered by what the entry
+ * actually carries. Stage 4 changed what the competition module toggles *on*
+ * (a Label, not an Entry Type); it changed nothing about the blueprint.
  *
  * ── ORDER FOLLOWS THE WIREFRAME, NOT THE HiFi ─────────────────────────────
  * `WORK_ENTRY_WIREFRAME.md` fixes the reading progression as
@@ -36,12 +37,21 @@
  * content and is absent when it does not. A field with no value renders no row.
  * Nothing is defaulted, and no placeholder is presented as a fact.
  *
- * W-1, W-3 and W-7 are unconditional. W-3 is unconditional by requirement —
- * Page IA W-3: "always present, regardless of Entry Type" — and it always has
- * content, because Attribution is mandatory in the schema.
+ * W-1 and W-7 are unconditional.
+ *
+ * ── W-3 STOPPED BEING UNCONDITIONAL AT STAGE 3 ────────────────────────────
+ * Page IA W-3 says "always present, regardless of project kind", and that held
+ * while Attribution was a mandatory schema field: the block always had at least
+ * one row. `CONTENT_MODEL.md` v3.1 §12 retires Attribution, Commissioning,
+ * Roles and Authorship, leaving Collaborators as W-3's only content — and
+ * Collaborators is optional. The Page IA's requirement was "always has
+ * something to say", not "always emits a heading", so W-3 now follows the
+ * explicit W-5 rule quoted above: it renders when it has content and is absent
+ * when it does not. Nothing is substituted for it, and the rail simply has one
+ * station fewer on such an entry.
  */
 
-import { localize } from '../../lib/content';
+import { isCompetition, localize } from '../../lib/content';
 import type { Locale, WorkEntry } from '../../lib/content';
 
 /**
@@ -76,17 +86,20 @@ export interface WorkEntryComposition {
 /* -------------------------------------------------------------------------- */
 
 /**
- * `CONTENT_MODEL.md`:47 allows a **secondary** Entry Type, and :63 makes a
- * composite entry one canonical entry tagged to both. An entry that is
- * secondarily a competition still carries a competition's evidence, so the
- * module toggles on either position — the same rule the query layer already
- * applies to curated-view membership (`source.ts` `isCompetition`).
+ * STAGE 4: the W-4 competition toggle keys off the `competition` **Label**.
+ *
+ * It previously read Entry Type in either position — primary or secondary — because a
+ * composite entry could be secondarily a competition. Entry Type is retired (v3.1 §12) and
+ * Labels are a plain 0..N set, so "either position" collapses into one `includes` test, and a
+ * project carrying `competition` alongside `diploma-project` toggles the module exactly as one
+ * carrying `competition` alone does.
+ *
+ * This delegates to `isCompetition` in the query layer rather than restating the rule: there is
+ * **one** canonical answer to "is this a competition", and the curated view, the Studio pane and
+ * this module all read it.
  */
 export function isCompetitionEntry(entry: WorkEntry): boolean {
-  return (
-    entry.entryType.primary === 'competition-entry' ||
-    entry.entryType.secondary.includes('competition-entry')
-  );
+  return isCompetition(entry);
 }
 
 /**
@@ -120,6 +133,18 @@ export function hasCompetitionEvidence(entry: WorkEntry, locale: Locale): boolea
  */
 export function hasCaptureEvidence(entry: WorkEntry): boolean {
   return entry.capture !== null;
+}
+
+/**
+ * W-3 renders when the entry has something to credit.
+ *
+ * Collaborators only. Team is the model's other crediting field (v3.1 §13) but already renders
+ * through `awardsAndTeamInCompetition` below — in the competition module when that claims it,
+ * in Project Metadata otherwise — so it is deliberately not counted here. Counting it would
+ * make W-3 render for entries whose Credits block would then be empty.
+ */
+export function hasCredits(entry: WorkEntry): boolean {
+  return entry.metadata.collaborators.length > 0;
 }
 
 /**
@@ -189,7 +214,7 @@ export function workEntryComposition(entry: WorkEntry, locale: Locale): WorkEntr
     hero: true,
     facts: true,
     evidence: hasEvidence(entry, locale),
-    credits: true,
+    credits: hasCredits(entry),
     competition: awardsAndTeamInCompetition(entry, locale),
     capture: hasCaptureEvidence(entry),
     // W-5: hidden entirely when the entry demonstrates no service. The query

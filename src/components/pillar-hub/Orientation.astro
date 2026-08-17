@@ -82,7 +82,7 @@ const { locale, copy, hero, overlay = null, station } = Astro.props;
    concern does not get to widen a component's public contract. */
 const devKey = hero ? `${hero._id}:hub-hero` : `hub:${overlay ?? 'default'}:hero`;
 const devPool = hero
-  ? poolForPillar(hero.pillars.primary, hero.pillars.secondary, devKey)
+  ? poolForPillar(hero.pillar, devKey)
   : overlay === 'measurement'
     ? 'reality-capture'
     : 'architecture';

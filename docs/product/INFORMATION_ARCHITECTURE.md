@@ -1,6 +1,10 @@
 # Information Architecture
 
-Working IA document for the Atelier portfolio website. Built on the frozen `CONTENT_MODEL.md` (v2.1) and the decisions in `DECISIONS_LOG.md`. Concise nav summary: `NAV_DECISION_RECORD.md`.
+Working IA document for the Atelier portfolio website. Built on `CONTENT_MODEL.md` (**CLIENT-VALIDATED v3.0**) and the decisions in `DECISIONS_LOG.md`. Concise nav summary: `NAV_DECISION_RECORD.md`.
+
+> **AMENDED 2026-08-14 (v3.1) — the five open model questions closed.** **Attribution, Employer, Roles and Authorship are retired**; crediting is carried by the optional `Colaboratori` and `Echipă` fields. This changes Step 5 and §5.1 below: **the *Experiență profesională* curated view loses its membership rule** (it was *Attribution = Studio, grouped by Employer*). **Its routes and per-locale reserved slugs are unchanged and stay reserved** — what the view is built from is an editorial decision to take when it is implemented (`PROJECT_MODEL_IMPACT.md` §1.7). Also fixed: **Sector is mandatory and single-select**, and **Status is mandatory, single-select and closed** (În dezvoltare · În desfășurare · Finalizat · Nerealizat).
+>
+> **AMENDED 2026-08-13 — simplified project model.** `CONTENT_MODEL.md` v3.0 removes **Discipline** and **Entry Type / Project Type**, makes **Pillar authored and single-valued** (no cross-pillar projects), makes **Services multi-select and mandatory**, adds optional **Labels** (CONCURS · PROIECT DE DIPLOMĂ) and one **closed global Sector vocabulary**. The amendments touch §2.3, Step 5, §5.1 and the Open list below; they are marked inline. **No route, sitemap, page responsibility or navigation decision changes.** Impact inventory: `PROJECT_MODEL_IMPACT.md`.
 
 **Progress:** Steps 1–7 — **LOCKED. Information Architecture complete.** Next phase: page-level UX / wireframes / design (out of IA scope). *Review findings F1, F2, F4, F5 integrated 2026-07-30 (additive/clarifying); second-review clarifications M1 (Services forward flow = two convergent journeys) and M2 (cross-pillar contextual navigation = Primary Pillar) integrated 2026-07-30 (clarification only); M3 (aggregate-page empty-state UI) scoped-deferred to Page IA / Wireframing.*
 
@@ -32,7 +36,7 @@ Global nav must not shape-shift; homepage onboarding is additive.
 ├── /proiecte                    Work archive — all Work Entries; pillar toggle + filters
 │     ├── /proiecte/[proiect]         Work Entry — single canonical URL (incl. cross-pillar)
 │     ├── /proiecte/concursuri        Curated route — Competitions
-│     └── /proiecte/experienta-profesionala   Curated route — Professional Experience
+│     └── /proiecte/experienta-profesionala   ⛔ RETIRED 2026-08-14 — 404; slug stays reserved
 ├── /arhitectura-design          Pillar hub A — standalone landing   [slug open]
 ├── /reality-capture             Pillar hub B — standalone landing   [slug open]
 ├── /contact                     Contact — service-aware inquiry
@@ -47,9 +51,11 @@ Global nav must not shape-shift; homepage onboarding is additive.
 - **Reserved-slug policy (F4):** curated-view slugs (`concursuri`, `experienta-profesionala`, and any future curated routes) are reserved and cannot be used by Work Entries. The CMS validates every Work Entry slug against the reserved list — **per locale** (so localized slugs stay protected in the multilingual version) — before publication. A build-time validation rule that protects the shared `/proiecte/` namespace; no new route segments, no routing/URL change.
 - i18n: RO at root, EN under `/en/`, localized slugs, hreflang + `x-default` (slug detail deferred).
 
-### 2.3 Content-object relationships
-Work Entry ⇄ Service (many-to-many). Work Entry → facets (Pillar 1+opt.2nd, Discipline, Entry Type, Attribution, Sector, Employer 0–1, Status, Year). Work Entry ⇄ Work Entry (related; cross-pillar pair). Service → Pillar. Pillar hub = aggregation view. Curated view = saved filter + order. Professional Experience = Attribution=Studio grouped by Employer.
-**Inbound to hub (F1):** Service page → its parent Pillar hub (contextual back-path); relevant Work Entries → their **Primary Pillar** hub where it aids orientation. **Cross-pillar rule (M2):** default contextual navigation follows the Work Entry's **Primary Pillar** (per the existing primary + optional-secondary Pillar model) — it determines the default back-path and contextual orientation; secondary pillars stay available for classification, discovery and filtering but never change default navigation. Contextual in-page links only — no routing change; hubs stay out of the global nav.
+### 2.3 Content-object relationships *(amended 2026-08-13)*
+Project ⇄ Service (many-to-many, **1..N and mandatory**, constrained to the project's Pillar). Project → facets (**Pillar ×1 authored**, Sector, Labels 0..N, Status, Year; Attribution and Employer 0–1 as display-only credit). Project ⇄ Project (related — **now also how work spanning both pillars is modelled**). Service → Pillar. Pillar hub = aggregation view. Curated view = saved filter + order. Professional Experience = Attribution=Studio grouped by Employer.
+**Inbound to hub (F1):** Service page → its parent Pillar hub (contextual back-path); relevant projects → **their Pillar** hub where it aids orientation. **M2 is simplified, not withdrawn:** default contextual navigation follows the project's Pillar — which is now simply *its* Pillar, since a project belongs to exactly one. There is no primary/secondary pillar pair and no cross-pillar entry. Contextual in-page links only — no routing change; hubs stay out of the global nav.
+
+*Superseded wording: "Pillar 1+opt.2nd, Discipline, Entry Type … cross-pillar pair … Primary Pillar."*
 
 ### 2.4 Navigation flows
 1. Undecided/social: Home → self-segmentation → hub → work/service → Contact.
@@ -100,22 +106,24 @@ Designer concept preserved. Changes: (1) early self-segmentation; (2) no structu
 
 ## Step 5 — Work Archive: Filters, Ordering & Curated Views (LOCKED)
 
-**Key principles** — Consistent filter structure across pillars; filters refine, never gate; Discipline/Service stay on entry pages and drive Services/hubs. **Attribution, Employer, Role and Authorship are display/crediting information only — not visitor filters or browse axes.** (Attribution may define a curated view internally, e.g. Professional Experience, but is never an exposed archive filter.)
-**Decisions**
-- **Pillar toggle:** All · Architecture & Design · Reality Capture (All default).
-- **Shared filters (both pillars): Entry Type + Sector.**
-- **Each pillar provides one additional contextual refinement alongside the shared filters** — Discipline (A&D), Service (RC).
-- **Year = sort, not filter;** default sort = discovery order (curated + balanced pillars), alternate = Year.
-- Curated views reachable from the archive, linking back to the full archive.
-**Rationale** — Neither Discipline (coarse in RC) nor Service (absent on non-commissioned A&D) works as a shared sub-axis.
+**Key principles** — Consistent filter structure across pillars; filters refine, never gate; Service stays on entry pages and drives Services/hubs. ~~**Attribution, Employer, Role and Authorship are display/crediting information only — not visitor filters or browse axes.**~~ *(v3.1: those fields are **retired**. The principle they protected — that crediting is never a browse axis — is preserved and now trivially so: `Colaboratori` and `Echipă` are display-only and are not filters.)*
+**Decisions** *(amended 2026-08-13)*
+- **Pillar toggle:** All · Architecture & Design · Reality Capture (All default). Unchanged.
+- **Shared filters (both pillars): Sector + Label.** *(was: Entry Type + Sector — Entry Type no longer exists)*
+- **Service is the contextual refinement, and it is now available in BOTH pillars.** *(was: Discipline for A&D, Service for RC)*
+- **Year = sort, not filter;** default sort = discovery order (curated + balanced pillars), alternate = Year. Unchanged.
+- Curated views reachable from the archive, linking back to the full archive. Unchanged.
+**Rationale** *(amended)* — The original rationale was that neither Discipline (coarse in RC) nor Service (absent on non-commissioned A&D) worked as a shared sub-axis. **Both halves of that objection are gone:** Discipline no longer exists, and Service is now mandatory on every project, in both pillars. Service is therefore the correct shared refinement.
 **Trade-offs** — Consistent set + one contextual refinement; Year as sort; discovery-order upkeep — accepted.
 
 ### 5.1 Professional Experience (Curated View — subsection)
-- **Scope:** Studio-attributed entries only. **Collaboration is discoverable through normal archive browsing and through the transparent attribution shown on each Work Entry — there is no attribution filter** (F2).
-- **Grouping & order:** by Employer (grouping metadata, not its own page); employers by recency, entries by editorial priority.
+> **⛔ THIS CURATED VIEW IS PERMANENTLY RETIRED — product decision 2026-08-14 (`DECISIONS_LOG.md` #97).** Attribution and Employer are gone, and **no replacement membership rule is to be designed.** The **About / Despre** page (Step 7) is the surviving home for professional-background content. `/proiecte/experienta-profesionala` and `/en/projects/professional-experience` will 404; **both slugs remain reserved** (§2.2 F4) so no project can claim a historical URL. The subsection below is retained as a record of what the view was, not as a specification.
+
+- **Scope:** ~~Studio-attributed entries only.~~ **Retired — no scope.** **Collaboration is discoverable through normal archive browsing and through the crediting shown on each project — there is no attribution filter** (F2; v3.1: no Attribution field either).
+- ~~**Grouping & order:** by Employer (grouping metadata, not its own page); employers by recency, entries by editorial priority.~~ *(v3.1: Employer is retired; the grouping key is gone with it.)*
 - **Value:** narrative of professional experience + transparent crediting, beyond a filtered list.
-- **Credit-display rule:** belongs to Studio-attributed Work Entries (foreground Employer + Role + scoped Authorship), not the view.
-- **Route:** `/proiecte/experienta-profesionala`; reachable from archive and homepage (MAAI gallery). *Publication rights = content/governance, not IA.*
+- ~~**Credit-display rule:** belongs to Studio-attributed Work Entries (foreground Employer + Role + scoped Authorship), not the view.~~ *(v3.1: crediting is `Colaboratori` + `Echipă` on the project, still a property of the project rather than of the view.)*
+- **Route:** ~~`/proiecte/experienta-profesionala`; reachable from archive and homepage (MAAI gallery).~~ **Retired 2026-08-14 — the route 404s and is linked from nowhere; the slug stays reserved in both locales.**
 
 ---
 
@@ -164,4 +172,6 @@ Designer concept preserved. Changes: (1) early self-segmentation; (2) no structu
 ---
 
 ## Open (non-blocking, carried into design/build)
-Multi-select within a facet; inline vs expander rendering of the contextual refinement (design-step); **empty-state UI for aggregate pages (Pillar Hubs, Curated Views) — deferred to Page IA / Wireframing (M3): the IA defines these pages' existence and relationships, not their empty-state presentation**; pillar-hub public names; i18n slug-localization detail + fallback; confirm the EU programme's exact publicity rules; point-cloud showcase fidelity (UX/tech); credibility copy authoring; Visualization as its own discipline vs service/role; possible future "Academic" Attribution; possible future "Collection" object.
+*(2026-08-13: "Visualization as its own discipline vs service/role" is **closed** — Discipline no longer exists, and visualization is a Service in each pillar. 2026-08-14 (v3.1): "possible future 'Academic' Attribution" is **closed as moot** — there is no Attribution axis. Newly open, all UI/editorial rather than model questions: whether Labels get their own filter control or only the existing curated view; whether the Service refinement is offered under the "All" pillar mode; ~~what the *Experiență profesională* view is built from~~ — **closed 2026-08-14: the view is permanently retired**.)*
+
+Multi-select within a facet; inline vs expander rendering of the contextual refinement (design-step); **empty-state UI for aggregate pages (Pillar Hubs, Curated Views) — deferred to Page IA / Wireframing (M3): the IA defines these pages' existence and relationships, not their empty-state presentation**; pillar-hub public names; i18n slug-localization detail + fallback; confirm the EU programme's exact publicity rules; point-cloud showcase fidelity (UX/tech); credibility copy authoring; possible future "Collection" object.

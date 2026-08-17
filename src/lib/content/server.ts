@@ -42,13 +42,9 @@ export {
   createSanityContentSource,
   createSanityDocuments,
   availableIn,
-  groupByEmployer,
   hasPlacement,
-  isCompetition,
-  isProfessionalExperience,
   type ContentSource,
   type CuratedView,
-  type EmployerGroup,
   type RawDocuments,
 } from './source.js';
 

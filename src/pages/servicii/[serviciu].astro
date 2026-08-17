@@ -42,19 +42,29 @@ export async function getStaticPaths() {
   const entries = indexById(workEntries);
 
   return services
-    .map((service) => {
+    .map((service, index) => {
       const slug = localize(service.slug, 'ro');
       // RO is required to publish at all (`validation.ts`), so this is a type
       // guard rather than an expected state.
-      return slug ? { params: { serviciu: slug }, props: { service, entries } } : null;
+      return slug
+        ? {
+            params: { serviciu: slug },
+            // The identity block's sheet reference. Derived here because this is
+            // the only place that holds the whole curation-ordered list; it is
+            // the same numbering the Services index already prints. A POSITION,
+            // not a stored identity — see ServicePage.astro.
+            props: { service, entries, code: String(index + 1).padStart(2, '0') },
+          }
+        : null;
     })
     .filter((path): path is NonNullable<typeof path> => path !== null);
 }
 
-const { service, entries } = Astro.props as {
+const { service, entries, code } = Astro.props as {
   service: Service;
   entries: ReadonlyMap<string, WorkEntry>;
+  code: string;
 };
 ---
 
-<ServicePage service={service} locale="ro" entries={entries} />
+<ServicePage service={service} locale="ro" entries={entries} code={code} />

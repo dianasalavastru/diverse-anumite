@@ -32,11 +32,28 @@
  * appear is decided in `modules.ts`, and only there.
  *
  * ── MODULE ORDER IS THE WIREFRAME'S ───────────────────────────────────────
- *   S-1 orientation → S-2 problem recognition → S-3 solution understanding
- *   (deliverables, then process) → S-4 representative evidence → S-5 conversation
+ *   S-1 orientation + S-2 problem recognition (one opening) → S-3 solution
+ *   understanding (deliverables, process, capabilities) → S-4 representative
+ *   evidence → S-5 conversation
  *
  * "Every transition removes one more source of uncertainty, so that by S-5
  * nothing stands between understanding and action."
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ *  PROTOTYPE — THE CAPABILITY SHEET COMPOSITION
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * This page no longer opens on a full-bleed photograph. That composition was a
+ * near-verbatim copy of the Work Entry's hero (same height, same gutters, same
+ * settle, same gradient, same scan, same title treatment, same photo pool), so
+ * two page types with two different jobs opened identically — and it made S-1
+ * the strongest visual idea on a page whose own wireframe says the SOLUTION
+ * must be. `Orientation.astro` carries the full reasoning.
+ *
+ * What changed here: the header is no longer `on-hero`, S-2 no longer takes a
+ * station of its own, and equipment is a station rather than a footnote to the
+ * process. What did not change: the route contract, the prefill contract, F5,
+ * the §19.4 capture gate, the rail, the section-marker grammar, or any token.
  *
  * ── CONTENT: THE I-3 CONTRACT ─────────────────────────────────────────────
  * Every value on this page comes from Workstream B's `ContentSource`. This file
@@ -59,11 +76,11 @@
  *     record. Reported, not silently dropped.
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import Capabilities from './Capabilities.astro';
 import Conversion from './Conversion.astro';
 import CoordinateRail from '../CoordinateRail.astro';
 import Deliverables from './Deliverables.astro';
 import Orientation from './Orientation.astro';
-import ProblemFit from './ProblemFit.astro';
 import Process from './Process.astro';
 import Proof from './Proof.astro';
 import SectionMarker from '../SectionMarker.astro';
@@ -73,9 +90,6 @@ import { localize } from '../../lib/content';
 import type { Locale, Service, WorkEntry } from '../../lib/content';
 import { serviceMessages } from '../../lib/i18n/service';
 import { captureSubject, serviceComposition, stationLabel } from './modules';
-/* DEVELOPMENT ONLY — the header variant must agree with `Orientation.astro` about whether a
-   hero is being painted; both ask this one function. Returns `null` without the flag. */
-import { devServiceHero } from '../../lib/dev/visual-media';
 
 interface Props {
   service: Service;
@@ -83,12 +97,24 @@ interface Props {
   /**
    * Full Work Entries, indexed by id — the join `demonstratedBy` cannot make on
    * its own (it is a summary projection with no capture metadata). Used for one
-   * thing only: resolving the S-4 point-cloud subject. Empty is valid.
+   * thing only: resolving the point-cloud subject. Empty is valid.
    */
   entries: ReadonlyMap<string, WorkEntry>;
+  /**
+   * The service's 1-based position in this locale's curation-ordered service
+   * list, printed in the identity block's title block as `S·NN`.
+   *
+   * DERIVED BY THE ROUTE, NOT STORED. `getStaticPaths` already holds the whole
+   * ordered list, so this costs nothing and invents nothing — it is the same
+   * numbering `ServicesIndexPage` prints beside each service. It is a POSITION,
+   * though, not an identity: publishing a new service renumbers everything
+   * after it. A stable sheet reference is an additive `code` field on the
+   * Service; see the prototype report. `null` renders the plain word instead.
+   */
+  code?: string | null;
 }
 
-const { service, locale, entries } = Astro.props;
+const { service, locale, entries, code = null } = Astro.props;
 
 const copy = serviceMessages(locale);
 const composition = serviceComposition(service, locale);
@@ -134,25 +160,13 @@ const marker = (key: keyof typeof copy.markers, station: number) => ({
   slugs={slugs}
   title={seoTitle}
   description={seoDescription}
-  headerVariant={service.hero || devServiceHero(service._id, service.pillar) ? 'on-hero' : 'default'}
+  headerVariant="default"
   footerStation={composition.footerStation}
 >
-  {/* §14.0 progressive enhancement: the opening's staged elements are gated on
-      a class the motion runtime adds. With scripting disabled they must resolve,
-      not stay hidden. Reduced motion needs nothing here — service.css already
-      resolves it in CSS. */}
-  <Fragment slot="head">
-    <noscript>
-      <style>
-        html.anim-load .sv-orientation-in {
-          opacity: 1 !important;
-        }
-        html.anim-load .sv-hero-media {
-          transform: none !important;
-        }
-      </style>
-    </noscript>
-  </Fragment>
+  {/* The opening is on paper now, so there is no hero image to stage behind and
+      no `.sv-hero-media` transform to resolve. The shared `.rv` reveal family is
+      already handled globally (motion.css) and degrades without scripting, so
+      this page needs no noscript block of its own. */}
 
   <CoordinateRail slot="rail" stations={composition.footerStation} />
 
@@ -161,16 +175,8 @@ const marker = (key: keyof typeof copy.markers, station: number) => ({
     locale={locale}
     copy={copy}
     station={stations.orientation ?? 1}
+    code={code}
   />
-
-  {
-    stations.problem && (
-      <section class="sv-section sv-problem-section" data-station={stations.problem} aria-labelledby="sv-problem-h">
-        <SectionMarker copy={marker('problem', stations.problem)} heading id="sv-problem-h" />
-        <ProblemFit service={service} locale={locale} copy={copy} />
-      </section>
-    )
-  }
 
   {
     stations.deliverables && (
@@ -194,6 +200,24 @@ const marker = (key: keyof typeof copy.markers, station: number) => ({
     )
   }
 
+  {
+    stations.capabilities && (
+      <section
+        class="sv-section sv-caps-section"
+        data-station={stations.capabilities}
+        aria-labelledby="sv-caps-h"
+      >
+        <SectionMarker copy={marker('capabilities', stations.capabilities)} heading id="sv-caps-h" />
+        <Capabilities
+          service={service}
+          locale={locale}
+          copy={copy}
+          captureSubject={cloudSubject}
+        />
+      </section>
+    )
+  }
+
   {/* S-4 is unconditional — F5 swaps the surface, never the module. */}
   <section
     class="sv-section sv-proof-section"
@@ -201,7 +225,7 @@ const marker = (key: keyof typeof copy.markers, station: number) => ({
     aria-labelledby="sv-proof-h"
   >
     <SectionMarker copy={marker('proof', stations.proof ?? 1)} heading id="sv-proof-h" />
-    <Proof service={service} locale={locale} copy={copy} captureSubject={cloudSubject} />
+    <Proof service={service} locale={locale} copy={copy} />
   </section>
 
   <section

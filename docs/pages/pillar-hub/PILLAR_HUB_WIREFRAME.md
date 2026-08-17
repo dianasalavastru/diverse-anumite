@@ -126,7 +126,7 @@ Derived exclusively from: `HUB_PAGE_IA.md`, `PAGE_IA_INDEX.md`, `COMPONENT_INVEN
 **Intentionally varies by capability (content only):**
 - **H-1** — pillar name + positioning + optional capability hero media.
 - **H-2** — framing + use-cases (Reality Capture: heritage documentation, as-built, survey; Architecture & Design: residential, interior, competitions) + optional capability facts (RC: accuracy/equipment).
-- **H-3** — the pillar's Services (RC: 3D laser scanning, drone photogrammetry; A&D: architectural design, interior design, visualization).
+- **H-3** — the pillar's Services *(v3.1: RC = Scanare laser 3D · Scan-to-BIM · Fotografie de arhitectura · Vizualizare de arhitectura; A&D = Proiectare de arhitectura · Design interior · Vizualizare 3D · Design mobilier. **Drone photogrammetry is not a Service** — it describes the capability, not the offer.)*
 - **H-4** — pillar-scoped curated Work Entries (RC media may be point-cloud/orthophoto; A&D renders/drawings).
 - **H-6** — Contact Topic prefill = this pillar.
 

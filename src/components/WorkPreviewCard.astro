@@ -19,12 +19,18 @@
  * responsibility (Inventory §5: "Prefer extending an existing component over
  * creating a new one (variants, not new components)"):
  *   `focus`    the approved Homepage HiFi's focus-carousel card;
- *   `archive`  the approved Work Archive HiFi's masonry card (Phase 5).
+ *   `archive`  the approved Work Archive HiFi's archive card (Phase 5).
  * The archive's five-size vocabulary is NOT a set of card variants — sizing is
  * the grid cell's business, and it lives in the Results Grid.
  *
+ * The archive variant serves both presentations of that grid: the curated views'
+ * masonry catalogue and the Work Archive's project register, where the same
+ * elements are composed as a full-width editorial unit (see work-archive.css
+ * A-5a). The card does not know which — it renders identity, plate, caption and,
+ * where the caller supplies one, a small preview of the entry's own gallery.
+ *
  * REBUILT, NOT COPIED (§5.3). Markup and data attributes come from the Content
- * Model, never from HiFi markup: the metadata line renders Year + **Entry Type**
+ * Model, never from HiFi markup: the metadata line renders Year + **Labels**
  * from the frozen vocabulary, where the HiFi prints an inconsistent mix of
  * Sector and Entry Type in the same slot. No `data-type`/`data-status` attribute
  * survives — those are the collapsed-taxonomy prototype debt §5.3 and R6 name.
@@ -58,9 +64,31 @@
  */
 import Plate from './media/Plate.astro';
 import { localize } from '../lib/content';
-import type { Locale, WorkEntrySummary } from '../lib/content';
-import { entryTypeLabel, pillarLabel } from '../lib/i18n/vocabulary';
+import type { ImageAsset, Locale, WorkEntrySummary } from '../lib/content';
+import { pillarLabel, projectLabelLabel, sectorLabel } from '../lib/i18n/vocabulary';
 import { poolForPillar } from '../lib/dev/visual-media';
+
+/**
+ * One frame of the archive's project preview — see the `preview` prop.
+ *
+ * `image` is the entry's own gallery asset. `devKey` is non-null ONLY under the visual-QA
+ * overlay, and only for a frame that stands in for a gallery the CMS does not hold; in a normal
+ * build every frame carries a real image and a null key. The two are never both set.
+ */
+export interface PreviewFrame {
+  readonly image: ImageAsset | null;
+  readonly devKey: string | null;
+  /**
+   * Whether this frame's asset may fill its slot or must be contained on the plate tone.
+   *
+   * Decided by the caller, from the asset's own proportions against the slot the composition
+   * gives it (`work-archive/preview.ts`). It reaches the card as an answer rather than as an
+   * input because the card cannot know which slot a frame landed in — that is the sheet's
+   * composition, and the sheet is a set. Absent means the caller expressed no preference, and
+   * the stylesheet's default applies.
+   */
+  readonly fit?: 'cover' | 'contain';
+}
 
 interface Props {
   entry: WorkEntrySummary;
@@ -103,6 +131,32 @@ interface Props {
   place?: string | null;
   /** `archive` variant only — the hover/focus continuation cue. */
   openLabel?: string;
+  /**
+   * `archive` variant only — a small contact sheet of THIS entry's own gallery, composed by the
+   * caller from `WorkArchiveItem.galleryPreview` (at most three, in the editor's order).
+   *
+   * WHY THE CALLER COMPOSES IT. The same reason `coordinate` and `place` are passed in: this
+   * component's frozen input is a `WorkEntrySummary` (`COMPONENT_INVENTORY.md` "Work Preview
+   * Card" — "Work Entry preview (title, key facets, media)"), and the summary carries no
+   * gallery. Widening the summary would hand a gallery to the Related Work Strip, the hub and
+   * the Service proof, none of which show one. The archive projection has the assets; the
+   * archive's Results Grid selects from them; the card renders what it is given.
+   *
+   * Empty is the normal state and needs no fallback: an entry with no gallery is a complete
+   * project unit made of its cover and its information. Nothing is substituted for an absence
+   * (§10.4), the cover is never repeated to fill a frame, and no frame ever holds an image from
+   * a neighbouring entry — every frame here came from this `entry`.
+   */
+  preview?: readonly PreviewFrame[];
+  /**
+   * `archive` variant only — the sheet's orientation signature (`ppp`, `pll`, `lll`, …),
+   * published to the stylesheet as `data-preview-layout`.
+   *
+   * The card does not derive it, for the same reason it does not compose the sheet: it is a
+   * property of a SET of images, and the Results Grid owns sets. See `work-archive/preview.ts`
+   * for the rule and `work-archive.css` A-5a for what each token draws.
+   */
+  previewLayout?: string;
 }
 
 const {
@@ -116,21 +170,36 @@ const {
   variant = 'focus',
   place = null,
   openLabel = '',
+  preview = [],
+  previewLayout,
 } = Astro.props;
+
+/* Belt and braces against the projection's own bound: the composition below authors exactly
+   four states (0 · 1 · 2 · 3) and a fourth frame would fall into none of them. */
+const previewFrames = preview.slice(0, 3);
 
 const label = coordinate ?? `pt·${String(index).padStart(2, '0')}`;
 const title = localize(entry.title, locale);
-const type = entryTypeLabel(entry.entryType.primary, locale);
+/* STAGE 4: the caption's Entry Type reading became Project Labels. Entry Type was mandatory, so
+   this slot always had a value; Labels are optional, so it renders only when the project carries
+   one — a card for an unlabelled project simply has one reading fewer, never a placeholder. Both
+   labels render when both are present. */
+const labels = entry.labels.map((label) => projectLabelLabel(label, locale)).join(' · ') || null;
 /* The archive caption's first reading — the pillar, carrying the blue signal
-   exactly as the HiFi's `.pl-tag` does. Derived, never authored (§7.4). */
-const pillar = pillarLabel(entry.pillars.primary, locale);
+   exactly as the HiFi's `.pl-tag` does. Authored since Stage 5 (v3.1 §2). */
+const pillar = pillarLabel(entry.pillar, locale);
+/* The archive caption's fifth reading — Sector, from the axis the summary
+   already carries (`WorkEntrySummary.sector`) through the closed vocabulary's own label.
+   Rendered by the archive variant only. Single-valued and mandatory since Stage 6, so it is
+   always present — no empty branch. */
+const sector = sectorLabel(entry.sector, locale);
 
 /* DEVELOPMENT ONLY — see `lib/dev/visual-media.ts`. Keyed on the entry rather than on the
    variant, so the same project shows the same picture on the homepage, its hub and the archive;
    that consistency is what makes the masonry rhythm readable in a screenshot pass. Inert without
    `DEV_VISUAL_MEDIA=true`, and never consulted when `entry.cover` is real. */
 const devKey = `${entry._id}:card`;
-const devPool = poolForPillar(entry.pillars.primary, entry.pillars.secondary, devKey);
+const devPool = poolForPillar(entry.pillar, devKey);
 ---
 
 {
@@ -145,32 +214,103 @@ const devPool = poolForPillar(entry.pillars.primary, entry.pillars.secondary, de
    * source. The size class and the grid cell belong to the **Results Grid**,
    * which is the component the Inventory makes responsible for presenting a set.
    *
-   * The metadata line renders four INDEPENDENT axes — Pillar · Entry Type · Year
-   * · Location — where the HiFi prints a pillar tag beside an inconsistent mix of
-   * Sector and Entry Type in one slot (`WORK_ARCHIVE_IMPLEMENTATION_NOTES.md`:82
-   * calls that out as the prototype's collapsed taxonomy; §7.2 adopts "do not
-   * merge them" verbatim).
+   * The caption renders five INDEPENDENT axes — Pillar · Labels · Year ·
+   * Location · Sector — where the HiFi prints a pillar tag beside an
+   * inconsistent mix of Sector and Entry Type in one slot
+   * (`WORK_ARCHIVE_IMPLEMENTATION_NOTES.md`:82 calls that out as the prototype's
+   * collapsed taxonomy; §7.2 adopts "do not merge them" verbatim). They are set
+   * on four rows — identity (`.cid`), title, place (`.pc`), metadata (`.d`) — so
+   * the archive composition can give an entry's identity a column of its own
+   * beside its photograph. No axis was added to the contract to do it: Sector is
+   * already on `WorkEntrySummary`, and every label is the frozen vocabulary's.
+   *
+   * The identity row is the card's FIRST child, above the plate rather than
+   * inside the caption, so the archive can rule it across the entire entry.
+   * Reading order is unchanged in substance (the coordinate is `aria-hidden`
+   * and the pillar tag simply now precedes the plate it labels).
    */
 }
 {
   variant === 'archive' ? (
     <a class="pl" href={href} data-work-id={entry._id}>
-      <span class="im">
-        <span class="mk" aria-hidden="true" />
-        <Plate image={entry.cover} locale={locale} tone={tone} devKey={devKey} devPool={devPool} />
-        <span class="pid" aria-hidden="true">
+      {/* The identity line: the coordinate label and the pillar tag, set on
+          one hairline-ruled row. Both readings existed already — the
+          coordinate over the image (`.pid`) and the pillar at the head of the
+          metadata line — and neither is new information. Moving the
+          coordinate out of the plate is what lets an archive entry state its
+          identity BESIDE its photograph rather than on top of it, which is
+          the whole point of the featured composition below.
+
+          RULED ENTRY (Direction A). It is a direct child of the card rather
+          than of the caption, so its hairline spans the WHOLE project unit —
+          photograph and caption together — instead of the text column alone.
+          The rule is what makes one entry legibly one entry; the caption is
+          only half of it. Identical for the lead and for every ordinary
+          entry: the lead teaches the grammar, it does not have its own. */}
+      <span class="cid">
+        <span class="no" aria-hidden="true">
           {label}
         </span>
+        <span class="pl-tag">{pillar}</span>
+      </span>
+
+      {/* The plate carries the hover on its own. The HiFi's growing blue mark
+          (`.mk`) is gone: a 40px bar arriving inside the image frame is new
+          visual structure rather than a state, and it was a second simultaneous
+          blue signal beside the continuation cue's arrow. The element is removed
+          rather than left inert, so nothing decorative and unstyled survives in
+          the markup. `focus` variant's `.pmark` is a different device on a
+          different composition and is untouched. */}
+      <span class="im">
+        <Plate image={entry.cover} locale={locale} tone={tone} devKey={devKey} devPool={devPool} />
       </span>
 
       <span class="cap">
         <span class="t">{title}</span>
+        {place && <span class="pc">{place}</span>}
         <span class="d">
-          <span class="pl-tag">{pillar}</span>
-          <span>{type}</span>
+          {labels && <span>{labels}</span>}
           <span>{entry.year}</span>
-          {place && <span>{place}</span>}
+          <span class="sc">{sector}</span>
         </span>
+        {/* ── THE PROJECT PREVIEW — a glimpse inside, not a gallery ───────────
+            Two to three of the entry's own gallery images, set small beneath its
+            metadata. The archive is a signposting surface
+            (`COMPONENT_INVENTORY.md`: "signposting previews… never in-depth
+            projects"), so this is deliberately a contact sheet and not the W-2
+            Gallery: no zoom, no Media Viewer, no captions, no coordinates. It
+            says "there is more of this project" and routes to the project to
+            show it.
+
+            `aria-hidden`, and that is the accessible choice rather than a
+            shortcut. The card is ONE link, already named by its title and
+            metadata; every image inside it contributes to that one name, so
+            three authored alt texts would append three sentences to the name of
+            a link whose job is to say which project it opens. The same images
+            are reachable, individually named and individually inspectable on the
+            Work Entry the link leads to, which is where an alt text is a
+            reading rather than noise. Nothing here is information a visitor can
+            get only from this element. */}
+        {previewFrames.length > 0 && (
+          <span
+            class:list={['gs', `gs-${previewFrames.length}`]}
+            data-preview-layout={previewLayout}
+            aria-hidden="true"
+          >
+            {previewFrames.map((frame) => (
+              <span class="gf" data-fit={frame.fit}>
+                <Plate
+                  image={frame.image}
+                  locale={locale}
+                  tone={tone}
+                  devKey={frame.devKey}
+                  devPool={devPool}
+                />
+              </span>
+            ))}
+          </span>
+        )}
+
         {/* The link is already named by its title and metadata; the cue would
             only repeat it into the accessible name. It is a visual affordance,
             and never the only signal of interactivity (MOTION_NOTES.md:54) —
@@ -200,8 +340,11 @@ const devPool = poolForPillar(entry.pillars.primary, entry.pillars.secondary, de
 
       <span class="meta">
         <span class="t">{title}</span>
+        {/* STAGE 4: Year + Labels replaces Year + Entry Type. Entry Type was mandatory so the
+            separator was always earned; Labels are optional, so an unlabelled project shows the
+            year alone rather than a trailing bullet. */}
         <span class="d">
-          {entry.year} · {type}
+          {labels ? `${entry.year} · ${labels}` : entry.year}
         </span>
       </span>
     </a>

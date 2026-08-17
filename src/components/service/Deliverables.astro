@@ -4,37 +4,41 @@
  * "what-you-get / how-it-works / what-to-expect" module (Stage C).
  *
  * Responsibility (`SERVICE_PAGE_IA.md` S-3): "**reduce uncertainty by making the
- * service tangible** — and set realistic expectations." Components
- * (`SERVICE_WIREFRAME.md` S-3): "Section Header · Rich Text (deliverables ·
- * process · what to expect)."
- *
- * Spatial composition, transcribed: "the concrete substance of the service,
- * presented plainly and specifically — **practical over promotional**."
+ * service tangible** — and set realistic expectations." Spatial composition,
+ * transcribed: "the concrete substance of the service, presented plainly and
+ * specifically — **practical over promotional**."
  *
  * ── ONE LIST, NOT SIX ILLUSTRATED CARDS ───────────────────────────────────
  * The approved HiFi renders deliverables as six editorial objects, each with a
- * hand-drawn SVG preview and a format badge — `.E57 / .RCP`, `.TIFF geo`,
- * `.DWG / .PDF`, `.IFC / .RVT`, `web / .E57`, `.PDF`. `Service.deliverables` is
- * `Localized<readonly string[]>`: one authored string per deliverable, with no
- * format field, no description field and no per-item illustration. §5.3 rebuilds
- * markup "from the Content Model, never from HiFi markup"; inventing three
- * sub-fields so the page can look like the prototype is exactly the field
- * invention this workstream must not do, and hard-coding six laser-scanning
- * diagrams into a generic Service page would make it Scanare 3D's page forever.
+ * hand-drawn SVG preview and a format badge — `.E57 / .RCP`, `.DWG / .PDF`,
+ * `.IFC / .RVT`. `Service.deliverables` is `Localized<readonly string[]>`: one
+ * authored string per deliverable, with no format field, no description field
+ * and no per-item illustration. §5.3 rebuilds markup "from the Content Model,
+ * never from HiFi markup", and hard-coding six laser-scanning diagrams into a
+ * generic Service page would make it Scanare 3D's page forever.
  *
- * What survives is the *composition*: a set of evenly weighted objects on a
- * ruled grid, each one deliverable, in the authored order. What is absent is the
- * per-item artwork and the format badge. Both are reported as content-model
- * gaps; if the owner wants them, they are two additive fields on the Service and
- * one element each here.
+ * ── ONE COLUMN, NOT THREE (Capability Sheet) ──────────────────────────────
+ * It was a three-column grid of numbered names. Three columns turn four
+ * deliverables into a ragged 3+1 and read as a card wall — the exact
+ * vocabulary VISUAL_DIRECTION_v2.0 §12 forbids. One ruled column reads as a
+ * schedule: each deliverable is a full-measure row with a blue ordinal, so the
+ * set has a top and a bottom and a visitor can count it. It also degrades
+ * honestly — two deliverables are two rows, not a grid with a hole in it.
  *
- * The list is ordered because the authoring order is editorial — the owner
- * decides which deliverable a client reads first — so `<ol>` states that, and
- * the CSS suppresses the numerals the HiFi's grid does not show.
+ * ── THE ONE IMAGE ON THE PAGE ─────────────────────────────────────────────
+ * `Service.hero` is the ONLY image field on the Service object, and it renders
+ * here rather than as the page's opening. Beside a schedule of deliverables it
+ * is what the wireframe asks the media to be — support for the concrete
+ * substance — instead of the page's loudest gesture. It is contained at an
+ * authored ratio, never full-bleed, and if the service has no image the
+ * schedule simply takes the full well: nothing is substituted, and the same
+ * photograph is never repeated down the page to fill space.
  */
+import Plate from '../media/Plate.astro';
 import { localize } from '../../lib/content';
 import type { Locale, Service } from '../../lib/content';
 import type { ServiceMessages } from '../../lib/i18n/service';
+import { devServiceHero, devServiceKey, devServicePool } from '../../lib/dev/visual-media';
 
 interface Props {
   service: Service;
@@ -47,9 +51,18 @@ const { service, locale, copy } = Astro.props;
 /* The module only renders when this is non-empty (`modules.ts`), so the
    fallback is a type guard rather than an expected state. */
 const deliverables = localize(service.deliverables, locale) ?? [];
+
+/* DEVELOPMENT ONLY — see `lib/dev/visual-media.ts`. The media column is *gated*
+   on an image existing, so a Plate-level substitution alone would leave the
+   two-column composition unreviewable under the visual-QA flag. Same call
+   `Orientation` used to make for the same reason; `devServiceHero` returns
+   `null` in every build that did not opt in, so without the flag this collapses
+   back to `service.hero !== null`. */
+const devHero = service.hero ? null : devServiceHero(service._id, service.pillar);
+const hasMedia = service.hero !== null || devHero !== null;
 ---
 
-<div class="sv-deliverables">
+<div class:list={['sv-deliverables', hasMedia && 'sv-deliverables--media']}>
   <ol class="sv-objs" aria-label={copy.deliverables.listLabel}>
     {
       deliverables.map((deliverable, index) => (
@@ -62,4 +75,24 @@ const deliverables = localize(service.deliverables, locale) ?? [];
       ))
     }
   </ol>
+
+  {
+    hasMedia && (
+      <figure class="sv-figure rv" data-rv="img">
+        <div class="sv-figure-frame">
+          {/* Named by the section and the schedule beside it, so the plate is
+              decorative rather than repeating the service name into the
+              accessible tree. */}
+          <Plate
+            image={service.hero}
+            locale={locale}
+            tone="#c9c4ba"
+            devKey={devServiceKey(service._id)}
+            devPool={devServicePool(service.pillar)}
+          />
+        </div>
+        <figcaption class="sv-figure-cap mono">{copy.deliverables.mediaCaption}</figcaption>
+      </figure>
+    )
+  }
 </div>

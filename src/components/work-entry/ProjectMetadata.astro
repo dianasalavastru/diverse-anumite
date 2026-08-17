@@ -33,9 +33,7 @@ import { localize } from '../../lib/content';
 import type { Locale, WorkEntry } from '../../lib/content';
 import type { WorkEntryMessages } from '../../lib/i18n/work-entry';
 import {
-  commissioningLabel,
-  disciplineLabel,
-  entryTypeLabel,
+  projectLabelLabel,
   sectorLabel,
   statusLabel,
 } from '../../lib/i18n/vocabulary';
@@ -65,19 +63,17 @@ const push = (key: string, value: string | null | undefined, measured = false) =
 /* Classification — the axes W-1 consumes, each as its own row. §7.2's adopted
    principle: expose canonical fields "as independent dimensions. Do not merge
    them." Primary and secondary values of one axis stay on that axis's row. */
+/* STAGE 5: the Discipline row is gone with the axis. Pillar is not added in its place — W-1
+   already signals the capability through the Hero's pillar tag and the back-path, and the Page
+   IA does not list Pillar among Project Metadata's rows. */
+/* STAGE 4: the Entry Type row became the Labels row. `push` already skips empty values, so an
+   unlabelled project renders no row at all rather than an empty one — which is what makes an
+   optional axis different from the mandatory one it replaced. */
 push(
-  labels.discipline,
-  [entry.discipline.primary, ...entry.discipline.secondary]
-    .map((value) => disciplineLabel(value, locale))
-    .join(' · '),
+  labels.labels,
+  entry.labels.map((label) => projectLabelLabel(label, locale)).join(' · '),
 );
-push(
-  labels.entryType,
-  [entry.entryType.primary, ...entry.entryType.secondary]
-    .map((value) => entryTypeLabel(value, locale))
-    .join(' · '),
-);
-push(labels.sector, entry.sectors.map((sector) => sectorLabel(sector, locale)).join(' · '));
+push(labels.sector, sectorLabel(entry.sector, locale));
 
 /* Metadata axis — CONTENT_MODEL.md:54. */
 push(labels.year, String(entry.metadata.year), true);
@@ -101,17 +97,15 @@ push(
  */
 push(labels.client, entry.metadata.client, true);
 
-/**
- * Commissioning context (`CONTENT_MODEL.md`:49) — self-initiated vs
- * client-commissioned. It is its own axis, listed in neither W-1's nor W-3's
- * *Consumes* line, and §7.3 gives its consumer only as "acquisition signal". It
- * belongs here rather than in Credits because it describes how the engagement
- * came about, not who authored the work — and collapsing it into the Credits
- * block would blur the three-way split `CONTENT_MODEL.md`:60 protects. Project
- * Metadata is explicitly "not a fixed field set", which is the slot for exactly
- * this kind of true, small, orienting fact.
+/* STAGE 8 — the two Service-activated facts that live on the project rather than on the survey.
+   `push` skips an empty value, so a project whose Services do not activate them renders no row. */
+push(labels.equipment, entry.metadata.equipment.join(' · '), true);
+push(labels.implementationCompany, entry.metadata.implementationCompany, true);
+
+/*
+ * STAGE 3: the Commissioning-context row is gone. `CONTENT_MODEL.md` v3.1 §12 retires the axis
+ * outright, and nothing replaces it — Client above already carries whether a project had one.
  */
-push(labels.commissioning, commissioningLabel(entry.commissioning, locale));
 
 /* Fields the type modules claim when they render — see modules.ts. */
 if (!deliverablesInCapture(entry)) {

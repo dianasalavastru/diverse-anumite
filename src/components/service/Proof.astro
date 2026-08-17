@@ -45,7 +45,8 @@
  * ── "SEE MORE" USES THE FROZEN FILTER CONTRACT ────────────────────────────
  * Page IA S-4: module "see more" → the **pillar-filtered Work Archive**. §23.5
  * freezes the archive URL and gives each pillar exactly one contextual
- * refinement — Discipline for A&D, **Service for RC**. For a Reality Capture
+ * refinement — **Service under Reality Capture** (A&D's Discipline refinement was retired at
+ * Stage 5). For a Reality Capture
  * service the localized Service slug is therefore a legal, frozen narrowing of
  * the same destination, and it lands the visitor on the archive already showing
  * this service's work rather than the whole pillar. For A&D, Service is not the
@@ -54,19 +55,29 @@
  * alone is used. Both tokens come from the single declarations in
  * `vocabulary.ts`; nothing is concatenated from a Pillar value.
  *
- * ── THE POINT-CLOUD FIELD ─────────────────────────────────────────────────
- * A Service has no point cloud; a project does. `modules.ts` `captureSubject`
- * explains the whole rule. What arrives here is either `null` or one
- * demonstrating Work Entry whose survey is published and clearance-gated, and it
- * is handed to the existing seam unchanged — no renderer, no second gate, no
- * assembled readout. It sits at the head of the proof set because that is what
- * it is: the measured evidence of this service, credited and linked to the
- * project it belongs to.
+ * ── A STRIP, NOT A GRID (Capability Sheet) ────────────────────────────────
+ * The proof set was a three-across grid of the same card the Work Archive
+ * uses at the same size. At that scale it *is* a miniature archive embedded in
+ * the Service page — which is precisely the responsibility boundary S-4 names
+ * ("demonstrate, don't browse — protects the Work Archive's responsibility").
+ *
+ * It is now a compact strip: more items across, each one small, on one ruled
+ * row. Restraint is expressed as SIZE rather than as count, so a service with
+ * six demonstrating projects still shows six — hiding real proof to look
+ * restrained would be the wrong trade — but none of them competes with the
+ * capability the page just explained. The card component is untouched; only the
+ * set's composition changed, which is the Results Grid principle the Inventory
+ * already establishes (sizing belongs to the surface presenting the set).
+ *
+ * ── THE POINT-CLOUD FIELD MOVED TO S-3 ────────────────────────────────────
+ * It used to sit at the head of this set. A cloud is a demonstration that the
+ * *capability* exists and produces inspectable output, which is the
+ * capabilities station's job, not proof-of-delivery. See `Capabilities.astro`.
+ * `modules.ts` `captureSubject` still owns the selection rule.
  */
-import PointCloudField from '../media/PointCloudField.astro';
 import WorkPreviewCard from '../WorkPreviewCard.astro';
 import { localize } from '../../lib/content';
-import type { Locale, Service, WorkEntry } from '../../lib/content';
+import type { Locale, Service } from '../../lib/content';
 import type { ServiceMessages } from '../../lib/i18n/service';
 import { routePath } from '../../lib/i18n/routes';
 import { pillarArchiveParam, pillarLabel, pillarRouteKey } from '../../lib/i18n/vocabulary';
@@ -75,11 +86,9 @@ interface Props {
   service: Service;
   locale: Locale;
   copy: ServiceMessages;
-  /** Resolved by `modules.ts` `captureSubject`; `null` on every other service. */
-  captureSubject: WorkEntry | null;
 }
 
-const { service, locale, copy, captureSubject } = Astro.props;
+const { service, locale, copy } = Astro.props;
 
 const pillar = service.pillar;
 const pillarName = pillarLabel(pillar, locale);
@@ -103,11 +112,6 @@ const serviceSlug = localize(service.slug, locale);
 const seeMoreParams = new URLSearchParams({ pillar: pillarArchiveParam(pillar) });
 if (pillar === 'reality-capture' && serviceSlug) seeMoreParams.set('service', serviceSlug);
 const seeMoreHref = `${routePath('workArchive', locale)}?${seeMoreParams.toString()}`;
-
-/* The cloud names the project it came from, so the readout beside it can never
-   be read as a claim about a different survey (§10.4). */
-const captureTitle = captureSubject ? (localize(captureSubject.title, locale) ?? '') : '';
-const captureSlug = captureSubject ? localize(captureSubject.slug, locale) : null;
 ---
 
 <div class="sv-proof">
@@ -135,30 +139,7 @@ const captureSlug = captureSubject ? localize(captureSubject.slug, locale) : nul
       </div>
     ) : (
       <>
-        {captureSubject && (
-          <div class="sv-cloud-block">
-            <PointCloudField
-              locale={locale}
-              label={copy.proof.cloud.label.replace('{work}', captureTitle)}
-              hint={copy.proof.cloud.hint}
-              posterAlt={copy.proof.cloud.posterAlt}
-              unavailable={copy.proof.cloud.unavailable}
-              subject={captureSubject}
-            />
-            {captureSlug && (
-              <p class="sv-cloud-source rv" data-rv="meta">
-                <a href={routePath('workEntry', locale, captureSlug)}>
-                  {copy.proof.cloud.source} — {captureTitle}
-                  <span class="ar" aria-hidden="true">
-                    →
-                  </span>
-                </a>
-              </p>
-            )}
-          </div>
-        )}
-
-        <ul class="sv-proof-grid" aria-label={copy.proof.listLabel}>
+        <ul class="sv-proof-strip" aria-label={copy.proof.listLabel}>
           {cards.map((card, index) => (
             <li class="sv-proof-item rv" data-rv="img">
               <WorkPreviewCard

@@ -28,7 +28,7 @@
  * in for its optional "capability facts".
  */
 
-import { KNOWN_SECTORS, localize } from '../../lib/content';
+import { SECTORS, localize } from '../../lib/content';
 import type { Locale, Pillar, Sector, Service, ServiceSummary } from '../../lib/content';
 import { routePath } from '../../lib/i18n/routes';
 import { pillarRouteKey } from '../../lib/i18n/vocabulary';
@@ -143,7 +143,7 @@ export function contactTopicHref(pillar: Pillar, locale: Locale): string {
  *
  * `HUB_PAGE_IA.md` H-2 *Consumes:* "capability framing + use-cases
  * (Sector/use-case-relevant, e.g. heritage documentation for RC)". Sector is a
- * real, frozen axis (`CONTENT_MODEL.md`:53) and `Service.sectors` is authored as
+ * real, closed axis (v3.1 §11.1) and `Service.sectors` is authored as
  * "Sector-relevant use-cases (S-2)" — so the set is read off the pillar's
  * Services rather than written as copy, and it cannot claim a use-case the
  * practice has not published a service for.
@@ -152,22 +152,22 @@ export function contactTopicHref(pillar: Pillar, locale: Locale): string {
  * statement about the offering; deriving it from delivered work would answer a
  * different question ("where we have worked") with the same words.
  *
- * Order is the frozen vocabulary's, then authored values sorted — the identical
- * rule `work-archive/facets.ts` applies to the archive's Sector control, so the
- * same axis reads the same way on both pages.
+ * Order is the frozen vocabulary's — the identical rule `work-archive/facets.ts`
+ * applies to the archive's Sector control, so the same axis reads the same way
+ * on both pages.
+ *
+ * STAGE 6: the "then authored values, sorted" tail is gone. The axis is closed
+ * (v3.1 §11.1), so there is no such thing as a value outside the vocabulary —
+ * `normalize.ts` fails the build before one could reach here. The set is simply
+ * the vocabulary filtered by what the pillar's Services declare.
  */
 export function useCaseSectors(services: readonly Service[]): readonly Sector[] {
-  const found = new Set<string>();
+  const found = new Set<Sector>();
   for (const service of services) {
     for (const sector of service.sectors) found.add(sector);
   }
 
-  const known = KNOWN_SECTORS.filter((value) => found.has(value));
-  const authored = [...found]
-    .filter((value) => !(KNOWN_SECTORS as readonly string[]).includes(value))
-    .sort();
-
-  return [...known, ...authored];
+  return SECTORS.filter((value) => found.has(value));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -230,7 +230,7 @@ export function indexServicesById(services: readonly Service[]): ReadonlyMap<str
  * The pillar's Services, from the full projection.
  *
  * `Service.pillar` is authored (IA §2.3, "Service → Pillar") — Services are not
- * classified by Discipline, so the §7.4 derivation does not apply to them and
+ * classified by an authored Pillar of their own (IA §2.3), exactly as projects are, and
  * this is a read, not a derivation. Used only to reach `sectors` and `equipment`,
  * which the recognition projection `ServiceSummary` deliberately does not carry;
  * ordering and the H-3 card set both come from `serviceSummaries` instead.

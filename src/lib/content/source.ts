@@ -23,23 +23,20 @@
  */
 
 import { createContentClient, type ContentClient } from './client.js';
-import { isEnAvailable, type EnGated } from './derive.js';
+import { isCompetition, isEnAvailable, type EnGated } from './derive.js';
 import {
-  QUERY_ALL_EMPLOYERS,
   QUERY_ALL_SERVICES,
   QUERY_ALL_SERVICE_SUMMARIES,
   QUERY_ALL_WORK_ENTRIES,
   QUERY_SERVICE_BY_SLUG,
   QUERY_WORK_ARCHIVE,
   QUERY_WORK_ENTRY_BY_SLUG,
-  type RawEmployer,
   type RawService,
   type RawServiceSummary,
   type RawWorkArchiveItem,
   type RawWorkEntry,
 } from './groq.js';
 import {
-  normalizeEmployer,
   normalizeService,
   normalizeServiceSummary,
   normalizeWorkArchiveItem,
@@ -48,8 +45,6 @@ import {
 import { compareCurated, discoveryOrder, type PillarScope } from './order.js';
 import type { SanityConfig } from './config.js';
 import type {
-  Employer,
-  EmployerGroup,
   HighlightSlot,
   Locale,
   Pillar,
@@ -59,15 +54,17 @@ import type {
   WorkEntry,
 } from './types.js';
 
-/** The two curated routes IA §2.2 commits to as real, indexable URLs. */
-export type CuratedView = 'competitions' | 'professionalExperience';
-
 /**
- * IA §5.1's Employer grouping. The shape lives in `types.ts` — it is rendered by a component, and
- * a rendered shape must be reachable from the browser-safe half of the boundary (§8, B4). It is
- * re-exported here so the build-time surface still reads as one piece.
+ * The curated routes IA §2.2 commits to as real, indexable URLs.
+ *
+ * STAGE 2: `'professionalExperience'` is gone. That view is **permanently retired**
+ * (`CONTENT_MODEL.md` v3.1 §13, `DECISIONS_LOG.md` #97) — it was defined as *Attribution =
+ * Studio grouped by Employer* and both of those are being retired. **No replacement membership
+ * rule exists or is to be designed**; About / Despre is the surviving home for
+ * professional-background content. Its two localized slugs stay reserved (`i18n/routes.ts`) so
+ * no Work Entry can claim a historical URL, but there is no route and no view.
  */
-export type { EmployerGroup } from './types.js';
+export type CuratedView = 'competitions';
 
 export interface ContentSource {
   /** Full Work Entries available in `locale`. Used for static path generation. */
@@ -77,13 +74,11 @@ export interface ContentSource {
   /** The archive set, in discovery order (§7.6), carrying the §23.5 filter facets. */
   workArchive(locale: Locale, scope?: PillarScope): Promise<readonly WorkArchiveItem[]>;
   curatedView(view: 'competitions', locale: Locale): Promise<readonly WorkArchiveItem[]>;
-  professionalExperience(locale: Locale): Promise<readonly EmployerGroup[]>;
   services(locale: Locale): Promise<readonly Service[]>;
   service(slug: string, locale: Locale): Promise<Service | null>;
   serviceSummaries(locale: Locale, pillar?: Pillar): Promise<readonly ServiceSummary[]>;
   /** Curated placements for the homepage (M-4) and pillar hubs (H-4), in discovery order. */
   highlights(slot: HighlightSlot, pillar: Pillar | null, locale: Locale): Promise<readonly WorkArchiveItem[]>;
-  employers(): Promise<readonly Employer[]>;
 }
 
 /* ────────────────────────────────────────────────────────────────────────────
@@ -123,47 +118,25 @@ function scopeService(service: Service, locale: Locale): Service {
  * Curated views — IA §2.2, §5.1
  * ──────────────────────────────────────────────────────────────────────────── */
 
-/**
- * IA §5: a curated view's membership is a **taxonomy filter**; selection and order come from the
- * curation layer. Competitions is Entry Type — primary or secondary, because
- * `CONTENT_MODEL.md`:47 allows a secondary Entry Type and an entry that is secondarily a
- * competition still belongs in the view.
+/*
+ * The Label predicates — `hasLabel` and `isCompetition` — live in `derive.ts`, not here.
+ *
+ * `components/work-entry/modules.ts` needs the same "is this a competition" answer for the W-4
+ * toggle, and it is browser-reachable: it may only import the boundary barrel (§8, B4), which
+ * cannot reach this file. Putting the predicate in `derive.ts` gives both halves ONE rule
+ * instead of two implementations that could disagree — which is exactly the drift the curated
+ * view / archive filter split caused before I-3. They are re-exported through `server.ts` so
+ * the build-time surface still reads as one piece.
  */
-export function isCompetition(item: WorkArchiveItem): boolean {
-  return (
-    item.entryType.primary === 'competition-entry' ||
-    item.entryType.secondary.includes('competition-entry')
-  );
-}
 
-/** IA §5.1: "Scope: Studio-attributed entries only." */
-export function isProfessionalExperience(item: WorkArchiveItem): boolean {
-  return item.attribution === 'studio';
-}
-
-/**
- * IA §5.1: "employers by recency, entries by editorial priority." Recency of an employer is the
- * most recent year among its entries — the only definition the corpus supports, since Employer
- * is a reference list with no dates of its own.
+/*
+ * STAGE 2 — `isProfessionalExperience()` and `groupByEmployer()` are deleted.
+ *
+ * They implemented one retired view and nothing else: membership was `attribution === 'studio'`
+ * and grouping was by the Employer reference. Both inputs are gone or going, and the view is
+ * permanently retired (`DECISIONS_LOG.md` #97), so there is no successor to keep them for.
+ * `compareCurated` — the only general-purpose thing they used — is untouched in `order.ts`.
  */
-export function groupByEmployer(items: readonly WorkArchiveItem[]): readonly EmployerGroup[] {
-  const groups = new Map<string, { employer: Employer; entries: WorkArchiveItem[] }>();
-
-  for (const item of items) {
-    if (!item.employer) continue;
-    const group = groups.get(item.employer._id);
-    if (group) group.entries.push(item);
-    else groups.set(item.employer._id, { employer: item.employer, entries: [item] });
-  }
-
-  return [...groups.values()]
-    .map((group) => ({ employer: group.employer, entries: group.entries.sort(compareCurated) }))
-    .sort((a, b) => {
-      const recency = (group: EmployerGroup) => Math.max(...group.entries.map((entry) => entry.year));
-      const difference = recency(b) - recency(a);
-      return difference !== 0 ? difference : a.employer.name.localeCompare(b.employer.name);
-    });
-}
 
 /** `CONTENT_MODEL.md`:77 — placements are pillar-aware; a `null` pillar is a neutral placement. */
 export function hasPlacement(item: WorkArchiveItem, slot: HighlightSlot, pillar: Pillar | null): boolean {
@@ -188,7 +161,6 @@ export interface RawDocuments {
   services(): Promise<readonly RawService[]>;
   serviceBySlug(slug: string, locale: Locale): Promise<RawService | null>;
   serviceSummaries(): Promise<readonly RawServiceSummary[]>;
-  employers(): Promise<readonly RawEmployer[]>;
 }
 
 export function createContentSource(documents: RawDocuments): ContentSource {
@@ -222,10 +194,6 @@ export function createContentSource(documents: RawDocuments): ContentSource {
       return discoveryOrder((await archiveItems(locale)).filter(isCompetition));
     },
 
-    async professionalExperience(locale) {
-      return groupByEmployer((await archiveItems(locale)).filter(isProfessionalExperience));
-    },
-
     async services(locale) {
       const raw = await documents.services();
       const services = raw.map(normalizeService).map((service) => scopeService(service, locale));
@@ -250,14 +218,6 @@ export function createContentSource(documents: RawDocuments): ContentSource {
     async highlights(slot, pillar, locale) {
       const items = (await archiveItems(locale)).filter((item) => hasPlacement(item, slot, pillar));
       return discoveryOrder(items, pillar ?? 'all');
-    },
-
-    async employers() {
-      const raw = await documents.employers();
-      return raw
-        .map(normalizeEmployer)
-        .filter((employer): employer is Employer => employer !== null)
-        .sort((a, b) => a.name.localeCompare(b.name));
     },
   };
 }
@@ -289,7 +249,6 @@ export function createSanityDocuments(client: ContentClient): RawDocuments {
     serviceBySlug: (slug, locale) =>
       client.fetch<RawService | null>(QUERY_SERVICE_BY_SLUG[locale], { slug }),
     serviceSummaries: () => client.fetch<readonly RawServiceSummary[]>(QUERY_ALL_SERVICE_SUMMARIES),
-    employers: () => client.fetch<readonly RawEmployer[]>(QUERY_ALL_EMPLOYERS),
   };
 }
 

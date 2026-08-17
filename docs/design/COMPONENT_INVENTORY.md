@@ -1,5 +1,9 @@
 # Component Inventory — architectural dictionary of the interface
 
+> **⚠ AMENDED 2026-08-13 — simplified project model.** `docs/product/CONTENT_MODEL.md` v3.0 (CLIENT-VALIDATED) removes **Discipline** and **Entry Type / Project Type**. Component *inputs* naming Entry Type or Discipline are superseded — Metadata Strip, Project Metadata and Filter Group now read Pillar · Services · Sector · Labels · Year · Status. Structure, routes and page responsibilities are unchanged. Impact inventory and sequencing: `docs/product/PROJECT_MODEL_IMPACT.md` — **do not change filters or schema from this document.**
+
+> **⚠ FURTHER AMENDED 2026-08-14 (v3.1) — crediting fields retired.** **Attribution, Employer/Office, Roles and the scoped Authorship statement no longer exist** (`CONTENT_MODEL.md` v3.1 §12, `DECISIONS_LOG.md` #91). Wherever this document names them as inputs, read **`Colaboratori` (Collaborators) and `Echipă` (Team)** — two optional, display-only lists, the model's only crediting fields. The *responsibility* they served — honest professional context, no over-claiming — is unchanged and is now carried by those two fields plus authored Description prose. **Status and Sector are closed, mandatory, single-select vocabularies** (§11.1, §11.2). The *Experiență profesională* view keeps its routes but has no membership rule until one is chosen (`PROJECT_MODEL_IMPACT.md` §1.7).
+
 **The reusable building blocks that realize the completed Page IA.** This document defines *what reusable interface components exist, why they exist, and where they belong* — **not** their visual design, layout, or implementation. It is the canonical vocabulary for every future wireframe and design-system component.
 
 Level: **Design Architecture**. Status: **authoritative**.
@@ -77,7 +81,7 @@ Template per component: **Purpose · Responsibility · Inputs · Outputs · Appe
 - *Purpose:* make the current browse state legible. *Responsibility:* show pillar + active filters + "broaden/clear." *Inputs:* active pillar/filters/sort. *Outputs:* clear/broaden actions. *Appears on:* Work Archive (A-3). *Variants:* — . *Dependencies:* filter state. *Notes:* state readout; distinct from Breadcrumb (hierarchy).
 
 **Metadata Strip**
-- *Purpose:* compact key-facts readout. *Responsibility:* situate a work at a glance. *Inputs:* compact facets (Pillar, Entry Type, Year, Status…). *Outputs:* — . *Appears on:* Work Entry (W-1). *Variants:* compact form of **Project Metadata**. *Dependencies:* Work Entry facets. *Notes:* the compact variant of the flexible metadata component (see Project Metadata).
+- *Purpose:* compact key-facts readout. *Responsibility:* situate a work at a glance. *Inputs:* compact facets (**Pillar, Sector, Year, Status** — v3.0/v3.1; was *Entry Type*). *Outputs:* — . *Appears on:* Work Entry (W-1). *Variants:* compact form of **Project Metadata**. *Dependencies:* Work Entry facets. *Notes:* the compact variant of the flexible metadata component (see Project Metadata).
 
 ### Discovery
 
@@ -97,7 +101,7 @@ Template per component: **Purpose · Responsibility · Inputs · Outputs · Appe
 - *Purpose:* present matching work. *Responsibility:* signposting previews, ordered for discovery + balanced pillars. *Inputs:* a set of Work Preview Cards. *Outputs:* → Work Entries. *Appears on:* Work Archive (A-5). *Variants:* — . *Dependencies:* Work Preview Card. *Notes:* signposting surface, never in-depth projects.
 
 **Filter Group**
-- *Purpose:* let a directed visitor narrow. *Responsibility:* refine within scope; reduce complexity, don't expose taxonomy. *Inputs:* shared filters (Entry Type + Sector) + one pillar-contextual refinement (Discipline/Service) + Year-as-sort. *Outputs:* re-scoped results. *Appears on:* Work Archive (A-4). *Variants:* per-pillar contextual refinement. *Dependencies:* locked filter set (Step 5). *Notes:* no Attribution filter (F2); never duplicates curated views.
+- *Purpose:* let a directed visitor narrow. *Responsibility:* refine within scope; reduce complexity, don't expose taxonomy. *Inputs:* **shared filters (Sector + Label) + the Service refinement in both pillars + Year-as-sort** *(v3.0/v3.1 — was: Entry Type + Sector + one pillar-contextual refinement)*. *Outputs:* re-scoped results. *Appears on:* Work Archive (A-4). *Variants:* per-pillar contextual refinement. *Dependencies:* locked filter set (Step 5). *Notes:* no Attribution filter (F2); never duplicates curated views.
 
 **Empty State**
 - *Purpose:* handle "nothing here" with confidence. *Responsibility:* preserve context, explain why, offer a next step. *Inputs:* current scope/filters (or absence). *Outputs:* adjust/clear/broaden; contextual CTA. *Appears on:* Work Archive (A-6), Service proof (S-4 / F5). *Variants:* archive / service. *Dependencies:* context. *Notes:* never a bare grid or dead end.
@@ -111,10 +115,10 @@ Template per component: **Purpose · Responsibility · Inputs · Outputs · Appe
 - *Purpose:* view media in depth. *Responsibility:* zoomable/close inspection. *Inputs:* a media item. *Outputs:* — . *Appears on:* Work Entry (W-2 zoom). *Variants:* image zoom / point-cloud viewer (RC). *Dependencies:* media. *Notes:* the RC viewer is a variant, not a new component.
 
 **Project Metadata**
-- *Purpose:* the flexible key-facts component. *Responsibility:* common metadata always shown; type-specific attributes when relevant. *Inputs:* Pillar, Entry Type, Discipline, Sector, Year, Status (+ type-specific). *Outputs:* facets are display (not filters). *Appears on:* Work Entry (W-1). *Variants:* **Metadata Strip** = its compact form. *Dependencies:* Work Entry facets. *Notes:* one flexible metadata component; not a fixed field set.
+- *Purpose:* the flexible key-facts component. *Responsibility:* common metadata always shown; type-specific attributes when relevant. *Inputs:* **Pillar, Services, Sector, Labels, Year, Status** (+ Service-activated fields) *(v3.0/v3.1)*. *Outputs:* facets are display (not filters). *Appears on:* Work Entry (W-1). *Variants:* **Metadata Strip** = its compact form. *Dependencies:* Work Entry facets. *Notes:* one flexible metadata component; not a fixed field set.
 
 **Credits Block**
-- *Purpose:* professional context + honest crediting. *Responsibility:* establish credibility through transparency, always present. *Inputs:* Attribution, Employer, Role, scoped Authorship, Collaborators. *Outputs:* (studio) → Professional Experience. *Appears on:* Work Entry (W-3). *Variants:* independent / collaboration / studio. *Dependencies:* attribution fields. *Notes:* never over-claims; distinct from a Competition Team.
+- *Purpose:* professional context + honest crediting. *Responsibility:* establish credibility through transparency, always present. *Inputs:* **Colaboratori, Echipă** *(v3.1 — was: Attribution, Employer, Role, scoped Authorship, Collaborators)*. *Outputs:* — . *Appears on:* Work Entry (W-3). *Variants:* — *(the independent / collaboration / studio variants went with Attribution)*. *Dependencies:* the two crediting fields. *Notes:* never over-claims; absent when the project carries neither field; distinct from a Competition Team.
 
 **Related Work Strip**
 - *Purpose:* route to work that broadens understanding. *Responsibility:* surface related entries. *Inputs:* related Work Entries (cross-pillar-aware). *Outputs:* → Work Entries; "see more" → filtered archive. *Appears on:* Work Entry (W-6). *Variants:* — . *Dependencies:* Work Preview Card; related links. *Notes:* composes Work Preview Cards; not the archive.

@@ -37,18 +37,27 @@ export async function getStaticPaths() {
   const entries = indexById(workEntries);
 
   return services
-    .map((service) => {
+    .map((service, index) => {
       const slug = localize(service.slug, 'en');
       // Guaranteed non-null by the EN gate above; kept as a type guard.
-      return slug ? { params: { service: slug }, props: { service, entries } } : null;
+      return slug
+        ? {
+            params: { service: slug },
+            // See the RO route: a derived position within this locale's ordered
+            // list, not a stored code. It is locale-scoped like everything else
+            // here, so an RO-only service does not consume an EN number.
+            props: { service, entries, code: String(index + 1).padStart(2, '0') },
+          }
+        : null;
     })
     .filter((path): path is NonNullable<typeof path> => path !== null);
 }
 
-const { service, entries } = Astro.props as {
+const { service, entries, code } = Astro.props as {
   service: Service;
   entries: ReadonlyMap<string, WorkEntry>;
+  code: string;
 };
 ---
 
-<ServicePage service={service} locale="en" entries={entries} />
+<ServicePage service={service} locale="en" entries={entries} code={code} />

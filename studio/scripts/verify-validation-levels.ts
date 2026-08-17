@@ -7,8 +7,8 @@
  *
  * The obvious way to check that a rule blocks is `npx sanity documents validate`. It reports
  * **object-typed fields' custom rules as warnings, never errors** — so the reserved-slug rule
- * on `slug` (an object of `{ro, en}`) and the primary/secondary rule on `discipline` both show
- * as `⚠`, while the same predicate on a scalar or reference field shows as `✖`.
+ * on `slug` (an object of `{ro, en}`) shows as `⚠`, while the same predicate on a scalar or
+ * reference field shows as `✖`.
  *
  * That is a Sanity CLI artifact, not a defect in this schema. In `validateItemObservable`:
  *
@@ -36,7 +36,20 @@ import {validateDocument, createWorkspaceFromConfig} from 'sanity'
 
 import config from '../sanity.config'
 
-/** Each probe violates exactly one blocking rule, so the levels cannot be confused. */
+/**
+ * Each probe violates exactly one blocking rule, so the levels cannot be confused.
+ *
+ * STAGE 2 removed the **reference-field** probe: it violated `validateEmployerScope` on the
+ * `employer` reference, and both the rule and the field went with the permanently retired
+ * Professional Experience view (`DECISIONS_LOG.md` #97).
+ *
+ * STAGE 8 restores one, as that note predicted. `services` is now a required, Pillar-constrained
+ * reference array, so the contrasting case the header describes — a reference-typed field whose
+ * blocking rule the CLI reports faithfully while an object-typed field's is downgraded — is a
+ * real rule again rather than a description of a rule that used to exist.
+ *
+ * The final assertion scales with `PROBES.length`, so coverage tracks the list.
+ */
 const PROBES = [
   {
     label: 'reserved curated-view slug (§7.7, IA §2.2 F4) — on an OBJECT field',
@@ -46,37 +59,24 @@ const PROBES = [
       title: {_type: 'localizedString', ro: 'TEST — sonda slug rezervat (a nu se publica)'},
       slug: {_type: 'object', ro: {_type: 'slug', current: 'concursuri'}},
       enPublished: false,
-      discipline: {_type: 'object', primary: 'architecture', secondary: []},
-      entryType: {_type: 'object', primary: 'design-project', secondary: []},
-      attribution: 'independent',
-      commissioning: 'self-initiated',
-      sectors: ['cultural'],
-      authorship: {_type: 'localizedString', ro: 'Document de test.'},
+      pillar: 'architecture-design',
+      labels: [],
+      sector: 'cultural-patrimoniu',
       capturePublicationCleared: false,
-      metadata: {_type: 'workEntryMetadata', year: 2024, status: 'unbuilt-proposal', collaborators: [], team: []},
+      metadata: {_type: 'workEntryMetadata', year: 2024, status: 'nerealizat', collaborators: [], team: []},
       curation: {_type: 'curation', featured: false, pinned: false, editorialPriority: 0, prominence: 'standard', placements: []},
     },
   },
   {
-    label: 'Employer scoped to Studio attribution (CONTENT_MODEL.md:50) — on a REFERENCE field',
-    document: {
-      _id: 'da-test-probe-employer',
-      _type: 'workEntry',
-      title: {_type: 'localizedString', ro: 'TEST — sonda birou lipsa (a nu se publica)'},
-      slug: {_type: 'object', ro: {_type: 'slug', current: 'test-sonda-birou'}},
-      enPublished: false,
-      discipline: {_type: 'object', primary: 'architecture', secondary: []},
-      entryType: {_type: 'object', primary: 'design-project', secondary: []},
-      attribution: 'studio',
-      commissioning: 'self-initiated',
-      sectors: ['office'],
-      authorship: {_type: 'localizedString', ro: 'Document de test.'},
-      capturePublicationCleared: false,
-      metadata: {_type: 'workEntryMetadata', year: 2024, status: 'unbuilt-proposal', collaborators: [], team: []},
-      curation: {_type: 'curation', featured: false, pinned: false, editorialPriority: 0, prominence: 'standard', placements: []},
-    },
-  },
-  {
+    /*
+     * STAGE 3 — RE-KEYED, NOT DROPPED.
+     *
+     * This probe violated the vocabulary rule with `attribution: 'freelance'`. Attribution is
+     * retired (v3.1 §12), so that value now violates nothing and the probe would have passed
+     * vacuously — the worst possible outcome for a script whose entire job is proving that
+     * blocking rules block. It now violates `metadata.status`, which is still a scalar string
+     * carrying `validateVocabulary`, so the case the label describes is genuinely exercised.
+     */
     label: 'value outside a controlled vocabulary (§7.2) — on a SCALAR field',
     document: {
       _id: 'da-test-probe-vocabulary',
@@ -84,14 +84,40 @@ const PROBES = [
       title: {_type: 'localizedString', ro: 'TEST — sonda vocabular (a nu se publica)'},
       slug: {_type: 'object', ro: {_type: 'slug', current: 'test-sonda-vocabular'}},
       enPublished: false,
-      discipline: {_type: 'object', primary: 'architecture', secondary: []},
-      entryType: {_type: 'object', primary: 'design-project', secondary: []},
-      attribution: 'freelance',
-      commissioning: 'self-initiated',
-      sectors: ['cultural'],
-      authorship: {_type: 'localizedString', ro: 'Document de test.'},
+      pillar: 'architecture-design',
+      labels: [],
+      sector: 'cultural-patrimoniu',
       capturePublicationCleared: false,
-      metadata: {_type: 'workEntryMetadata', year: 2024, status: 'unbuilt-proposal', collaborators: [], team: []},
+      // `construit` is not a Status value — this is the violation under test.
+      metadata: {_type: 'workEntryMetadata', year: 2024, status: 'construit', collaborators: [], team: []},
+      curation: {_type: 'curation', featured: false, pinned: false, editorialPriority: 0, prominence: 'standard', placements: []},
+    },
+  },
+  {
+    /*
+     * STAGE 8 — a project that demonstrates no Service.
+     *
+     * `services` is a reference ARRAY, so this is the contrasting case the header describes:
+     * unlike the object-typed `slug` probe above, the CLI environment should report this at the
+     * same level the Studio does. Both columns are printed either way; only `studio` decides.
+     *
+     * It violates `validateServicesPresent` and nothing else — the probe omits `services`
+     * entirely rather than pointing at a seeded Service, so the case needs no dataset content
+     * and stays valid whatever the development dataset happens to hold.
+     */
+    label: 'a project demonstrating no Service (v3.1 §2) — on a REFERENCE ARRAY field',
+    document: {
+      _id: 'da-test-probe-services',
+      _type: 'workEntry',
+      title: {_type: 'localizedString', ro: 'TEST — sonda servicii (a nu se publica)'},
+      slug: {_type: 'object', ro: {_type: 'slug', current: 'test-sonda-servicii'}},
+      enPublished: false,
+      pillar: 'architecture-design',
+      labels: [],
+      sector: 'cultural-patrimoniu',
+      services: [],
+      capturePublicationCleared: false,
+      metadata: {_type: 'workEntryMetadata', year: 2024, status: 'nerealizat', collaborators: [], team: []},
       curation: {_type: 'curation', featured: false, pinned: false, editorialPriority: 0, prominence: 'standard', placements: []},
     },
   },

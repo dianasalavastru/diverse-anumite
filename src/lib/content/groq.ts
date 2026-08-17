@@ -13,9 +13,9 @@
  * about. The GROQ string is generated from the map — it is never hand-written, so it cannot
  * drift from the raw types. `query-shape.test.ts` asserts the same property at runtime.
  *
- * Nothing here selects `pillar`: Pillar is derived from Discipline at build time and never
- * stored (§7.4, §8). A projection that could select it would mean the schema had grown an
- * editable Pillar field, which §7.4 forbids.
+ * STAGE 5: every work projection now selects `pillar` directly. It is an authored, stored,
+ * single-valued field (v3.1 §2) — the derivation it replaced, and the `discipline` it derived
+ * from, are both gone.
  */
 
 import type { PortableTextBlock } from './types.js';
@@ -47,10 +47,10 @@ export interface RawImage {
   readonly crop?: { top: number; bottom: number; left: number; right: number } | null;
 }
 
-export interface RawAssignment<T> {
-  readonly primary?: T | null;
-  readonly secondary?: readonly T[] | null;
-}
+/*
+ * STAGE 5: `RawAssignment<T>` is deleted. It shaped the two primary+secondary axes, Discipline
+ * and Entry Type, and both are retired. Nothing in v3.1 has that shape.
+ */
 
 export interface RawCuration {
   readonly featured?: boolean | null;
@@ -65,14 +65,10 @@ export interface RawSeo {
   readonly description?: RawLocalizedString | null;
 }
 
-export interface RawEmployer {
-  readonly _id?: string | null;
-  readonly _type?: string | null;
-  readonly name?: string | null;
-}
-
 export interface RawWorkEntryMetadata {
   readonly year?: number | null;
+  readonly equipment?: readonly string[] | null;
+  readonly implementationCompany?: string | null;
   readonly location?: RawLocalizedString | null;
   readonly client?: string | null;
   readonly collaborators?: readonly string[] | null;
@@ -90,7 +86,7 @@ export interface RawPointCloudDerivative {
 
 export interface RawCaptureMetadata {
   readonly accuracy?: RawLocalizedString | null;
-  readonly equipment?: readonly string[] | null;
+  /* STAGE 8: `equipment` moved to `RawWorkEntryMetadata` — a project fact, not a survey one. */
   readonly software?: readonly string[] | null;
   readonly pointCount?: number | null;
   readonly derivative?: RawPointCloudDerivative | null;
@@ -99,6 +95,7 @@ export interface RawCaptureMetadata {
 /** Recognition-level Service projection — the target of `WorkEntry.services` (W-5, H-3). */
 export interface RawServiceSummary {
   readonly _id?: string | null;
+  readonly key?: string | null;
   readonly name?: RawLocalizedString | null;
   readonly slug?: RawLocalizedString | null;
   readonly enPublished?: boolean | null;
@@ -109,18 +106,17 @@ export interface RawServiceSummary {
 }
 
 /**
- * Preview projection. Carries `discipline` — which the frozen `WorkEntrySummary` does *not*
- * expose — because Pillar is derived, and a summary cannot honestly report `pillars` without
- * the axis it derives from (§7.4).
+ * Preview projection. Carries `pillar` directly since Stage 5 — the summary no longer needs the
+ * axis Pillar was derived from, because Pillar is authored.
  */
 export interface RawWorkEntrySummary {
   readonly _id?: string | null;
   readonly title?: RawLocalizedString | null;
   readonly slug?: RawLocalizedString | null;
   readonly enPublished?: boolean | null;
-  readonly discipline?: RawAssignment<string> | null;
-  readonly entryType?: RawAssignment<string> | null;
-  readonly sectors?: readonly string[] | null;
+  readonly pillar?: string | null;
+  readonly labels?: readonly string[] | null;
+  readonly sector?: string | null;
   readonly year?: number | null;
   readonly status?: string | null;
   readonly cover?: RawImage | null;
@@ -129,11 +125,11 @@ export interface RawWorkEntrySummary {
 
 /** The archive/curated-view projection (§23.5, IA §5.1). Adds the facets those surfaces filter and group by. */
 export interface RawWorkArchiveItem extends RawWorkEntrySummary {
-  readonly attribution?: string | null;
-  readonly employer?: RawEmployer | null;
   readonly services?: readonly { _id?: string | null; slug?: RawLocalizedString | null }[] | null;
   /** Display metadata (I-3). See `WorkArchiveItem.location`. */
   readonly location?: RawLocalizedString | null;
+  /** A BOUNDED head of `gallery`. See `WorkArchiveItem.galleryPreview`. */
+  readonly galleryPreview?: readonly RawImage[] | null;
 }
 
 export interface RawWorkEntry {
@@ -142,17 +138,12 @@ export interface RawWorkEntry {
   readonly title?: RawLocalizedString | null;
   readonly slug?: RawLocalizedString | null;
   readonly enPublished?: boolean | null;
-  readonly discipline?: RawAssignment<string> | null;
-  readonly entryType?: RawAssignment<string> | null;
-  readonly attribution?: string | null;
-  readonly commissioning?: string | null;
-  readonly employer?: RawEmployer | null;
-  readonly sectors?: readonly string[] | null;
-  readonly roles?: RawLocalizedStringList | null;
+  readonly pillar?: string | null;
+  readonly labels?: readonly string[] | null;
+  readonly sector?: string | null;
   readonly services?: readonly RawServiceSummary[] | null;
   readonly relatedWork?: readonly RawWorkEntrySummary[] | null;
   readonly description?: RawLocalizedRichText | null;
-  readonly authorship?: RawLocalizedString | null;
   readonly cover?: RawImage | null;
   readonly gallery?: readonly RawImage[] | null;
   readonly capture?: RawCaptureMetadata | null;
@@ -165,6 +156,7 @@ export interface RawWorkEntry {
 export interface RawService {
   readonly _id?: string | null;
   readonly _type?: string | null;
+  readonly key?: string | null;
   readonly name?: RawLocalizedString | null;
   readonly slug?: RawLocalizedString | null;
   readonly enPublished?: boolean | null;
@@ -228,19 +220,11 @@ export const SEO_FIELDS = {
 
 const SEO = projection(SEO_FIELDS);
 
-export const EMPLOYER_FIELDS = {
-  _id: '_id',
-  _type: '_type',
-  name: 'name',
-} as const satisfies Record<keyof RawEmployer, string>;
-
-const EMPLOYER = projection(EMPLOYER_FIELDS);
-
-const DISCIPLINE_ASSIGNMENT = '{ primary, "secondary": coalesce(secondary, []) }';
-const ENTRY_TYPE_ASSIGNMENT = '{ primary, "secondary": coalesce(secondary, []) }';
 
 export const METADATA_FIELDS = {
   year: 'year',
+  equipment: 'equipment',
+  implementationCompany: 'implementationCompany',
   location: `location${LOCALIZED}`,
   client: 'client',
   collaborators: 'collaborators',
@@ -275,7 +259,6 @@ const POINT_CLOUD_DERIVATIVE = projection(POINT_CLOUD_DERIVATIVE_FIELDS);
 
 export const CAPTURE_FIELDS = {
   accuracy: `accuracy${LOCALIZED}`,
-  equipment: 'equipment',
   software: 'software',
   pointCount: 'pointCount',
   derivative: `derivative${POINT_CLOUD_DERIVATIVE}`,
@@ -285,6 +268,7 @@ const CAPTURE = projection(CAPTURE_FIELDS);
 
 export const SERVICE_SUMMARY_FIELDS = {
   _id: '_id',
+  key: 'key',
   name: `name${LOCALIZED}`,
   slug: `slug${LOCALIZED_SLUG}`,
   enPublished: 'enPublished',
@@ -301,9 +285,9 @@ export const WORK_ENTRY_SUMMARY_FIELDS = {
   title: `title${LOCALIZED}`,
   slug: `slug${LOCALIZED_SLUG}`,
   enPublished: 'enPublished',
-  discipline: `discipline${DISCIPLINE_ASSIGNMENT}`,
-  entryType: `entryType${ENTRY_TYPE_ASSIGNMENT}`,
-  sectors: 'sectors',
+  pillar: 'pillar',
+  labels: 'coalesce(labels, [])',
+  sector: 'sector',
   year: 'metadata.year',
   status: 'metadata.status',
   cover: `cover${IMAGE}`,
@@ -317,18 +301,43 @@ export const WORK_ARCHIVE_ITEM_FIELDS = {
   title: `title${LOCALIZED}`,
   slug: `slug${LOCALIZED_SLUG}`,
   enPublished: 'enPublished',
-  discipline: `discipline${DISCIPLINE_ASSIGNMENT}`,
-  entryType: `entryType${ENTRY_TYPE_ASSIGNMENT}`,
-  sectors: 'sectors',
+  pillar: 'pillar',
+  labels: 'coalesce(labels, [])',
+  sector: 'sector',
   year: 'metadata.year',
   status: 'metadata.status',
   cover: `cover${IMAGE}`,
   curation: `curation${CURATION}`,
-  attribution: 'attribution',
-  employer: `employer->${EMPLOYER}`,
-  services: `services[]->{ _id, "slug": slug${LOCALIZED_SLUG} }`,
+  /* STAGE 8: the archive's Service refs carry `key` and `pillar` too — runtime validation
+     resolves field requirements from the key, and pillar scoping reads the pillar. The
+     localized slug stays because it is what the `?service=` filter matches on. */
+  services: `services[]->{ _id, key, pillar, "slug": slug${LOCALIZED_SLUG} }`,
   // Reached out of `metadata` exactly as `year` and `status` above are (I-3).
   location: `metadata.location${LOCALIZED}`,
+  /**
+   * The archive's project preview — the head of the gallery, and never more than four assets.
+   *
+   * SLICED IN THE QUERY, DELIBERATELY. The bound is not a rendering convenience: an archive
+   * page resolves every published entry at once, and a full `gallery[]` per row would pull a
+   * forty-image set for a surface that shows three. Slicing here means the extra assets never
+   * enter the build's memory, never reach `normalize`, and cannot be rendered by accident.
+   *
+   * The head of the array is the EDITOR'S OWN ORDER — `WorkEntry.gallery` is one ordered set in
+   * the authored order (`Gallery.astro`), so "the first three" is an editorial selection that
+   * already exists, not a new one invented here. An editor changes the archive preview by
+   * reordering the gallery, which is the same lever they already use on the Work Entry page.
+   *
+   * FOUR, FOR A SHEET OF THREE. The one asset of slack exists so that an editor who also placed
+   * the cover at the head of the gallery — a common and entirely reasonable thing to do — does
+   * not spend a preview frame on an image the visitor is already looking at. `normalize` drops
+   * any frame carrying the cover's own asset id and then takes the first three of what is left,
+   * so the sheet is three DISTINCT readings of the project wherever the gallery can supply them.
+   * A fourth is never rendered.
+   *
+   * Named apart from `gallery` on purpose: this is a bounded projection, and a consumer must
+   * never mistake it for the entry's media set. `WorkEntry.gallery` is untouched.
+   */
+  galleryPreview: `gallery[0...4]${IMAGE}`,
 } as const satisfies Record<keyof RawWorkArchiveItem, string>;
 
 export const WORK_ARCHIVE_ITEM_PROJECTION = projection(WORK_ARCHIVE_ITEM_FIELDS);
@@ -339,17 +348,12 @@ export const WORK_ENTRY_FIELDS = {
   title: `title${LOCALIZED}`,
   slug: `slug${LOCALIZED_SLUG}`,
   enPublished: 'enPublished',
-  discipline: `discipline${DISCIPLINE_ASSIGNMENT}`,
-  entryType: `entryType${ENTRY_TYPE_ASSIGNMENT}`,
-  attribution: 'attribution',
-  commissioning: 'commissioning',
-  employer: `employer->${EMPLOYER}`,
-  sectors: 'sectors',
-  roles: `roles${LOCALIZED}`,
+  pillar: 'pillar',
+  labels: 'coalesce(labels, [])',
+  sector: 'sector',
   services: `services[]->${SERVICE_SUMMARY_PROJECTION}`,
   relatedWork: `relatedWork[]->${WORK_ENTRY_SUMMARY_PROJECTION}`,
   description: `description${LOCALIZED}`,
-  authorship: `authorship${LOCALIZED}`,
   cover: `cover${IMAGE}`,
   gallery: `gallery[]${IMAGE}`,
   capture: `capture${CAPTURE}`,
@@ -369,6 +373,7 @@ export const WORK_ENTRY_PROJECTION = projection(WORK_ENTRY_FIELDS);
 export const SERVICE_FIELDS = {
   _id: '_id',
   _type: '_type',
+  key: 'key',
   name: `name${LOCALIZED}`,
   slug: `slug${LOCALIZED_SLUG}`,
   enPublished: 'enPublished',
@@ -418,5 +423,3 @@ export const QUERY_SERVICE_BY_SLUG = {
   ro: `*[_type == "service" && !(_id in path("drafts.**")) && slug.ro.current == $slug][0]${SERVICE_PROJECTION}`,
   en: `*[_type == "service" && !(_id in path("drafts.**")) && slug.en.current == $slug][0]${SERVICE_PROJECTION}`,
 } as const;
-
-export const QUERY_ALL_EMPLOYERS = `*[_type == "employer" && !(_id in path("drafts.**"))]${EMPLOYER}`;

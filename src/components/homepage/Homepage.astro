@@ -23,7 +23,7 @@
  * composition beneath it moved, which is the contract holding rather than a
  * claim about it. No GROQ, no CMS coupling, no second content model: this file
  * selects and arranges, it does not define. Locale scoping (§7.1), discovery
- * order (§7.6), curated-view membership (IA §5) and employer grouping (IA §5.1)
+ * order (§7.6) and curated-view membership (IA §5)
  * all happen inside the source, before anything reaches a component.
  *
  * ── WHAT IS NOT HERE ──────────────────────────────────────────────────────
@@ -61,13 +61,12 @@ interface Props {
 const { locale } = Astro.props;
 const copy = homepageMessages(locale);
 
-const [placedAnywhere, placedArchitecture, placedRealityCapture, competitions, experience] =
+const [placedAnywhere, placedArchitecture, placedRealityCapture, competitions] =
   await Promise.all([
     source.highlights('homepage', null, locale),
     source.highlights('homepage', 'architecture-design', locale),
     source.highlights('homepage', 'reality-capture', locale),
     source.curatedView('competitions', locale),
-    source.professionalExperience(locale),
   ]);
 
 /**
@@ -176,7 +175,6 @@ const STATIONS = {
     locale={locale}
     copy={copy.curated}
     competitions={competitions}
-    experience={experience}
     station={STATIONS.curated}
   />
 

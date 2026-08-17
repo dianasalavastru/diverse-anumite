@@ -76,7 +76,8 @@ describe('Precomputed order — the client selects a rank, it never sorts', () =
     const ranks = computeArchiveRanks(source);
 
     for (const item of source) {
-      const pillars = [item.pillars.primary, ...item.pillars.secondary];
+      /* STAGE 5: one authored Pillar — an item belongs to exactly one pillar scope. */
+      const pillars = [item.pillar];
       for (const scope of ['architecture-design', 'reality-capture'] as const) {
         expect(ranks.get(item._id)?.curated[scope] !== undefined).toBe(pillars.includes(scope));
       }

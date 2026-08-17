@@ -26,9 +26,14 @@
  *     item that reaches it would fail the Page IA's own orientation test
  *     ("a visitor always knows which archive they are on").
  *
- *  3. **"Alegeti un pilon, un tip sau un an" → "…sau un sector".** Year is a
- *     sort, not a filter (IA Step 5; `WORK_ARCHIVE_IMPLEMENTATION_NOTES.md`:64),
- *     so the invitation cannot offer a year filter that no longer exists.
+ *  3. **"Alegeti un pilon, un tip sau un an" → "…un serviciu sau un sector".**
+ *     Year went first: it is a sort, not a filter (IA Step 5;
+ *     `WORK_ARCHIVE_IMPLEMENTATION_NOTES.md`:64), so the invitation could not offer
+ *     a year filter that no longer existed. "Un tip" went next, for the same
+ *     reason one step later — Entry Type is retired (v3.1 §12), and the sentence
+ *     was the last user-facing place its vocabulary survived. It names the three
+ *     controls the archive actually has, in the order they appear, and introduces
+ *     no umbrella word for them.
  *
  * Romanian pluralisation is a copy concern, so it lives here beside the strings
  * (`countNoun`), not in a component.
@@ -68,9 +73,8 @@ export interface WorkArchiveMessages {
   /** A-4 · Filters (Stage C). The locked small set, and nothing else. */
   readonly filters: {
     readonly legend: string;
-    readonly entryType: FacetCopy;
+    readonly label: FacetCopy;
     readonly sector: FacetCopy;
-    readonly discipline: FacetCopy;
     readonly service: FacetCopy;
     readonly sort: {
       readonly legend: string;
@@ -108,25 +112,22 @@ export interface WorkArchiveMessages {
   readonly continue: {
     readonly label: string;
     readonly competitions: string;
-    readonly professionalExperience: string;
     readonly fullArchive: string;
   };
 
-  /** The two committed curated routes (IA §2.2). */
+  /**
+   * The curated routes (IA §2.2).
+   *
+   * STAGE 2: Professional Experience is **permanently retired** (`CONTENT_MODEL.md` v3.1 §13,
+   * `DECISIONS_LOG.md` #97) and its copy is deleted with it — including the `groupLabel` that
+   * existed only to head an Employer group. Competitions is the one curated route left.
+   */
   readonly curated: {
     readonly competitions: {
       readonly eyebrow: string;
       readonly heading: string;
       readonly statement: string;
       readonly empty: string;
-    };
-    readonly professionalExperience: {
-      readonly eyebrow: string;
-      readonly heading: string;
-      readonly statement: string;
-      readonly empty: string;
-      /** Prefix for a group heading, e.g. "Lucrari la **{employer}**". */
-      readonly groupLabel: string;
     };
   };
 
@@ -156,7 +157,7 @@ const ro: WorkArchiveMessages = {
     eyebrow: 'Arhiva · toate proiectele',
     heading: 'Proiecte',
     statement:
-      'Tot ce a trecut prin atelier — arhitectura si realitate masurata, la un loc. Alegeti un pilon, un tip sau un sector; sau derulati pur si simplu.',
+      'Tot ce a trecut prin atelier — arhitectura si realitate masurata, la un loc. Alegeti un pilon, un serviciu sau un sector; sau derulati pur si simplu.',
     total: 'in arhiva',
   },
 
@@ -167,9 +168,8 @@ const ro: WorkArchiveMessages = {
 
   filters: {
     legend: 'Filtre',
-    entryType: { legend: 'Tip', any: 'toate tipurile' },
+    label: { legend: 'Etichete', any: 'toate proiectele' },
     sector: { legend: 'Sector', any: 'orice sector' },
-    discipline: { legend: 'Disciplina', any: 'orice disciplina' },
     service: { legend: 'Serviciu', any: 'orice serviciu' },
     sort: {
       legend: 'Ordonare',
@@ -201,7 +201,6 @@ const ro: WorkArchiveMessages = {
   continue: {
     label: 'Continuati',
     competitions: 'Concursuri',
-    professionalExperience: 'Experienta profesionala',
     fullArchive: 'Toata arhiva',
   },
 
@@ -211,15 +210,6 @@ const ro: WorkArchiveMessages = {
       heading: 'Concursuri',
       statement: 'Propunerile de concurs din arhiva, in ordinea selectiei editoriale.',
       empty: 'Nu exista inca proiecte de concurs publicate. Arhiva completa ramane deschisa.',
-    },
-    professionalExperience: {
-      eyebrow: 'Arhiva · selectie editoriala',
-      heading: 'Experienta profesionala',
-      statement:
-        'Lucrari realizate in cadrul unui birou, grupate pe angajator si creditate transparent.',
-      empty:
-        'Nu exista inca lucrari de birou publicate. Arhiva completa ramane deschisa.',
-      groupLabel: 'Lucrari la',
     },
   },
 
@@ -241,7 +231,7 @@ const en: WorkArchiveMessages = {
     eyebrow: 'Archive · all projects',
     heading: 'Projects',
     statement:
-      'Everything that has passed through the studio — architecture and measured reality, together. Pick a pillar, a type or a sector; or simply scroll.',
+      'Everything that has passed through the studio — architecture and measured reality, together. Pick a pillar, a service or a sector; or simply scroll.',
     total: 'in the archive',
   },
 
@@ -252,9 +242,8 @@ const en: WorkArchiveMessages = {
 
   filters: {
     legend: 'Filters',
-    entryType: { legend: 'Type', any: 'all types' },
+    label: { legend: 'Labels', any: 'all projects' },
     sector: { legend: 'Sector', any: 'any sector' },
-    discipline: { legend: 'Discipline', any: 'any discipline' },
     service: { legend: 'Service', any: 'any service' },
     sort: {
       legend: 'Sort',
@@ -286,7 +275,6 @@ const en: WorkArchiveMessages = {
   continue: {
     label: 'Continue',
     competitions: 'Competitions',
-    professionalExperience: 'Professional experience',
     fullArchive: 'The full archive',
   },
 
@@ -296,13 +284,6 @@ const en: WorkArchiveMessages = {
       heading: 'Competitions',
       statement: 'The competition entries in the archive, in curated order.',
       empty: 'No competition entries are published yet. The full archive stays open.',
-    },
-    professionalExperience: {
-      eyebrow: 'Archive · editorial slice',
-      heading: 'Professional experience',
-      statement: 'Work made within a studio, grouped by employer and credited transparently.',
-      empty: 'No studio work is published yet. The full archive stays open.',
-      groupLabel: 'Work at',
     },
   },
 

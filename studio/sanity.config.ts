@@ -55,13 +55,4 @@ export default defineConfig({
     types: schemaTypes,
   },
 
-  document: {
-    /**
-     * Offices are a reference list, not content (IA §5.1) — they are created from inside a
-     * project's Credit tab, where the editor is actually thinking about attribution. Removing
-     * them from the global "create new" menu keeps the two real content objects unambiguous.
-     */
-    newDocumentOptions: (previous) =>
-      previous.filter((item) => item.templateId !== 'employer'),
-  },
 })

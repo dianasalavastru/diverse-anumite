@@ -19,11 +19,32 @@
  *
  * The table is the closed set — adding a route to §11.1 without adding its page
  * now fails here rather than in a browser.
+ *
+ * ── ONE EXCEPTION, AND IT IS ASSERTED IN BOTH DIRECTIONS (STAGE 2) ────────
+ * `professionalExperience` is a **reservation-only** entry: it stays in the
+ * table so its two localized slugs stay in `RESERVED_SLUGS`, and for no other
+ * reason. The Professional Experience curated view is permanently retired
+ * (`CONTENT_MODEL.md` v3.1 §13, `DECISIONS_LOG.md` #97), About / Despre is the
+ * surviving home for that content, and nothing replaces the view.
+ *
+ * So the sweep below skips it — and a second sweep asserts the *opposite*: it
+ * must have **no** page file, in either locale. "Route exists" and "slug is
+ * reserved" are different facts, and after this stage they disagree for this one
+ * key. Both are pinned, so neither can drift: a page reappearing fails, and a
+ * slug becoming claimable fails.
  */
 
 import { describe, expect, it } from 'vitest';
 
-import { LOCALES, ROUTES, routePath, type Locale, type RouteKey } from './routes.js';
+import {
+  LOCALES,
+  RESERVED_SLUGS,
+  ROUTES,
+  isReservedSlug,
+  routePath,
+  type Locale,
+  type RouteKey,
+} from './routes.js';
 
 /**
  * The route files, read through Vite rather than through `node:fs` — the Astro
@@ -58,8 +79,14 @@ function dynamicPageExists(path: string): boolean {
 
 const ROUTE_KEYS = Object.keys(ROUTES) as RouteKey[];
 
+/**
+ * Keys retained ONLY to keep their slugs reserved — no page, no navigation, no view.
+ * Every other key in the table must resolve to a page file.
+ */
+const RESERVATION_ONLY_ROUTES: readonly RouteKey[] = ['professionalExperience'];
+
 describe('every frozen route resolves to a page file (§11.1)', () => {
-  for (const key of ROUTE_KEYS) {
+  for (const key of ROUTE_KEYS.filter((candidate) => !RESERVATION_ONLY_ROUTES.includes(candidate))) {
     const definition = ROUTES[key] as { param?: string };
 
     for (const locale of LOCALES) {
@@ -77,6 +104,36 @@ describe('every frozen route resolves to a page file (§11.1)', () => {
       });
     }
   }
+});
+
+describe('a reservation-only route has NO page — retired, not hidden (Stage 2)', () => {
+  for (const key of RESERVATION_ONLY_ROUTES) {
+    for (const locale of LOCALES) {
+      const path = routePath(key as never, locale as Locale, undefined as never);
+
+      it(`${key} · ${locale} → ${path} does not ship`, () => {
+        expect(
+          staticPageExists(path),
+          `${path} still has a page file. The Professional Experience view is permanently ` +
+            `retired (DECISIONS_LOG.md #97) — it must not ship as a page, an empty state or a ` +
+            `placeholder.`,
+        ).toBe(false);
+      });
+    }
+  }
+
+  it('keeps both historical slugs reserved even though neither route ships', () => {
+    /* The distinction this whole describe exists for: route = NO, reservation = YES. */
+    expect(RESERVED_SLUGS.ro).toContain('experienta-profesionala');
+    expect(RESERVED_SLUGS.en).toContain('professional-experience');
+    expect(isReservedSlug('experienta-profesionala', 'ro')).toBe(true);
+    expect(isReservedSlug('professional-experience', 'en')).toBe(true);
+  });
+
+  it('is absent from the global navigation', () => {
+    const NAV_KEYS: RouteKey[] = ['home', 'about', 'services', 'workArchive', 'contact'];
+    for (const key of RESERVATION_ONLY_ROUTES) expect(NAV_KEYS).not.toContain(key);
+  });
 });
 
 describe('the global-navigation destinations specifically', () => {

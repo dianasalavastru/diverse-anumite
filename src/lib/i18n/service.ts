@@ -65,32 +65,43 @@ export interface ServiceMessages {
     /** First crumb — the Services index (IA §2.1 `/servicii`). */
     readonly services: string;
   };
-  /** S-1's kicker, above the service name. `{pillar}` is substituted. */
+  /**
+   * The identity block's title-block line, opposite the pillar name. The
+   * service's catalogue position is substituted into `{code}` when the route
+   * could derive one — see `ServicePage.astro`.
+   */
   readonly kicker: string;
+  /** Fallback title-block word when no catalogue position is available. */
+  readonly kickerPlain: string;
   /** S-1's light link to About (`SERVICE_WIREFRAME.md` S-1; Page IA S-1). */
   readonly about: string;
 
   readonly markers: {
-    readonly problem: ServiceMarkerCopy;
     readonly deliverables: ServiceMarkerCopy;
     readonly process: ServiceMarkerCopy;
+    readonly capabilities: ServiceMarkerCopy;
     readonly proof: ServiceMarkerCopy;
     readonly conversion: ServiceMarkerCopy;
   };
 
-  readonly problem: {
-    /** Label over the Sector-relevant use-case set (S-2). */
+  /** The identity block's evaluation rail (S-2, read inside the opening). */
+  readonly identity: {
+    /** Label over `problemSolved`. */
+    readonly solves: string;
+    /** Label over the Sector-relevant use-case set. */
     readonly useCases: string;
   };
 
   readonly deliverables: {
     /** Accessible name of the deliverables list. */
     readonly listLabel: string;
+    /** Mono caption under the one supporting image, when the service has one. */
+    readonly mediaCaption: string;
   };
 
-  readonly process: {
-    /** Label over the equipment / specification list (S-3 "Statistic ×n"). */
-    readonly equipment: string;
+  readonly capabilities: {
+    /** Accessible name of the equipment / specification list. */
+    readonly listLabel: string;
   };
 
   readonly proof: {
@@ -135,20 +146,27 @@ export interface ServiceMessages {
 
 const ro: ServiceMessages = {
   breadcrumb: { label: 'Firul paginii', services: 'Servicii' },
-  kicker: 'Serviciu · {pillar}',
+  kicker: 'S·{code}',
+  kickerPlain: 'Serviciu',
   about: 'Despre atelier',
 
   markers: {
-    problem: { label: 'Ce rezolva', coordinate: 'problema, nu produsul' },
     deliverables: { label: 'Ce primiti', coordinate: 'livrabile, nu functii' },
-    process: { label: 'Cum lucram', coordinate: 'metoda si echipament' },
-    proof: { label: 'Unde se vede', coordinate: 'exemple, nu arhiva' },
+    process: { label: 'Cum lucram', coordinate: 'metoda, pas cu pas' },
+    capabilities: { label: 'Capabilitati si echipamente', coordinate: 'cifre reale, nimic calculat' },
+    proof: {
+      label: 'Proiecte in care am folosit serviciul',
+      coordinate: 'exemple, nu arhiva',
+    },
     conversion: { label: 'Continuare', coordinate: 'de la intrebare la conversatie' },
   },
 
-  problem: { useCases: 'Domenii' },
-  deliverables: { listLabel: 'Livrabilele serviciului' },
-  process: { equipment: 'Echipament si specificatii' },
+  identity: { solves: 'Ce rezolva', useCases: 'Util pentru' },
+  deliverables: {
+    listLabel: 'Livrabilele serviciului',
+    mediaCaption: 'imagine de referinta a serviciului',
+  },
+  capabilities: { listLabel: 'Echipament si specificatii' },
 
   proof: {
     seeMore: 'Toate proiectele — {pillar}',
@@ -180,20 +198,30 @@ const ro: ServiceMessages = {
 
 const en: ServiceMessages = {
   breadcrumb: { label: 'Breadcrumb', services: 'Services' },
-  kicker: 'Service · {pillar}',
+  kicker: 'S·{code}',
+  kickerPlain: 'Service',
   about: 'About the studio',
 
   markers: {
-    problem: { label: 'What it solves', coordinate: 'the problem, not the product' },
     deliverables: { label: 'What you get', coordinate: 'deliverables, not features' },
-    process: { label: 'How we work', coordinate: 'method and equipment' },
-    proof: { label: 'Where it shows', coordinate: 'examples, not the archive' },
+    process: { label: 'How we work', coordinate: 'the method, step by step' },
+    capabilities: {
+      label: 'Capabilities and equipment',
+      coordinate: 'real figures, nothing computed',
+    },
+    proof: {
+      label: 'Projects where we used this service',
+      coordinate: 'examples, not the archive',
+    },
     conversion: { label: 'Onward', coordinate: 'from question to conversation' },
   },
 
-  problem: { useCases: 'Sectors' },
-  deliverables: { listLabel: 'What this service delivers' },
-  process: { equipment: 'Equipment and specifications' },
+  identity: { solves: 'What it solves', useCases: 'Suited to' },
+  deliverables: {
+    listLabel: 'What this service delivers',
+    mediaCaption: 'reference image for this service',
+  },
+  capabilities: { listLabel: 'Equipment and specifications' },
 
   proof: {
     seeMore: 'All projects — {pillar}',

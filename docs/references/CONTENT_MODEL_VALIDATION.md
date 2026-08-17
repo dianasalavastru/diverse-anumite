@@ -1,6 +1,14 @@
 # Content Model Validation — 10 Worked Examples & Stress Test
 
-Status: **validation of the draft in `CONTENT_MODEL.md`.** Goal: populate every taxonomy field for 10 representative projects, then challenge the model. Names are placeholders (`[Architect]`, `[Name]`); scenarios and Romanian locations are illustrative.
+> ## ⛔ SUPERSEDED IN FULL — 2026-08-13
+>
+> **This worksheet validated the v2.1 taxonomy (Pillar derived from Discipline · Entry Type · primary/secondary axes). That taxonomy was withdrawn by the client-validated simplified model in [`../product/CONTENT_MODEL.md`](../product/CONTENT_MODEL.md) v3.0, and further narrowed by v3.1.**
+>
+> **Discipline, Entry Type, Project Type, Attribution, Employer, Role and Authorship no longer exist.** Every example below populates fields the model no longer has. Nothing here may be built from, cited as authority, or used to reintroduce a removed concept. It is retained as a provenance record only — the stress-test *method* stands; its *field set* does not.
+>
+> The v3.1 model must be re-validated against real projects in a new worksheet before content intake.
+
+Status: **historic validation of the draft in `CONTENT_MODEL.md` v2.1 — superseded, non-authoritative.** Goal: populate every taxonomy field for 10 representative projects, then challenge the model. Names are placeholders (`[Architect]`, `[Name]`); scenarios and Romanian locations are illustrative.
 
 > **Superseded terminology note (2026-07-30, F6):** This is a point-in-time validation record. Terminology was later finalized in the frozen `CONTENT_MODEL.md` (v2.1): **"Project Type" → "Entry Type"**, and **"Built" is a *Status*, not an Entry Type**. Where an example below shows `Type:`, read it as `Entry Type:`; the frozen Entry Type list is **Design Project · Concept/Study · Competition Entry · Survey/Documentation · Visualization Commission**. The frozen model is the source of truth; the P2/P4 and R6 wording is corrected/annotated accordingly below. No decision is reopened.
 

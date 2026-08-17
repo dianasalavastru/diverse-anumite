@@ -11,8 +11,10 @@
  *
  *   1. **No draft may reach output** (§8, R2). Every document id is asserted. This is the third
  *      independent defence, after `perspective: 'published'` and the GROQ filter.
- *   2. **Pillar is derived, never read** (§7.4). `derivePillars()` is called on the Discipline
- *      assignment; no raw pillar field is consulted even if one existed.
+ *   2. **Pillar is authored and required** (v3.1 §2, Stage 5). It is read straight from the
+ *      document and validated against the closed vocabulary. There is no derivation and no
+ *      fallback: a document without one fails the build here, by design, so an un-migrated
+ *      dataset is loud rather than silently mis-classified.
  *   3. **Capture publication is gated** (§19.4). A point-cloud derivative is dropped unless
  *      `capturePublicationCleared` is true — in the query layer, not only in the CMS, because a
  *      publication gate that lives solely in the editing tool is a convention, not a control.
@@ -22,11 +24,9 @@
  * mutation) fails the build rather than silently entering a filter set as an unknown token.
  */
 
-import { derivePillars } from './derive.js';
 import type {
   RawCaptureMetadata,
   RawCuration,
-  RawEmployer,
   RawImage,
   RawLocalized,
   RawService,
@@ -38,23 +38,16 @@ import type {
   RawWorkEntrySummary,
 } from './groq.js';
 import {
-  ATTRIBUTIONS,
-  COMMISSIONING_CONTEXTS,
-  DISCIPLINES,
-  ENTRY_TYPES,
-  HIGHLIGHT_SLOTS,
   PILLARS,
+  PROJECT_LABELS,
+  SECTORS,
+  SERVICE_KEYS,
+  HIGHLIGHT_SLOTS,
   PROMINENCES,
   STATUSES,
-  type Attribution,
   type CaptureMetadata,
-  type CommissioningContext,
   type Curation,
-  type Discipline,
-  type DisciplineAssignment,
-  type Employer,
-  type EntryType,
-  type EntryTypeAssignment,
+  type ProjectLabel,
   type HighlightPlacement,
   type ImageAsset,
   type Localized,
@@ -66,12 +59,20 @@ import {
   type ServiceRef,
   type ServiceSummary,
   type Seo,
+  type ServiceKey,
   type Status,
   type WorkArchiveItem,
   type WorkEntry,
   type WorkEntryMetadata,
   type WorkEntrySummary,
 } from './types.js';
+import {
+  errorsOf,
+  validateFieldRequirements,
+  validateServicePillarConsistency,
+  validateServicesPresent,
+  type FieldPresence,
+} from './validation.js';
 
 export class ContentShapeError extends Error {
   override readonly name = 'ContentShapeError';
@@ -202,35 +203,64 @@ function normalizeSeo(raw: RawSeo | null | undefined): Seo {
   };
 }
 
-export function normalizeEmployer(raw: RawEmployer | null | undefined): Employer | null {
-  if (!raw || !raw._id || !raw.name) return null;
-  return { _id: assertNotDraft(raw._id), _type: 'employer', name: raw.name };
-}
-
-function normalizeSectors(raw: readonly string[] | null | undefined): readonly Sector[] {
-  // Deliberately not validated against `KNOWN_SECTORS`: `CONTENT_MODEL.md`:53 leaves the axis
-  // open-ended and :100 makes a new sector "a new *value*, not a new structure". Only shape is
-  // checked — a blank value would produce a filter token nobody can select.
-  return (raw ?? []).filter((sector) => typeof sector === 'string' && sector.trim() !== '');
-}
-
-function normalizeDiscipline(
-  raw: RawWorkEntry['discipline'],
+/**
+ * A **Service's** typical sectors (v3.1 §11.1) — optional, plural, closed vocabulary.
+ *
+ * STAGE 6: this used to accept any authored token, because the axis was open. It is now
+ * vocabulary-checked like every other controlled value, so an old token such as `heritage`
+ * fails the build rather than reaching a filter or a label lookup as an unknown string.
+ *
+ * It stays an ARRAY. A Service names the sectors it is typically relevant in; a project names
+ * the one it is in. Same vocabulary, different cardinality — decided 2026-08-14, and the reason
+ * this function survives beside `normalizeSector` below rather than being replaced by it.
+ */
+function normalizeServiceSectors(
+  raw: readonly string[] | null | undefined,
   docId: string,
-): DisciplineAssignment {
-  const primary = oneOf(raw?.primary, DISCIPLINES, 'discipline.primary', docId);
-  const secondary = (raw?.secondary ?? [])
-    .map((value) => oneOf(value, DISCIPLINES, 'discipline.secondary[]', docId))
-    .filter((value): value is Discipline => value !== primary);
-  return { primary, secondary };
+): readonly Sector[] {
+  return (raw ?? []).map((sector) => oneOf(sector, SECTORS, 'sectors[]', docId) as Sector);
 }
 
-function normalizeEntryType(raw: RawWorkEntry['entryType'], docId: string): EntryTypeAssignment {
-  const primary = oneOf(raw?.primary, ENTRY_TYPES, 'entryType.primary', docId);
-  const secondary = (raw?.secondary ?? [])
-    .map((value) => oneOf(value, ENTRY_TYPES, 'entryType.secondary[]', docId))
-    .filter((value): value is EntryType => value !== primary);
-  return { primary, secondary };
+/**
+ * A **project's** Sector (v3.1 §11.1) — mandatory, exactly one, closed vocabulary.
+ *
+ * STAGE 6: the field was `sectors: string[]` and unvalidated. A document carrying two sectors,
+ * or an old token, now fails the build **loudly**. Nothing here picks a winner from a legacy
+ * array: collapsing two authored sectors into one is a content decision, and Stage 10's
+ * preflight flags those documents for a human rather than guessing.
+ */
+function normalizeSector(raw: string | null | undefined, docId: string): Sector {
+  return oneOf(raw, SECTORS, 'sector', docId) as Sector;
+}
+
+/**
+ * Project Labels (v3.1 §10) — 0..N, optional, closed vocabulary.
+ *
+ * Absent is the common case and normalizes to `[]`, never to a default value: a Label is an
+ * editorial flag, so "none" is a real state, not a missing one. An unrecognised value **fails
+ * the build** through `oneOf`, the same way every other controlled vocabulary does — a Label is
+ * closed precisely so a typo cannot invent a third flag.
+ *
+ * Duplicates are collapsed. The Studio's `Rule.unique()` blocks them at authoring time; this is
+ * the read-time counterpart, so a legacy document carrying a repeated value yields one entry
+ * rather than two. **Authored order is preserved** — it carries no meaning, and neither the
+ * membership tests nor the filters read it, but stable order keeps the build reproducible.
+ */
+function normalizeLabels(
+  raw: readonly string[] | null | undefined,
+  docId: string,
+): readonly ProjectLabel[] {
+  const seen = new Set<string>();
+  const labels: ProjectLabel[] = [];
+
+  for (const value of raw ?? []) {
+    const label = oneOf(value, PROJECT_LABELS, 'labels[]', docId) as ProjectLabel;
+    if (seen.has(label)) continue;
+    seen.add(label);
+    labels.push(label);
+  }
+
+  return labels;
 }
 
 function normalizeMetadata(
@@ -250,6 +280,8 @@ function normalizeMetadata(
     area: raw.area ?? null,
     team: raw.team ?? [],
     deliverables: localized(raw.deliverables),
+    equipment: raw.equipment ?? [],
+    implementationCompany: raw.implementationCompany ?? null,
   };
 }
 
@@ -285,7 +317,6 @@ function normalizeCapture(
 
   return {
     accuracy: localized(raw.accuracy),
-    equipment: raw.equipment ?? [],
     software: raw.software ?? [],
     // §10.4: real data, never computed. Absent means "not declared", never a fabricated figure.
     pointCount: raw.pointCount ?? null,
@@ -304,10 +335,10 @@ export function normalizeWorkEntrySummary(raw: RawWorkEntrySummary): WorkEntrySu
     title: requiredLocalized(raw.title, 'title', _id),
     slug: requiredLocalized(raw.slug, 'slug', _id),
     enPublished: raw.enPublished ?? false,
-    // §7.4: derived from Discipline, never read from the document.
-    pillars: derivePillars(normalizeDiscipline(raw.discipline, _id)),
-    entryType: normalizeEntryType(raw.entryType, _id),
-    sectors: normalizeSectors(raw.sectors),
+    // Authored and required since Stage 5 — read from the document, never derived.
+    pillar: oneOf(raw.pillar, PILLARS, 'pillar', _id) as Pillar,
+    labels: normalizeLabels(raw.labels, _id),
+    sector: normalizeSector(raw.sector, _id),
     year: raw.year ?? 0,
     status: oneOf(raw.status, STATUSES, 'metadata.status', _id) as Status,
     cover: normalizeImage(raw.cover),
@@ -316,26 +347,50 @@ export function normalizeWorkEntrySummary(raw: RawWorkEntrySummary): WorkEntrySu
 }
 
 export function normalizeServiceRef(
-  raw: { _id?: string | null; slug?: RawLocalized<string> | null },
+  raw: {
+    _id?: string | null;
+    key?: string | null;
+    pillar?: string | null;
+    slug?: RawLocalized<string> | null;
+  },
+  docId: string,
 ): ServiceRef | null {
   if (!raw._id) return null;
   const slug = localized(raw.slug);
   if (!slug) return null;
-  return { _id: assertNotDraft(raw._id), slug };
+  return {
+    _id: assertNotDraft(raw._id),
+    key: oneOf(raw.key, SERVICE_KEYS, 'services[].key', docId) as ServiceKey,
+    pillar: oneOf(raw.pillar, PILLARS, 'services[].pillar', docId) as Pillar,
+    slug,
+  };
 }
 
 export function normalizeWorkArchiveItem(raw: RawWorkArchiveItem): WorkArchiveItem {
   const summary = normalizeWorkEntrySummary(raw);
   return {
     ...summary,
-    discipline: normalizeDiscipline(raw.discipline, summary._id),
     services: (raw.services ?? [])
-      .map((service) => normalizeServiceRef(service))
+      .map((service) => normalizeServiceRef(service, summary._id))
       .filter((service): service is ServiceRef => service !== null),
-    attribution: oneOf(raw.attribution, ATTRIBUTIONS, 'attribution', summary._id) as Attribution,
-    employer: normalizeEmployer(raw.employer),
     // Optional display metadata (I-3): absent stays absent, never a placeholder string.
     location: localized(raw.location),
+    /* The archive's preview sheet — three DISTINCT readings of the project, taken off the head
+       of the gallery the projection already bounded (see `WORK_ARCHIVE_ITEM_FIELDS`).
+
+       Two filters, in this order, and no third:
+         · an unrenderable or malformed asset is dropped by `normalizeImages` rather than
+           counted, so the length a component reads is the number of frames it can actually show;
+         · a frame carrying the COVER'S own asset id is dropped, because the sheet sits beside
+           the cover and repeating it there is a frame spent saying nothing. Compared by
+           `assetId` — the same photograph re-uploaded is a different asset and is honestly a
+           different frame, which is the editor's call to make, not this function's.
+
+       Then the first three. Nothing is substituted for what is missing: an entry whose gallery
+       cannot supply three renders the sheet it can, and an entry with no gallery renders none. */
+    galleryPreview: normalizeImages(raw.galleryPreview)
+      .filter((image) => image.assetId !== summary.cover?.assetId)
+      .slice(0, 3),
   };
 }
 
@@ -343,11 +398,12 @@ export function normalizeServiceSummary(raw: RawServiceSummary): ServiceSummary 
   const _id = requireId(raw, 'Service summary');
   return {
     _id,
+    key: oneOf(raw.key, SERVICE_KEYS, 'key', _id) as ServiceKey,
     name: requiredLocalized(raw.name, 'name', _id),
     slug: requiredLocalized(raw.slug, 'slug', _id),
     enPublished: raw.enPublished ?? false,
-    // Services are classified by an authored Pillar, not by Discipline — the §7.4 derivation
-    // does not apply to them (IA §2.3: "Service → Pillar").
+    // A Service has always carried an authored Pillar (IA §2.3, "Service → Pillar"). Since
+    // Stage 5 the project does too, which is what lets Stage 8 constrain the picker.
     pillar: oneOf(raw.pillar, PILLARS, 'pillar', _id) as Pillar,
     shortDescription: localized(raw.shortDescription),
     hero: normalizeImage(raw.hero),
@@ -357,54 +413,93 @@ export function normalizeServiceSummary(raw: RawServiceSummary): ServiceSummary 
 
 export function normalizeWorkEntry(raw: RawWorkEntry): WorkEntry {
   const _id = requireId(raw, 'Work Entry');
-  const discipline = normalizeDiscipline(raw.discipline, _id);
-  const attribution = oneOf(raw.attribution, ATTRIBUTIONS, 'attribution', _id) as Attribution;
   const capturePublicationCleared = raw.capturePublicationCleared ?? false;
 
-  const employer = normalizeEmployer(raw.employer);
-  if (employer && attribution !== 'studio') {
-    // `CONTENT_MODEL.md`:50 scopes Employer to Attribution = Studio. Carrying one on an
-    // independent entry would misattribute the work — the exact failure §1's honest-crediting
-    // requirement exists to prevent.
-    throw new ContentShapeError(
-      `${_id}: 'employer' is set but attribution is '${attribution}'. Employer applies only when Attribution = Studio (CONTENT_MODEL.md:50).`,
-    );
-  }
+  const metadata = normalizeMetadata(raw.metadata, _id);
 
-  return {
+  const entry: WorkEntry = {
     _id,
     _type: 'workEntry',
     title: requiredLocalized(raw.title, 'title', _id),
     slug: requiredLocalized(raw.slug, 'slug', _id),
     enPublished: raw.enPublished ?? false,
 
-    discipline,
-    pillars: derivePillars(discipline),
-    entryType: normalizeEntryType(raw.entryType, _id),
-    attribution,
-    commissioning: oneOf(
-      raw.commissioning,
-      COMMISSIONING_CONTEXTS,
-      'commissioning',
-      _id,
-    ) as CommissioningContext,
-    employer,
-    sectors: normalizeSectors(raw.sectors),
-    roles: localized(raw.roles),
+    pillar: oneOf(raw.pillar, PILLARS, 'pillar', _id) as Pillar,
+    labels: normalizeLabels(raw.labels, _id),
+    sector: normalizeSector(raw.sector, _id),
 
     services: (raw.services ?? []).map(normalizeServiceSummary),
     relatedWork: (raw.relatedWork ?? []).map(normalizeWorkEntrySummary),
 
     description: localized<readonly PortableTextBlock[]>(raw.description),
-    authorship: localized(raw.authorship),
     cover: normalizeImage(raw.cover),
     gallery: normalizeImages(raw.gallery),
     capture: normalizeCapture(raw.capture, capturePublicationCleared, _id),
     capturePublicationCleared,
 
-    metadata: normalizeMetadata(raw.metadata, _id),
+    metadata,
     curation: normalizeCuration(raw.curation, _id),
     seo: normalizeSeo(raw.seo),
+  };
+
+  assertFieldContract(entry);
+  return entry;
+}
+
+/**
+ * The v3.1 field contract, enforced at read time (§2, §4–§8).
+ *
+ * The Studio blocks the same things at authoring time from the same rules; this is the build's
+ * independent refusal, in the spirit of the draft-id assertion above — a contract that lives
+ * only in the editing tool is a convention, not a control. Imported content, a migration or a
+ * hand mutation all arrive here.
+ *
+ * Every issue is collected before throwing, so one build reports every missing field rather
+ * than one per run.
+ */
+function assertFieldContract(entry: WorkEntry): void {
+  const services = entry.services;
+  const issues = [
+    ...validateServicesPresent(services.length),
+    ...validateServicePillarConsistency(
+      entry.pillar,
+      services.map((service) => ({ key: service.key, pillar: service.pillar, name: service.name.ro })),
+    ),
+    ...validateFieldRequirements(
+      entry.pillar,
+      services.map((service) => service.key),
+      fieldPresence(entry),
+    ),
+  ];
+
+  const blocking = errorsOf(issues);
+  if (blocking.length > 0) {
+    throw new ContentShapeError(
+      `${entry._id}: ${blocking.map((issue) => issue.message).join(' ')}`,
+    );
+  }
+}
+
+/** What the project actually carries, as the requirement rule expects it. */
+function fieldPresence(entry: WorkEntry): FieldPresence {
+  const metadata = entry.metadata;
+  return {
+    services: entry.services.length > 0,
+    sector: Boolean(entry.sector),
+    title: Boolean(entry.title.ro?.trim()),
+    year: Number.isFinite(metadata.year),
+    status: Boolean(metadata.status),
+    client: Boolean(metadata.client?.trim()),
+    description: (entry.description?.ro?.length ?? 0) > 0,
+    cover: entry.cover !== null,
+    gallery: entry.gallery.length > 0,
+    location: Boolean(metadata.location?.ro?.trim()),
+    area: metadata.area !== null,
+    awards: (metadata.awards?.ro?.length ?? 0) > 0,
+    equipment: metadata.equipment.length > 0,
+    collaborators: metadata.collaborators.length > 0,
+    team: metadata.team.length > 0,
+    implementationCompany: Boolean(metadata.implementationCompany?.trim()),
   };
 }
 
@@ -412,6 +507,7 @@ export function normalizeService(raw: RawService): Service {
   const _id = requireId(raw, 'Service');
   return {
     _id,
+    key: oneOf(raw.key, SERVICE_KEYS, 'key', _id) as ServiceKey,
     _type: 'service',
     name: requiredLocalized(raw.name, 'name', _id),
     slug: requiredLocalized(raw.slug, 'slug', _id),
@@ -423,7 +519,7 @@ export function normalizeService(raw: RawService): Service {
     deliverables: localized(raw.deliverables),
     process: localized<readonly PortableTextBlock[]>(raw.process),
     equipment: localized(raw.equipment),
-    sectors: normalizeSectors(raw.sectors),
+    sectors: normalizeServiceSectors(raw.sectors, _id),
     hero: normalizeImage(raw.hero),
     // Zero demonstrating entries is a valid published state (IA Step 6, F5) — never an error.
     demonstratedBy: (raw.demonstratedBy ?? []).map(normalizeWorkEntrySummary),

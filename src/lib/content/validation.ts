@@ -18,14 +18,22 @@
 
 import { isReservedSlug, RESERVED_SLUGS, type Locale } from '../i18n/routes.js';
 import {
-  ATTRIBUTIONS,
-  COMMISSIONING_CONTEXTS,
-  DISCIPLINES,
-  ENTRY_TYPES,
+  PILLAR_BASE_REQUIREMENTS,
+  PROJECT_FIELDS,
+  SERVICE_FIELD_REQUIREMENTS,
+  resolveRequirements,
+  type ProjectField,
+} from './requirements.js';
+import {
+  PROJECT_LABELS,
+  SECTORS,
+  SERVICE_KEYS,
   HIGHLIGHT_SLOTS,
   PILLARS,
   PROMINENCES,
   STATUSES,
+  type Pillar,
+  type ServiceKey,
 } from './types.js';
 
 export type ValidationLevel = 'error' | 'warning';
@@ -94,11 +102,10 @@ export function validateWorkEntrySlug(slug: string, locale: Locale, path: string
  * ──────────────────────────────────────────────────────────────────────────── */
 
 export const VOCABULARIES = {
-  entryType: ENTRY_TYPES,
+  label: PROJECT_LABELS,
+  sector: SECTORS,
+  serviceKey: SERVICE_KEYS,
   status: STATUSES,
-  attribution: ATTRIBUTIONS,
-  discipline: DISCIPLINES,
-  commissioning: COMMISSIONING_CONTEXTS,
   pillar: PILLARS,
   prominence: PROMINENCES,
   highlightSlot: HIGHLIGHT_SLOTS,
@@ -123,95 +130,143 @@ export function validateVocabulary(
   return [];
 }
 
-/**
- * `CONTENT_MODEL.md`:44–47: primary + optional secondary. A value repeated as its own secondary
- * is meaningless and would double-count the entry in Pillar derivation.
+/*
+ * STAGE 5 — `validateAssignment()` is deleted.
+ *
+ * It policed "a value may not repeat as its own secondary" for the two primary+secondary axes,
+ * Discipline and Entry Type. Both are retired (Stages 4 and 5) and nothing in v3.1 has that
+ * shape: Pillar is a single authored value, and Labels are a plain set whose duplicates the
+ * Studio's `Rule.unique()` and `normalizeLabels()` already handle. No successor rule exists.
  */
-export function validateAssignment(
-  primary: string | undefined | null,
-  secondary: readonly string[] | undefined | null,
-  vocabulary: VocabularyName,
-  path: string,
-): ValidationIssue[] {
-  const issues = [...validateVocabulary(primary, vocabulary, `${path}.primary`)];
-  const seen = new Set<string>();
-
-  for (const value of secondary ?? []) {
-    issues.push(...validateVocabulary(value, vocabulary, `${path}.secondary`));
-    if (value === primary) {
-      issues.push(error(`${path}.secondary`, `'${value}' is already the primary ${vocabulary}.`));
-    }
-    if (seen.has(value)) {
-      issues.push(error(`${path}.secondary`, `'${value}' is listed twice.`));
-    }
-    seen.add(value);
-  }
-
-  return issues;
-}
 
 /* ────────────────────────────────────────────────────────────────────────────
- * Honest attribution — CONTENT_MODEL.md:50, :60
+ * Crediting — no rule, by design (v3.1 §13)
+ *
+ * STAGE 2 deleted `validateEmployerScope()`; STAGE 3 deletes `validateAuthorship()`.
+ *
+ * `validateAuthorship()` required a scoped credit sentence whenever over-claiming was possible
+ * — Visualization Commission entries, and Studio or Collaboration attribution. Every input it
+ * read is retired: Entry Type no longer exists (Stage 4), and
+ * Attribution no longer exists. It is **deleted, not re-keyed onto a Service**: v3.1 §12
+ * retires the authorship concept itself, so a Service-triggered successor would reintroduce by
+ * the back door exactly what the client decided to remove (`DECISIONS_LOG.md` #91).
+ *
+ * Nothing validates crediting now. `metadata.collaborators` and `metadata.team` are optional
+ * plain lists with no cross-field rule, and honest credit for work whose design belongs to
+ * someone else is carried by authored Description prose. That trade-off is recorded upstream,
+ * not decided here.
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * Services and the field contract — CONTENT_MODEL.md v3.1 §2, §5, §7, §8
+ *
+ * All three rules below are built on `requirements.ts` and **restate nothing**. That module is
+ * the single authority for which field a Pillar and a set of Services require; these functions
+ * only turn its answer into issues. The Studio and the build both call them, so an editor is
+ * blocked by exactly what the build refuses.
  * ──────────────────────────────────────────────────────────────────────────── */
 
 /**
- * Employer applies **only** when Attribution = Studio (`CONTENT_MODEL.md`:50), and Professional
- * Experience is defined as exactly that set (IA §5.1). Both directions are errors: a Studio
- * entry without an Employer cannot be grouped in the curated view, and an Employer on an
- * independent entry misattributes the work.
+ * v3.1 §2: a project references **one or more** Services, and it is that selection which
+ * activates its conditional fields. Zero Services is therefore not an incomplete project but an
+ * unclassifiable one — nothing decides whether it needs a Location, an Area or an Equipment
+ * list. Never defaulted: no Service is added on the project's behalf.
  */
-export function validateEmployerScope(
-  attribution: string | undefined | null,
-  hasEmployer: boolean,
-  path = 'employer',
-): ValidationIssue[] {
-  if (attribution === 'studio' && !hasEmployer) {
-    return [
-      error(
-        path,
-        'A Studio-attributed entry must name its Employer — Professional Experience groups by it. (INFORMATION_ARCHITECTURE.md §5.1)',
-      ),
-    ];
-  }
-  if (attribution !== 'studio' && hasEmployer) {
-    return [
-      error(
-        path,
-        `Employer applies only when Attribution = Studio (this entry is '${attribution}'). (CONTENT_MODEL.md:50)`,
-      ),
-    ];
-  }
-  return [];
+export function validateServicesPresent(serviceCount: number, path = 'services'): ValidationIssue[] {
+  if (serviceCount > 0) return [];
+  return [
+    error(
+      path,
+      'A project must demonstrate at least one Service — the Services it lists are what decide which other fields it has to carry. (CONTENT_MODEL.md v3.1 §2)',
+    ),
+  ];
+}
+
+/** A referenced Service, reduced to what the consistency rule needs. */
+export interface ReferencedService {
+  readonly key: ServiceKey;
+  readonly pillar: Pillar;
+  /** For the message only — the editor recognises the Service by name, not by key. */
+  readonly name?: string;
 }
 
 /**
- * `CONTENT_MODEL.md`:60 and `PROJECT_CONTEXT.md`:30 make a correct Visualization Commission
- * credit a product requirement: the images are the architect's, the building design is not.
- * Attribution alone cannot say that — only the scoped Authorship statement can.
+ * v3.1 §2: "PROJECT has one or more SERVICE (all within its own Pillar)."
+ *
+ * The Studio's reference filter narrows the picker to the project's Pillar, but a filter is an
+ * authoring affordance, not a constraint — the same argument this file already makes about
+ * `options.list`. It does not retroactively clear a reference either, so an editor who switches
+ * a project's Pillar keeps whatever they had selected. That is deliberate: **the offending
+ * Services are named and the document is blocked, never silently emptied.** Losing an editor's
+ * selection to make a form validate is a worse failure than refusing to publish.
  */
-export function validateAuthorship(
-  entryTypePrimary: string | undefined | null,
-  attribution: string | undefined | null,
-  hasAuthorshipRo: boolean,
-  path = 'authorship',
+export function validateServicePillarConsistency(
+  projectPillar: string | undefined | null,
+  services: readonly ReferencedService[],
+  path = 'services',
 ): ValidationIssue[] {
-  const mustBeExplicit =
-    entryTypePrimary === 'visualization-commission' ||
-    attribution === 'studio' ||
-    attribution === 'collaboration';
+  if (!projectPillar) return [];
 
-  if (mustBeExplicit && !hasAuthorshipRo) {
-    return [
-      error(
-        path,
-        'A scoped Authorship statement is required for Visualization Commission, Studio and Collaboration entries — it is what prevents over-claiming. (CONTENT_MODEL.md:52, :60)',
-      ),
-    ];
+  const foreign = services.filter((service) => service.pillar !== projectPillar);
+  if (foreign.length === 0) return [];
+
+  const named = foreign.map((service) => service.name ?? service.key).join(', ');
+  return [
+    error(
+      path,
+      `${foreign.length === 1 ? 'This Service belongs' : 'These Services belong'} to the other capability: ${named}. ` +
+        'Either change the project\'s capability back, or remove them — they are kept until you decide. (CONTENT_MODEL.md v3.1 §2)',
+    ),
+  ];
+}
+
+/** Whether each canonical project field actually carries a value. */
+export type FieldPresence = Readonly<Partial<Record<ProjectField, boolean>>>;
+
+/**
+ * The whole v3.1 field contract, in one rule (§4–§8).
+ *
+ * Resolve the requirement of every canonical field from the Pillar's base plus the selected
+ * Services, then report **every** mandatory field that has no value — not the first. An editor
+ * fixing one missing field at a time, publish attempt after publish attempt, is the experience
+ * this avoids; `ValidationIssue[]` was always a list for exactly this reason.
+ *
+ * Optional and not-applicable fields are never reported. The merge is the resolver's
+ * `MANDATORY > OPTIONAL > NOT APPLICABLE`, so two Services disagreeing about a field resolve
+ * the same way here as they do in the Studio's own visibility.
+ */
+export function validateFieldRequirements(
+  pillar: Pillar,
+  serviceKeys: readonly ServiceKey[],
+  presence: FieldPresence,
+): ValidationIssue[] {
+  const resolved = resolveRequirements(pillar, serviceKeys);
+
+  return PROJECT_FIELDS.filter(
+    (field) => resolved[field] === 'mandatory' && presence[field] !== true,
+  ).map((field) =>
+    error(
+      field,
+      `'${field}' is required for this project: ${describeRequirement(field, pillar, serviceKeys)}. (CONTENT_MODEL.md v3.1 §4–§8)`,
+    ),
+  );
+}
+
+/** Why a field is mandatory — the Pillar's base, a selected Service, or both. */
+function describeRequirement(
+  field: ProjectField,
+  pillar: Pillar,
+  serviceKeys: readonly ServiceKey[],
+): string {
+  if (PILLAR_BASE_REQUIREMENTS[pillar][field] === 'mandatory') {
+    return `every ${pillar} project carries it`;
   }
-  if (!hasAuthorshipRo) {
-    return [warning(path, 'No Authorship statement. Consider stating the scope of your contribution.')];
-  }
-  return [];
+  const responsible = serviceKeys.filter(
+    (key) => SERVICE_FIELD_REQUIREMENTS[key][field] === 'mandatory',
+  );
+  return responsible.length > 0
+    ? `required by ${responsible.join(', ')}`
+    : 'required by the selected Services';
 }
 
 /* ────────────────────────────────────────────────────────────────────────────

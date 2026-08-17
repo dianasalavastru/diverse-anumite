@@ -87,18 +87,39 @@ import type { Locale, Service, WorkEntry } from '../../lib/content';
 /**
  * One key per rendered section.
  *
- *   orientation   S-1
- *   problem       S-2
+ *   orientation   S-1 + S-2 — identity, and the at-a-glance evaluation rail
  *   deliverables  S-3 · what you get
- *   process       S-3 · how it works, and with what
+ *   process       S-3 · how it works
+ *   capabilities  S-3 · with what — equipment, specifications, measured evidence
  *   proof         S-4
  *   conversion    S-5
+ *
+ * ── PROTOTYPE (Capability Sheet) — TWO COMPOSITION CHANGES ────────────────
+ * Both are composition, not IA: no responsibility moved between modules, and
+ * no module gained or lost a field.
+ *
+ * 1. **S-2 no longer takes a station of its own.** Its content — the service's
+ *    own explanation, what it solves, and the sector use-cases — now reads
+ *    inside the opening, as the identity block's evaluation rail. The wireframe
+ *    asks S-2 to resolve "is this my problem?" *before* the solution, and it
+ *    still does; it resolves in the first screen instead of the second. This is
+ *    the same call the Work Entry makes for W-1, which is one responsibility
+ *    rendered as `hero` + `facts`, and the reverse: two responsibilities
+ *    rendered as one opening. The rail indexes SECTIONS, not Page-IA modules.
+ *
+ * 2. **Equipment is its own station.** It used to toggle the process section
+ *    (`hasProcess` OR-ed the two), which meant a survey service's instruments
+ *    arrived as a footnote to its method. They are a different claim —
+ *    §10.4's "technical claims made to institutional clients" — and they are
+ *    the one part of the offering an institutional client evaluates directly.
+ *    A service that declares no equipment renders no station and the numbering
+ *    reflows; nothing is substituted, and nothing branches on `pillar`.
  */
 export type ServiceModuleKey =
   | 'orientation'
-  | 'problem'
   | 'deliverables'
   | 'process'
+  | 'capabilities'
   | 'proof'
   | 'conversion';
 
@@ -145,21 +166,36 @@ export function hasDeliverables(service: Service, locale: Locale): boolean {
 }
 
 /**
- * S-3 · "How it works" — the process, plus the equipment/specification list the
- * wireframe carries as "Statistic ×n (optional — reality-capture
- * accuracy/specs)".
+ * S-3 · "How it works" — the authored process, and only that.
  *
- * Equipment toggles the section on its own: a survey service that states its
- * instruments but has no authored process still has something concrete to say,
- * and `CONTENT_MODEL.md` §2 lists "equipment & specs (capture services)" as a
- * Service field in its own right. It is **not** gated on pillar — one blueprint,
- * and an A&D service that declares software or equipment is not a special case.
+ * Equipment no longer toggles this section; see `hasCapabilities` and the
+ * `ServiceModuleKey` note. A service with instruments but no authored method
+ * used to borrow this heading to show them, which put "Cum lucram" over a list
+ * of scanners.
  */
 export function hasProcess(service: Service, locale: Locale): boolean {
-  return (
-    (localize(service.process, locale)?.length ?? 0) > 0 ||
-    (localize(service.equipment, locale)?.length ?? 0) > 0
-  );
+  return (localize(service.process, locale)?.length ?? 0) > 0;
+}
+
+/**
+ * S-3 · "With what" — equipment and specifications.
+ *
+ * `CONTENT_MODEL.md` §2 lists "equipment & specs (capture services)" as a
+ * Service field in its own right, and §10.4 governs it absolutely: real,
+ * authored figures or nothing. In practice only capture services declare any,
+ * which is exactly why this must be gated on the FIELD and never on the pillar
+ * — an A&D service that one day states its survey instruments is not a special
+ * case, and a capture service that has not declared its own is not entitled to
+ * a station full of plausible-sounding defaults.
+ *
+ * The point-cloud field lives in this section too, but does not gate it: a
+ * cloud is a property of a demonstrating Work Entry, not of the offering (see
+ * `captureSubject`). A service with a cleared survey behind it and no authored
+ * equipment renders no capabilities station — the cloud is evidence of a
+ * capability, not a substitute for declaring one.
+ */
+export function hasCapabilities(service: Service, locale: Locale): boolean {
+  return (localize(service.equipment, locale)?.length ?? 0) > 0;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -221,10 +257,10 @@ export function captureSubject(
 
 /** Reading order, fixed by `SERVICE_WIREFRAME.md` §"Reading progression". */
 const ORDER: readonly ServiceModuleKey[] = [
-  'orientation', // S-1 · orientation
-  'problem', // S-2 · problem recognition
+  'orientation', // S-1 + S-2 · identity, and the evaluation rail
   'deliverables', // S-3 · what you get
   'process', // S-3 · how it works
+  'capabilities', // S-3 · with what
   'proof', // S-4 · representative evidence
   'conversion', // S-5 · conversation
 ];
@@ -232,9 +268,9 @@ const ORDER: readonly ServiceModuleKey[] = [
 export function serviceComposition(service: Service, locale: Locale): ServiceComposition {
   const renders: Readonly<Record<ServiceModuleKey, boolean>> = {
     orientation: true,
-    problem: hasProblemContent(service, locale),
     deliverables: hasDeliverables(service, locale),
     process: hasProcess(service, locale),
+    capabilities: hasCapabilities(service, locale),
     // F5: always. Zero demonstrating entries switches the surface, never the
     // presence of the module — see the file header.
     proof: true,

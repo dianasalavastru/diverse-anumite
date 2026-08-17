@@ -10,12 +10,12 @@
  * Transcribed, not restated:
  *
  *   "Pillar toggle (a **mode**, not a filter — `COMPONENT_INVENTORY.md`:57;
- *    `All` default) · shared **Entry Type + Sector** · **one** pillar-contextual
- *    refinement (Discipline for A&D, Service for RC, none for All) · **Year as
+ *    `All` default) · shared **Label + Sector** · **one** pillar-contextual
+ *    refinement (Service for RC; A&D's Discipline refinement retired at Stage 5) · **Year as
  *    sort** (`curated` · `newest` · `oldest`) · **no Attribution filter**.
  *    Status is not a public filter.
  *
- *    URL: `?pillar=` `&sector=` `&type=` `&discipline=` `&service=` `&sort=`.
+ *    URL: `?pillar=` `&sector=` `&label=` `&service=` `&sort=`.
  *    `replaceState` for incremental changes, `pushState` for the pillar switch;
  *    full restore on load."
  *
@@ -42,9 +42,25 @@
  *   - **`?year=`, `?status=`, `?attribution=`.** Year is a sort; Status and
  *     Attribution are not public filters. A URL carrying one is ignored like any
  *     other unknown parameter.
+ *   - **`?type=` — RETIRED at Stage 4, with no alias.** Entry Type is gone from
+ *     the model (v3.1 §12), so keeping its query token would keep an obsolete
+ *     public taxonomy alive in shareable URLs. The Label filter gets its own
+ *     token, `?label=`, rather than inheriting one whose values no longer exist.
+ *     An old `?type=competition-entry` link is not redirected and not translated:
+ *     it falls through the same unknown-parameter path as everything else and
+ *     resolves to the unfiltered archive, which is a valid page rather than an
+ *     error. `archive-state.test.ts` pins that behaviour.
  */
 
-import { PILLARS, type ArchiveSort, type Discipline, type EntryType, type Pillar, type Sector } from '../../lib/content';
+import {
+  PILLARS,
+  SERVICE_KEY_TO_PILLAR,
+  type ArchiveSort,
+  type Pillar,
+  type ProjectLabel,
+  type Sector,
+  type ServiceKey,
+} from '../../lib/content';
 import { pillarArchiveParam } from '../../lib/i18n/vocabulary';
 
 /* -------------------------------------------------------------------------- */
@@ -58,8 +74,7 @@ import { pillarArchiveParam } from '../../lib/i18n/vocabulary';
 export const ARCHIVE_PARAMS = {
   pillar: 'pillar',
   sector: 'sector',
-  type: 'type',
-  discipline: 'discipline',
+  label: 'label',
   service: 'service',
   sort: 'sort',
 } as const;
@@ -93,23 +108,36 @@ export function pillarFromToken(token: string): Pillar | null {
 export interface ArchiveState {
   /** The mode. Never a filter — it re-scopes the archive (`COMPONENT_INVENTORY.md`:57). */
   readonly pillar: PillarMode;
-  /** Shared filter — Entry Type (primary or secondary). */
-  readonly type: EntryType | null;
-  /** Shared filter — Sector, the cross-pillar discovery axis. */
+  /**
+   * Shared filter — Project Label. **Global to all three pillar modes** (v3.1 §10): a Label
+   * belongs to no Pillar, so it is offered under All, Architecture & Design and Reality
+   * Capture alike, exactly as Sector is.
+   */
+  readonly label: ProjectLabel | null;
+  /**
+   * Shared filter — Sector, the cross-pillar discovery axis. **Global to all three pillar
+   * modes and preserved across a mode switch**, exactly as Label is; reaffirmed 2026-08-17
+   * (`DECISIONS_LOG.md` #101) after the archive taxonomy was restated.
+   */
   readonly sector: Sector | null;
-  /** Contextual refinement, Architecture & Design only. */
-  readonly discipline: Discipline | null;
-  /** Contextual refinement, Reality Capture only — the localized Service slug. */
-  readonly service: string | null;
+  /**
+   * Contextual refinement — the **immutable `ServiceKey`**, never a slug or a name (v3.1 §14.3).
+   *
+   * Stage 5 retired Architecture & Design's Discipline refinement and left Service scoped to
+   * Reality Capture until the Service contract was complete. It is, so the refinement now exists
+   * under all three modes — but it stays *contextual* rather than shared, because a Service
+   * belongs to exactly one Pillar and the option list differs per mode. That is the whole
+   * difference between this facet and the two above.
+   */
+  readonly service: ServiceKey | null;
   /** Year as sort, never as filter (IA Step 5). */
   readonly sort: ArchiveSort;
 }
 
 export const DEFAULT_ARCHIVE_STATE: ArchiveState = {
   pillar: 'all',
-  type: null,
+  label: null,
   sector: null,
-  discipline: null,
   service: null,
   sort: 'curated',
 };
@@ -124,28 +152,36 @@ export const DEFAULT_ARCHIVE_STATE: ArchiveState = {
  * control that looks inactive — a filter state existing only in the URL.
  */
 export interface ArchiveFacetValues {
-  readonly types: readonly string[];
+  readonly labels: readonly string[];
   readonly sectors: readonly string[];
-  readonly disciplines: readonly string[];
   readonly services: readonly string[];
 }
 
 export const EMPTY_FACET_VALUES: ArchiveFacetValues = {
-  types: [],
+  labels: [],
   sectors: [],
-  disciplines: [],
   services: [],
 };
 
 /**
- * Which refinement a scope exposes — Discipline under A&D, Service under RC,
- * **none** under All (IA Step 5: "Each pillar provides one additional contextual
- * refinement"; §23.5: "none for All").
+ * The Services a mode offers, narrowed from the archive's whole demonstrated set.
+ *
+ * This replaces `contextualFacet()`, which answered "does this mode have a refinement at all?"
+ * and returned `'service'` only for Reality Capture. Every mode has one now, so the useful
+ * question changed shape: not *whether* but *which*.
+ *
+ * A `ServiceKey` belongs to exactly one Pillar by construction (`SERVICE_KEY_TO_PILLAR`), and
+ * Stage 8 guarantees every project's Services sit inside its own Pillar — so "demonstrated by a
+ * project in this scope" and "demonstrated, and owned by this Pillar" are the same set. Reading
+ * the static map rather than re-deriving the set from the items keeps this pure, which is what
+ * lets the SSR control, the URL validator and the island share one answer.
  */
-export function contextualFacet(pillar: PillarMode): 'discipline' | 'service' | null {
-  if (pillar === 'architecture-design') return 'discipline';
-  if (pillar === 'reality-capture') return 'service';
-  return null;
+export function servicesInScope(
+  available: readonly string[],
+  pillar: PillarMode,
+): readonly string[] {
+  if (pillar === 'all') return available;
+  return available.filter((key) => SERVICE_KEY_TO_PILLAR[key as ServiceKey] === pillar);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -178,8 +214,10 @@ function firstAvailable(raw: string | null, available: readonly string[]): strin
  * Unrecognised values are ignored rather than echoed — the same rule §23.1
  * applies to the Contact prefills ("an unrecognised value is ignored rather than
  * echoed"). A contextual refinement is dropped unless its pillar mode is active,
- * so `?discipline=architecture` alone, or under `?pillar=reality-capture`,
- * resolves to the unrefined view instead of a filter with no visible control.
+ * so `?service=…` under `?pillar=all` resolves to the unrefined view instead of a filter with
+ * no visible control. **`?discipline=` is retired at Stage 5 with no alias**: the axis is gone
+ * from the model, so an old link falls through the unknown-parameter path to the unfiltered
+ * archive rather than being translated into a Pillar it never meant.
  */
 export function parseArchiveState(
   input: string | URLSearchParams,
@@ -195,20 +233,24 @@ export function parseArchiveState(
     ? (sortRaw as ArchiveSort)
     : DEFAULT_ARCHIVE_STATE.sort;
 
-  const refinement = contextualFacet(pillar);
-
   return {
     pillar,
-    type: firstAvailable(params.get(ARCHIVE_PARAMS.type), available.types) as EntryType | null,
-    sector: firstAvailable(params.get(ARCHIVE_PARAMS.sector), available.sectors),
-    discipline:
-      refinement === 'discipline'
-        ? (firstAvailable(params.get(ARCHIVE_PARAMS.discipline), available.disciplines) as Discipline | null)
-        : null,
-    service:
-      refinement === 'service'
-        ? firstAvailable(params.get(ARCHIVE_PARAMS.service), available.services)
-        : null,
+    label: firstAvailable(params.get(ARCHIVE_PARAMS.label), available.labels) as ProjectLabel | null,
+    /* STAGE 6: Sector is a closed union now, so the cast is the same narrowing every other
+       facet already does — the value is validated against the rendered set first. */
+    sector: firstAvailable(params.get(ARCHIVE_PARAMS.sector), available.sectors) as Sector | null,
+    /*
+     * Validated against the set THIS MODE offers, so `?pillar=architecture&service=scan-to-bim`
+     * resolves to the unrefined A&D archive rather than to a filter with no control.
+     *
+     * A slug-valued `?service=test-scanare-3d` from before the identity change is not aliased
+     * and not translated: it is simply not in the available set, so it falls through the same
+     * unknown-value path as `?discipline=` and `?type=` and lands on a valid page.
+     */
+    service: firstAvailable(
+      params.get(ARCHIVE_PARAMS.service),
+      servicesInScope(available.services, pillar),
+    ) as ServiceKey | null,
     sort,
   };
 }
@@ -231,13 +273,10 @@ export function archiveQuery(state: ArchiveState): string {
 
   if (state.pillar !== 'all') params.set(ARCHIVE_PARAMS.pillar, pillarArchiveParam(state.pillar));
   if (state.sector) params.set(ARCHIVE_PARAMS.sector, state.sector);
-  if (state.type) params.set(ARCHIVE_PARAMS.type, state.type);
-  if (state.discipline && contextualFacet(state.pillar) === 'discipline') {
-    params.set(ARCHIVE_PARAMS.discipline, state.discipline);
-  }
-  if (state.service && contextualFacet(state.pillar) === 'service') {
-    params.set(ARCHIVE_PARAMS.service, state.service);
-  }
+  if (state.label) params.set(ARCHIVE_PARAMS.label, state.label);
+  /* No mode gate any more — every mode exposes a Service refinement, and `withPillar` has
+     already dropped a key the current mode cannot express. */
+  if (state.service) params.set(ARCHIVE_PARAMS.service, state.service);
   if (state.sort !== DEFAULT_ARCHIVE_STATE.sort) params.set(ARCHIVE_PARAMS.sort, state.sort);
 
   return params.toString();
@@ -256,21 +295,37 @@ export function archiveHref(basePath: string, state: ArchiveState): string {
 /**
  * Switch the mode.
  *
- * The shared filters **survive** a pillar switch and the contextual refinement
- * does not. IA Step 5 defines Entry Type and Sector as "Shared filters (both
- * pillars)", so dropping them would contradict the word that makes them shared;
- * the refinement is dropped because it does not exist in the new scope. The
- * approved HiFi resets everything on a pillar switch (`setPillar` clears type,
- * year, status and the query), which is a prototype simplification of a control
- * set that had no shared/contextual distinction to preserve.
+ * The shared filters — Label and Sector — **survive** every switch. IA Step 5 defines them as
+ * shared across both pillars, so dropping them would contradict the word that makes them shared.
+ * The approved HiFi resets everything on a pillar switch (`setPillar` clears type, year, status
+ * and the query), which is a prototype simplification of a control set that had no
+ * shared/contextual distinction to preserve.
+ *
+ * ── THE SERVICE RULE IS NO LONGER "ALWAYS DROP" ────────────────────────────
+ * While Service existed under Reality Capture alone, any switch left a scope with no Service
+ * control, so clearing it was the only coherent answer. Now that every mode offers one, clearing
+ * unconditionally would throw away a selection that is still perfectly expressible — a visitor
+ * who filters A&D by *Design interior* and then widens to *Toate* means "the same work, plus
+ * everything else", not "start over".
+ *
+ * So the key is kept **exactly when the destination mode can still express it**, which is a pure
+ * question about the key's own Pillar:
+ *
+ *   A&D → RC          cleared — an A&D key is not in Reality Capture's set
+ *   RC  → A&D         cleared — likewise
+ *   Pillar → All      kept — All's set is the union, so a valid key stays valid
+ *   All → owning      kept — the key's Pillar is the destination
+ *   All → other       cleared — the key belongs to the Pillar being left behind
+ *
+ * No availability list is needed: a selected key was already validated against a set that is a
+ * subset of All's, so membership in the destination follows from the key alone.
  */
 export function withPillar(state: ArchiveState, pillar: PillarMode): ArchiveState {
-  return {
-    ...state,
-    pillar,
-    discipline: contextualFacet(pillar) === 'discipline' ? state.discipline : null,
-    service: contextualFacet(pillar) === 'service' ? state.service : null,
-  };
+  const survives =
+    state.service !== null &&
+    (pillar === 'all' || SERVICE_KEY_TO_PILLAR[state.service] === pillar);
+
+  return { ...state, pillar, service: survives ? state.service : null };
 }
 
 /**
@@ -282,12 +337,12 @@ export function withPillar(state: ArchiveState, pillar: PillarMode): ArchiveStat
  * empty-state suggestions, which carry explicit whole-archive targets.
  */
 export function clearFilters(state: ArchiveState): ArchiveState {
-  return { ...state, type: null, sector: null, discipline: null, service: null };
+  return { ...state, label: null, sector: null, service: null };
 }
 
 /** Whether any *filter* is active — the readout and the clear affordance gate on it. */
 export function hasActiveFilters(state: ArchiveState): boolean {
-  return Boolean(state.type || state.sector || state.discipline || state.service);
+  return Boolean(state.label || state.sector || state.service);
 }
 
 /** Whether the view is the untouched default (mode, filters and sort). */
@@ -314,17 +369,17 @@ export function isDefaultArchiveState(state: ArchiveState): boolean {
  */
 export interface ArchiveItemFacets {
   readonly pillars: readonly string[];
-  readonly types: readonly string[];
+  readonly labels: readonly string[];
   readonly sectors: readonly string[];
-  readonly disciplines: readonly string[];
   readonly services: readonly string[];
 }
 
 export function matchesArchiveState(facets: ArchiveItemFacets, state: ArchiveState): boolean {
   if (state.pillar !== 'all' && !facets.pillars.includes(state.pillar)) return false;
-  if (state.type && !facets.types.includes(state.type)) return false;
+  /* `includes`, never equality against the whole array: Labels are 0..N, so a project carrying
+     both matches both filters and contributes exactly one row to either. */
+  if (state.label && !facets.labels.includes(state.label)) return false;
   if (state.sector && !facets.sectors.includes(state.sector)) return false;
-  if (state.discipline && !facets.disciplines.includes(state.discipline)) return false;
   if (state.service && !facets.services.includes(state.service)) return false;
   return true;
 }

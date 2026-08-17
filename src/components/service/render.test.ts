@@ -82,6 +82,7 @@ function service(overrides: Partial<Service> = {}): Service {
   return {
     _id: 'sv',
     _type: 'service',
+    key: 'scanare-laser-3d',
     name: bi('Scanare 3D', '3D scanning'),
     slug: bi('scanare-3d', '3d-scanning'),
     enPublished: true,
@@ -107,11 +108,11 @@ function summary(id: string): WorkEntrySummary {
     title: bi(`Biserica ${id}`, `Church ${id}`),
     slug: bi(`biserica-${id}`, `church-${id}`),
     enPublished: true,
-    pillars: { primary: 'reality-capture', secondary: [] },
-    entryType: { primary: 'survey-documentation', secondary: [] },
-    sectors: ['heritage'],
+    pillar: 'reality-capture',
+    labels: [],
+    sector: 'cultural-patrimoniu',
     year: 2024,
-    status: 'delivered',
+    status: 'finalizat',
     cover: image(`cover-${id}`),
     curation: CURATION,
   };
@@ -124,23 +125,16 @@ function surveyedEntry(id: string, cleared: boolean): WorkEntry {
     title: bi(`Biserica ${id}`, `Church ${id}`),
     slug: bi(`biserica-${id}`, `church-${id}`),
     enPublished: true,
-    discipline: { primary: 'reality-capture', secondary: [] },
-    pillars: { primary: 'reality-capture', secondary: [] },
-    entryType: { primary: 'survey-documentation', secondary: [] },
-    attribution: 'independent',
-    commissioning: 'client-commissioned',
-    employer: null,
-    sectors: ['heritage'],
-    roles: null,
+    pillar: 'reality-capture',
+    labels: [],
+    sector: 'cultural-patrimoniu',
     services: [],
     relatedWork: [],
     description: null,
-    authorship: null,
     cover: image(`cover-${id}`),
     gallery: [],
     capture: {
       accuracy: bi('2 mm', '2 mm'),
-      equipment: ['Leica RTC360'],
       software: [],
       pointCount: 8_032_000,
       derivative: {
@@ -154,11 +148,16 @@ function surveyedEntry(id: string, cleared: boolean): WorkEntry {
       location: null,
       client: null,
       collaborators: [],
-      status: 'delivered',
+      status: 'finalizat',
       awards: null,
       area: null,
       team: [],
       deliverables: null,
+      // STAGE 8: Equipment is a *project* field now, not a capture-block field. The
+      // point-cloud readout reads it from here, which is exactly what §5's Reality
+      // Capture activation says — and what the assertion below verifies.
+      equipment: ['Leica RTC360'],
+      implementationCompany: null,
     },
     curation: CURATION,
     seo: { title: null, description: null },
@@ -179,14 +178,17 @@ describe('an A&D service with demonstrating work', () => {
     problemSolved: bi(prose('Ce rezolva.'), prose('What it solves.')),
     deliverables: bi(['Plan', 'Sectiune'], ['Plan', 'Section']),
     process: bi(prose('Cum lucram.'), prose('How we work.')),
-    sectors: ['residential', 'cultural'],
+    sectors: ['rezidential', 'cultural-patrimoniu'],
     demonstratedBy: [summary('a'), summary('b')],
   });
 
-  it('renders all six sections, the proof cards and the pillar-filtered see-more', async () => {
+  it('renders every station its content supports, the proof cards and the pillar-filtered see-more', async () => {
     const html = await render(design, 'ro');
 
     expect(html).toContain('Proiectare de arhitectura');
+    /* S-2's prose now reads in the identity block's evaluation rail rather than
+       in a station of its own — the content is on the page either way, which is
+       what this asserts. */
     expect(html).toContain('Ce rezolva.');
     expect(html).toContain('Sectiune');
     expect(html).toContain('Cum lucram.');
@@ -220,7 +222,7 @@ describe('a Reality Capture service with demonstrating, cleared survey work', ()
     deliverables: bi(['Nor de puncte', 'Ortofoto'], ['Point cloud', 'Orthophoto']),
     process: bi(prose('Planificare, captare, inregistrare.'), prose('Plan, capture, register.')),
     equipment: bi(['Leica RTC360', 'Acuratete 2 mm'], ['Leica RTC360', 'Accuracy 2 mm']),
-    sectors: ['heritage'],
+    sectors: ['cultural-patrimoniu'],
     hero: image('hero-rc'),
     demonstratedBy: [summary('a')],
   });
@@ -264,10 +266,35 @@ describe('a Reality Capture service with demonstrating, cleared survey work', ()
     expect(html).toContain('Acuratete 2 mm');
   });
 
-  it('opens image-led when a hero exists', async () => {
+  it('opens on paper, never on the Work Entry\'s hero composition', async () => {
     const html = await render(capture, 'ro', [surveyedEntry('a', true)]);
-    expect(html).toContain('sv-orientation--media');
+    /* The Capability Sheet's central claim: the Service page and the Work Entry
+       must not open identically. No full-bleed media block, no gradient, no
+       scan bar — the opening is the identity block. */
+    expect(html).toContain('class="sv-identity"');
+    expect(html).not.toContain('sv-orientation--media');
+    expect(html).not.toContain('sv-hero-media');
+    expect(html).not.toContain('sv-hero-scan');
+  });
+
+  it('renders the service\'s one authored image as evidence in S-3, not as an opening', async () => {
+    const html = await render(capture, 'ro', [surveyedEntry('a', true)]);
+    const figure = html.indexOf('sv-figure-frame');
+    const deliverables = html.indexOf('sv-deliverables');
+    expect(figure).toBeGreaterThan(-1);
     expect(html).toContain('hero-rc.jpg');
+    /* Inside the deliverables station, i.e. after it opens — not above it. */
+    expect(figure).toBeGreaterThan(deliverables);
+  });
+
+  it('puts the point cloud in the capabilities station, not at the head of the proof', async () => {
+    const html = await render(capture, 'ro', [surveyedEntry('a', true)]);
+    const cloud = html.indexOf('data-media-viewer="point-cloud"');
+    const proof = html.indexOf('sv-proof-strip');
+    expect(cloud).toBeGreaterThan(-1);
+    expect(proof).toBeGreaterThan(-1);
+    expect(cloud).toBeLessThan(proof);
+    expect(html).toContain('sv-caps-h');
   });
 });
 
@@ -295,7 +322,7 @@ describe('F5 — a service with zero demonstrating work stays publishable', () =
   it('renders no grid, no carousel, no counter and no see-more', async () => {
     const html = await render(thin, 'ro');
 
-    expect(html).not.toContain('sv-proof-grid');
+    expect(html).not.toContain('sv-proof-strip');
     expect(html).not.toContain('sv-see-more');
     expect(html).not.toContain('data-media-viewer');
     expect(html).not.toMatch(/\b0\s+(proiecte|lucrari|projects)\b/i);
@@ -358,7 +385,7 @@ describe('accessibility invariants', () => {
     deliverables: bi(['Nor de puncte'], ['Point cloud']),
     process: bi(prose('Cum.'), prose('How.')),
     equipment: bi(['Leica RTC360'], ['Leica RTC360']),
-    sectors: ['heritage'],
+    sectors: ['cultural-patrimoniu'],
     demonstratedBy: [summary('a')],
   });
 
@@ -371,7 +398,13 @@ describe('accessibility invariants', () => {
 
   it('labels every section by its own heading', async () => {
     const html = await render(full, 'ro');
-    for (const id of ['sv-problem-h', 'sv-deliverables-h', 'sv-proof-h', 'sv-conversion-h']) {
+    for (const id of [
+      'sv-title',
+      'sv-deliverables-h',
+      'sv-caps-h',
+      'sv-proof-h',
+      'sv-conversion-h',
+    ]) {
       expect(html).toContain(`aria-labelledby="${id}"`);
       expect(html).toContain(`id="${id}"`);
     }

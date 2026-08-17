@@ -22,21 +22,17 @@ import { defineField, type SlugValidationContext } from 'sanity'
 
 import { SANITY_API_VERSION } from '../../src/lib/content/config'
 import {
-  ATTRIBUTIONS,
-  COMMISSIONING_CONTEXTS,
-  DISCIPLINES,
-  ENTRY_TYPES,
+  PROJECT_LABELS,
   HIGHLIGHT_SLOTS,
-  KNOWN_SECTORS,
+  SECTORS,
+  SERVICE_KEYS,
   PILLARS,
   PROMINENCES,
   STATUSES,
-  type Attribution,
-  type CommissioningContext,
-  type Discipline,
-  type EntryType,
+  type ProjectLabel,
   type HighlightSlot,
-  type KnownSector,
+  type Sector,
+  type ServiceKey,
   type Pillar,
   type Prominence,
   type Status,
@@ -54,38 +50,31 @@ interface Option<T extends string> {
 /** A list must name every value of its union; TypeScript enforces it. */
 type CompleteList<T extends string> = readonly Option<T>[] & { length: number }
 
-export const ENTRY_TYPE_OPTIONS = [
-  { title: 'Design Project', value: 'design-project' },
-  { title: 'Concept / Study', value: 'concept-study' },
-  { title: 'Competition Entry', value: 'competition-entry' },
-  { title: 'Survey / Documentation', value: 'survey-documentation' },
-  { title: 'Visualization Commission', value: 'visualization-commission' },
-] as const satisfies CompleteList<EntryType>
+/**
+ * Project Labels (v3.1 §10) — the optional flags that replaced the Entry Type axis at Stage 4.
+ *
+ * Titles are the editor-facing Studio labels, transcribed from the model document. RO carries
+ * diacritics here because this string is read only inside the Studio by the owner, not served
+ * as site copy — OD-8's no-diacritics rule governs the latter.
+ */
+export const LABEL_OPTIONS = [
+  { title: 'CONCURS', value: 'competition' },
+  { title: 'PROIECT DE DIPLOMĂ', value: 'diploma-project' },
+] as const satisfies CompleteList<ProjectLabel>
 
+/**
+ * Status (v3.1 §11.2) — **replaced wholesale at Stage 7**. Four values, both Pillars, no
+ * capture-workflow additions (`DECISIONS_LOG.md` #94).
+ *
+ * Diacritics are kept here because these strings are read only inside the Studio by the owner;
+ * OD-8's no-diacritics rule governs site copy, which lives in `src/lib/i18n/vocabulary.ts`.
+ */
 export const STATUS_OPTIONS = [
-  { title: 'Built / Realized', value: 'built-realized' },
-  { title: 'Unbuilt / Proposal', value: 'unbuilt-proposal' },
-  { title: 'In progress', value: 'in-progress' },
-  { title: 'Delivered', value: 'delivered' },
+  { title: 'În dezvoltare', value: 'in-dezvoltare' },
+  { title: 'În desfășurare', value: 'in-desfasurare' },
+  { title: 'Finalizat', value: 'finalizat' },
+  { title: 'Nerealizat', value: 'nerealizat' },
 ] as const satisfies CompleteList<Status>
-
-export const ATTRIBUTION_OPTIONS = [
-  { title: 'Independent', value: 'independent' },
-  { title: 'Collaboration', value: 'collaboration' },
-  { title: 'Studio (employed / internship)', value: 'studio' },
-] as const satisfies CompleteList<Attribution>
-
-export const DISCIPLINE_OPTIONS = [
-  { title: 'Architecture', value: 'architecture' },
-  { title: 'Interior Design', value: 'interior-design' },
-  { title: 'Reality Capture', value: 'reality-capture' },
-  { title: 'Visualization', value: 'visualization' },
-] as const satisfies CompleteList<Discipline>
-
-export const COMMISSIONING_OPTIONS = [
-  { title: 'Self-initiated', value: 'self-initiated' },
-  { title: 'Client-commissioned', value: 'client-commissioned' },
-] as const satisfies CompleteList<CommissioningContext>
 
 export const PILLAR_OPTIONS = [
   { title: 'Architecture & Design', value: 'architecture-design' },
@@ -105,22 +94,49 @@ export const HIGHLIGHT_SLOT_OPTIONS = [
 ] as const satisfies CompleteList<HighlightSlot>
 
 /**
- * `CONTENT_MODEL.md`:53 leaves Sector open-ended ("…") and :100 makes a new sector "a new
- * *value*, not a new structure". The known values are offered for consistency; the field stays
- * a free string so adding one is a content decision, not a code change.
+ * Sector (v3.1 §11.1) — **closed at Stage 6**. Seven values, one global vocabulary, read by the
+ * project's single `sector` and by the Service's plural `sectors` alike.
+ *
+ * Titles are authored, not derived. The old list was built with
+ * `value.charAt(0).toUpperCase() + value.slice(1)`, which cannot produce "Comercial &
+ * ospitalitate" from `comercial-ospitalitate` — it would have shown the editor a machine token
+ * with one capital letter. Diacritics are kept here because this string is read only inside the
+ * Studio by the owner; OD-8's no-diacritics rule governs site copy, which lives in
+ * `src/lib/i18n/vocabulary.ts`.
  */
-export const SECTOR_OPTIONS = KNOWN_SECTORS.map((value) => ({
-  value,
-  title: value.charAt(0).toUpperCase() + value.slice(1),
-})) satisfies readonly Option<KnownSector>[]
+export const SECTOR_OPTIONS = [
+  { title: 'Rezidențial', value: 'rezidential' },
+  { title: 'Comercial & ospitalitate', value: 'comercial-ospitalitate' },
+  { title: 'Birouri & business', value: 'birouri-business' },
+  { title: 'Public & comunitar', value: 'public-comunitar' },
+  { title: 'Industrial & logistic', value: 'industrial-logistic' },
+  { title: 'Cultural & patrimoniu', value: 'cultural-patrimoniu' },
+  { title: 'Mixed-use & dezvoltări', value: 'mixed-use-dezvoltari' },
+] as const satisfies CompleteList<Sector>
+
+/**
+ * Service machine keys (v3.1 §14.3) — the stable identity field activation reads.
+ *
+ * Titles are the Romanian Service names the owner knows. The **value** is what everything else
+ * depends on and never changes; the title is only how the key is recognised in the picker.
+ */
+export const SERVICE_KEY_OPTIONS = [
+  { title: 'Proiectare de arhitectură', value: 'proiectare-arhitectura' },
+  { title: 'Design interior', value: 'design-interior' },
+  { title: 'Vizualizare 3D', value: 'vizualizare-3d' },
+  { title: 'Design mobilier', value: 'design-mobilier' },
+  { title: 'Scanare laser 3D', value: 'scanare-laser-3d' },
+  { title: 'Scan-to-BIM', value: 'scan-to-bim' },
+  { title: 'Fotografie de arhitectură', value: 'fotografie-arhitectura' },
+  { title: 'Vizualizare de arhitectură', value: 'vizualizare-arhitectura' },
+] as const satisfies CompleteList<ServiceKey>
 
 /** Re-exported so the schema files never re-derive a vocabulary from a literal. */
 export const VOCABULARY_VALUES = {
-  ENTRY_TYPES,
+  PROJECT_LABELS,
+  SECTORS,
+  SERVICE_KEYS,
   STATUSES,
-  ATTRIBUTIONS,
-  DISCIPLINES,
-  COMMISSIONING_CONTEXTS,
   PILLARS,
   PROMINENCES,
   HIGHLIGHT_SLOTS,

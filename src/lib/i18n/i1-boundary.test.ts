@@ -22,7 +22,7 @@ import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_LOCALE as CONTENT_DEFAULT_LOCALE,
   LOCALES as CONTENT_LOCALES,
-  derivePillars,
+  isCompetition,
   type Locale as ContentLocale,
   type Service,
   type WorkEntry,
@@ -38,7 +38,10 @@ import {
 
 describe('I-1 — A can consume B content contract', () => {
   it('resolves the content module import surface', () => {
-    expect(typeof derivePillars).toBe('function');
+    /* STAGE 5: `derivePillars` was the probe here and is deleted with the derivation. Any
+       browser-safe export off the boundary barrel proves the same thing — that A can reach B's
+       contract — so the probe moves to `isCompetition`, which A's W-4 toggle actually calls. */
+    expect(typeof isCompetition).toBe('function');
   });
 
   it('exposes the shapes A builds components against', () => {

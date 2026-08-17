@@ -145,7 +145,6 @@ export interface HomepageMessages {
   readonly curated: {
     readonly marker: SectionMarkerCopy;
     readonly competitions: { readonly title: string; readonly intro: string };
-    readonly professionalExperience: { readonly title: string; readonly note: string };
   };
 
   /** M-6 · Contact invitation (Stage F). */
@@ -245,15 +244,11 @@ const ro: HomepageMessages = {
   },
 
   curated: {
-    marker: { no: '05', label: 'Selectie', coordinate: 'concursuri · experienta' },
+    marker: { no: '05', label: 'Selectie', coordinate: 'concursuri' },
     competitions: {
       title: 'Concursuri',
       intro:
         'Proiecte de concurs, ordonate in timp — spatii publice si culturale propuse de atelier.',
-    },
-    professionalExperience: {
-      title: 'Experienta profesionala',
-      note: 'lucrari de birou · grupate dupa angajator',
     },
   },
 
@@ -355,15 +350,11 @@ const en: HomepageMessages = {
   },
 
   curated: {
-    marker: { no: '05', label: 'Selection', coordinate: 'competitions · experience' },
+    marker: { no: '05', label: 'Selection', coordinate: 'competitions' },
     competitions: {
       title: 'Competitions',
       intro:
         'Competition entries, ordered in time — public and cultural spaces proposed by the studio.',
-    },
-    professionalExperience: {
-      title: 'Professional experience',
-      note: 'office work · grouped by employer',
     },
   },
 

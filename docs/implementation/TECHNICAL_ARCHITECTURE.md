@@ -22,7 +22,7 @@ Per the authority model in [`README.md`](../../README.md) §"Authority model", e
 
 ```
 PROJECT_CONTEXT (brief)
-  → CONTENT_MODEL (what content is)                        FROZEN v2.1
+  → CONTENT_MODEL (what content is)                        CLIENT-VALIDATED v3.1
   → INFORMATION_ARCHITECTURE + NAV_DECISION_RECORD          LOCKED
   → PAGE IA ×6 (each page's job)                            authoritative
   → WIREFRAMES + COMPONENT_INVENTORY                        authoritative
@@ -34,7 +34,7 @@ PROJECT_CONTEXT (brief)
 
 ### 1.2 What this document may not do
 
-- It may not add, remove, rename, or merge content axes (that is `CONTENT_MODEL.md` §3).
+- It may not add, remove, rename, or merge content axes (that is `CONTENT_MODEL.md`).
 - It may not change routes, page responsibilities, or navigation (that is `INFORMATION_ARCHITECTURE.md`).
 - It may not simplify an approved HiFi's visual or interaction result. Where implementation differs from HiFi *markup*, it differs only in how the same result is produced — never in what the visitor sees or can do.
 - It may not resolve an owner/product decision. Those are recorded unresolved in §22.
@@ -53,7 +53,8 @@ Read in full during authoring. Line references below were verified against the w
 | --- | --- | --- |
 | [`README.md`](../../README.md) | canonical entry point | authority model; approved HiFi register; open questions |
 | [`foundation/PROJECT_CONTEXT.md`](../foundation/PROJECT_CONTEXT.md) | brief | performance constraint (:166); edit-without-code (:167); mobile criticality (:136) |
-| [`product/CONTENT_MODEL.md`](../product/CONTENT_MODEL.md) | **FROZEN v2.1** | object identity; all controlled vocabularies; curation layer; §3 axes |
+| [`product/CONTENT_MODEL.md`](../product/CONTENT_MODEL.md) | **CLIENT-VALIDATED v3.1** (2026-08-14) | object identity; Pillar/Services/Sector/Labels; Pillar-level + Service-driven field requirements; curation layer |
+| [`product/PROJECT_MODEL_IMPACT.md`](../product/PROJECT_MODEL_IMPACT.md) | companion | v3.0/v3.1 audit, migration sequencing, data implications |
 | [`product/INFORMATION_ARCHITECTURE.md`](../product/INFORMATION_ARCHITECTURE.md) | **LOCKED** | sitemap; URL conventions; filter set (Step 5); i18n strategy (§2.2) |
 | [`product/NAV_DECISION_RECORD.md`](../product/NAV_DECISION_RECORD.md) | locked | nav philosophy; i18n resolution (:36); open pillar-hub naming (:42) |
 | [`pages/PAGE_IA_INDEX.md`](../pages/PAGE_IA_INDEX.md) | reference | page system map; journeys |
@@ -222,53 +223,60 @@ Rationale, from the frozen model:
 
 **Aggregate surfaces are locale-scoped.** Archive, Hubs, homepage curation, and Service "demonstrated by" render only entities published in the active locale. Discovery order and balanced pillar representation must remain valid when the EN set is a proper subset of RO.
 
-### 7.2 Controlled vocabularies — sourced from `CONTENT_MODEL.md` §3 only
+### 7.2 Controlled vocabularies — sourced from `CONTENT_MODEL.md` only
 
-**These are the CMS contract. They come from the frozen Content Model, never from a downstream document.**
+**These are the CMS contract. They come from the client-validated Content Model, never from a downstream document.**
+
+> **AMENDED 2026-08-13 (v3.0) and 2026-08-14 (v3.1).** `CONTENT_MODEL.md` removes **Discipline** and **Entry Type / Project Type** entirely (v3.0), and **Attribution, Employer, Roles, Authorship and Commissioning context** entirely (v3.1). Their rows are struck below and must not be reintroduced under any name. Pillar is now **authored**, not derived (§7.4). Sector and Status are closed, mandatory, **single-select** vocabularies. Migration inventory and sequencing: `docs/product/PROJECT_MODEL_IMPACT.md`.
 
 | Axis | Values | Source |
 | --- | --- | --- |
-| **Entry Type** (nature, not status) | Design Project · Concept/Study · Competition Entry · Survey/Documentation · Visualization Commission | `CONTENT_MODEL.md:56` |
-| **Status** | Built/Realized · Unbuilt/Proposal · In progress · Delivered | `:58` |
-| **Attribution** | Independent · Collaboration · Studio | `:48` |
-| **Discipline** | Architecture · Interior Design · Reality Capture · Visualization | `:46` |
-| **Sector** | Residential · Hospitality · Office · Cultural · Heritage · Industrial · Infrastructure · Education … | `:53` |
+| **Pillar** (authored, exactly one) | Architecture & Design · Reality Capture | `CONTENT_MODEL.md` §2 |
+| **Services** (references to Service objects, **1..N**, constrained to the project's Pillar) | A&D: Proiectare de arhitectură · Design interior · Vizualizare 3D · Design mobilier — RC: Scanare laser 3D · Scan-to-BIM · Fotografie de arhitectură · Vizualizare de arhitectură | §2 |
+| **Sector** (closed, global, **[M] exactly one — not multi-select**) | Rezidențial · Comercial & ospitalitate · Birouri & business · Public & comunitar · Industrial & logistic · Cultural & patrimoniu · Mixed-use & dezvoltări | §11.1 |
+| **Labels** (0..N, not mutually exclusive) | `competition` (CONCURS) · `diploma-project` (PROIECT DE DIPLOMĂ) | §10 |
+| **Status** (closed, **[M] exactly one**, same in both Pillars) | În dezvoltare · În desfășurare · Finalizat · Nerealizat | §11.2 |
+| ~~**Attribution**~~ | ~~Independent · Collaboration · Studio~~ | **REMOVED — v3.1 §12** |
+| ~~**Commissioning context**~~ | ~~self-initiated · client-commissioned~~ | **REMOVED — v3.1 §12** |
+| ~~**Entry Type**~~ | ~~Design Project · Concept/Study · Competition Entry · Survey/Documentation · Visualization Commission~~ | **REMOVED — v3.0 §12** |
+| ~~**Discipline**~~ | ~~Architecture · Interior Design · Reality Capture · Visualization~~ | **REMOVED — v3.0 §12** |
 
-Plus: **Service** (reference to Service objects, not an enum) · **Role** (multiple, display) · **Employer/Studio** (reference list, 0–1, only when Attribution = Studio).
+~~Plus: **Role** · **Employer/Studio**.~~ **Both REMOVED (v3.1 §12), together with the `employer` document type.** Crediting is carried by two optional project fields, **Colaboratori** and **Echipă**.
 
-> **Prohibition.** The Entry Type enumeration in `WORK_ARCHIVE_IMPLEMENTATION_NOTES.md`:88 (`built project · competition · concept · professional experience · visualization · documentation service`) **must not be used.** It mixes three axes — "built project" is a *Status* value, "professional experience" is an *Attribution* value — collapsing the separation `DECISIONS_LOG.md` #11 established. It would also break Professional Experience (`IA` §5.1), which is defined as **Attribution = Studio**.
+> **Prohibition (still in force, and now broader).** The enumeration in `WORK_ARCHIVE_IMPLEMENTATION_NOTES.md`:88 (`built project · competition · concept · professional experience · visualization · documentation service`) **must not be used**: it mixes several axes. Under v3.0 it is doubly prohibited, because the axis it enumerates no longer exists.
 >
 > That document's *principle* at line 84 remains correct and is adopted verbatim: expose canonical fields "as independent dimensions. Do not merge them."
 
 ### 7.3 Complete field contract
 
-The schema is a **complete realization of `CONTENT_MODEL.md` §3.** Beyond the axes above, the Work Entry carries:
+The schema is a **complete realization of `CONTENT_MODEL.md`.** Field *requirements* are no longer uniform: they are set by the project's **Pillar** (base fields, v3.0 §4 and §6) and by its **selected Services** (v3.0 §5 and §7), merged by **MANDATORY > OPTIONAL > NOT APPLICABLE** (§8). Beyond the axes above, the project carries:
 
-| Field | Source | Consumer |
+| Field | Requirement | Consumer |
 | --- | --- | --- |
-| **Commissioning context** (self-initiated / client-commissioned) | `:49` | acquisition signal |
-| **Authorship** (scoped credit block) | `:52`, `:60` | W-3 Credits Block |
-| **Collaborators** | `:54` | W-3 |
-| **Related work** (Work⇄Work, cross-pillar aware) | `IA` §2.3 | W-6 Related Work Strip |
-| **Capture metadata** (accuracy/specs, equipment/software, point count) | `:54` | W-4 RC module |
-| **primary + secondary** on Pillar and Entry Type; **primary** Discipline | `:44–47`, `:63` | M2 contextual nav |
-| **Metadata** — Year, Location, Client, Awards, Area, Team, Deliverables | `:54` | Project Metadata |
+| **Title · Year · Status · Client · Cover · Gallery** | [M] in both Pillars | identity, W-1, cards |
+| **Description** | **[M] for A&D · [O] for Reality Capture** | W-2 |
+| **Location** | [conditional] on Services | W-1 Project Metadata |
+| **Area** | [conditional] on Services | W-1 |
+| **Awards** | [conditional] [O] (A&D design services) | W-4 competition module / W-1 |
+| **Equipment** | [conditional] [M] (Scanare laser 3D · Fotografie de arhitectură) — **project-level, no longer inside capture metadata** | W-1 / W-4 |
+| **Implementation Company** | [conditional] [M] (Design mobilier) — **new field** | W-1 |
+| **Collaborators · Team** | [O] base for A&D; [conditional] [O] for RC — **the only crediting fields (v3.1)** | W-3 Credits Block |
+| ~~**Authorship** (scoped credit block)~~ | — | **REMOVED (v3.1).** `validateAuthorship()` is **deleted, not re-keyed** — see `PROJECT_MODEL_IMPACT.md` §1.6 |
+| **Related work** (project ⇄ project) | [O] | W-6 Related Work Strip |
+| **Capture metadata** (accuracy/specs, software, point count, derivative) | [O], asset-gated | W-4 RC module |
 | **`capturePublicationCleared`** (boolean) | §19.4 | gates point-cloud publication |
+| ~~**Commissioning context** · **Attribution** · **Employer** · **Roles**~~ | — | **REMOVED (v3.1).** No replacement field, no re-keying, no filter, no validation |
+| ~~**primary + secondary** on Pillar / Entry Type; **primary** Discipline~~ | — | **REMOVED — single-value Pillar, no Entry Type, no Discipline** |
 
-`CONTENT_MODEL.md:60` is explicit that Attribution, Role, and Authorship are three different things. A schema without scoped Authorship cannot render a correct Visualization Commission credit, which `PROJECT_CONTEXT.md:30` makes a product requirement.
+**On `PROJECT_CONTEXT.md:30`** (correct credit where the building design is someone else's): under v3.1 that is carried by **Colaboratori / Echipă** and by authored Description prose, not by an enforced Authorship field. This is a recorded client decision (`DECISIONS_LOG.md` #91), not an oversight, and this document does not reopen it.
 
-### 7.4 Pillar derivation
+### 7.4 Pillar is authored
 
-Pillar is **derived from Discipline** (`CONTENT_MODEL.md:44`), never an editable field:
+> **AMENDED 2026-08-13.** Pillar derivation is **withdrawn.** `CONTENT_MODEL.md` v3.0 §12 makes Pillar an **authored, required, single-value field** on the project. The Discipline→Pillar derivation table, the primary/secondary `PillarAssignment`, the cross-pillar "shown in both views" rule, and the editor-visible read-only readout are all removed. `derivePillars()` and `isCrossPillar()` are deleted.
 
-| Discipline | Pillar |
-| --- | --- |
-| Architecture | Architecture & Design |
-| Interior Design | Architecture & Design |
-| Visualization | Architecture & Design |
-| Reality Capture | Reality Capture |
+**One project belongs to exactly one Pillar.** It determines the contextual back-path, archive scoping, Studio desk grouping, and which Services may be selected: every selected Service must carry the same `pillar` as the project. Work genuinely spanning both pillars is modelled as **two linked projects**, using the existing related-projects relationship.
 
-**Primary Pillar = the pillar of the primary Discipline.** It determines the default contextual back-path and archive scoping (`IA` §2.3, M2). The Studio shows an **editor-visible read-only readout** so the owner can see which pillar an entry will default to. A genuinely balanced composite entry may need an override — see §22 (OD-7).
+**OD-7 is closed as moot** (§22): there is no derived Primary Pillar left to override.
 
 ### 7.5 Curation and editorial rhythm
 
@@ -631,7 +639,7 @@ Analytics are cookieless (Plausible or Umami — interchangeable; only the cooki
 | --- | --- | --- | --- |
 | **OD-3** | Missing-translation counterpart UX (disabled control vs. interstitial) | Phase 6 | `NAV_DECISION_RECORD.md`:36 |
 | **OD-6** | Capture-asset publication-rights policy; contact-data retention policy | RC asset **publication** (not build) | §19.3, §19.4 |
-| **OD-7** | Whether composite entries may override derived Primary Pillar | Phase 3 schema refinement | §7.4 |
+| ~~**OD-7**~~ | ~~Whether composite entries may override derived Primary Pillar~~ — **CLOSED AS MOOT 2026-08-13:** Pillar is authored and single-valued; there is no derivation to override (§7.4) | — | §7.4 |
 
 ### Decided
 
@@ -655,7 +663,7 @@ Point-cloud numeric budget and final renderer (outputs of the spike, given §10'
 
 ### Settled — not open
 
-- **Archive filter set** — governed, not open. `IA` Step 5, `WORK_ARCHIVE_PAGE_IA.md:99`, and `COMPONENT_INVENTORY.md:100` agree exactly: **Entry Type + Sector shared, one pillar-contextual refinement (Discipline for A&D, Service for RC), Year as sort, no Attribution filter (F2).** `WORK_ARCHIVE_IMPLEMENTATION_NOTES.md` does not contradict this — it is *silent* on Entry Type at line 96, an omission requiring a governance correction batch, not an owner decision.
+- **Archive filter set** — governed, not open, but **re-governed 2026-08-13**. The v2.1 set (Entry Type + Sector shared, one pillar-contextual refinement — Discipline for A&D, Service for RC) named two axes the model no longer has. The current governed set is **Sector + Label shared, Service refinement in both pillars, Year as sort, no Attribution filter (F2)** — §23.5. `IA` Step 5, `WORK_ARCHIVE_PAGE_IA.md:99` and `COMPONENT_INVENTORY.md:100` are amended to match; `WORK_ARCHIVE_IMPLEMENTATION_NOTES.md`:88–96 is superseded outright.
 - **"Proiecte" vs "Lucrări"** — resolved. `CONTENT_MODEL.md:112` explicitly delegated nav wording to the IA phase, which decided it: `IA` §2.1, `NAV_DECISION_RECORD.md`:24, `DECISIONS_LOG.md` #10/#17/#21. Public RO label and route = **Proiecte** / `/proiecte`; internal canonical object = **Work Entry**.
 
 ---
@@ -670,9 +678,9 @@ Every contract below is **frozen**. Changing one after Phase 1 begins requires a
 | --- | --- | --- | --- |
 | 1 | Canonical route contract | §11.1 | **FROZEN** (OD-1, OD-2) |
 | 2 | Locale / localized-slug contract | §11.1, §11.2, §7.7 | **FROZEN** |
-| 3 | CMS vocabulary contract | §7.2 | **FROZEN** |
+| 3 | CMS vocabulary contract | §7.2 | **AMENDED 2026-08-13** (v3.0 project model) |
 | 4 | Work ⇄ Service relationship | §7.3, §8 | **FROZEN** |
-| 5 | Pillar derivation rule | §7.4 | **FROZEN** (OD-7 = optional override, additive) |
+| 5 | ~~Pillar derivation rule~~ → **Pillar is authored** | §7.4 | **WITHDRAWN & REPLACED 2026-08-13** |
 | 6 | Editorial curation contract | §7.5, §7.6 | **FROZEN** |
 | 7 | Media ownership / derivative contract | §9, §10.2, §19.4 | **FROZEN** (publication *policy* = OD-6) |
 | 8 | Frontend ↔ CMS data boundary | §8 | **FROZEN** |
@@ -680,7 +688,7 @@ Every contract below is **frozen**. Changing one after Phase 1 begins requires a
 | 10 | Environment / secrets boundary | §18 | **FROZEN** |
 | 11 | Point-cloud source → derivative boundary | §10.2, §10.3, §23.4 | **FROZEN** (budgets provisional by design) |
 | 12–15 | Type ownership, file ownership, integration points, merge boundaries | §23.3, §23.4 | **FROZEN** |
-| + | Archive filter + URL contract | §23.5 | **FROZEN** (encoding forward-compatible) |
+| + | Archive filter + URL contract | §23.5 | **AMENDED 2026-08-13** (encoding forward-compatible) |
 
 **Also required before Phase 1:** design tokens extracted verbatim from the approved HiFis (engineering work, not a decision).
 
@@ -741,15 +749,49 @@ Four workstreams. **A file has exactly one owning workstream.** Cross-boundary c
 
 ### 23.5 The archive filter + URL contract
 
-Pillar toggle (a **mode**, not a filter — `COMPONENT_INVENTORY.md:57`; `All` default) · shared **Entry Type + Sector** · **one** pillar-contextual refinement (Discipline for A&D, Service for RC, none for All) · **Year as sort** (`curated` · `newest` · `oldest`) · **no Attribution filter**. Status is not a public filter.
+> **AMENDED 2026-08-13 (v3.0) and 2026-08-14 (v3.1).** Entry Type and Discipline no longer exist, so `&type=` and `&discipline=` are withdrawn. Service is promoted from the Reality-Capture-only refinement to the refinement available in **both** pillars, because every project now carries at least one Service. A `&label=` facet is added for CONCURS / PROIECT DE DIPLOMĂ. **Filters are not to be changed until the schema lands** — see `docs/product/PROJECT_MODEL_IMPACT.md` Stage 5.
 
-URL: `?pillar=` `&sector=` `&type=` `&discipline=` `&service=` `&sort=`. `replaceState` for incremental changes, `pushState` for the pillar switch; full restore on load.
+**Current contract (v3.0):** Pillar toggle (a **mode**, not a filter — `COMPONENT_INVENTORY.md:57`; `All` default) · shared **Sector + Label** · **Service** refinement (both pillars) · **Year as sort** (`curated` · `newest` · `oldest`) · **no Attribution filter** — Attribution no longer exists at all (v3.1), so the rule is now vacuously satisfied. Status is not a public filter.
+
+URL: `?pillar=` `&sector=` `&service=` `&label=` `&sort=`. `replaceState` for incremental changes, `pushState` for the pillar switch; full restore on load.
+
+**Superseded (v2.1):** `?pillar=` `&sector=` `&type=` `&discipline=` `&service=` `&sort=`, with the refinement scoped to one pillar. Already-shared URLs carrying `&type=` or `&discipline=` degrade to the unfiltered archive — `parseArchiveState()` ignores unrecognised parameters — so no redirect is required.
+
+> **IMPLEMENTED 2026-08-17.** The contract above was written at v3.0 and the archive ran behind it until now: `contextualFacet()` still returned `service` for Reality Capture alone, and the Service facet was keyed by the localized slug. Both are corrected, and three rules the contract did not previously state are settled below (`DECISIONS_LOG.md` #101).
+
+**Service facet identity — the immutable `key`, never a slug or a name.** `?service=` carries a canonical `ServiceKey` (`proiectare-arhitectura`, `scanare-laser-3d`, …). A slug is an editable, per-locale string; keying the public filter vocabulary on one made the RO and EN archives disagree about the same filter and let a rename silently invalidate every shared link. `key` is required, unique and immutable on the Service schema precisely so it can carry this. **Slug-valued `?service=` URLs from before this date are not aliased and not translated** — they follow the same unknown-value path as `&type=` and `&discipline=` and resolve to a valid, unfiltered page.
+
+**Sector is global and governed.** It is offered under all three modes and **survives a Pillar switch**, exactly as Label does. Reaffirmed 2026-08-17 against the reading that the archive's secondary controls are Services and Labels only.
+
+**Two population rules, and the line between them.**
+- **Sector and Service are presence-scoped** — an option appears only if some project in scope carries it, so no control offers a value that matches nothing. Under `All` the Service options are the union across both pillars; under a Pillar, only that Pillar's.
+- **Label is vocabulary-scoped** — both canonical Labels are always offered, even at **zero** matches, because `PROJECT_LABELS` is a closed two-value global vocabulary and a Label that disappears until the first such project exists makes the taxonomy look incomplete. Selecting one with no matches is a valid state that renders the existing empty state. **This exception is bounded to Labels** and is not to be generalized to Sector (seven values) or Service (a growing catalogue of content objects).
+
+**Pillar switching.** Label and Sector always survive. The Service key survives exactly when the destination mode can still express it — kept when widening a Pillar to `All`, or narrowing `All` to the Pillar that owns the key; cleared when crossing between the two Pillars, or narrowing `All` to the Pillar that does not own it.
 
 **Forward-compatible encoding.** Facet values are serialized as a **comma-separated list and parsed as a list**, even though the launch behaviour permits exactly one value per facet. This is a serialization choice, not a product decision: it means resolving the open multi-select question (`IA`:167) later changes the *UI* and the validation bound, and does **not** break already-shared URLs. Single-select remains the launch behaviour until that decision is made.
 
 ---
 
 ## 24. Change log
+
+- **v1.4 (2026-08-14)** — **Amendment: the five open questions in `CONTENT_MODEL.md` §15 closed by the client.** Downstream reconciliation only.
+
+  **Withdrawn:** Attribution, Employer/Studio, Roles, Authorship and Commissioning context as CMS fields and vocabularies (§7.2, §7.3), together with the `employer` document type · the old Status vocabulary (Built/Realized · Unbuilt/Proposal · In progress · Delivered) · Sector as a multi-valued open axis.
+
+  **Added:** Status as a closed, mandatory, single-select vocabulary — În dezvoltare · În desfășurare · Finalizat · Nerealizat · Sector as closed, mandatory, **single-select** · Colaboratori and Echipă named as the only crediting fields · the record that **`validateAuthorship()` is deleted, not re-keyed onto a Service**.
+
+  **Unchanged and not reopened:** the eight-Service list (no drone-photogrammetry Service) · the intentional distinction between *Vizualizare 3D* and *Vizualizare de arhitectură* · everything in v1.3.
+
+  **Source:** `docs/product/CONTENT_MODEL.md` v3.1, `DECISIONS_LOG.md` #91–#96. **No schema, application, filter or UI change has been made.**
+
+- **v1.3 (2026-08-13)** — **Amendment: client-validated simplification of the project model.** Downstream reconciliation only; no independent architectural decision.
+
+  **Withdrawn:** Discipline and Entry Type / Project Type as CMS vocabularies (§7.2) · Pillar derivation, `PillarAssignment`, cross-pillar entries and the editor-visible pillar readout (§7.4) · `&type=` and `&discipline=` from the archive contract (§23.5) · OD-7 (closed as moot).
+
+  **Added:** authored single-value Pillar · multi-select Services constrained to the project's Pillar, with a stable machine key per Service · Pillar-level and Service-driven conditional field requirements merged by MANDATORY > OPTIONAL > NOT APPLICABLE (§7.3) · Labels (`competition`, `diploma-project`) · a closed global Sector vocabulary · project-level Equipment · Implementation Company · `&label=` and a both-pillar Service refinement (§23.5).
+
+  **Source:** `docs/product/CONTENT_MODEL.md` v3.0 (CLIENT-VALIDATED). Implementation inventory, sequencing and data implications: `docs/product/PROJECT_MODEL_IMPACT.md`. **No schema, application, filter or UI change has been made** — this release amends the specification only.
 
 - **v1.0 (2026-08-11)** — Initial authoritative technical architecture. Reconciles the original production architecture proposal against an Independent Architecture Review and a Security & Privacy Review, plus vendor/platform verification performed 2026-08-11.
 

@@ -33,7 +33,7 @@ You do **not** need to read everything. This makes you productive:
 
 1. [`docs/foundation/PROJECT_CONTEXT.md`](docs/foundation/PROJECT_CONTEXT.md) — the product, audience, constraints.
 2. [`docs/pages/PAGE_IA_INDEX.md`](docs/pages/PAGE_IA_INDEX.md) — the whole page system + user journeys, fast.
-3. [`docs/product/CONTENT_MODEL.md`](docs/product/CONTENT_MODEL.md) — what content *is* (Work Entry, Service, taxonomy). **Frozen v2.1.**
+3. [`docs/product/CONTENT_MODEL.md`](docs/product/CONTENT_MODEL.md) — what a project *is* (Pillar, Services, Sector, Labels, field requirements). **CLIENT-VALIDATED v3.1 — read this before any schema or filter work. No open model questions remain.** Its migration companion is [`docs/product/PROJECT_MODEL_IMPACT.md`](docs/product/PROJECT_MODEL_IMPACT.md).
 4. [`docs/product/INFORMATION_ARCHITECTURE.md`](docs/product/INFORMATION_ARCHITECTURE.md) — sitemap, URLs, page responsibilities. **Locked.**
 5. [`docs/product/NAV_DECISION_RECORD.md`](docs/product/NAV_DECISION_RECORD.md) — how navigation works and why.
 6. [`docs/design/VISUAL_DIRECTION_v2.0.md`](docs/design/VISUAL_DIRECTION_v2.0.md) — how it looks, feels, behaves. **Authoritative visual language.**
@@ -49,7 +49,7 @@ composition) → the current HiFi `.html` (visual/interaction reference).
 ```
 docs/
 ├── foundation/     PROJECT_CONTEXT.md
-├── product/        CONTENT_MODEL.md · INFORMATION_ARCHITECTURE.md · NAV_DECISION_RECORD.md   (product/IA authority)
+├── product/        CONTENT_MODEL.md (v3.1) · PROJECT_MODEL_IMPACT.md · INFORMATION_ARCHITECTURE.md · NAV_DECISION_RECORD.md   (product/IA authority)
 ├── design/         VISUAL_DIRECTION_v2.0.md · COMPONENT_INVENTORY.md · WIREFRAME_PRINCIPLES.md · WIREFRAMING_GUIDELINES.md
 ├── pages/          PAGE_IA_INDEX.md, then one folder per page type (colocated Page IA + wireframe + HiFi + notes):
 │   ├── homepage/   HOMEPAGE_PAGE_IA · HOMEPAGE_WIREFRAME · MOTION_NOTES · HOMEPAGE_HIFI_v2 (ref) · homepage-measured-reality-animated-v3.html

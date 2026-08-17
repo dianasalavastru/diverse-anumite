@@ -85,7 +85,15 @@ const items: { key: RouteKey; label: string }[] = [
   { key: 'contact', label: t.nav.contact },
 ];
 
-/** The Work Archive item stays current across its curated views and entries. */
+/**
+ * The Work Archive item stays current across its curated views and entries.
+ *
+ * `professionalExperience` is inert: that view is permanently retired (Stage 2,
+ * `DECISIONS_LOG.md` #97) and ships no page, so no page can ever pass it as `current`. The key
+ * stays in the frozen route table for one reason — keeping its two localized slugs reserved —
+ * and it is listed here only so this set continues to mirror the table rather than a subset of
+ * it. It is not a navigation destination and never was: the header links `workArchive`.
+ */
 const workRoutes: RouteKey[] = [
   'workArchive',
   'workEntry',

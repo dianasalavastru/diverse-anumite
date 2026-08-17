@@ -36,7 +36,6 @@ import {
   DEFAULT_ARCHIVE_STATE,
   archiveQuery,
   clearFilters,
-  contextualFacet,
   hasActiveFilters,
   matchesArchiveState,
   parseArchiveState,
@@ -63,6 +62,17 @@ function start(root: HTMLElement, grid: HTMLElement): void {
   const basePath = root.dataset.archiveBase || location.pathname;
 
   const cells = [...grid.querySelectorAll<HTMLElement>('[data-work]')];
+  /**
+   * Whether this grid is the archive's project REGISTER (see ResultsGrid), whose
+   * rows alternate cover-left / cover-right down the page.
+   *
+   * The alternation is a function of VISIBLE POSITION, so it is re-marked after
+   * every state change rather than baked in at build: hide the second result and
+   * the third becomes the second, and it must face the way the second faces. The
+   * server renders the same rule over the unfiltered set, so the page is already
+   * correct before this file runs and stays correct if it never does.
+   */
+  const alternates = grid.dataset.archiveRegister !== undefined;
   const region = root.querySelector<HTMLElement>('[data-archive-region]');
   const emptyState = root.querySelector<HTMLElement>('[data-archive-empty]');
   const countValue = root.querySelector<HTMLElement>('[data-archive-count]');
@@ -95,9 +105,8 @@ function start(root: HTMLElement, grid: HTMLElement): void {
   for (const cell of cells) {
     facets.set(cell, {
       pillars: list(cell.dataset.facetPillars),
-      types: list(cell.dataset.facetTypes),
+      labels: list(cell.dataset.facetLabels),
       sectors: list(cell.dataset.facetSectors),
-      disciplines: list(cell.dataset.facetDisciplines),
       services: list(cell.dataset.facetServices),
     });
   }
@@ -105,17 +114,18 @@ function start(root: HTMLElement, grid: HTMLElement): void {
   /**
    * The restorable values — read from the CONTROLS, not from the cells.
    *
-   * The two sets are deliberately not the same. The controls are the projection
-   * the build already scoped: Entry Type and Sector to what the archive holds,
-   * and each contextual refinement to its own pillar (see facets.ts). A cell can
-   * carry a value that is not a valid refinement here — a cross-pillar entry
-   * carries its Reality Capture discipline into the Architecture & Design view —
-   * and validating against the cells would let a URL set a state with no control
-   * to show it, which is a filter existing only in the address bar.
+   * The two sets are deliberately not the same. The controls are the projection the build
+   * already scoped: Label to the closed vocabulary, Sector and Service to what the archive
+   * actually holds (see facets.ts). Validating against the cells instead would let a URL set a
+   * state with no control to show it, which is a filter existing only in the address bar.
    *
-   * So the rule is: **a value is restorable exactly when a control can express
-   * it.** Anything else is ignored, per §23.1's "an unrecognised value is ignored
-   * rather than echoed".
+   * So the rule is: **a value is restorable exactly when a control can express it.** Anything
+   * else is ignored, per §23.1's "an unrecognised value is ignored rather than echoed".
+   *
+   * This deliberately queries every radio rather than going through `radiosOf`, which filters
+   * hidden ones: `available.services` must be the WHOLE demonstrated set across both Pillars,
+   * because `parseArchiveState` narrows it per mode through `servicesInScope`. It also runs
+   * once, before the first `apply()`, so no chip has been hidden yet either way.
    */
   const optionValues = (facet: string): string[] => {
     const group = groups.find((candidate) => candidate.dataset.facet === facet);
@@ -131,9 +141,8 @@ function start(root: HTMLElement, grid: HTMLElement): void {
   };
 
   const available: ArchiveFacetValues = {
-    types: optionValues('type'),
+    labels: optionValues('label'),
     sectors: optionValues('sector'),
-    disciplines: optionValues('discipline'),
     services: optionValues('service'),
   };
 
@@ -149,12 +158,26 @@ function start(root: HTMLElement, grid: HTMLElement): void {
    *
    * Below the single-column breakpoint the spans are cleared, because there is
    * no masonry to compute (the HiFi does the same).
+   *
+   * ── IT NO LONGER RUNS ON THE ARCHIVE ITSELF ──────────────────────────────
+   * `masonry` is false wherever the grid renders the REGISTER — one project per
+   * row, each a full-width editorial unit (see ResultsGrid). A measured span is
+   * meaningless there: with one item per row the span is either exactly the row
+   * it already occupies or, whenever the measurement rounds up, a stripe of
+   * empty 8px rows below the entry that reads as a missing project. The engine
+   * is not deleted, because the curated views still place cells of unequal
+   * height into shared columns and that is the problem it was written for.
+   *
+   * Kept as a measurement rather than made conditional at the call sites: the
+   * spans must also be CLEARED when a page switches into the register, and a
+   * function that only ever adds them could not do that.
    */
   const ROW_HEIGHT = 8;
   const SINGLE_COLUMN = 640;
+  const masonry = grid.dataset.archiveMasonry !== undefined;
 
   function layout(): void {
-    const single = window.innerWidth <= SINGLE_COLUMN;
+    const single = !masonry || window.innerWidth <= SINGLE_COLUMN;
     const rowGap = Number.parseFloat(getComputedStyle(grid).rowGap) || 24;
 
     for (const cell of cells) {
@@ -177,8 +200,19 @@ function start(root: HTMLElement, grid: HTMLElement): void {
     return groups.find((group) => group.dataset.facet === facet);
   }
 
+  /**
+   * The radios a mode currently offers.
+   *
+   * Hidden chips are excluded, not merely un-clickable: this is the list the roving tabindex,
+   * the Arrow/Home/End handler and the restorable-value probe all read, so a Service chip
+   * belonging to the other Pillar must not be Tab-reachable, must not be landed on by an arrow
+   * key, and must not make a URL value restorable. One filter here is what keeps all three
+   * behaviours consistent.
+   */
   function radiosOf(group: HTMLElement): HTMLElement[] {
-    return [...group.querySelectorAll<HTMLElement>('[role="radio"]')];
+    return [...group.querySelectorAll<HTMLElement>('[role="radio"]')].filter(
+      (radio) => !radio.hidden,
+    );
   }
 
   /** Reflect a value onto a radiogroup, including its roving tabindex. */
@@ -240,10 +274,30 @@ function start(root: HTMLElement, grid: HTMLElement): void {
   ): void {
     state = next;
 
+    /* -- the contextual refinement, scoped per chip ---------------------
+       Every mode offers a Service refinement now, so this is no longer a row that appears and
+       disappears — it is one row whose options narrow. A chip is offered when it carries no
+       pillar (the "any service" option) or when its Service's Pillar is the active mode.
+       Ordered BEFORE the controls are reflected, because `setGroupValue` and `radiosOf` both
+       read the visibility this establishes. */
+    const serviceGroup = groupFor('service');
+    let offered = 0;
+    for (const radio of serviceGroup?.querySelectorAll<HTMLElement>('[role="radio"]') ?? []) {
+      const pillar = radio.dataset.pillar;
+      radio.hidden = Boolean(pillar) && state.pillar !== 'all' && pillar !== state.pillar;
+      if (!radio.hidden && radio.dataset.value) offered += 1;
+    }
+    /* A Pillar whose Services nothing demonstrates yet would otherwise show a row containing
+       only "any service", which is a control that cannot do anything. */
+    for (const row of root.querySelectorAll<HTMLElement>('[data-contextual="service"]')) {
+      row.hidden = offered === 0;
+    }
+
     /* -- controls ------------------------------------------------------- */
     setGroupValue('pillar', state.pillar);
-    setGroupValue('type', state.type ?? '');
-    setGroupValue('discipline', state.discipline ?? '');
+    setGroupValue('label', state.label ?? '');
+    /* `setGroupValue` falls back to '' for a value no visible radio carries, so a Service the
+       new mode does not offer un-checks itself here as well as being dropped from the state. */
     setGroupValue('service', state.service ?? '');
 
     const sector = selectFor('sector');
@@ -251,34 +305,54 @@ function start(root: HTMLElement, grid: HTMLElement): void {
     const sort = selectFor('sort');
     if (sort) sort.value = state.sort;
 
-    /* -- the ONE contextual refinement (§23.5: none under All) ---------- */
-    const refinement = contextualFacet(state.pillar);
-    for (const row of root.querySelectorAll<HTMLElement>('[data-contextual]')) {
-      row.hidden = row.dataset.contextual !== state.pillar;
-    }
-    if (!refinement) {
-      setGroupValue('discipline', '');
-      setGroupValue('service', '');
-    }
-
     /* -- results -------------------------------------------------------- */
     const rankAttribute =
       state.sort === 'curated' ? `data-rank-curated-${state.pillar}` : `data-rank-${state.sort}`;
 
-    let visible = 0;
+    /* The surviving cells paired with the rank the build wrote for them — the
+       sequence the grid is about to lay out, in the order it will lay it out.
+       READ, never computed: there is no comparator over content here, only a
+       numeric sort of ranks B already decided, which is what keeps
+       `WORK_ARCHIVE_IMPLEMENTATION_NOTES.md`:113 structural. */
+    const sequence: { cell: HTMLElement; rank: number }[] = [];
+
     for (const cell of cells) {
       const cellFacets = facets.get(cell);
       const shown = cellFacets !== undefined && matchesArchiveState(cellFacets, state);
       cell.hidden = !shown;
       if (!shown) continue;
-      visible += 1;
-      cell.style.order = cell.getAttribute(rankAttribute) ?? '0';
+      const order = cell.getAttribute(rankAttribute) ?? '0';
+      cell.style.order = order;
+
+      const rank = Number(order);
+      sequence.push({ cell, rank: Number.isFinite(rank) ? rank : Number.POSITIVE_INFINITY });
+
       /* A cell revealed by a filter change may never intersect again, so it is
          resolved here rather than left to the reveal observer. Motion is never
          load-bearing (VISUAL_DIRECTION_v2.0 §12) and content must never be
          reachable only by scrolling past it. */
       if (resolveReveals) cell.classList.add('in');
     }
+
+    /* The register's alternation, re-marked over the CURRENT visible sequence:
+       first result faces `a`, second `b`, and so on down whatever survived the
+       filter. Sorted by rank rather than read in DOM order because `order` is
+       what actually places the rows — DOM order is the build's, and after a
+       re-sort the two are different sequences.
+
+       Hidden cells are not marked at all: they are not in the sequence, so they
+       cannot consume a position, and an entry that comes back after a filter is
+       cleared gets whatever position it then holds. */
+    if (alternates) {
+      sequence
+        .slice()
+        .sort((left, right) => left.rank - right.rank)
+        .forEach(({ cell }, position) => {
+          cell.dataset.row = position % 2 === 0 ? 'a' : 'b';
+        });
+    }
+
+    const visible = sequence.length;
 
     grid.hidden = visible === 0;
     if (emptyState) emptyState.hidden = visible > 0;
@@ -291,9 +365,8 @@ function start(root: HTMLElement, grid: HTMLElement): void {
     if (summary) {
       const parts = [
         state.pillar !== 'all' ? groupLabel('pillar') : '',
-        state.type ? groupLabel('type') : '',
+        state.label ? groupLabel('label') : '',
         state.sector ? selectLabel('sector') : '',
-        state.discipline ? groupLabel('discipline') : '',
         state.service ? groupLabel('service') : '',
       ].filter((part) => part.length > 0);
       summary.textContent = parts.length > 0 ? parts.join(' · ') : (summary.dataset.none ?? '');

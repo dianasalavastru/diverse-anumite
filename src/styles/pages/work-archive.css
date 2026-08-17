@@ -53,14 +53,32 @@
 
 /* =============================================================================
    A-1 · INTRO — "compact — browsing starts high"
+
+   ── ONE SPREAD, NOT A HEADING WITH A NUMBER AT THE FAR EDGE ────────────────
+   The HiFi sets the count as a single nowrap line baseline-aligned to the foot
+   of the statement, which at desktop width leaves it stranded at the right edge
+   of a mostly empty band. The composition below is the same two readings — the
+   archive's name and the archive's size — resolved as a proper editorial
+   spread: a lead column ruled by a hairline, a hairline divider, and a narrower
+   metadata column that carries the count and then the quiet per-pillar
+   breakdown. Nothing is added to the module's content; the arrangement is what
+   changed, and the vocabulary (hairline · mono label · blue on a revealed
+   value) is entirely the system's own.
+
+   The opening is also SHORTER — the top padding drops from clamp(96px,13vh,
+   150px) to clamp(66px,8.4vh,104px) — so that the masthead, the whole control
+   strip and the top of the featured entry land inside one 900px-tall viewport.
+   No `100vh` is involved anywhere; the archive "starts browsing high" (:55),
+   and at 13vh it did not.
    ========================================================================== */
 
 .wa-intro {
-  padding: clamp(96px, 13vh, 150px) 0 clamp(30px, 4vh, 50px);
+  padding: clamp(66px, 8.4vh, 104px) 0 clamp(24px, 3.2vh, 42px);
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 24px;
-  align-items: end;
+  /* Large title left, narrower metadata column right — the reference's ~1.3:1. */
+  grid-template-columns: minmax(0, 1.3fr) minmax(230px, 1fr);
+  gap: clamp(28px, 4vw, 60px);
+  align-items: start;
 }
 
 .wa-intro .kick {
@@ -75,39 +93,122 @@
 .wa-intro h1 {
   font-family: var(--pixel);
   font-weight: 500;
-  font-size: clamp(40px, 6.5vw, 92px);
+  font-size: clamp(40px, 5.6vw, 78px);
   line-height: 0.92;
+  /* The rule under the title, spanning the lead column — the divider between
+     the archive's name and its invitation. */
+  padding-bottom: clamp(16px, 2.2vh, 28px);
+  border-bottom: 1px solid var(--hair);
 }
 
 .wa-intro .sub {
   color: var(--ink-60);
   font-size: clamp(15px, 1.5vw, 18px);
-  max-width: 44ch;
-  margin-top: 16px;
+  max-width: 46ch;
+  margin-top: clamp(16px, 2.2vh, 26px);
+}
+
+/* The metadata column. The hairline is the divider the two columns are composed
+   against; the top padding drops the count to the title's own top edge rather
+   than the eyebrow's, which is what makes the two columns read as one spread. */
+.wa-intro-meta {
+  border-inline-start: 1px solid var(--hair);
+  padding-inline-start: clamp(22px, 2.8vw, 46px);
+  padding-top: clamp(18px, 2.4vh, 34px);
 }
 
 .wa-intro .count {
   font-family: var(--mono);
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--ink-60);
   letter-spacing: 0.06em;
-  white-space: nowrap;
 }
 
 /* Blue on a revealed value — VISUAL_DIRECTION_v2.0 §2.1 permits exactly this
-   ("the moment a value or detail is revealed"), and it is the HiFi's own use. */
+   ("the moment a value or detail is revealed"), and it is the HiFi's own use.
+   Set at display size and on its own line: it is the one number the masthead
+   exists to state, and it is what balances the title across the spread. */
 .wa-intro .count b {
+  display: block;
+  font-family: var(--pixel);
+  font-weight: 500;
+  font-size: clamp(36px, 4.2vw, 58px);
+  line-height: 0.9;
   color: var(--blue);
-  font-weight: 400;
+  margin-bottom: 10px;
 }
 
-@media (max-width: 720px) {
+.wa-intro .count-noun {
+  display: block;
+}
+
+/* ---- The quiet breakdown -------------------------------------------------
+   A measurement of the rendered set, in the mono label voice — never a claim
+   about the studio. See ArchiveOrientation.astro / WorkArchive.astro. */
+
+.wa-breakdown {
+  margin-top: clamp(20px, 2.8vh, 32px);
+  border-top: 1px solid var(--hair);
+  padding-top: 12px;
+}
+
+.wa-breakdown .lab {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-60);
+}
+
+.wa-breakdown dl {
+  margin-top: 8px;
+}
+
+.wa-breakdown .row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 6px 0;
+}
+
+.wa-breakdown .row + .row {
+  border-top: 1px solid var(--hair-2);
+}
+
+.wa-breakdown dt {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--ink-60);
+}
+
+.wa-breakdown dd {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--ink);
+}
+
+/* One column before the metadata column would have to squeeze: the divider is
+   a composition device, and a 230px column beside a 78px title is neither. */
+@media (max-width: 860px) {
   .wa-intro {
     grid-template-columns: 1fr;
+    gap: clamp(20px, 3vh, 32px);
+  }
+
+  .wa-intro-meta {
+    border-inline-start: none;
+    padding-inline-start: 0;
+    padding-top: 0;
   }
 
   .wa-intro .count {
     text-align: left;
+  }
+
+  .wa-breakdown {
+    max-width: 46ch;
   }
 }
 
@@ -127,8 +228,11 @@
   border-top: 1px solid var(--hair);
   border-bottom: 1px solid var(--hair);
   /* `.bleed` supplies the negative margins; this restores the inner alignment,
-     which is what the HiFi's hand-written padding pair does. */
-  padding: clamp(14px, 2vh, 20px) var(--gutter-end) clamp(14px, 2vh, 20px) var(--gutter-start);
+     which is what the HiFi's hand-written padding pair does. Tightened from
+     clamp(14px,2vh,20px): the strip is ONE horizontal control band, and the
+     three rows inside it read as a band only if the interval between them is
+     smaller than the interval to the work above and below. */
+  padding: clamp(11px, 1.5vh, 15px) var(--gutter-end) clamp(11px, 1.5vh, 15px) var(--gutter-start);
 }
 
 .frow {
@@ -138,9 +242,12 @@
   flex-wrap: wrap;
 }
 
-.frow + .frow,
+.frow + .frow {
+  margin-top: 9px;
+}
+
 .wa-controls .wa-context {
-  margin-top: 12px;
+  margin-top: 8px;
 }
 
 /* ---- Pillar tabs (A-2) ---------------------------------------------------
@@ -242,11 +349,19 @@
   display: none;
 }
 
-/* ---- Quiet selects (A-4: Sector, and Year-as-sort) ----------------------- */
+/* ---- Quiet selects (A-4: Sector, and Year-as-sort) -----------------------
+
+   The strip's quietest register, and deliberately so: the pillar tabs are the
+   dominant control, the chips are secondary, and these two are the ones a
+   visitor reaches for last. They are moved from the chips' lowercase voice into
+   the system's uppercase mono LABEL voice — the same one `.clab`, the active
+   context and the continue row use — which reads as annotation rather than as a
+   third row of pressable things. No control was removed, resized or restyled
+   into a new component; only its typographic register changed. */
 
 .sels {
   display: flex;
-  gap: 16px;
+  gap: clamp(16px, 2vw, 28px);
   align-items: center;
   margin-left: auto;
   flex-wrap: wrap;
@@ -259,7 +374,7 @@
 .sel select {
   font-family: var(--mono);
   font-size: 11px;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.12em;
   color: var(--ink-60);
   background: none;
   border: none;
@@ -267,7 +382,11 @@
   padding: 4px 20px 4px 2px;
   cursor: pointer;
   appearance: none;
-  text-transform: lowercase;
+  text-transform: uppercase;
+}
+
+.sel select:hover {
+  border-color: var(--ink-60);
 }
 
 .sel select:focus-visible {
@@ -399,11 +518,31 @@
 }
 
 /* =============================================================================
-   A-5 · EDITORIAL MASONRY — the five-size vocabulary
+   A-5 · RESULTS — TWO PRESENTATIONS OF ONE GRID
 
    `WORK_ARCHIVE_IMPLEMENTATION_NOTES.md`:40, frozen: "five-size vocabulary
    (feature / wide / tall / std / small), asymmetric composition, measured gaps.
    **Not a uniform card grid.**"
+
+   ── WHERE THE MASONRY STILL LIVES, AND WHERE IT NO LONGER DOES ─────────────
+   `.wa-grid` is the masonry that sentence describes, and it is unchanged. It is
+   what the CURATED VIEWS render — the Competitions index and Professional
+   Experience — where a set of entries is a catalogue and the five sizes are the
+   rhythm.
+
+   `.wa-grid--register` — the Work Archive itself — is a REGISTER: one project
+   per row, every row the same full-width editorial unit of cover, information
+   and a preview of its own gallery, alternating side to side. See A-5a.
+
+   The size vocabulary is NOT deleted. `masonry.ts` still maps `prominence` onto
+   it, every cell still carries its `s-*` class, editors still own it, and the
+   curated views below still lay out a packed grid from it. What the REGISTER
+   does is decline to read it: a register whose rows differ in width has a
+   hierarchy of physical size in it, and the form's whole claim is that the
+   projects are peers. Prominence still decides what a visitor meets first,
+   through `curated` order — the same editorial lever, expressed where a register
+   can express it. Nothing about the data model, the ordering, the filters or the
+   curated views moved to make that true.
    ========================================================================== */
 
 .wa-results:focus {
@@ -415,7 +554,21 @@
 .wa-grid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
-  gap: clamp(16px, 2vw, 34px);
+  /* ── THE TWO GAPS ARE NOT THE SAME GAP (Direction A, §3) ─────────────────
+     The single `gap: clamp(16px,2vw,34px)` this replaces put 28.8px between two
+     NEIGHBOURING ENTRIES at 1440 while an entry's own photograph sat 20px from
+     its own caption — 1.44:1, which is not a boundary. Proximity has to do the
+     grouping the absence of boxes leaves it, so the between-entry gap is now
+     roughly 3× the within-entry one at every width (57.6px vs 17.3px at 1440).
+     The row gap is separated from it for the same reason: vertical separation
+     between entries must read as stronger than the 12px an image sits above its
+     own caption. Nothing about placement, order or sizing changes. */
+  column-gap: clamp(32px, 4vw, 64px);
+  /* The row gap barely scales: vertical separation answers to the 12px between
+     an image and its own caption, which does not scale either. Its floor is
+     what a tablet band of stacked entries needs, not what a 4vw column gap
+     happens to be at that width. */
+  row-gap: clamp(36px, 3vw, 46px);
   /* The HiFi's `grid-auto-rows: 8px` with a hard-coded `span 40` on every item.
      The row unit is kept — it is what makes the measured masonry fine-grained —
      but the minimum becomes a `minmax(8px, auto)` and the default span is
@@ -426,7 +579,10 @@
      width — §14.0's "enhancements over a working static layout" — and the island
      then writes the measured spans that produce the authored masonry. */
   grid-auto-rows: minmax(8px, auto);
-  padding: clamp(30px, 5vh, 60px) 0 var(--pad-loud);
+  /* Tightened from clamp(30px,5vh,60px): there must be no blank interval
+     between the control strip and the first result — the strip frames the work,
+     and a frame with a gap in it is a gap, not a frame. */
+  padding: clamp(22px, 3vh, 40px) 0 var(--pad-loud);
 }
 
 .wa-item {
@@ -451,14 +607,522 @@
   grid-column: span 4;
 }
 
+/* =============================================================================
+   A-5a · THE PROJECT REGISTER — one project unit, repeated
+
+   ── WHAT THIS REPLACES, AND WHY TUNING THE SIZES COULD NOT FIX IT ──────────
+   The archive used to place every entry as a cell in a packed masonry, then as
+   a register whose rows still differed in width and whose first row was a
+   full-bleed lead. Measured at 1440 the last version produced photographs of
+   813 · 656 · 595 px across one page — the lead's plate 1.75× the area of an
+   ordinary entry's, on a row 1275px wide against 1063.
+
+   Successive rounds of narrowing that range each closed it a little and none of
+   them could close it, because the range is not a consequence of the numbers. It
+   is a consequence of the FORM: as long as emphasis is expressed as footprint,
+   the entries beside an emphasised one are given less by the same act, and the
+   page reads as a hero followed by thumbnails.
+
+   So emphasis stops being expressed as footprint. Every project is now the SAME
+   full-width unit — same measure, same cover box, same information column, same
+   preview footprint — and the variation comes from the imagery inside it and from
+   which side the unit faces. `curation.prominence` still orders the register, and
+   ordering is where an archive's editorial hierarchy belongs: the first project a
+   visitor meets is first because an editor put it first, not because it is large.
+
+       ─────────────────────────────────────────────────────────  identity rule
+       R·001                                       REALITY CAPTURE
+       ┌──────────────────────────┐  TITLE
+       │                          │  Location
+       │                          │  ─────────────────────────
+       │       PRIMARY MEDIA      │  Type · Year · Sector
+       │                          │
+       │                          │  [ g1 ][ g2 ][ g3 ]        ← this project's
+       └──────────────────────────┘  ─────────────────────────    own gallery
+                                     DESCHIDE PROIECTUL →
+
+   ── THE ALTERNATION ───────────────────────────────────────────────────────
+   Odd rows face `a` (media left), even rows face `b` (media right). It is set
+   from the VISIBLE POSITION — server-rendered over discovery order, re-marked by
+   the island after every filter or sort — and from nothing else: not pillar, not
+   entry type, not prominence, not the cover's orientation. See ResultsGrid.
+
+   `b` mirrors the WHOLE unit, and only the unit. The identity rule still runs the
+   full measure with the coordinate at the leading edge and the pillar at the
+   trailing one, and the preview sheet inside the information column is never
+   mirrored — its grammar belongs to the assets, and a project's contact sheet
+   must not read differently because of where the project fell in a list.
+   ========================================================================== */
+
+@media (min-width: 1024px) {
+  .wa-grid.wa-grid--register {
+    /* No two entries sit side by side, so the column gap has no separation left
+       to carry: every unit takes the whole measure and the gap is zero. */
+    column-gap: 0;
+    /* The whole boundary budget moves here. Between two projects there is now
+       nothing but this interval and the next entry's identity rule, so it is set
+       against the largest interval INSIDE a unit (the ~22px an image sits from
+       its own caption) at better than 4:1 — the proximity ratio the ruled
+       identity row was introduced to work with. */
+    row-gap: clamp(64px, 6.4vw, 104px);
+    /* The 8px row unit exists for measured masonry spans, and the island no
+       longer writes any here (see `data-archive-masonry`). One auto row per
+       project is the correct grid for a register. */
+    grid-auto-rows: auto;
+  }
+
+  /* ---- One footprint, named exhaustively ---------------------------------
+     Every size class, reset to the same span. Written out rather than left to
+     `.wa-item` alone so that the five-size rules above — which the curated views
+     still need, and which live in the same layer at the same specificity — cannot
+     reach a register row: a single `.wa-grid--register .wa-item` would tie with
+     `.s-feature` on specificity and lose on source order. This is also the ONE
+     place a reader has to look to confirm that prominence buys no width here. */
+  .wa-grid--register .wa-item,
+  .wa-grid--register .wa-item.s-feature,
+  .wa-grid--register .wa-item.s-wide,
+  .wa-grid--register .wa-item.s-tall,
+  .wa-grid--register .wa-item.s-std,
+  .wa-grid--register .wa-item.s-small {
+    grid-column: 1 / -1;
+  }
+
+  /* ---- The unit ---------------------------------------------------------
+     Two zones under one rule: primary media and the information column that
+     carries title, location, metadata, the preview sheet and the continuation
+     cue. 62:38 — enough that the photograph plainly leads, and enough that the
+     information side is a column of the spread rather than a sidebar beside it.
+     The 340px floor is what keeps a two-line title and a three-frame sheet from
+     collapsing at the bottom of the desktop band. */
+  .wa-grid--register .wa-item .pl {
+    display: grid;
+    grid-template-columns: minmax(0, 62fr) minmax(340px, 38fr);
+    column-gap: clamp(26px, 2.8vw, 52px);
+    /* The information column stretches to the unit's height so its foot can be
+       anchored to the cover's; the cover itself opts out below, because a
+       stretched box would lose the authored aspect ratio to the row height. */
+    align-items: stretch;
+  }
+
+  /* The identity rule spans BOTH zones — that is the ownership convention, and
+     it is the same rule on both facings. */
+  .wa-grid--register .wa-item .cid {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .wa-grid--register .wa-item .im {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .wa-grid--register .wa-item .cap {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  /* ---- The mirror -------------------------------------------------------- */
+  .wa-grid--register .wa-item[data-row="b"] .pl {
+    grid-template-columns: minmax(340px, 38fr) minmax(0, 62fr);
+  }
+
+  .wa-grid--register .wa-item[data-row="b"] .im {
+    grid-column: 2;
+  }
+
+  .wa-grid--register .wa-item[data-row="b"] .cap {
+    grid-column: 1;
+  }
+
+  /* ---- The primary media -------------------------------------------------
+     ONE box for every project — 3:2, the register's own proportion — because a
+     box whose shape follows the asset makes the row height follow the asset too,
+     and then a page of portrait covers and a page of landscape covers are two
+     different systems. The box is constant; how the asset MEETS it is what varies,
+     and that is `data-cover-fit`'s question (see the fitting block below).
+
+     Not stretched: `align-self: start` keeps the authored ratio even when the
+     information column beside it happens to run longer. */
+  .wa-grid--register .wa-item .im {
+    align-self: start;
+    aspect-ratio: 3 / 2;
+  }
+
+  /* ---- The information column -------------------------------------------
+     A column, not a caption: it starts at the identity rule and ends level with
+     the foot of the photograph. `.d` carries the flexible interval, so title and
+     location sit at the top, the preview sheet and the continuation cue sit on
+     the cover's baseline, and the silence between them is the composition rather
+     than whatever the text happened to leave over. */
+  .wa-grid--register .wa-item .cap {
+    margin-top: 0;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  /* Restores the shrink-to-fit the title had as an inline-block: a flex item
+     stretches across its column by default, and a stretched title sets its
+     wrapping against the column rather than against the words. */
+  .wa-grid--register .wa-item .cap .t {
+    align-self: start;
+    font-size: clamp(20px, 1.8vw, 27px);
+    line-height: 1.05;
+  }
+
+  .wa-grid--register .wa-item .cap .pc {
+    font-size: clamp(14px, 1.2vw, 17px);
+    margin-top: 9px;
+  }
+
+  .wa-grid--register .wa-item .cap .d {
+    margin-top: clamp(14px, 1.8vh, 22px);
+    padding-top: 12px;
+    border-top: 1px solid var(--hair);
+  }
+
+  .wa-grid--register .wa-item .gs {
+    margin-top: clamp(16px, 2vh, 24px);
+  }
+
+  /* ---- The continuation cue, at rest, on the cover's baseline ------------
+     Every unit shows it without hovering: the composition reads as unfinished
+     without it, and a cue that only exists under a mouse pointer is not an
+     affordance on a touch screen. What hover still does is bring the photograph
+     up in colour and move this line's arrow by 4px — nothing else.
+
+     `margin-top: auto` is THE SPACER: it pushes the cue to the foot of a column
+     that is stretched to the unit's height, which is the foot of the photograph
+     beside it, and everything above it — title, location, metadata, sheet —
+     stays stacked at the top bound to what it belongs to. The silence therefore
+     falls in one place, between the sheet and the cue, rather than being
+     distributed by whatever the text happened to leave over. It reads the same
+     whether the entry has a sheet or not, which is what makes an entry with no
+     gallery a complete unit rather than a unit with a hole in it. */
+  .wa-grid--register .wa-item .cap .go {
+    opacity: 1;
+    transform: none;
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--hair);
+  }
+
+  /* The minimum interval the cue keeps from whatever precedes it, since `auto`
+     collapses to zero once the column has no free space left to distribute. */
+  .wa-grid--register .wa-item .cap .gs,
+  .wa-grid--register .wa-item .cap .d {
+    margin-bottom: clamp(14px, 1.8vh, 22px);
+  }
+}
+
+/* =============================================================================
+   A-5a1 · THE PREVIEW SHEET — one footprint, four compositions
+
+   ── THE RULE ──────────────────────────────────────────────────────────────
+   STANDARDIZE THE OUTER FOOTPRINT, NOT THE INTERNAL IMAGE SHAPES.
+
+   Three portrait frames side by side is the composition this archive already got
+   right, and it is right *because they are portraits*. Three landscapes in the
+   same three columns would be three landscapes squeezed into slots they were not
+   shot for. So the sheet occupies about the same area in every project — roughly
+   200px tall against a ~470px information column at 1440 — and how that area is
+   divided is derived from the intrinsic proportions of the three assets.
+
+   `data-preview-layout` is the derivation's only output: a token naming the
+   sheet's orientation signature, portraits first (`ppp`, `ppl`, `pll`, `lll`,
+   plus `p` · `pp` · `pl` · `ll` · `l` for a gallery that holds fewer than three).
+   It is computed in `work-archive/preview.ts` from image dimensions and nothing
+   else — never from pillar, entry type, prominence, position or a per-project
+   override, and never at random. The frames arrive already ordered so that the
+   first one is the anchor of its composition.
+
+   ── HOW THE FOOTPRINT IS HELD ─────────────────────────────────────────────
+   Exactly one frame per composition declares an `aspect-ratio`; it sets the row
+   height and every other frame stretches into the tracks around it. That is what
+   makes the four compositions land within ~15% of each other's height without any
+   of them being told a height, and it is why none of the frames is distorted to
+   achieve it.
+   ========================================================================== */
+
+@media (min-width: 1024px) {
+  /* ---- P + P + P — the reference composition ----------------------------
+     Three equal vertical columns. Approved, and preserved exactly.
+
+         ┌─────────┬─────────┬─────────┐
+         │   P1    │   P2    │   P3    │
+         └─────────┴─────────┴─────────┘                      ~202px tall     */
+  .wa-grid--register .gs[data-preview-layout="ppp"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .wa-grid--register .gs[data-preview-layout="ppp"] .gf:first-child {
+    aspect-ratio: 3 / 4;
+  }
+
+  /* ---- P + P + L — two uprights and a wider region ----------------------
+     The landscape is given a region meaningfully wider than either portrait
+     (1.55 : 1 : 1) rather than a third column of the same width, which is what
+     "the landscape reads as a landscape" costs in a single row.
+
+         ┌───────┬───────┬─────────────┐
+         │  P1   │  P2   │      L      │
+         └───────┴───────┴─────────────┘                      ~172px tall     */
+  .wa-grid--register .gs[data-preview-layout="ppl"] {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.55fr);
+  }
+
+  .wa-grid--register .gs[data-preview-layout="ppl"] .gf:first-child {
+    aspect-ratio: 3 / 4;
+  }
+
+  /* ---- P + L + L — the portrait as vertical anchor ----------------------
+     The portrait runs the full height of the sheet and the two landscapes stack
+     beside it. Capped in width, deliberately: at the full measure this
+     composition would stand ~310px tall — half again the reference — because two
+     stacked landscapes at their natural proportions are simply taller than one
+     row of portraits. Capping it holds the FOOTPRINT instead, which is what the
+     rule asks for, and the slack falls as authored silence at the trailing edge.
+
+         ┌───────┬─────────────────┐
+         │       │       L1        │
+         │   P   ├─────────────────┤
+         │       │       L2        │
+         └───────┴─────────────────┘                          ~204px tall     */
+  .wa-grid--register .gs[data-preview-layout="pll"] {
+    grid-template-columns: minmax(0, 1.03fr) minmax(0, 1fr);
+    grid-template-rows: 1fr 1fr;
+    max-width: 66%;
+  }
+
+  .wa-grid--register .gs[data-preview-layout="pll"] .gf:first-child {
+    grid-row: 1 / span 2;
+    aspect-ratio: 3 / 4;
+  }
+
+  /* ---- L + L + L — one dominant landscape and two smaller ----------------
+     A mini editorial plate: one landscape carrying the sheet, two beside it.
+
+     ⚠ DEVIATION, DELIBERATE AND MEASURED. The brief draws this composition with
+     the dominant landscape ABOVE the other two, and asks in the same breath that
+     the footprint stay comparable to P+P+P. At this measure the two cannot both
+     be had: a full-width dominant at 3:2 is already 313px tall before the second
+     row exists, and every ratio that brings the stack down to ~200px does it by
+     letterboxing all three frames past 2:1. Dominant-LEFT keeps the same reading
+     — one landscape leads, two support — at 207px, with all three frames landing
+     within a few per cent of their natural 3:2. The intent survives; the axis
+     does not. Flagged for review rather than buried.
+
+         ┌─────────────────┬───────┐
+         │                 │  L2   │
+         │       L1        ├───────┤
+         │                 │  L3   │
+         └─────────────────┴───────┘                          ~207px tall     */
+  .wa-grid--register .gs[data-preview-layout="lll"] {
+    grid-template-columns: minmax(0, 2.04fr) minmax(0, 1fr);
+    grid-template-rows: 1fr 1fr;
+  }
+
+  .wa-grid--register .gs[data-preview-layout="lll"] .gf:first-child {
+    grid-row: 1 / span 2;
+    aspect-ratio: 3 / 2;
+  }
+
+  /* ---- The degraded sheets ----------------------------------------------
+     A gallery that cannot supply three. These are NOT fallbacks in the sense of
+     substituted content — nothing is invented, the cover is never repeated, and
+     no neighbouring project's media appears (§10.4). They are the honest
+     compositions of one and two frames, sized to sit inside the same footprint
+     band so a thinner project does not become a shorter row.
+
+     The mandatory sheet is three. An entry rendering one of these is an entry
+     whose gallery is incomplete, and that is a content state, reported rather
+     than papered over. */
+  .wa-grid--register .gs[data-preview-layout="p"] {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 33%;
+  }
+
+  .wa-grid--register .gs[data-preview-layout="l"] {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 65%;
+  }
+
+  .wa-grid--register .gs[data-preview-layout="p"] .gf:first-child {
+    aspect-ratio: 3 / 4;
+  }
+
+  .wa-grid--register .gs[data-preview-layout="l"] .gf:first-child {
+    aspect-ratio: 3 / 2;
+  }
+
+  .wa-grid--register .gs[data-preview-layout="pp"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 66%;
+  }
+
+  .wa-grid--register .gs[data-preview-layout="pp"] .gf:first-child {
+    aspect-ratio: 3 / 4;
+  }
+
+  .wa-grid--register .gs[data-preview-layout="pl"] {
+    grid-template-columns: minmax(0, 0.72fr) minmax(0, 1fr);
+    max-width: 88%;
+  }
+
+  .wa-grid--register .gs[data-preview-layout="pl"] .gf:first-child {
+    aspect-ratio: 3 / 4;
+  }
+
+  .wa-grid--register .gs[data-preview-layout="ll"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wa-grid--register .gs[data-preview-layout="ll"] .gf:first-child {
+    aspect-ratio: 3 / 2;
+  }
+}
+
+/* =============================================================================
+   A-5b · THE REGISTER, STACKED — tablet portrait and below
+
+   WORK_ARCHIVE_WIREFRAME A-4's responsive intent: the side-by-side spread is a
+   desktop composition and is not forced onto a phone. Below 1024 every project is
+   the same simple vertical reading, in the same order, with no alternation —
+
+       identity rule · primary image · title · location · metadata · sheet · cue
+
+   — with a generous interval before the next project. The unit does not become a
+   card: no background, no border, no rounding, nothing but the rule at its top
+   and the space around it, exactly as on desktop.
+
+   `data-row` is still written here and is deliberately not read. Left/right
+   alternation on a single-column reading is not rhythm, it is a reading order
+   that changes under the visitor; the attribute simply has no rule below 1024.
+   ========================================================================== */
+
+@media (max-width: 1023px) {
+  .wa-grid.wa-grid--register {
+    grid-template-columns: minmax(0, 1fr);
+    column-gap: 0;
+    row-gap: clamp(56px, 9vw, 88px);
+    grid-auto-rows: auto;
+  }
+
+  /* One column: the size vocabulary stops meaning a span. Reset by name rather
+     than by weight — a leftover `span 10` in a one-column grid does not clamp,
+     it creates nine implicit columns and takes the page into overflow. */
+  .wa-grid--register .wa-item,
+  .wa-grid--register .wa-item.s-feature,
+  .wa-grid--register .wa-item.s-wide,
+  .wa-grid--register .wa-item.s-tall,
+  .wa-grid--register .wa-item.s-std,
+  .wa-grid--register .wa-item.s-small {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .wa-grid--register .wa-item .pl {
+    display: block;
+  }
+
+  .wa-grid--register .wa-item .im {
+    aspect-ratio: 3 / 2;
+  }
+
+  /* Stacked, the primary media has the whole measure and a portrait asset
+     contained inside a 3:2 box would be a narrow strip in a wide frame. The box
+     follows the cover here, where it costs nothing: there is no second column to
+     stay level with, so a taller box is simply a taller image. */
+  .wa-grid--register .wa-item[data-cover="portrait"] .im {
+    aspect-ratio: 4 / 3;
+  }
+
+  .wa-grid--register .wa-item .cap {
+    margin-top: 14px;
+    display: block;
+  }
+
+  .wa-grid--register .wa-item .cap .t {
+    font-size: clamp(19px, 3vw, 24px);
+    line-height: 1.06;
+  }
+
+  .wa-grid--register .wa-item .cap .d {
+    margin-top: 14px;
+    padding-top: 11px;
+    border-top: 1px solid var(--hair);
+  }
+
+  /* Always visible — there is no hover on a touch screen, and the cue is the
+     unit's last reading. */
+  .wa-grid--register .wa-item .cap .go {
+    opacity: 1;
+    transform: none;
+    margin-top: 14px;
+    padding-top: 11px;
+    border-top: 1px solid var(--hair);
+  }
+
+  /* ---- The sheet, stacked ------------------------------------------------
+     One arrangement for every composition, and deliberately quieter than on
+     desktop: with the full measure available the four desktop compositions would
+     each read as a second gallery, and the sheet's job here is still "there is
+     more of this project". So it is a capped strip — three frames across, two
+     for a pair, one for a single — and only the FRAME PROPORTION follows the
+     assets, which is the part of the adaptive rule that still earns its keep at
+     this width. No horizontal overflow at any width: the cap is a `max-width`
+     over `minmax(0, 1fr)` tracks, so the strip shrinks with the viewport. */
+  .wa-grid--register .wa-item .gs {
+    margin-top: 16px;
+    max-width: min(100%, 466px);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .wa-grid--register .wa-item .gs-1 {
+    max-width: min(100%, 220px);
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .wa-grid--register .wa-item .gs-2 {
+    max-width: min(100%, 320px);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* The frames' own shape, from the same token the desktop compositions read.
+     A sheet of portraits stays portrait; anything else takes the landscape 4:3
+     that a small frame in a strip can carry without becoming a sliver. */
+  .wa-grid--register .wa-item .gf {
+    aspect-ratio: 4 / 3;
+  }
+
+  .wa-grid--register .wa-item .gs[data-preview-layout="p"] .gf,
+  .wa-grid--register .wa-item .gs[data-preview-layout="pp"] .gf,
+  .wa-grid--register .wa-item .gs[data-preview-layout="ppp"] .gf {
+    aspect-ratio: 3 / 4;
+  }
+}
+
+/* =============================================================================
+   A-5c · THE CURATED VIEWS' MASONRY — unchanged
+
+   `.wa-grid` without `--register`: the Competitions index and Professional
+   Experience. These are catalogues of a saved editorial filter, not the archive,
+   and the five-size packed grid is the right form for them — the entries are a
+   list of a studio's competition entries, and the page is not the place a
+   visitor browses projects one at a time. Nothing below moved.
+   ========================================================================== */
+
 @media (max-width: 960px) {
   .wa-grid {
     grid-template-columns: repeat(8, 1fr);
   }
 
+  /* Six of eight, not eight of eight — the widest catalogue cell gives two
+     columns back as authored silence so it cannot measure exactly what a lead
+     measures. Nothing backfills them (no `dense`), and the order is untouched. */
   .s-feature,
   .s-wide {
-    grid-column: span 8;
+    grid-column: span 6;
   }
 
   .s-tall,
@@ -472,6 +1136,9 @@
   .wa-grid {
     grid-template-columns: 1fr;
     grid-auto-rows: auto;
+    /* One column removes the column gap from the composition entirely, so the
+       row gap becomes the ONLY thing separating one entry from the next. */
+    row-gap: 52px;
   }
 
   /* One column: sizes stop meaning column spans, and the island clears the
@@ -480,7 +1147,6 @@
   .wa-grid .wa-item {
     grid-column: auto;
     grid-row: auto;
-    margin-bottom: 8px;
   }
 }
 
@@ -533,94 +1199,308 @@
 .wa-grid .im .plate-fixture {
   object-fit: cover;
   filter: grayscale(0.55) contrast(1.03);
+  /* See "THE HOVER STATE" below for why these two durations differ. */
   transition:
-    transform 1.2s var(--slow),
+    transform 0.42s var(--slow),
     filter 0.9s var(--slow);
 }
 
-/* Greyscale at rest, colour on inspection — the calm-browsing rule (:46) and
-   the reveal-as-inspection mechanism (§2.4). */
-.wa-grid .pl:hover .plate-img,
-.wa-grid .pl:focus-visible .plate-img,
-.wa-grid .pl:hover .plate-fixture,
-.wa-grid .pl:focus-visible .plate-fixture {
-  transform: scale(1.035);
+/* ---- Fitting — bound the crop, because there is no media-type signal ------
+   This archive holds photography, elevations, plans, exploded diagrams,
+   competition boards and orthophotos in the same set, and a board cropped to a
+   slot is a board with its title block missing. VISUAL_DIRECTION_v2.0 §9 makes
+   cropping authorship and forbids cropping "merely to fit a slot", so the
+   register does not crop merely to fit: `data-cover-fit` / `data-fit` carry a
+   per-asset decision made at build from the asset's own proportions against the
+   slot it will occupy (`work-archive/preview.ts` — `mediaFit`).
+
+   `cover` while the trim stays inside ~12% of one dimension; `contain` beyond it,
+   on the plate tone the box already paints. The tone is not a letterbox device
+   borrowed for the occasion — it is the same warm ground the HiFi paints under
+   every image and the same one an unrenderable asset falls back to.
+
+   REPORTED LIMITATION: it is a proxy for a media-type signal the Content Model
+   does not carry. A photograph shot at 2:1 is contained even though cropping it
+   would have been safe; that is the conservative direction, and the honest one
+   while the only thing the pipeline knows about an asset is its shape. */
+.wa-grid .wa-item[data-cover-fit="contain"] .im .plate-img,
+.wa-grid .gf[data-fit="contain"] .plate-img {
+  object-fit: contain;
+}
+
+.wa-grid .wa-item[data-cover-fit="cover"] .im .plate-img,
+.wa-grid .gf[data-fit="cover"] .plate-img {
+  object-fit: cover;
+}
+
+/* ---- THE HOVER STATE — one gesture, and it is photographic ---------------
+   Greyscale at rest, colour on inspection — the calm-browsing rule (:46) and
+   the reveal-as-inspection mechanism (§2.4). The photograph IS the hover: the
+   whole unit is one link, so the one element that reports the link is the one
+   the visitor came for.
+
+   ── WHAT THIS DELIBERATELY NO LONGER DOES ──────────────────────────────────
+   Three devices were removed rather than tuned, because each of them announced
+   the interaction somewhere other than the photograph:
+
+     · the blue rule that drew in under the title (`.cap .t::after`). It was the
+       loudest thing on the page at hover, it made the text column briefly
+       stronger than the image beside it, and a rule appearing under a title is
+       the one gesture that reads as a web card rather than a monograph;
+     · the growing blue mark inside the plate (`.mk`). A 40px bar arriving inside
+       the image frame is new visual STRUCTURE, not a state — and it was a second
+       simultaneous blue signal competing with the cue's arrow;
+     · the 3.5% plate scale, which at this size is a card zoom.
+
+   What is left is a 1.2% lift under `overflow: hidden` — the frame never moves,
+   only the picture inside it breathes — plus the authored colour bloom, plus the
+   cue's arrow. Blue is spent once, on the arrow that was already blue at rest,
+   so hover introduces no new colour anywhere.
+
+   TIMING. The lift resolves in 420ms; the colour bloom keeps its authored 0.9s.
+   They are deliberately not the same: the geometric part should be felt rather
+   than watched, and the colour is the slow editorial reveal §2.4 describes.
+
+   IDENTICAL ON BOTH FACINGS. Every selector here is on `.pl` and its media, and
+   `data-row` reverses column placement only — so an `a` row and a `b` row cannot
+   have different hovers.
+
+   ⚠ SCOPED TO `.im`, AND THAT IS LOAD-BEARING. Written as
+   `.pl:hover .plate-img` this rule reaches EVERY plate inside the link — the
+   cover and all three preview frames — because both use the same `Plate`
+   component and therefore the same class. The preview frames only transition
+   `filter`, so they took the scale with no easing at all: three thumbnails
+   snapping 1.2% the instant the pointer crossed the unit. The `.im` in the
+   middle of each selector is what makes "the cover is the only thing that
+   moves" true rather than approximately true. */
+.wa-grid .pl:hover .im .plate-img,
+.wa-grid .pl:focus-visible .im .plate-img,
+.wa-grid .pl:hover .im .plate-fixture,
+.wa-grid .pl:focus-visible .im .plate-fixture {
+  transform: scale(1.012);
   filter: grayscale(0) contrast(1.04);
 }
 
-/* The growing blue mark: activation, never decoration (§2.1). */
-.wa-grid .mk {
-  position: absolute;
-  left: 14px;
-  top: 14px;
-  width: 0;
-  height: 2px;
-  background: var(--blue);
-  transition: width 0.55s var(--slow);
-  z-index: 2;
-}
-
-.wa-grid .pl:hover .mk,
-.wa-grid .pl:focus-visible .mk {
-  width: 40px;
-}
-
-.wa-grid .pid {
-  position: absolute;
-  right: 12px;
-  top: 12px;
-  font-family: var(--mono);
-  font-size: 10px;
-  color: #fff;
-  mix-blend-mode: difference;
-  letter-spacing: 0.05em;
-  z-index: 2;
-}
-
+/* The 12px that binds a caption to the photograph above it — and an explicit
+   ZERO below it, which is not redundant: another page's stylesheet in the same
+   `pages` layer carries a bare `.cap { margin: 0 0 40px }` under
+   `@media (max-width: 820px)`, and the archive card's caption matches that
+   selector too. Below 820px it was therefore ending every project unit with
+   40px of borrowed margin, on top of the row gap — spacing the archive never
+   authored, and the reason its mobile entry separation could not be reasoned
+   about from this file. The margin is neutralised HERE, scoped to `.wa-grid`,
+   rather than by editing a rule that belongs to another page. */
 .wa-grid .cap {
-  margin-top: 12px;
+  margin: 12px 0 0;
   position: relative;
   display: block;
 }
 
+/* ---- The identity row — the entry's opening rule -------------------------
+   The coordinate label and the pillar tag, on one hairline-ruled row that opens
+   the project unit.
+
+   The HiFi prints the coordinate over the photograph in `mix-blend-mode:
+   difference`. It moves out of the plate for one reason: the featured entry has
+   to state its identity BESIDE its image, and a label burned into the plate
+   cannot leave the plate. Both readings already existed — this is the same
+   coordinate and the same pillar tag, on one line instead of two places — and
+   the blue stays exactly where §2.1 puts it, on the measured identifier.
+
+   ── IT RULES THE UNIT, NOT THE CAPTION (Direction A, §1) ──────────────────
+   It sits above the plate as the card's first child rather than inside `.cap`,
+   and it spans every column of the entry's own grid. That is the whole boundary
+   mechanism: with no cards, boxes, backgrounds or borders available, one
+   hairline drawn across the entry's full width — coordinate left, pillar right,
+   in the archive's existing hairline vocabulary — is what says "this rule and
+   everything under it, down to the next rule, is one project". Ruled across the
+   caption alone it stated where the TEXT began, which is not the same claim. */
+
+.wa-grid .cid {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--hair);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  /* COLOUR ONLY — see the activation rule below. Naming `border-color` rather
+     than `all` is the guarantee: no other property of this element can acquire a
+     transition by being added later. */
+  transition: border-color 0.3s var(--slow);
+}
+
+.wa-grid .cid .no {
+  color: var(--blue);
+  white-space: nowrap;
+}
+
+.wa-grid .cid .pl-tag {
+  color: var(--ink-60);
+  text-align: end;
+}
+
+/* ---- THE PROJECT-LEVEL SIGNAL — the boundary itself goes live ------------
+   The one hover state that belongs to the WHOLE unit rather than to a part of
+   it: the identity hairline moves from the neutral `--hair` to the accent.
+
+   WHY HERE AND NOWHERE ELSE. Every other hover signal is local — the cover
+   lifts, the sheet warms, the cue's arrow travels — and a row whose only
+   feedback is local reads as "this photograph is interactive" rather than "this
+   project is". This rule is already the element that answers that: it spans
+   `1 / -1` of the unit's own grid, so it runs the full measure across BOTH zones
+   on both facings, above whichever side the media happens to occupy. Colouring
+   it says the thing the composition already says, at the moment of activation.
+
+   WHAT IT DELIBERATELY IS NOT. Not a width animation, not a left-to-right draw,
+   not a second line, not a thickness change, not a background, not a box. The
+   1px, the padding, the margin and the flex layout are untouched, so this
+   changes exactly one computed value on one element. The coordinate is left
+   blue as it always was and the pillar tag is left at `--ink-60`: the brief's
+   preference is the hairline alone, and the rendered result does not need more.
+
+   300ms, in the existing easing — slower than a state toggle, quicker than the
+   plate's colour bloom, so it arrives with the row rather than announcing
+   itself. */
+.wa-grid .pl:hover .cid,
+.wa-grid .pl:focus-visible .cid {
+  border-bottom-color: var(--blue);
+}
+
+/* The title is STRUCTURALLY STABLE between rest and hover: no underline, no
+   bottom border, no rule across the column, no colour change, no change of
+   geometry of any kind. Whatever the pointer is doing, this element is the same
+   element — which is what keeps the text column from ever out-weighing the
+   photograph beside it.
+
+   `inline-block` + `position: relative` are kept as-is: the first is what makes
+   the title shrink-to-fit rather than stretch across its column, and both are
+   load-bearing for the curated views' narrower cells. */
 .wa-grid .cap .t {
   font-family: var(--pixel);
   font-size: clamp(17px, 1.5vw, 21px);
-  line-height: 1;
+  line-height: 1.06;
   display: inline-block;
   position: relative;
 }
 
-.wa-grid .cap .t::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 100%;
-  bottom: -3px;
-  height: 1.5px;
-  background: var(--blue);
-  transition: right 0.4s var(--slow);
-}
-
-.wa-grid .pl:hover .cap .t::after,
-.wa-grid .pl:focus-visible .cap .t::after {
-  right: 0;
+/* The place line — the caption's third reading, in the title's own voice one
+   step down and one step quieter, so it reads as the title's subtitle rather
+   than as another metadata token. */
+.wa-grid .cap .pc {
+  display: block;
+  margin-top: 7px;
+  font-family: var(--pixel);
+  font-size: clamp(14px, 1.15vw, 16px);
+  line-height: 1.1;
+  color: var(--ink-60);
 }
 
 .wa-grid .cap .d {
-  margin-top: 8px;
+  margin-top: 10px;
   font-family: var(--mono);
   font-size: 11px;
   /* --ink-60, not the HiFi's --ink-40: 11px functional text, WCAG 2.2 AA. */
   color: var(--ink-60);
   letter-spacing: 0.04em;
   display: flex;
-  gap: 14px;
+  gap: 9px;
   flex-wrap: wrap;
 }
 
-.wa-grid .cap .d .pl-tag {
-  color: var(--blue);
+/* The independent axes stay independent — the separator is punctuation between
+   readings, not a merge of them (§7.2, "do not merge them"). `--ink-40` is
+   permitted here because the dot is not text: it carries no reading of its own
+   and is not announced.
+
+   Bound to the END of the reading it follows, with a no-break space, rather than
+   to the start of the next one: in a narrow catalogue cell this line wraps, and
+   a `::before` dot travels to the next line and starts it with a floating
+   separator. */
+.wa-grid .cap .d > *:not(:last-child)::after {
+  content: "\00a0·";
+  color: var(--ink-40);
+}
+
+/* Each reading wraps as a whole or not at all. The line still wraps — it is a
+   `flex-wrap: wrap` row and the break falls in the 9px gap BETWEEN readings —
+   but "Releveu / documentare" no longer splits at its own spaces, which is what
+   left `· Patrimoniu` sitting alone on a line looking like a stray separator.
+   Deliberately per-token rather than on `.d` itself: a single unbreakable
+   metadata string would overflow the narrowest catalogue cell instead of
+   wrapping, and `min-width: 0` keeps the flex row itself shrinkable. */
+.wa-grid .cap .d {
+  min-width: 0;
+}
+
+.wa-grid .cap .d > * {
+  white-space: nowrap;
+}
+
+/* ---- The project preview sheet -------------------------------------------
+   A small contact sheet of the entry's OWN gallery, beneath its metadata. It is
+   a glimpse inside the project, not the W-2 Gallery: no zoom affordance, no
+   Media Viewer, no coordinates, no captions. Offering inspection here would be
+   an empty promise — the archive is a signposting surface, and the place those
+   images are inspectable is the Work Entry this card opens.
+
+   It carries the SAME grade as the cover above it and reveals colour with it, so
+   the frames read as belonging to the photograph they sit under rather than as a
+   separate strip of images. What it deliberately does not borrow is the cover's
+   scale-on-hover: three small boxes growing at once is motion for its own sake,
+   and MOTION_NOTES.md's restraint applies most where the element is smallest.
+
+   Sizing is per-composition and lives with each register in A-5a / A-5b; only
+   what is true at every width is declared here. */
+.wa-grid .gs {
+  display: grid;
+  gap: 8px;
+}
+
+.wa-grid .gf {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  background: #cbc6bc;
+}
+
+.wa-grid .gf .plate-img,
+.wa-grid .gf .plate-fixture {
+  object-fit: cover;
+  filter: grayscale(0.55) contrast(1.03);
+  /* Filter ONLY. There is deliberately no `transform` in this transition, so a
+     transform arriving from anywhere would jump rather than animate — and there
+     is deliberately no transform to arrive: see below. */
+  transition: filter 0.9s var(--slow);
+  /* ---- THE SHEET DOES NOT MOVE, AND THIS IS WHAT ENFORCES IT --------------
+     A declaration rather than an absence, because an absence was not enough
+     once already: the cover's hover rule reached these frames through the
+     `Plate` component's shared `.plate-img` class and scaled all three with it.
+
+     This sits later in the file than every `.pl:hover`/`:focus-visible` plate
+     rule and matches at equal-or-higher specificity, so it is the last word on
+     these images' geometry — a future shared or global plate rule cannot move
+     them without deleting this line, which is the point. The frames are pinned
+     documentation, not thumbnails: they take the colour of the photograph they
+     belong to and hold absolutely still. */
+  transform: none;
+}
+
+/* The sheet participates, and stays SUBORDINATE. It takes the colour bloom and
+   nothing else: no scale, no opacity step, no per-frame timing. Three small
+   boxes lifting at once is noise at exactly the size where restraint matters
+   most, and the composition must not appear to move — so the frames come up in
+   colour with the photograph they belong to, a beat slower, and hold still. */
+.wa-grid .pl:hover .gf .plate-img,
+.wa-grid .pl:focus-visible .gf .plate-img,
+.wa-grid .pl:hover .gf .plate-fixture,
+.wa-grid .pl:focus-visible .gf .plate-fixture {
+  filter: grayscale(0) contrast(1.04);
 }
 
 .wa-grid .cap .go {
@@ -638,8 +1518,25 @@
     transform 0.4s var(--slow);
 }
 
+/* The gap the markup cannot carry: Astro collapses the whitespace between the
+   label expression and the arrow element, which went unnoticed while the cue was
+   a hover reveal and reads as a typo now that the featured entry shows it at
+   rest. Spacing is the stylesheet's job anyway. */
 .wa-grid .cap .go .ar {
   color: var(--blue);
+  margin-inline-start: 8px;
+  display: inline-block;
+  transition: transform var(--t-state) var(--ease);
+}
+
+/* The cue's arrow is the ONLY explicit interaction signal left, and the only
+   blue on the unit — blue it already was at rest, so hover adds no colour
+   anywhere. It travels 4px and the words beside it do not move: the baseline,
+   the letter-spacing and the rule above it are identical in both states. No
+   background, box or pill is introduced. */
+.wa-grid .pl:hover .cap .go .ar,
+.wa-grid .pl:focus-visible .cap .go .ar {
+  transform: translateX(4px);
 }
 
 .wa-grid .pl:hover .cap .go,
@@ -826,9 +1723,15 @@
    "Content and layout are identical with motion removed." Every transition here
    resolves instantly; nothing moves, nothing is hidden, and the masonry, the
    sizes and the order are untouched — layout is not motion. The hover reveals
-   (`.go`, the underline draws, the blue mark) resolve to their VISIBLE state
-   rather than being disabled, so no information is reachable only through a
-   transition that no longer runs.
+   (`.go` in the curated views' cells) resolve to their VISIBLE state rather than
+   being disabled, so no information is reachable only through a transition that
+   no longer runs.
+
+   For the project unit this now amounts to: the plate's 1.2% lift is cancelled
+   outright (it is motion and carries no information), the colour bloom and the
+   arrow's 4px still happen but instantly, and the resting state is unchanged.
+   Nothing about the archive is knowable only by hovering, so cancelling the
+   motion costs no reading — which is the whole test :62 sets.
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
@@ -844,17 +1747,23 @@
   .wa-continue .ar,
   .wa-grid .im .plate-img,
   .wa-grid .im .plate-fixture,
-  .wa-grid .mk,
-  .wa-grid .cap .t::after,
+  .wa-grid .gf .plate-img,
+  .wa-grid .gf .plate-fixture,
+  /* The identity hairline still goes blue on activation — it is a state, not
+     motion — it simply arrives instantly instead of over 300ms. */
+  .wa-grid .cid,
   .wa-grid .cap .go,
+  .wa-grid .cap .go .ar,
   .wa-empty .reset .ar {
     transition: none !important;
   }
 
-  .wa-grid .pl:hover .plate-img,
-  .wa-grid .pl:focus-visible .plate-img,
-  .wa-grid .pl:hover .plate-fixture,
-  .wa-grid .pl:focus-visible .plate-fixture {
+  /* Must carry the SAME `.im` scope as the rule it cancels: without it this is
+     one class less specific and stops winning. */
+  .wa-grid .pl:hover .im .plate-img,
+  .wa-grid .pl:focus-visible .im .plate-img,
+  .wa-grid .pl:hover .im .plate-fixture,
+  .wa-grid .pl:focus-visible .im .plate-fixture {
     transform: none;
   }
 

@@ -3,14 +3,16 @@
  *
  * OWNER: Workstream B.
  *
- * Two documents and one reference list, exactly as `CONTENT_MODEL.md` §0 states: "There are
- * **two first-class objects**: the **Work Entry** and the **Service**", supported by "a small
- * **reference list** (Employer/Studio)". Nothing else is a document type — Pillar, Discipline,
- * Entry Type, Attribution, Sector and Status are axes on the Work Entry, not entities, and
- * turning any of them into a document would be adding a content axis, which §1.2 forbids.
+ * Two documents, exactly as `CONTENT_MODEL.md` states: "There are **two first-class objects**:
+ * the **Work Entry** and the **Service**". Nothing else is a document type — Pillar, Sector,
+ * Status and Labels are axes on the Work Entry, not entities, and turning any of them into a
+ * document would be adding a content axis, which §1.2 forbids.
+ *
+ * STAGE 2: the `employer` reference list is **deleted**. It existed only to group the
+ * Professional Experience curated view, which is permanently retired (`CONTENT_MODEL.md` v3.1
+ * §13, `DECISIONS_LOG.md` #97). No document type replaces it.
  */
 
-import { employer } from './employer'
 import {
   captureMetadata,
   curation,
@@ -31,7 +33,6 @@ export const schemaTypes = [
   // Documents
   workEntry,
   service,
-  employer,
 
   // Objects
   localizedString,

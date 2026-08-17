@@ -13,6 +13,13 @@ import { defineArrayMember, defineField, defineType } from 'sanity'
 
 import { PROMINENCE_OPTIONS, HIGHLIGHT_SLOT_OPTIONS, PILLAR_OPTIONS, STATUS_OPTIONS } from './fields'
 import { validateVocabulary, toSanityResult } from '../../src/lib/content/validation'
+import {
+  isApplicable,
+  resolveRequirements,
+  serviceKeysForPillar,
+  type ProjectField,
+} from '../../src/lib/content/requirements'
+import { PILLARS, type Pillar } from '../../src/lib/content/types'
 
 /* ────────────────────────────────────────────────────────────────────────────
  * Localized primitives — §7.1
@@ -265,6 +272,48 @@ export const seo = defineType({
   ],
 })
 
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * Service-activated fields — the shared resolver, applied to authoring
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * A metadata field whose relevance is decided by `requirements.ts`.
+ *
+ * ── WHY `hidden` USES THE PILLAR UNION, NOT THE EXACT SELECTION ─────────────
+ * Sanity's `hidden` callback is **synchronous** and receives the raw document, where `services`
+ * is an array of unresolved `{_ref}` objects. The Studio therefore cannot know the referenced
+ * Services' *keys* at the moment it decides whether to draw a field, and resolving them would
+ * mean either an async `hidden` (unsupported) or reading the key off a slug (forbidden — v3.1
+ * §14.3 exists precisely so nothing infers identity from an editable string).
+ *
+ * So visibility asks the resolver a question it *can* answer synchronously: **could any Service
+ * of this project's Pillar activate this field?** `document.pillar` is a top-level authored
+ * value and is always available. The answer is a deterministic over-approximation — Equipment
+ * never appears on an Architecture & Design project, Awards and Implementation Company never
+ * appear on a Reality Capture one — and it never hides a field the editor might legitimately
+ * need to fill.
+ *
+ * **Requiredness is not decided here.** The exact per-Service answer lives in the document-level
+ * async rule in `workEntry.ts`, which resolves the real keys and calls `validateFieldRequirements`.
+ * That rule is authoritative; this callback only spares the editor fields that can never apply.
+ * Both read the same table — no rule is restated in a callback.
+ */
+function conditional<T extends { name: string }>(field: T): T {
+  return {
+    ...field,
+    hidden: (context: { document?: unknown }) => {
+      const pillar = (context.document as { pillar?: string } | undefined)?.pillar as
+        | Pillar
+        | undefined
+      if (!pillar || !(PILLARS as readonly string[]).includes(pillar)) return false
+
+      const resolved = resolveRequirements(pillar, serviceKeysForPillar(pillar))
+      return !isApplicable(resolved[field.name as ProjectField] ?? 'not-applicable')
+    },
+  }
+}
+
 /* ────────────────────────────────────────────────────────────────────────────
  * Work Entry metadata — CONTENT_MODEL.md:54
  * ──────────────────────────────────────────────────────────────────────────── */
@@ -287,41 +336,64 @@ export const workEntryMetadata = defineType({
       type: 'string',
       options: { list: [...STATUS_OPTIONS], layout: 'radio' },
       description:
-        'Where the project stands. This is not the kind of project — that is "Type" — and it is never shown as a visitor filter.',
+        'Where the project stands. The same four values for every project, whichever capability it belongs to. Never shown as a visitor filter.',
       validation: (Rule) =>
         Rule.required().custom((value: string | undefined) =>
           toSanityResult(validateVocabulary(value, 'status', 'metadata.status')),
         ),
     }),
-    defineField({ name: 'location', title: 'Location', type: 'localizedString' }),
+    conditional(defineField({ name: 'location', title: 'Location', type: 'localizedString' })),
+    /* STAGE 8: Client is a base-mandatory field in BOTH Pillars (v3.1 §4, §6). The old
+       "leave empty for self-initiated work" is gone with the Commissioning axis (Stage 3). */
     defineField({
       name: 'client',
       title: 'Client',
       type: 'string',
-      description: 'Shown on the page. Leave empty for self-initiated work.',
+      description: 'Who the project was for. Required.',
+      validation: (Rule) => Rule.required(),
     }),
-    defineField({
+    conditional(defineField({
       name: 'collaborators',
       title: 'Collaborators',
       type: 'array',
       of: [defineArrayMember({ type: 'string' })],
       options: { layout: 'tags' },
-    }),
-    defineField({
+    })),
+    conditional(defineField({
       name: 'team',
       title: 'Team',
       type: 'array',
       of: [defineArrayMember({ type: 'string' })],
       options: { layout: 'tags' },
-    }),
-    defineField({ name: 'awards', title: 'Awards', type: 'localizedStringList' }),
-    defineField({
+    })),
+    conditional(defineField({ name: 'awards', title: 'Awards', type: 'localizedStringList' })),
+    conditional(defineField({
       name: 'area',
       title: 'Area (m²)',
       type: 'number',
       validation: (Rule) => Rule.positive(),
-    }),
+    })),
     defineField({ name: 'deliverables', title: 'Deliverables', type: 'localizedStringList' }),
+
+    /* ── Service-activated facts (v3.1 §5, §7) — STAGE 8 ───────────────────
+     *
+     * Visibility and requiredness come from `resolveRequirements`, the same table the build
+     * validates against. Nothing here restates a rule: `conditional()` asks the resolver.
+     */
+    conditional(defineField({
+      name: 'equipment',
+      title: 'Equipment',
+      type: 'array',
+      of: [defineArrayMember({ type: 'string' })],
+      options: { layout: 'tags' },
+      description: 'The instruments used. Required by laser scanning and by architectural photography.',
+    })),
+    conditional(defineField({
+      name: 'implementationCompany',
+      title: 'Implementation company',
+      type: 'string',
+      description: 'The firm that produced the furniture. Required by Design mobilier.',
+    })),
   ],
 })
 
@@ -375,13 +447,8 @@ export const captureMetadata = defineType({
       type: 'localizedString',
       description: 'As you would state it to a client, e.g. "2 mm at 10 m".',
     }),
-    defineField({
-      name: 'equipment',
-      title: 'Equipment',
-      type: 'array',
-      of: [defineArrayMember({ type: 'string' })],
-      options: { layout: 'tags' },
-    }),
+    /* STAGE 8: Equipment moved to Project facts. It is a fact about the project, not the
+       survey — *Fotografie de arhitectura* requires instruments and has no point cloud. */
     defineField({
       name: 'software',
       title: 'Software',

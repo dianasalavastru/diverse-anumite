@@ -9,7 +9,7 @@
  * ── WHY THIS FILE IS SHORT ────────────────────────────────────────────────
  * The Homepage's message file carries paragraphs, because the Homepage *is*
  * editorial copy. The Work Entry is the opposite: **every sentence on the page
- * comes from the Work Entry document** — title, description, authorship,
+ * comes from the Work Entry document** — title, description,
  * metadata, capture specifications. `WORK_ENTRY_WIREFRAME.md` puts it plainly:
  * the work is the protagonist and "the interface frames, never competes."
  *
@@ -43,34 +43,34 @@ export interface MarkerCopy {
  * fields that *may* appear, and a field with no value renders no row at all.
  */
 export interface MetadataLabels {
-  readonly discipline: string;
-  readonly entryType: string;
+  readonly labels: string;
   readonly sector: string;
   readonly year: string;
   readonly location: string;
   readonly status: string;
   readonly area: string;
   readonly client: string;
-  readonly commissioning: string;
   readonly deliverables: string;
   readonly awards: string;
   readonly team: string;
+  /** STAGE 8 — Service-activated project facts (v3.1 §5, §7). */
+  readonly equipment: string;
+  readonly implementationCompany: string;
   /** Unit suffix on Area. A unit, not prose — square metres in both locales. */
   readonly areaUnit: string;
 }
 
 /**
- * W-3 row labels. The three-way split of `CONTENT_MODEL.md`:60 is carried by
- * three separate labels, and they may never be merged into one "credits" line.
+ * W-3 row labels.
+ *
+ * STAGE 3: the three-way split of `CONTENT_MODEL.md`:60 — Attribution, Role, Authorship — is
+ * retired (v3.1 §12), and the Professional Experience link went with Stage 2. What is left is
+ * the one crediting row the model keeps: Collaborators. Team is also a crediting field in v3.1
+ * §13 but already renders in Project Metadata (or the competition module), and moving it would
+ * be a placement redesign rather than a retirement.
  */
 export interface CreditsLabels {
-  readonly attribution: string;
-  readonly employer: string;
-  readonly role: string;
-  readonly authorship: string;
   readonly collaborators: string;
-  /** Link out to the Professional Experience curated view (studio entries). */
-  readonly professionalExperience: string;
 }
 
 export interface ViewerLabels {
@@ -170,28 +170,23 @@ const ro: WorkEntryMessages = {
   },
 
   metadata: {
-    discipline: 'Domeniu',
-    entryType: 'Tip',
+    labels: 'Etichete',
     sector: 'Sector',
     year: 'An',
     location: 'Locatie',
     status: 'Status',
     area: 'Suprafata',
     client: 'Client',
-    commissioning: 'Context',
     deliverables: 'Livrabile',
     awards: 'Distinctii',
     team: 'Echipa',
+    equipment: 'Echipament',
+    implementationCompany: 'Firma implementare',
     areaUnit: 'm²',
   },
 
   credits: {
-    attribution: 'Atribuire',
-    employer: 'Birou',
-    role: 'Rol',
-    authorship: 'Autorat',
     collaborators: 'Colaboratori',
-    professionalExperience: 'Experienta profesionala',
   },
 
   evidence: {
@@ -250,7 +245,7 @@ const en: WorkEntryMessages = {
   markers: {
     facts: { no: '02', label: 'Technical sheet', coordinate: 'measured data' },
     evidence: { no: '03', label: 'The work', coordinate: 'description · images' },
-    credits: { no: '04', label: 'Credits', coordinate: 'honest attribution' },
+    credits: { no: '04', label: 'Credits', coordinate: 'colaboratori' },
     competition: { no: '05', label: 'Competition', coordinate: 'outcome · team' },
     capture: { no: '06', label: 'Reality capture', coordinate: "this project's survey" },
     services: { no: '07', label: 'Services demonstrated', coordinate: 'on this project' },
@@ -259,28 +254,23 @@ const en: WorkEntryMessages = {
   },
 
   metadata: {
-    discipline: 'Field',
-    entryType: 'Kind',
+    labels: 'Labels',
     sector: 'Sector',
     year: 'Year',
     location: 'Location',
     status: 'Status',
     area: 'Area',
     client: 'Client',
-    commissioning: 'Context',
     deliverables: 'Deliverables',
     awards: 'Awards',
     team: 'Team',
+    equipment: 'Equipment',
+    implementationCompany: 'Implementation company',
     areaUnit: 'm²',
   },
 
   credits: {
-    attribution: 'Attribution',
-    employer: 'Office',
-    role: 'Role',
-    authorship: 'Authorship',
     collaborators: 'Collaborators',
-    professionalExperience: 'Professional experience',
   },
 
   evidence: {

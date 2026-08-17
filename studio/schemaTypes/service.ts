@@ -11,10 +11,15 @@
 
 import { defineArrayMember, defineField, defineType } from 'sanity'
 
-import { PILLAR_OPTIONS, enPublishedField, localizedSlugField } from './fields'
+import {
+  PILLAR_OPTIONS,
+  SECTOR_OPTIONS,
+  SERVICE_KEY_OPTIONS,
+  enPublishedField,
+  localizedSlugField,
+} from './fields'
 import { SANITY_API_VERSION } from '../../src/lib/content/config'
 import {
-  SLUG_PATTERN,
   toSanityResult,
   toSanityWarning,
   validateEnAvailability,
@@ -102,6 +107,47 @@ export const service = defineType({
     },
 
     /**
+     * STAGE 8 — the Service's **stable machine identity** (v3.1 §14.3).
+     *
+     * Everything that depends on what a Service *means* depends on this and on nothing else:
+     * which fields a project must carry, which Pillar's picker offers it, what the build
+     * validates. Name and slug are yours to change at any time and changing them must never
+     * move a field requirement — which is the whole reason this field exists rather than the
+     * rules keying off the slug.
+     *
+     * **Required, unique, and set once.** `readOnly` engages the moment a value exists, so a
+     * key can be chosen on creation and never re-pointed afterwards; re-pointing it would
+     * silently rewrite the contract of every project referencing this Service. Uniqueness is
+     * checked against the dataset, because two Services sharing a key would make requirement
+     * resolution ambiguous.
+     */
+    defineField({
+      name: 'key',
+      title: 'Service identity',
+      type: 'string',
+      group: 'identity',
+      options: { list: [...SERVICE_KEY_OPTIONS] },
+      readOnly: ({ value }) => Boolean(value),
+      description:
+        'Which of the eight services this is. Chosen once, on creation, and locked afterwards — the site decides which fields each project must fill in from this, so it can never be re-pointed. Renaming the service or its address is always safe.',
+      validation: (Rule) =>
+        Rule.required().custom(async (value: string | undefined, context) => {
+          const vocabulary = toSanityResult(validateVocabulary(value, 'serviceKey', 'key'))
+          if (vocabulary !== true) return vocabulary
+
+          const id = (context.document?._id ?? '').replace(/^drafts\./, '')
+          const client = context.getClient({ apiVersion: SANITY_API_VERSION })
+          const taken = await client.fetch<boolean>(
+            'defined(*[_type == "service" && key == $key && !(_id in [$id, $draftId])][0]._id)',
+            { key: value, id, draftId: `drafts.${id}` },
+          )
+          return taken
+            ? `Another service already uses the identity '${value}'. Each of the eight exists once.`
+            : true
+        }),
+    }),
+
+    /**
      * IA §2.3: "Service → Pillar." Authored, not derived — a Service carries no Discipline, so
      * §7.4's derivation has nothing to work from. This is also the target of the F1 back-path.
      */
@@ -149,19 +195,27 @@ export const service = defineType({
       group: 'offering',
       description: 'For survey services. Real figures only — nothing here is calculated for you.',
     }),
+    /**
+     * STAGE 6: still an ARRAY, now on the closed vocabulary (v3.1 §11.1, decided 2026-08-14).
+     *
+     * This is deliberately NOT the project's `sector`. A project names the one sector it is in;
+     * a Service names the sectors it is **typically relevant in**, which is genuinely plural
+     * and genuinely optional. Same seven values, different cardinality, different question —
+     * do not collapse this to a scalar to make the two match.
+     */
     defineField({
       name: 'sectors',
       title: 'Typical sectors',
       type: 'array',
       group: 'offering',
       of: [defineArrayMember({ type: 'string' })],
-      options: { layout: 'tags' },
-      description: 'Lowercase, hyphenated — the same values the projects use.',
+      options: { list: [...SECTOR_OPTIONS], layout: 'grid' },
+      description:
+        'The sectors this service is usually relevant in. Tick any that apply, or none — this is not the sector of a single project.',
       validation: (Rule) =>
-        Rule.custom((value: string[] | undefined) => {
-          const bad = (value ?? []).filter((sector) => !SLUG_PATTERN.test(sector))
-          return bad.length === 0 ? true : `Use lowercase hyphenated values. Fix: ${bad.join(', ')}.`
-        }),
+        Rule.unique().custom((value: string[] | undefined) =>
+          toSanityResult((value ?? []).flatMap((sector) => validateVocabulary(sector, 'sector', 'sectors'))),
+        ),
     }),
     defineField({ name: 'hero', title: 'Lead image', type: 'imageWithAlt', group: 'offering' }),
 

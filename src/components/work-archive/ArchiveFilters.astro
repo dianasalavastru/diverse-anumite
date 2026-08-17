@@ -4,7 +4,7 @@
  *
  * Purpose: let a directed visitor narrow. Responsibility: "refine within scope;
  * **reduce complexity, don't expose taxonomy**." Inputs: "shared filters (Entry
- * Type + Sector) + one pillar-contextual refinement (Discipline/Service) +
+ * Label + Sector) + the pillar-contextual Service refinement +
  * Year-as-sort." Notes: "no Attribution filter (F2); never duplicates curated
  * views."
  *
@@ -18,13 +18,14 @@
  * "primary pillar tabs + contextual secondary chips + quiet search + result
  * count. Only the *meaning* of the secondary facet changes."
  *
- *   Entry Type   → the chip row. It is the axis the HiFi's chip row is already
- *                  labelled for ("Tip"), and a five-value closed vocabulary is
- *                  what chips are for.
- *   Sector       → a quiet select. The one OPEN axis (`CONTENT_MODEL.md`:53
- *                  ends in "…"), so its option count grows with the content and
- *                  a select is the control that does not wrap into a wall.
- *   refinement   → contextual chips, one row per pillar, revealed with the mode.
+ *   Label        → the chip row. It is the slot the HiFi's chip row is already
+ *                  labelled for ("Tip"), and a two-value closed vocabulary is
+ *                  what chips are for. Both values are always offered, even at
+ *                  zero matches (see facets.ts).
+ *   Sector       → a quiet select. Seven values since Stage 6 closed the axis,
+ *                  and a select is the control that does not wrap into a wall.
+ *                  Global to all three modes, and preserved across a switch.
+ *   refinement   → contextual Service chips, scoped per chip to the active mode.
  *                  IA:167 leaves "inline vs expander rendering of the contextual
  *                  refinement" open as a design-step decision; inline chips are
  *                  the HiFi's own answer and the one that keeps the state
@@ -49,8 +50,8 @@
  * Every option list is built from the entries the archive actually holds (see
  * facets.ts), so a control never offers a value that matches nothing.
  */
-import { type Discipline, type EntryType, type Locale, type Sector } from '../../lib/content';
-import { disciplineLabel, entryTypeLabel, sectorLabel } from '../../lib/i18n/vocabulary';
+import { type Locale, type ProjectLabel, type Sector } from '../../lib/content';
+import { projectLabelLabel, sectorLabel } from '../../lib/i18n/vocabulary';
 import type { WorkArchiveMessages } from '../../lib/i18n/work-archive';
 import { ARCHIVE_SORTS, type ArchiveFacetValues } from './archive-state';
 import type { ServiceOption } from './facets';
@@ -64,9 +65,9 @@ interface Props {
 
 const { locale, copy, values, services } = Astro.props;
 
-const types = values.types.map((value) => ({
+const labels = values.labels.map((value) => ({
   value,
-  label: entryTypeLabel(value as EntryType, locale),
+  label: projectLabelLabel(value as ProjectLabel, locale),
 }));
 
 const sectors = values.sectors.map((value) => ({
@@ -74,24 +75,20 @@ const sectors = values.sectors.map((value) => ({
   label: sectorLabel(value as Sector, locale),
 }));
 
-const disciplines = values.disciplines.map((value) => ({
-  value,
-  label: disciplineLabel(value as Discipline, locale),
-}));
-
 const sorts = ARCHIVE_SORTS.map((value) => ({ value, label: copy.sort[value] }));
 ---
 
 <div class="frow wa-filters" role="group" aria-label={copy.legend}>
-  {/* Shared filter 1 — Entry Type. `data-value=""` is "no refinement", checked
+  {/* Shared filter 1 — Project Label, global to all three pillar modes (v3.1 §10).
+      `data-value=""` is "no refinement", checked
       by default, so the group always has a checked radio and the "off" state is
       itself a visible, announced option rather than the absence of one. */}
-  <div class="chips" role="radiogroup" aria-label={copy.entryType.legend} data-facet="type">
+  <div class="chips" role="radiogroup" aria-label={copy.label.legend} data-facet="label">
     <button type="button" class="chip on" role="radio" aria-checked="true" tabindex="0" data-value="">
-      {copy.entryType.any}
+      {copy.label.any}
     </button>
     {
-      types.map((option) => (
+      labels.map((option) => (
         <button
           type="button"
           class="chip"
@@ -126,35 +123,27 @@ const sorts = ARCHIVE_SORTS.map((value) => ({ value, label: copy.sort[value] }))
   </div>
 </div>
 
-{/* The ONE pillar-contextual refinement. Both rows are prerendered and hidden;
-    the island reveals the one the active mode exposes and neither under All
-    (§23.5, "none for All"). Rendering them server-side keeps every label and
-    value in the markup, so the control that appears is complete and correctly
-    ordered rather than assembled by script. */}
-<div class="frow wa-contextual" data-contextual="architecture-design" hidden>
-  <span class="clab">{copy.discipline.legend}</span>
-  <div class="chips" role="radiogroup" aria-label={copy.discipline.legend} data-facet="discipline">
-    <button type="button" class="chip on" role="radio" aria-checked="true" tabindex="0" data-value="">
-      {copy.discipline.any}
-    </button>
-    {
-      disciplines.map((option) => (
-        <button
-          type="button"
-          class="chip"
-          role="radio"
-          aria-checked="false"
-          tabindex="-1"
-          data-value={option.value}
-        >
-          {option.label}
-        </button>
-      ))
-    }
-  </div>
-</div>
+{/* The pillar-contextual Service refinement — ONE row, scoped per chip.
 
-<div class="frow wa-contextual" data-contextual="reality-capture" hidden>
+    STAGE 5 gave this row `data-contextual="reality-capture"` and the island showed it only
+    under that mode. Service now exists under all three modes (2026-08-17, `DECISIONS_LOG.md`
+    #101), and the three obvious ways to say so are not equally good:
+
+      three rows        would repeat every A&D option in both the All row and the A&D row, and
+                        would put three groups in the DOM under one `data-facet="service"` —
+                        which the island's `groupFor()` resolves by taking the FIRST match, so
+                        the wrong group would receive every value it set.
+      script-built      would leave the authored names and canonical order out of the served
+                        HTML, which is the thing the server-side rendering here exists to avoid.
+      ONE row, per-chip → each option carries its Service's authored `pillar`, and the island
+                        hides the chips the active mode does not offer. One radiogroup, one copy
+                        of each option, every label and value in the markup, and visibility by
+                        the same `hidden` the row itself already used.
+
+    The default build state is `all`, so every chip is visible in the served HTML and the island
+    only ever narrows. The approved chip treatment is untouched: this is the same control, with
+    its membership decided per option instead of per row. */}
+<div class="frow wa-contextual" data-contextual="service">
   <span class="clab">{copy.service.legend}</span>
   <div class="chips" role="radiogroup" aria-label={copy.service.legend} data-facet="service">
     <button type="button" class="chip on" role="radio" aria-checked="true" tabindex="0" data-value="">
@@ -168,7 +157,8 @@ const sorts = ARCHIVE_SORTS.map((value) => ({ value, label: copy.sort[value] }))
           role="radio"
           aria-checked="false"
           tabindex="-1"
-          data-value={option.slug}
+          data-value={option.key}
+          data-pillar={option.pillar}
         >
           {option.label}
         </button>

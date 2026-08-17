@@ -1,5 +1,9 @@
 # Work Entry Page IA — authoritative blueprint
 
+> **⚠ AMENDED 2026-08-13 — simplified project model.** `docs/product/CONTENT_MODEL.md` v3.0 (CLIENT-VALIDATED) removes **Discipline** and **Entry Type / Project Type** from the model. Every reference to them below (notably "one blueprint for every Entry Type" — read it as "one blueprint for every project", with the W-4 competition module toggled by the `competition` **Label**) is superseded: Pillar is authored and single-valued (no cross-pillar entries), Services are multi-select and mandatory, CONCURS is an optional **Label**, and Sector is one closed global vocabulary. Structure, routes and page responsibilities are unchanged. Impact inventory: `docs/product/PROJECT_MODEL_IMPACT.md`.
+
+> **⚠ FURTHER AMENDED 2026-08-14 (v3.1) — crediting fields retired.** **Attribution, Employer/Office, Roles and the scoped Authorship statement no longer exist** (`CONTENT_MODEL.md` v3.1 §12, `DECISIONS_LOG.md` #91). Wherever this document names them as inputs, read **`Colaboratori` (Collaborators) and `Echipă` (Team)** — two optional, display-only lists, the model's only crediting fields. The *responsibility* they served — honest professional context, no over-claiming — is unchanged and is now carried by those two fields plus authored Description prose. **Status and Sector are closed, mandatory, single-select vocabularies** (§11.1, §11.2). The *Experiență profesională* view keeps its routes but has no membership rule until one is chosen (`PROJECT_MODEL_IMPACT.md` §1.7).
+
 The Work Entry defined as an **information-architecture object** — the canonical unit of *evidence* in the Work model. **One modular blueprint for every Entry Type** (Design Project · Concept/Study · Competition Entry · Survey/Documentation · Visualization Commission): a shared universal base plus optional type-specific modules (M3). All entries share this Page IA; they differ only in the content they consume and which optional modules they enable.
 
 Authoritative inputs (do not reopen or reinterpret): `HOMEPAGE_PAGE_IA.md`, `HUB_PAGE_IA.md`, `SERVICE_PAGE_IA.md`, `INFORMATION_ARCHITECTURE.md`, `CONTENT_MODEL.md` (frozen v2.1), `NAV_DECISION_RECORD.md`, `ARCHITECTURE_REVIEW_02.md`, `DECISIONS_LOG.md`.
@@ -55,7 +59,7 @@ Stages of understanding, not visual sections. The Core Facts → work → profes
 - *Hands next:* into professional context and type-specific substance.
 
 **Stage C — Professional context & honest crediting.**
-- *Understand:* the context in which the work was produced and the architect's exact contribution — Attribution, Employer, Role, scoped Authorship, and (studio) professional experience.
+- *Understand:* the context in which the work was produced and the architect's exact contribution — **Colaboratori and Echipă** *(v3.1 — was: Attribution, Employer, Role, scoped Authorship, and (studio) professional experience)*.
 - *Why:* these elements provide **professional context**, not only attribution; honest crediting builds trust and avoids over-claiming (studio / collaboration / visualization).
 - *Hands next:* (studio) the Professional Experience context; onward.
 
@@ -96,9 +100,9 @@ Stages of understanding, not visual sections. The Core Facts → work → profes
 **W-3 · Professional context & credits module (universal)** *(Stage C)*
 - *Why:* **establish credibility through transparency rather than ownership claims** — always present, regardless of Entry Type.
 - *Question:* in what context was this produced, whose work is it, and how is the contribution credited?
-- *Consumes:* Attribution, Employer, Role, scoped Authorship, Collaborators.
+- *Consumes:* **Colaboratori, Echipă** *(v3.1 — was: Attribution, Employer, Role, scoped Authorship, Collaborators)*. Absent when the project carries neither, per the W-5 no-empty-module rule.
 - *Destinations:* (studio entries) the **Professional Experience** curated view.
-- *Dependencies:* attribution/crediting fields.
+- *Dependencies:* the two crediting fields *(v3.1)*.
 - *Future:* none.
 
 **W-5 · Demonstrated-service module (Work→Service)** *(Stage E)*
@@ -174,7 +178,7 @@ Stages of understanding, not visual sections. The Core Facts → work → profes
 - **Clarity:** any arrival quickly understands what the project is and what kind of work it is, without the archive or homepage.
 - **Evidence quality:** the work is presented as **honest, contextualized evidence** to see and assess — not a pitch.
 - **Independent assessment:** the page gives enough for a visitor to **reach their own conclusion** about quality, expertise, and professional credibility — it does not persuade or claim excellence.
-- **Professional context & honest crediting:** Attribution, Employer, Role, and scoped Authorship are **always present and accurate** — establishing credibility through transparency, never over-claiming.
+- **Professional context & honest crediting:** **Colaboratori and Echipă are accurate whenever they are present** — establishing credibility through transparency, never over-claiming. *(v3.1: the fields named here previously — Attribution, Employer, Role, scoped Authorship — are retired, and crediting is no longer an always-present module.)*
 - **Integrity:** visitors **never leave with a misleading impression** regarding authorship, responsibility, collaboration, or project scope.
 - **Type expression:** the Work type's unique characteristics are expressed through the right optional modules; a cross-pillar entry can enable more than one.
 - **Routing:** clear paths to the demonstrated Service, related work, the parent Hub (F1), Professional Experience (studio), and contact.
@@ -196,8 +200,8 @@ Stages of understanding, not visual sections. The Core Facts → work → profes
 - **Design Project / Concept / Study** — description + drawings/plans/renders in W-2; Credits (often sole/independent); may demonstrate a design Service.
 - **Competition Entry** — enables the Competition module (awards/jury/team); often no demonstrated Service (W-5 hidden).
 - **Survey / Documentation (Reality Capture)** — enables the Reality Capture module (specs/accuracy/equipment/deliverables/point-cloud); demonstrates a capture Service.
-- **Visualization Commission** — scoped Authorship prominent (images by the architect; building design by others); demonstrates the visualization Service.
-- **Studio-attributed (any type)** — Credits foreground Employer + Role + scoped Authorship; links to Professional Experience.
+- **Visualization work** *(v3.1: a Service — Vizualizare 3D or Vizualizare de arhitectură — not an Entry Type)* — where the building design is someone else's, that is stated in the Description and in Colaboratori; there is no scoped Authorship field.
+- ~~**Studio-attributed (any type)** — Credits foreground Employer + Role + scoped Authorship; links to Professional Experience.~~ *(v3.1: retired with Attribution and Employer. Office work names the office in Colaboratori or Echipă.)*
 - These are **content and module-toggle differences only** — the Page IA (responsibility, flow, base modules, routing) is identical.
 
 ## Open (carried into wireframing / dependencies)

@@ -13,18 +13,18 @@
  * value no entry carries, and never invents one the Content Model does not have.
  *
  * Vocabulary ORDER comes from the frozen enumerations rather than from the data,
- * so the controls read the same on every build and in both locales. Sector is the
- * one open axis (`CONTENT_MODEL.md`:53 ends in "…"), so its known values keep
- * their canonical order and any authored value beyond them follows, sorted.
+ * so the controls read the same on every build and in both locales. STAGE 6
+ * closed Sector too, so every axis here is now a closed vocabulary and none of
+ * them needs an "authored values follow, sorted" tail.
  */
 
 import {
-  DISCIPLINES,
-  DISCIPLINE_TO_PILLAR,
-  ENTRY_TYPES,
-  KNOWN_SECTORS,
+  PROJECT_LABELS,
+  SECTORS,
   localize,
   type Locale,
+  type Pillar,
+  type ServiceKey,
   type ServiceSummary,
   type WorkArchiveItem,
 } from '../../lib/content';
@@ -34,22 +34,34 @@ import type { ArchiveFacetValues, ArchiveItemFacets } from './archive-state';
  * One item's facets, primary + secondary where the axis has both.
  *
  * See `ArchiveItemFacets` for why secondary values count: it is how
- * `inPillarScope` and `isCompetition` already define membership upstream, and
- * the visitor-facing filter must not answer that question differently from the
- * curated view built on the same axis.
+ * `inPillarScope` already defines membership upstream, and the visitor-facing
+ * filter must not answer that question differently from the curated view built
+ * on the same axis. Since Stage 5 that is plain equality on one authored Pillar;
+ * Labels are a plain 0..N set read exactly as `isCompetition` reads them.
  */
 export function itemFacets(item: WorkArchiveItem, locale: Locale): ArchiveItemFacets {
   return {
-    pillars: [item.pillars.primary, ...item.pillars.secondary],
-    types: [item.entryType.primary, ...item.entryType.secondary],
-    sectors: [...item.sectors],
-    disciplines: [item.discipline.primary, ...item.discipline.secondary],
-    /* Matched by localized slug (`types.ts`, `WorkArchiveItem.services`); an
-       untranslated Service simply contributes nothing in that locale, which is
-       the same gate §11.2 applies to its page. */
-    services: item.services
-      .map((service) => localize(service.slug, locale))
-      .filter((slug): slug is string => slug !== null),
+    /* One authored Pillar per project since Stage 5 — a single-element list, kept as a list so
+       `matchesArchiveState` stays one shape across every facet. */
+    pillars: [item.pillar],
+    labels: [...item.labels],
+    /* One authored Sector per project since Stage 6 — a single-element list, kept as a list so
+       every facet in this shape is matched the same way. */
+    sectors: [item.sector],
+    /*
+     * Matched by the **immutable `ServiceKey`** (v3.1 §14.3), never by a slug or a name.
+     *
+     * It used to be the localized slug, which made the archive's public filter vocabulary a
+     * function of two editable, per-locale strings: renaming a Service's Romanian slug silently
+     * invalidated every shared `?service=` link, and the RO and EN archives disagreed about what
+     * the same filter was called. `key` is the one identifier the model guarantees will not
+     * move, which is exactly why Stage 8 made it required, unique and immutable.
+     *
+     * Locale no longer gates membership here. It still gates the *control*: a Service with no
+     * name in this locale produces no option (see `serviceOptions`), and a value no control can
+     * express is not restorable — which is the rule the island already applies.
+     */
+    services: item.services.map((service) => service.key),
   };
 }
 
@@ -57,74 +69,70 @@ function present<T extends string>(canonical: readonly T[], found: ReadonlySet<s
   return canonical.filter((value) => found.has(value));
 }
 
-/** The option lists the controls render, in frozen-vocabulary order. */
+/**
+ * The option lists the controls render, in frozen-vocabulary order.
+ *
+ * ── TWO POPULATION RULES, AND THE LINE BETWEEN THEM ────────────────────────
+ * **Sector and Service are PRESENCE-scoped**: an option appears only if some item in the archive
+ * carries it, so a control never offers a value that matches nothing.
+ *
+ * **Label is VOCABULARY-scoped**: both canonical Labels are always offered, even at zero
+ * matches (2026-08-17 decision, `DECISIONS_LOG.md` #101). `PROJECT_LABELS` is a closed
+ * two-value global vocabulary, and *Proiect de diplomă* disappearing from the control until the
+ * first such project is published makes the archive's own taxonomy look incomplete — the visitor
+ * cannot tell an unused Label from a Label that does not exist. Selecting it is a valid state
+ * that renders the existing empty state.
+ *
+ * The exception is bounded to Labels **on purpose**. Sector is a seven-value vocabulary and
+ * Services are a growing catalogue of content objects; offering every one of those regardless of
+ * content would put dead ends in front of the visitor at a scale two chips do not.
+ */
 export function collectFacetValues(
   items: readonly WorkArchiveItem[],
   locale: Locale,
 ): ArchiveFacetValues {
-  const types = new Set<string>();
   const sectors = new Set<string>();
-  const disciplines = new Set<string>();
   const services = new Set<string>();
 
   for (const item of items) {
     const facets = itemFacets(item, locale);
-    for (const value of facets.types) types.add(value);
     for (const value of facets.sectors) sectors.add(value);
-    for (const value of facets.disciplines) disciplines.add(value);
     for (const value of facets.services) services.add(value);
   }
 
-  const knownSectors = present(KNOWN_SECTORS, sectors);
-  const authoredSectors = [...sectors]
-    .filter((value) => !(KNOWN_SECTORS as readonly string[]).includes(value))
-    .sort();
-
   return {
-    types: present(ENTRY_TYPES, types),
-    sectors: [...knownSectors, ...authoredSectors],
-    /**
-     * Scoped to the pillar whose refinement this is.
-     *
-     * Discipline is the Architecture & Design refinement, and
-     * `WORK_ARCHIVE_IMPLEMENTATION_NOTES.md`:90 names the axis "the
-     * Architecture-pillar craft". A cross-pillar entry
-     * (`CONTENT_MODEL.md`:63) is visible in BOTH pillar views and carries its
-     * Reality Capture discipline with it, so an unscoped list offers "Reality
-     * Capture" as a *discipline* refinement inside Architecture & Design —
-     * a control that exposes the taxonomy's plumbing rather than reducing
-     * complexity (`WORK_ARCHIVE_PAGE_IA.md` A-4). The derivation table §7.4
-     * decides membership; nothing new is defined here.
-     *
-     * Matching is unaffected: an item is still matched on its full Discipline
-     * assignment, so a cross-pillar entry remains reachable by its A&D
-     * discipline inside A&D and by Service inside Reality Capture.
-     */
-    disciplines: present(DISCIPLINES, disciplines).filter(
-      (value) => DISCIPLINE_TO_PILLAR[value] === 'architecture-design',
-    ),
+    labels: [...PROJECT_LABELS],
+    sectors: present(SECTORS, sectors),
     services: [...services],
   };
 }
 
 /**
- * The Service options: the *authored name* of every Service the archive
- * demonstrates, keyed by its localized slug.
+ * The Service options: the *authored name* of every Service the archive demonstrates, carried
+ * by its immutable `key` and tagged with its authored `pillar`.
  *
- * Services are content objects, not an enum (`CONTENT_MODEL.md` §2), so their
- * labels can only come from `ContentSource.serviceSummaries()` — never from a
- * label map in `vocabulary.ts`. Order is B's (curation-led); Services no entry
- * demonstrates are dropped, so the Reality Capture refinement never offers a
- * value that matches nothing.
+ * Services are content objects, not an enum (`CONTENT_MODEL.md` §2), so their labels can only
+ * come from `ContentSource.serviceSummaries()` — never from a label map in `vocabulary.ts`.
+ * Order is B's (curation-led); Services no entry demonstrates are dropped, so no control ever
+ * offers a value that matches nothing.
  *
- * Scoped to Reality Capture for the same reason the Discipline list is scoped to
- * Architecture & Design: this is *that pillar's* refinement. A Service carries an
- * authored `pillar` (IA §2.3, "Service → Pillar"), so the scope is read, never
- * derived — and an Architecture & Design service demonstrated by a cross-pillar
- * entry does not leak into the Reality Capture control.
+ * ── STAGE 5's REALITY-CAPTURE SCOPE IS GONE ────────────────────────────────
+ * This used to `continue` past every Service whose pillar was not `reality-capture`, because
+ * Service was the one pillar-contextual refinement left after Discipline was retired and
+ * widening it depended on the Service contract Stage 8 completed. It has, so the refinement now
+ * exists under **all three** archive modes (2026-08-17 decision, `DECISIONS_LOG.md` #101).
+ *
+ * The list returned here is the whole demonstrated set across both Pillars; narrowing it to a
+ * mode is `servicesInScope`'s job, and it is a pure function of the key, so the control and the
+ * URL validator cannot disagree about which Services a mode offers.
+ *
+ * **Presence-scoping is unchanged, and deliberately so.** Labels became vocabulary-driven in the
+ * same decision; Services did not. A closed two-value vocabulary can afford to offer a value
+ * that matches nothing; a growing content-object catalogue cannot.
  */
 export interface ServiceOption {
-  readonly slug: string;
+  readonly key: ServiceKey;
+  readonly pillar: Pillar;
   readonly label: string;
 }
 
@@ -136,11 +144,9 @@ export function serviceOptions(
   const options: ServiceOption[] = [];
 
   for (const summary of summaries) {
-    if (summary.pillar !== 'reality-capture') continue;
-    const slug = localize(summary.slug, locale);
     const label = localize(summary.name, locale);
-    if (!slug || !label || !available.includes(slug)) continue;
-    options.push({ slug, label });
+    if (!label || !available.includes(summary.key)) continue;
+    options.push({ key: summary.key, pillar: summary.pillar, label });
   }
 
   return options;

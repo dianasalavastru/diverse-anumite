@@ -44,10 +44,11 @@ import PillarToggle from './PillarToggle.astro';
 import ResultsGrid from './ResultsGrid.astro';
 import ViewTransition from '../ViewTransition.astro';
 
-import type { Locale } from '../../lib/content';
+import { PILLARS, type Locale } from '../../lib/content';
 import { routePath } from '../../lib/i18n/routes';
+import { pillarLabel } from '../../lib/i18n/vocabulary';
 import { workArchiveMessages } from '../../lib/i18n/work-archive';
-import { collectFacetValues, serviceOptions } from './facets';
+import { collectFacetValues, itemFacets, serviceOptions } from './facets';
 
 /* ── I-3, SWAPPED — this import and this call, nothing else ───────────────── */
 import { contentSource } from '../../lib/content/build-source';
@@ -69,6 +70,25 @@ const [items, services] = await Promise.all([
 /** Option lists projected from the rendered set — never from the full vocabulary. */
 const values = collectFacetValues(items, locale);
 const serviceChoices = serviceOptions(services, values.services, locale);
+
+/**
+ * The masthead's quiet secondary readout: how the total divides across the two
+ * pillars.
+ *
+ * MEASURED, not authored. Membership is `itemFacets`' own pillar projection —
+ * the same primary + secondary rule the pillar tab filters on — so the number
+ * printed here is exactly the number the visitor gets by pressing that tab, and
+ * a cross-pillar entry is counted in both views because that is where it
+ * appears. The two counts therefore need not sum to the total, and must not be
+ * made to: `CONTENT_MODEL.md`:63's composite entry is one entry in two scopes.
+ *
+ * IA §3.2 forbids structural primacy between the pillars, so they are read from
+ * the frozen `PILLARS` order and rendered identically.
+ */
+const breakdown = PILLARS.map((pillar) => ({
+  label: pillarLabel(pillar, locale),
+  count: items.filter((item) => itemFacets(item, locale).pillars.includes(pillar)).length,
+}));
 
 const basePath = routePath('workArchive', locale);
 ---
@@ -109,6 +129,8 @@ const basePath = routePath('workArchive', locale);
       statement={copy.orientation.statement}
       total={items.length}
       totalLabel={copy.orientation.total}
+      breakdown={breakdown}
+      breakdownLabel={copy.pillar.legend}
     />
 
     {/* The control region: quiet, consistent, and never louder than the work
@@ -136,7 +158,13 @@ const basePath = routePath('workArchive', locale);
     <section class="wa-results" aria-labelledby="wa-results-heading" tabindex="-1" data-archive-region>
       <h2 class="wa-sr" id="wa-results-heading">{copy.results.label}</h2>
 
-      <ResultsGrid locale={locale} items={items} openLabel={copy.results.open} filterable />
+      <ResultsGrid
+        locale={locale}
+        items={items}
+        openLabel={copy.results.open}
+        filterable
+        register
+      />
 
       <ArchiveEmptyState
         locale={locale}

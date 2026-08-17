@@ -8,7 +8,34 @@
  *
  * WORK_ARCHIVE_WIREFRAME A-5: "the results region is the emotional and visual
  * center of the Archive — the work is the protagonist". So the grid owns the
- * editorial masonry (cells, sizes, order) and the card owns the card.
+ * presentation of the set (cells, sizes, order, which entry leads) and the card
+ * owns the card.
+ *
+ * ── TWO PRESENTATIONS OF ONE SET ───────────────────────────────────────────
+ * `register` selects between them, and it is the only switch:
+ *
+ *   on   the WORK ARCHIVE's project register — one project per row, every row
+ *        the same full-width editorial unit of cover, information and a preview
+ *        of its own gallery, alternating side to side. No entry is physically
+ *        larger than another; the five-size vocabulary is not consulted here at
+ *        all (see A-5a, and §18 of this file's brief).
+ *   off  the CURATED VIEWS' masonry catalogue — the packed five-size grid,
+ *        unchanged, with no preview sheet (a third of a cell is no place for
+ *        three thumbnails) and the measured row-span engine still running.
+ *
+ * The CSS reads the same flag through `.wa-grid--register`, and the island reads
+ * it through `data-archive-masonry`, so no third source can disagree with it.
+ *
+ * ── WHERE PROMINENCE WENT ──────────────────────────────────────────────────
+ * Nowhere. `archiveSize` still runs for every cell on every surface and every
+ * cell still carries its `s-*` class, because the curated views still lay out a
+ * packed grid from it and `curation.prominence` is still editorial metadata
+ * (`WORK_ARCHIVE_IMPLEMENTATION_NOTES.md`:104–113). What changed is that the
+ * REGISTER no longer translates it into footprint: a register whose entries
+ * differ in width is a register with a hierarchy of physical size in it, and the
+ * whole point of the form is that the projects are peers. Prominence continues to
+ * decide what a visitor meets FIRST, through `curated` order, which is the same
+ * editorial lever expressed where a register can express it.
  *
  * ── WHAT THE CELL CARRIES, AND WHY ─────────────────────────────────────────
  * Three groups of attributes, each with one job:
@@ -33,10 +60,13 @@
  * is also exactly what IA Step 4 means by "browse is default".
  */
 import WorkPreviewCard from '../WorkPreviewCard.astro';
+import type { PreviewFrame } from '../WorkPreviewCard.astro';
 import { localize, type Locale, type WorkArchiveItem } from '../../lib/content';
 import { routePath } from '../../lib/i18n/routes';
+import { devPreviewSlots, devVisualImage, poolForPillar } from '../../lib/dev/visual-media';
 import { itemFacets } from './facets';
 import { archiveSize, computeArchiveRanks, type ArchiveRanks, type ArchiveScope } from './masonry';
+import { COVER_SLOT, mediaFit, previewComposition, slotRatioFor } from './preview';
 
 interface Props {
   locale: Locale;
@@ -46,9 +76,20 @@ interface Props {
   openLabel: string;
   /** Rendered only where the archive's filter island is mounted. */
   filterable?: boolean;
+  /**
+   * Present the set as the archive's PROJECT REGISTER rather than as the curated
+   * views' masonry catalogue: one project per row, every row the same footprint,
+   * alternating cover-left / cover-right down the page.
+   *
+   * A presentation flag, and only that. It changes no ordering, no membership, no
+   * filter semantics and no URL — and it pins nothing: the alternation is read off
+   * the CURRENT visible sequence, so after a filter or a re-sort the first result
+   * is row A again, whichever entry that now is.
+   */
+  register?: boolean;
 }
 
-const { locale, items, openLabel, filterable = false } = Astro.props;
+const { locale, items, openLabel, filterable = false, register = false } = Astro.props;
 
 const ranks = computeArchiveRanks(items);
 
@@ -68,6 +109,75 @@ const counters = { 'architecture-design': 0, 'reality-capture': 0 };
 /** Authored plate tones, cycled — the HiFi paints a warm ground under each image. */
 const TONES = ['#c9c4ba', '#cbc6bc', '#c6c1b7', '#cec9bf'];
 
+/**
+ * The project preview — at most three of the entry's OWN gallery images.
+ *
+ * Composed here rather than in the card for the reason the card's `preview` prop states: the
+ * card's frozen input is a `WorkEntrySummary`, and only the archive projection carries
+ * `galleryPreview`. The grid is also the component the Inventory makes responsible for
+ * presenting a *set*, and "which of this entry's images appear beside it" is a presentation
+ * decision about one row of that set.
+ *
+ * Two rules this function exists to make unbreakable:
+ *   1. every frame comes from `item` — the images are read off the entry being rendered, so a
+ *      neighbouring project's media cannot reach this row even by accident;
+ *   2. an absent gallery produces an EMPTY sheet, never a substitute. The cover is not repeated
+ *      and no placeholder is invented (§10.4); the unit's authored 0-image composition handles
+ *      it, and today that is the composition every real entry renders.
+ *
+ * The `devPreviewSlots` branch is the visual-QA overlay and returns 0 in every build that did
+ * not set `DEV_VISUAL_MEDIA=true` — see `lib/dev/visual-media.ts`, which documents at length why
+ * this is the one overlay call that creates boxes instead of filling them.
+ */
+const previewFrames = (item: WorkArchiveItem, devPoolKey: string): readonly PreviewFrame[] => {
+  const real = item.galleryPreview.map((image) => ({ image, devKey: null }));
+  if (real.length > 0) return real;
+
+  return Array.from({ length: devPreviewSlots(devPoolKey) }, (_unused, slot) => ({
+    image: null,
+    devKey: `${item._id}:archive-preview-${slot}`,
+  }));
+};
+
+/**
+ * The proportions a frame will actually render at.
+ *
+ * `previewComposition` and `mediaFit` both need intrinsic dimensions, and a frame has them in
+ * one of two places: a real gallery asset carries its own, and a dev-overlay stand-in carries
+ * the manifest's. Resolved here, once, so the grid asks the same question the `Plate` inside the
+ * card will answer — `devVisualImage` is a pure function of `(pool, key)`, so the two agree by
+ * construction rather than by coincidence.
+ *
+ * Null in a production build for a frame with no renderable asset, which `classifyAspectRatio`
+ * and `mediaFit` both handle as "cannot be measured" — the landscape slot and `contain`.
+ */
+const frameSource = (frame: PreviewFrame, pool: ReturnType<typeof poolForPillar>) =>
+  frame.image ?? (frame.devKey === null ? null : devVisualImage(pool, frame.devKey));
+
+/**
+ * One project's preview sheet: the frames in composition order, each with the fit its own
+ * proportions earn, plus the semantic layout token the stylesheet reads.
+ *
+ * The card is handed the RESULT — it renders frames and sets an attribute. Which frame anchors
+ * the sheet, and whether an asset may be cropped to fill its slot, are decisions about a set of
+ * images, and the Inventory makes the Results Grid the component responsible for presenting a
+ * set. `preview.ts` holds the rules; this composes them for one row.
+ */
+const previewSheet = (item: WorkArchiveItem, pool: ReturnType<typeof poolForPillar>) => {
+  const composition = previewComposition(previewFrames(item, `${item._id}:card`), (frame) =>
+    frameSource(frame, pool),
+  );
+  if (!composition) return { layout: undefined, frames: [] as readonly PreviewFrame[] };
+
+  return {
+    layout: composition.layout,
+    frames: composition.frames.map((frame) => {
+      const source = frameSource(frame, pool);
+      return { ...frame, fit: mediaFit(source, slotRatioFor(source)) };
+    }),
+  };
+};
+
 const cells = items.flatMap((item, index) => {
   const slug = localize(item.slug, locale);
   const title = localize(item.title, locale);
@@ -75,11 +185,21 @@ const cells = items.flatMap((item, index) => {
      exists. It is dropped rather than rendered as a dead card. */
   if (!slug || !title) return [];
 
-  const pillar = item.pillars.primary;
+  const pillar = item.pillar;
   counters[pillar] += 1;
 
   const facets = itemFacets(item, locale);
   const rank = ranks.get(item._id);
+
+  /* The same pool the card's own `Plate` will pick from — one expression, evaluated here so the
+     grid can measure the frames it is about to hand over. Inert without `DEV_VISUAL_MEDIA`. */
+  const devPool = poolForPillar(item.pillar, `${item._id}:card`);
+  /* Only the register shows a contact sheet. The curated views below (Competitions,
+     Professional Experience) render the masonry catalogue, whose cells are a fraction of this
+     width — three thumbnails inside one would be noise, not a preview. */
+  const sheet = register
+    ? previewSheet(item, devPool)
+    : { layout: undefined, frames: [] as readonly PreviewFrame[] };
 
   return [
     {
@@ -91,6 +211,31 @@ const cells = items.flatMap((item, index) => {
       tone: TONES[index % TONES.length] as string,
       facets,
       rank,
+      /**
+       * The cover's own proportions, published for the stylesheet.
+       *
+       * The REGISTER no longer branches on it — every project row gives its cover the same box,
+       * because a box that changes shape with the asset changes the row height with it and the
+       * register's whole claim is that the projects are peers. What the register does instead is
+       * decide how the asset MEETS that box (`coverFit` below), which answers the cropping
+       * question VISUAL_DIRECTION_v2.0 §9 raises without spending row rhythm on it.
+       *
+       * Still published, because the mobile register and the curated masonry both read it, and
+       * because it is true of the entry. A cover the CMS does not hold has no proportions to
+       * follow and takes the landscape default.
+       */
+      cover: item.cover && item.cover.height > item.cover.width ? 'portrait' : 'landscape',
+      /**
+       * Whether the cover may fill its box or must be contained on the plate tone — see
+       * `preview.ts`'s `mediaFit` for the whole argument. The dev overlay's stand-in is measured
+       * exactly like a real asset, so a QA pass reviews the real fitting behaviour.
+       */
+      coverFit: mediaFit(
+        item.cover ?? devVisualImage(devPool, `${item._id}:card`),
+        COVER_SLOT,
+      ),
+      preview: sheet.frames,
+      previewLayout: sheet.layout,
     },
   ];
 });
@@ -101,17 +246,54 @@ const scopeRank = (rank: ArchiveRanks | undefined, scope: ArchiveScope): string 
 };
 ---
 
-<div class="wa-grid" data-archive-grid={filterable ? '' : undefined}>
+{
+  /*
+   * ── TWO PRESENTATIONS, ONE GRID ──────────────────────────────────────────
+   * `wa-grid--register` (the Work Archive) is the REGISTER: one project per row,
+   * every row a full editorial unit of cover + information + preview at the same
+   * footprint. `wa-grid` alone (the curated views) is the masonry catalogue it
+   * has always been.
+   *
+   * `data-archive-masonry` is the island's handle on the difference. The
+   * measured row-span engine exists to pack cells of unequal height into
+   * shared columns; a register places one item per row, so a span there is at
+   * best a no-op and at worst a hole. The flag is set from the same condition
+   * that chooses the CSS, so the two cannot disagree.
+   *
+   * ── THE ALTERNATION, AND WHY IT IS AN INDEX ──────────────────────────────
+   * `data-row` is `a` on even positions and `b` on odd ones, and `b` mirrors the
+   * WHOLE unit: cover right, information left. Nothing else about the unit
+   * changes, and the sheet inside the information column is never mirrored with
+   * it — its grammar is the assets', and a project's contact sheet must not read
+   * differently because of where the project fell in a list.
+   *
+   * It is deliberately the VISIBLE POSITION and nothing else. Not pillar, not
+   * entry type, not prominence, not the cover's orientation, not a build-time
+   * index frozen into the markup: any of those would make the rhythm an accident
+   * of content, and would break the moment a filter removed an entry. The server
+   * renders discovery order, the island re-marks after every state change, and
+   * the answer to "which way does this row face" is always "count the rows above
+   * it that are showing".
+   */
+}
+<div
+  class:list={['wa-grid', register && 'wa-grid--register']}
+  data-archive-grid={filterable ? '' : undefined}
+  data-archive-register={register ? '' : undefined}
+  data-archive-masonry={register ? undefined : ''}
+>
   {
-    cells.map((cell) => (
+    cells.map((cell, index) => (
       <article
         class:list={['wa-item', 'rv', `s-${cell.size}`]}
         data-rv="img"
         data-work=""
+        data-row={register ? (index % 2 === 0 ? 'a' : 'b') : undefined}
+        data-cover={cell.cover}
+        data-cover-fit={register ? cell.coverFit : undefined}
         data-facet-pillars={cell.facets.pillars.join(' ')}
-        data-facet-types={cell.facets.types.join(' ')}
+        data-facet-labels={cell.facets.labels.join(' ')}
         data-facet-sectors={cell.facets.sectors.join(' ')}
-        data-facet-disciplines={cell.facets.disciplines.join(' ')}
         data-facet-services={cell.facets.services.join(' ')}
         data-rank-curated-all={scopeRank(cell.rank, 'all')}
         data-rank-curated-architecture-design={scopeRank(cell.rank, 'architecture-design')}
@@ -128,6 +310,8 @@ const scopeRank = (rank: ArchiveRanks | undefined, scope: ArchiveScope): string 
           place={cell.place}
           openLabel={openLabel}
           tone={cell.tone}
+          preview={cell.preview}
+          previewLayout={cell.previewLayout}
         />
       </article>
     ))

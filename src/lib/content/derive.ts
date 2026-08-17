@@ -10,42 +10,27 @@
  */
 
 import {
-  DISCIPLINE_TO_PILLAR,
-  type DisciplineAssignment,
   type Localized,
   type Locale,
-  type Pillar,
-  type PillarAssignment,
+  type ProjectLabel,
   type Service,
   type ServiceSummary,
   type WorkEntry,
   type WorkEntrySummary,
 } from './types.js';
 
-/**
- * Pillar derivation (§7.4). **Primary Pillar = the pillar of the primary Discipline** — it
- * determines the default contextual back-path and archive scoping (IA §2.3, M2). Secondary
- * pillars come from secondary Disciplines, deduplicated and excluding the primary; an entry
- * may resolve into both pillars with one primary (`CONTENT_MODEL.md`:63).
+/*
+ * STAGE 5 — `derivePillars()` and `isCrossPillar()` are deleted.
  *
- * Pillar is never an editable field. OD-7 (composite-entry override) is open and additive.
+ * Pillar is **authored** now (v3.1 §2): one stored value per project, chosen by the editor. The
+ * derivation table it read is gone, and so is the idea it existed to express — a project
+ * resolving into two pillars at once. Work genuinely spanning both is **two linked projects**,
+ * related through `WorkEntry.relatedWork`.
+ *
+ * There is deliberately **no fallback**: nothing here quietly re-derives a pillar from a legacy
+ * `discipline` field. A document without an authored `pillar` fails the build loudly at
+ * `normalize.ts`, which is what surfaces the un-migrated dataset instead of hiding it.
  */
-export function derivePillars(discipline: DisciplineAssignment): PillarAssignment {
-  const primary = DISCIPLINE_TO_PILLAR[discipline.primary];
-  const secondary: Pillar[] = [];
-
-  for (const value of discipline.secondary) {
-    const pillar = DISCIPLINE_TO_PILLAR[value];
-    if (pillar !== primary && !secondary.includes(pillar)) secondary.push(pillar);
-  }
-
-  return { primary, secondary };
-}
-
-/** A cross-pillar / composite entry surfaces in both pillar views (`CONTENT_MODEL.md`:63). */
-export function isCrossPillar(pillars: PillarAssignment): boolean {
-  return pillars.secondary.length > 0;
-}
 
 /**
  * Read one locale off a localized field. Returns `null` when the EN counterpart is
@@ -85,9 +70,9 @@ export function toWorkEntrySummary(entry: WorkEntry): WorkEntrySummary {
     title: entry.title,
     slug: entry.slug,
     enPublished: entry.enPublished,
-    pillars: entry.pillars,
-    entryType: entry.entryType,
-    sectors: entry.sectors,
+    pillar: entry.pillar,
+    labels: entry.labels,
+    sector: entry.sector,
     year: entry.metadata.year,
     status: entry.metadata.status,
     cover: entry.cover,
@@ -99,6 +84,7 @@ export function toWorkEntrySummary(entry: WorkEntry): WorkEntrySummary {
 export function toServiceSummary(service: Service): ServiceSummary {
   return {
     _id: service._id,
+    key: service.key,
     name: service.name,
     slug: service.slug,
     enPublished: service.enPublished,
@@ -107,4 +93,47 @@ export function toServiceSummary(service: Service): ServiceSummary {
     hero: service.hero,
     curation: service.curation,
   };
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * Project Labels — CONTENT_MODEL.md v3.1 §10 (ADDED AT MIGRATION STAGE 4)
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * The minimum an object needs for a Label test. Satisfied by `WorkEntry`, `WorkEntrySummary`
+ * and `WorkArchiveItem` alike, so the archive, the curated view and the Work Entry page share
+ * one predicate instead of each shape growing its own.
+ */
+export interface LabelledItem {
+  readonly labels: readonly ProjectLabel[];
+}
+
+/**
+ * Does this project carry a given Label? — **the one canonical membership test**.
+ *
+ * Membership is `includes`, never equality against the whole array: Labels are 0..N and not
+ * mutually exclusive (v3.1 §10), so a project carrying both `competition` and `diploma-project`
+ * matches both tests, contributes exactly one row to either filtered set, and is unaffected by
+ * the order the editor ticked them in.
+ *
+ * It lives in this file rather than in `source.ts` because both halves of the §8 boundary need
+ * it: the curated view and the archive read it from the build-time side, and W-4's module
+ * toggle reads it from a browser-reachable component. One rule, two callers, no drift.
+ */
+export function hasLabel(item: LabelledItem, label: ProjectLabel): boolean {
+  return item.labels.includes(label);
+}
+
+/**
+ * IA §5: a curated view's membership is a **taxonomy filter**; selection and order come from
+ * the curation layer.
+ *
+ * STAGE 4: Competitions membership moved from `entryType` (primary or secondary) to the
+ * `competition` Label. Entry Type is retired outright (v3.1 §12); `competition-entry` is the
+ * single piece of its semantics that survives, now an optional flag rather than a mandatory
+ * axis value. The view, its routes, its ordering and its page are unchanged — only what decides
+ * membership moved.
+ */
+export function isCompetition(item: LabelledItem): boolean {
+  return hasLabel(item, 'competition');
 }

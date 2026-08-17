@@ -15,20 +15,16 @@
 
 import type { StructureResolver } from 'sanity/structure'
 
-import { DISCIPLINE_TO_PILLAR, type Discipline, type Pillar } from '../src/lib/content/types'
-
-/** Derived from §7.4's table rather than restated, so the two can never disagree. */
-function disciplinesOf(pillar: Pillar): string[] {
-  return (Object.keys(DISCIPLINE_TO_PILLAR) as Discipline[]).filter(
-    (discipline) => DISCIPLINE_TO_PILLAR[discipline] === pillar,
-  )
-}
+import type { Pillar } from '../src/lib/content/types'
 
 /**
- * A capability list must include cross-pillar work: `CONTENT_MODEL.md`:63 says a composite entry
- * is "shown in both views", so membership tests the secondary disciplines too.
+ * STAGE 5: a capability list is plain equality on the AUTHORED pillar.
+ *
+ * It used to expand a pillar into its disciplines and test both positions, because a composite
+ * entry was "shown in both views". v3.1 §2 gives a project exactly one Pillar, so each project
+ * appears in exactly one of these two lists.
  */
-const IN_PILLAR = 'discipline.primary in $disciplines || count(discipline.secondary[@ in $disciplines]) > 0'
+const IN_PILLAR = 'pillar == $pillar'
 
 export const structure: StructureResolver = (S) =>
   S.list()
@@ -52,8 +48,8 @@ export const structure: StructureResolver = (S) =>
                   S.documentList()
                     .title('Architecture & Design')
                     .schemaType('workEntry')
-                    .filter(`_type == "workEntry" && (${IN_PILLAR})`)
-                    .params({ disciplines: disciplinesOf('architecture-design') }),
+                    .filter(`_type == "workEntry" && ${IN_PILLAR}`)
+                    .params({ pillar: 'architecture-design' satisfies Pillar }),
                 ),
 
               S.listItem()
@@ -62,8 +58,8 @@ export const structure: StructureResolver = (S) =>
                   S.documentList()
                     .title('Reality Capture')
                     .schemaType('workEntry')
-                    .filter(`_type == "workEntry" && (${IN_PILLAR})`)
-                    .params({ disciplines: disciplinesOf('reality-capture') }),
+                    .filter(`_type == "workEntry" && ${IN_PILLAR}`)
+                    .params({ pillar: 'reality-capture' satisfies Pillar }),
                 ),
 
               S.divider(),
@@ -101,26 +97,18 @@ export const structure: StructureResolver = (S) =>
 
               S.divider(),
 
-              // The two committed curated routes (IA §2.2). Shown here as the same lenses the
-              // published site uses, so the owner sees what each route will contain.
+              // The committed curated route (IA §2.2), shown as the same lens the published
+              // site uses, so the owner sees what it will contain. Professional experience was
+              // the second such pane; it is gone with the view (DECISIONS_LOG.md #97).
               S.listItem()
                 .title('Competitions')
                 .child(
                   S.documentList()
                     .title('Competitions')
                     .schemaType('workEntry')
-                    .filter(
-                      '_type == "workEntry" && (entryType.primary == "competition-entry" || "competition-entry" in entryType.secondary)',
-                    ),
-                ),
-
-              S.listItem()
-                .title('Professional experience')
-                .child(
-                  S.documentList()
-                    .title('Professional experience')
-                    .schemaType('workEntry')
-                    .filter('_type == "workEntry" && attribution == "studio"'),
+                    // STAGE 4: membership moved from the retired Entry Type axis to the
+                    // `competition` Label — the same rule `source.ts` applies (DECISIONS_LOG #83).
+                    .filter('_type == "workEntry" && "competition" in labels'),
                 ),
             ]),
         ),
@@ -154,8 +142,4 @@ export const structure: StructureResolver = (S) =>
                 ),
             ]),
         ),
-
-      S.divider(),
-
-      S.listItem().title('Offices').child(S.documentTypeList('employer').title('Offices')),
     ])

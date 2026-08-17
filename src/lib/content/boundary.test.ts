@@ -233,11 +233,21 @@ describe('client bundles cannot reach the query layer (§8, §18)', () => {
     const reached = [...chains.keys()].filter((module) => BUILD_ONLY_SET.has(module)).map(rel);
 
     expect(reached).toEqual([]);
-    // Positive statement of the same fact: this is the whole graph, and all of it is pure.
+    /*
+     * Positive statement of the same fact: this is the whole graph, and all of it is pure.
+     *
+     * `requirements.ts` joined it at migration Stage 1. It is admitted here deliberately, not
+     * waved through: it is data plus one fold, its only import is `types.ts` — already in this
+     * list — and it holds no `sanity`, Astro, filesystem or environment dependency. It adds no
+     * edge toward the query layer, which is what the first assertion above proves independently
+     * of this list. A future addition that cannot make the same claim belongs behind
+     * `server.ts`, not here.
+     */
     expect([...chains.keys()].map(rel).sort()).toEqual([
       'src/lib/content/derive.ts',
       'src/lib/content/index.ts',
       'src/lib/content/order.ts',
+      'src/lib/content/requirements.ts',
       'src/lib/content/types.ts',
       'src/lib/content/validation.ts',
       'src/lib/i18n/routes.ts',

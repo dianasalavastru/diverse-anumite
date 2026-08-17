@@ -27,16 +27,16 @@ const curation = (overrides: Partial<Curation> = {}): Curation => ({
 
 interface ItemSpec {
   readonly id: string;
+  /** STAGE 5: one authored Pillar. The `secondary` half of the old spec has no v3.1 meaning. */
   readonly primary: Pillar;
-  readonly secondary?: readonly Pillar[];
   readonly priority?: number;
   readonly year?: number;
   readonly pinned?: boolean;
 }
 
-const item = ({ id, primary, secondary = [], priority = 0, year = 2020, pinned = false }: ItemSpec): Orderable => ({
+const item = ({ id, primary, priority = 0, year = 2020, pinned = false }: ItemSpec): Orderable => ({
   _id: id,
-  pillars: { primary, secondary },
+  pillar: primary,
   curation: curation({ editorialPriority: priority, pinned }),
   year,
 });
@@ -97,14 +97,17 @@ describe('Rule 2 — interleave pillars when scope = All', () => {
     expect(ids(ordered)).toEqual(['ad1', 'rc1', 'ad2', 'ad3']);
   });
 
-  it('queues a cross-pillar entry once, by its primary pillar', () => {
+  it('queues every entry exactly once, by its authored pillar', () => {
+    /* STAGE 5 replaces "a cross-pillar entry queues once by its primary". There is no composite
+       entry any more, so the property under test is simply that balancing never duplicates. */
     const items = [
-      item({ id: 'cross', primary: RC, secondary: [AD], priority: 10 }),
+      item({ id: 'rc1', primary: RC, priority: 10 }),
       item({ id: 'ad1', primary: AD, priority: 9 }),
     ];
     const ordered = discoveryOrder(items, 'all');
     expect(ordered).toHaveLength(2);
-    expect(ids(ordered)).toEqual(['cross', 'ad1']);
+    expect(new Set(ids(ordered)).size).toBe(2);
+    expect(ids(ordered)).toEqual(['rc1', 'ad1']);
   });
 });
 
@@ -138,11 +141,13 @@ describe('Rule 4 — balancing is inert under a pillar filter', () => {
     expect(ids(discoveryOrder(items, AD))).toEqual(['ad2', 'ad1']);
   });
 
-  it('includes a cross-pillar entry in both pillar scopes (CONTENT_MODEL.md:63)', () => {
-    const cross = item({ id: 'cross', primary: RC, secondary: [AD] });
-    expect(inPillarScope(cross, RC)).toBe(true);
-    expect(inPillarScope(cross, AD)).toBe(true);
-    expect(inPillarScope(cross, 'all')).toBe(true);
+  it('places an entry in its own pillar scope and no other (v3.1 §2)', () => {
+    /* STAGE 5 replaces the dual-membership case: a project belongs to exactly one Pillar, so it
+       must NOT appear in the other pillar's view. Work spanning both is two linked projects. */
+    const rc = item({ id: 'rc', primary: RC });
+    expect(inPillarScope(rc, RC)).toBe(true);
+    expect(inPillarScope(rc, AD)).toBe(false);
+    expect(inPillarScope(rc, 'all')).toBe(true);
   });
 });
 

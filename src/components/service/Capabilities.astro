@@ -1,0 +1,119 @@
+---
+/**
+ * S-3 · With what — capabilities, equipment and measured evidence.
+ *
+ * Components (`SERVICE_WIREFRAME.md` S-3): "**Statistic ×n** (optional —
+ * reality-capture accuracy/specs)". `COMPONENT_INVENTORY.md` "Statistic": "a
+ * single quantified fact… **evidence over claims**", *Appears on:* "credibility
+ * contexts (equipment/experience; capture accuracy)".
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ *  REAL FIGURES, OR NO STATION
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * §10.4 governs this list absolutely — "capture metadata is **real data, never
+ * computed**… these are technical claims made to institutional clients
+ * evaluating a surveying service". Every row is an authored string from
+ * `Service.equipment`; the Studio field says it to the editor in as many words
+ * ("Real figures only — nothing here is calculated for you"). Nothing is
+ * defaulted, nothing is derived, nothing is rounded, and a service that has
+ * declared none renders **no station at all** rather than a plausible one —
+ * see `hasCapabilities` in `modules.ts`.
+ *
+ * That is also the answer to pillar symmetry. This station is absent from every
+ * Architecture & Design service today not because it is gated on the pillar
+ * (nothing here reads `service.pillar`) but because no A&D service has declared
+ * equipment. The day one does, it renders. The day a capture service forgets
+ * to, it does not.
+ *
+ * ── THE POINT CLOUD BELONGS HERE, NOT IN THE PROOF ────────────────────────
+ * It used to sit at the head of S-4, above the demonstrating projects. That
+ * read it as one more piece of project evidence. It is not: it is the single
+ * most direct demonstration that this *capability* exists and produces
+ * inspectable output, which is this station's job. `modules.ts` `captureSubject`
+ * still owns the whole rule — a Service has no point cloud, a project does, and
+ * what arrives here is either `null` or one demonstrating Work Entry whose
+ * survey is published and clearance-gated (§19.4). It is credited and linked to
+ * the project it belongs to, because §10.4 forbids a readout describing one
+ * survey beside a cloud from another.
+ *
+ * It does **not** gate the station: a cleared survey with no authored equipment
+ * is evidence of a capability the service has not declared, and the honest
+ * response is to declare it, not to let the cloud stand in for the declaration.
+ *
+ * ── CONTAINED, NOT FULL-BLEED ─────────────────────────────────────────────
+ * `PointCloudField` carries `.bleed` because the Homepage composes it as that
+ * page's "full-bleed CRESCENDO". Here it is one half of a specification spread,
+ * so the bleed is cancelled in `service.css` rather than by forking the
+ * component. VISUAL_DIRECTION_v2.0 §6 still gets what it asks for — "a whole
+ * field and real silence as a slow, explorable exhibit" — at the scale a sheet
+ * gives an exhibit rather than the scale a homepage gives a crescendo.
+ */
+import PointCloudField from '../media/PointCloudField.astro';
+import { localize } from '../../lib/content';
+import type { Locale, Service, WorkEntry } from '../../lib/content';
+import type { ServiceMessages } from '../../lib/i18n/service';
+import { routePath } from '../../lib/i18n/routes';
+
+interface Props {
+  service: Service;
+  locale: Locale;
+  copy: ServiceMessages;
+  /** Resolved by `modules.ts` `captureSubject`; `null` on every other service. */
+  captureSubject: WorkEntry | null;
+}
+
+const { service, locale, copy, captureSubject } = Astro.props;
+
+/* The station only renders when this is non-empty (`modules.ts`), so the
+   fallback is a type guard rather than an expected state. */
+const equipment = localize(service.equipment, locale) ?? [];
+
+/* The cloud names the project it came from, so the readout beside it can never
+   be read as a claim about a different survey (§10.4). */
+const captureTitle = captureSubject ? (localize(captureSubject.title, locale) ?? '') : '';
+const captureSlug = captureSubject ? localize(captureSubject.slug, locale) : null;
+---
+
+<div class:list={['sv-caps', captureSubject && 'sv-caps--cloud']}>
+  {/* No `data-fixture` marker on these rows, deliberately. Elsewhere that
+      attribute flags a placeholder standing in for an asset that does not exist
+      (Plate.astro); every string below is an authored technical claim, and
+      marking it "fixture" would invert the meaning for anyone grepping a built
+      page for fabricated content. */}
+  <ul class="sv-specs" aria-label={copy.capabilities.listLabel}>
+    {
+      equipment.map((item) => (
+        <li class="sv-spec rv" data-rv="meta">
+          <span class="sv-spec-tick" aria-hidden="true" />
+          <span class="sv-spec-value mono">{item}</span>
+        </li>
+      ))
+    }
+  </ul>
+
+  {
+    captureSubject && (
+      <div class="sv-cloud-block rv" data-rv="img">
+        <PointCloudField
+          locale={locale}
+          label={copy.proof.cloud.label.replace('{work}', captureTitle)}
+          hint={copy.proof.cloud.hint}
+          posterAlt={copy.proof.cloud.posterAlt}
+          unavailable={copy.proof.cloud.unavailable}
+          subject={captureSubject}
+        />
+        {captureSlug && (
+          <p class="sv-cloud-source">
+            <a href={routePath('workEntry', locale, captureSlug)}>
+              {copy.proof.cloud.source} — {captureTitle}
+              <span class="ar" aria-hidden="true">
+                →
+              </span>
+            </a>
+          </p>
+        )}
+      </div>
+    )
+  }
+</div>

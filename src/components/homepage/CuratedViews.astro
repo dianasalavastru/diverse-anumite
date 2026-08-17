@@ -13,7 +13,7 @@
  *
  * ── THE TWO-LEVEL NAVIGATION RULE (Page IA §3) ─────────────────────────────
  *   Module CTA → ALWAYS the canonical destination — here the curated view
- *     (`/proiecte/concursuri`, `/proiecte/experienta-profesionala`). Fixed
+ *     (`/proiecte/concursuri`). Fixed
  *     behaviour, applied uniformly. The approved HiFi expresses it as the
  *     name-as-doorway underline on each block's heading, so the heading is the
  *     link and no extra CTA is added to the approved composition.
@@ -22,11 +22,17 @@
  *     reachable — the HiFi's rows are inert `cursor:pointer` divs.
  *
  * ── MEMBERSHIP IS B'S, NOT THIS COMPONENT'S ────────────────────────────────
- * Competitions is the **Entry Type** axis and Professional Experience is
- * **Attribution = Studio** with Employer as grouping metadata (IA §5.1) — all
- * three decided inside `ContentSource` (`isCompetition`,
- * `isProfessionalExperience`, `groupByEmployer`). This component receives the
- * result already scoped, ordered and grouped, and renders it.
+ * Competitions is the `competition` **Label** (v3.1 §10), decided inside
+ * `isCompetition` and applied by `ContentSource`. This component receives the
+ * result already scoped and ordered, and renders it.
+ *
+ * ── STAGE 2: THE SECOND HALF IS GONE ───────────────────────────────────────
+ * This module was a two-up grid: Competitions beside Professional Experience.
+ * That second view is **permanently retired** (`CONTENT_MODEL.md` v3.1 §13,
+ * `DECISIONS_LOG.md` #97) — it was *Attribution = Studio grouped by Employer*,
+ * and About / Despre is the surviving home for professional-background content.
+ * **Nothing replaces it**: no Label, no filter, no placeholder panel. The module
+ * now carries Competitions alone, and the grid collapses to one column.
  *
  * The index row's place line reads `WorkArchiveItem.location`, which the archive
  * projection carries from I-3 onwards (`CONTENT_MODEL.md` §3 Metadata, "mostly
@@ -34,10 +40,9 @@
  * took full `WorkEntry` objects resolved by id purely to read that one string;
  * extending B's projection removed the lookup.
  */
-import Plate from '../media/Plate.astro';
 import SectionMarker from '../SectionMarker.astro';
 import { localize } from '../../lib/content';
-import type { EmployerGroup, Locale, WorkArchiveItem } from '../../lib/content';
+import type { Locale, WorkArchiveItem } from '../../lib/content';
 import type { HomepageMessages } from '../../lib/i18n/homepage';
 import { routePath } from '../../lib/i18n/routes';
 
@@ -46,12 +51,10 @@ interface Props {
   copy: HomepageMessages['curated'];
   /** `source.curatedView('competitions', locale)` — scoped and ordered by B. */
   competitions: readonly WorkArchiveItem[];
-  /** `source.professionalExperience(locale)` — grouped by Employer (IA §5.1). */
-  experience: readonly EmployerGroup[];
   station: number;
 }
 
-const { locale, copy, competitions, experience, station } = Astro.props;
+const { locale, copy, competitions, station } = Astro.props;
 
 interface Row {
   href: string;
@@ -75,17 +78,6 @@ const rows: Row[] = competitions.flatMap((item) => {
   ];
 });
 
-/**
- * Employer names are the note under the Professional Experience block when the
- * set is non-empty — grouping metadata made visible, per M-5, "grouped by
- * Employer; employer is grouping metadata, not a category". The authored note
- * stands in when there is nothing to group.
- */
-const employers = experience.map((group) => group.employer.name);
-const professionalNote =
-  employers.length > 0 ? employers.join(' · ') : copy.professionalExperience.note;
-
-const professionalCover = experience[0]?.entries[0]?.cover ?? null;
 ---
 
 <section class="curated" data-station={station} aria-labelledby="curated-heading">
@@ -117,26 +109,6 @@ const professionalCover = experience[0]?.entries[0]?.cover ?? null;
           </ul>
         )
       }
-    </div>
-
-    <div class="prof rv" data-rv="img">
-      <div class="pimg">
-        {/* DEVELOPMENT ONLY — keyed on the entry supplying the cover when there is one, so this
-            panel and that project's card agree. See `lib/dev/visual-media.ts`. */}
-        <Plate
-          image={professionalCover}
-          locale={locale}
-          tone="#c6c1b7"
-          devKey={`${experience[0]?.entries[0]?._id ?? 'homepage'}:professional`}
-          devPool="architecture"
-        />
-      </div>
-      <h3>
-        <a href={routePath('professionalExperience', locale)}>
-          {copy.professionalExperience.title}
-        </a>
-      </h3>
-      <div class="note measure">{professionalNote}</div>
     </div>
   </div>
 </section>

@@ -18,9 +18,9 @@
  * archive logic — the only thing this file adds is the scope.
  *
  * ── MEMBERSHIP IS B'S ─────────────────────────────────────────────────────
- * `source.curatedView('competitions', locale)` applies it: Entry Type, primary
- * **or secondary**, because `CONTENT_MODEL.md`:47 allows a secondary Entry Type
- * and an entry that is secondarily a competition still belongs in the view
+ * `source.curatedView('competitions', locale)` applies it: the `competition`
+ * **Label** (v3.1 §10). Membership is `includes`, so a project carrying
+ * `competition` alongside `diploma-project` belongs in the view exactly once
  * (`source.ts`/`isCompetition`). Selection and order come from the curation
  * layer (IA §5). This component receives the result already scoped and ordered.
  *

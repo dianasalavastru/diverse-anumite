@@ -17,7 +17,7 @@
  * `WORK_ARCHIVE_PAGE_IA.md` A-4: "**Filters never duplicate curated views**
  * (mechanical facets vs. editorial slices)". Competitions is reachable as a
  * route because it is an editorial slice — even though a visitor could
- * approximate it with `?type=competition-entry`, that filter is a mechanical
+ * approximate it with `?label=competition`, that filter is a mechanical
  * facet and the curated view is a curated selection and order. The two are
  * offered as what they are and never as each other.
  *
@@ -37,10 +37,14 @@ interface Props {
 
 const { locale, copy, current } = Astro.props;
 
+/*
+ * STAGE 2: the Professional Experience destination is gone. That curated view is permanently
+ * retired (`CONTENT_MODEL.md` v3.1 §13, `DECISIONS_LOG.md` #97) and its routes no longer build,
+ * so linking to it would emit a dead link. Nothing replaces it in this list.
+ */
 const destinations: { key: RouteKey; label: string }[] = [
   { key: 'workArchive', label: copy.fullArchive },
   { key: 'competitions', label: copy.competitions },
-  { key: 'professionalExperience', label: copy.professionalExperience },
 ].filter((destination) => destination.key !== current) as { key: RouteKey; label: string }[];
 ---
 

@@ -17,10 +17,8 @@ import { describe, expect, it } from 'vitest';
 import {
   CAPTURE_FIELDS,
   CURATION_FIELDS,
-  EMPLOYER_FIELDS,
   IMAGE_FIELDS,
   METADATA_FIELDS,
-  QUERY_ALL_EMPLOYERS,
   QUERY_ALL_SERVICES,
   QUERY_ALL_SERVICE_SUMMARIES,
   QUERY_ALL_WORK_ENTRIES,
@@ -82,7 +80,6 @@ const PROJECTIONS: readonly (readonly [string, ProjectionMap, string])[] = [
   ['image', IMAGE_FIELDS, projection(IMAGE_FIELDS)],
   ['curation', CURATION_FIELDS, projection(CURATION_FIELDS)],
   ['seo', SEO_FIELDS, projection(SEO_FIELDS)],
-  ['employer', EMPLOYER_FIELDS, projection(EMPLOYER_FIELDS)],
   ['metadata', METADATA_FIELDS, projection(METADATA_FIELDS)],
   ['capture', CAPTURE_FIELDS, projection(CAPTURE_FIELDS)],
   ['serviceSummary', SERVICE_SUMMARY_FIELDS, SERVICE_SUMMARY_PROJECTION],
@@ -97,7 +94,6 @@ const ALL_QUERIES: readonly (readonly [string, string])[] = [
   ['workArchive', QUERY_WORK_ARCHIVE],
   ['allServices', QUERY_ALL_SERVICES],
   ['allServiceSummaries', QUERY_ALL_SERVICE_SUMMARIES],
-  ['allEmployers', QUERY_ALL_EMPLOYERS],
   ['workEntryBySlug.ro', QUERY_WORK_ENTRY_BY_SLUG.ro],
   ['workEntryBySlug.en', QUERY_WORK_ENTRY_BY_SLUG.en],
   ['serviceBySlug.ro', QUERY_SERVICE_BY_SLUG.ro],
@@ -121,26 +117,29 @@ describe('Generated GROQ returns exactly the declared keys (§23.4)', () => {
   });
 });
 
-describe('Pillar is derived, never queried (§7.4, §8)', () => {
-  it('no Work Entry projection selects a pillar field', () => {
+describe('Pillar is authored and queried directly (v3.1 §2, Stage 5)', () => {
+  it('every Work Entry projection selects the stored pillar', () => {
     for (const name of ['workEntry', 'workEntrySummary', 'workArchiveItem'] as const) {
       const entry = PROJECTIONS.find(([projectionName]) => projectionName === name);
-      expect(topLevelKeys(entry?.[2] as string), name).not.toContain('pillar');
-      expect(topLevelKeys(entry?.[2] as string), name).not.toContain('pillars');
+      expect(topLevelKeys(entry?.[2] as string), name).toContain('pillar');
     }
   });
 
-  it('the Service projection *does* select pillar — Services are classified, not derived', () => {
-    // IA §2.3 "Service → Pillar". §7.4's derivation applies to Work Entries only, because it
-    // derives from Discipline and Services carry none.
+  it('no projection selects a plural `pillars` field — there is exactly one', () => {
+    for (const [name, , projection] of PROJECTIONS) {
+      expect(topLevelKeys(projection), name).not.toContain('pillars');
+    }
+  });
+
+  it('no projection selects Discipline — the axis is retired', () => {
+    for (const [name, , projection] of PROJECTIONS) {
+      expect(topLevelKeys(projection), name).not.toContain('discipline');
+    }
+  });
+
+  it('the Service projection still selects its own authored pillar', () => {
+    // IA §2.3 "Service → Pillar" — unchanged; it is what lets Stage 8 constrain the picker.
     expect(topLevelKeys(SERVICE_SUMMARY_PROJECTION)).toContain('pillar');
-  });
-
-  it('every Work Entry projection selects Discipline, since Pillar derives from it', () => {
-    for (const name of ['workEntry', 'workEntrySummary', 'workArchiveItem'] as const) {
-      const entry = PROJECTIONS.find(([projectionName]) => projectionName === name);
-      expect(topLevelKeys(entry?.[2] as string), name).toContain('discipline');
-    }
   });
 });
 

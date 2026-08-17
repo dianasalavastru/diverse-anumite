@@ -1,5 +1,7 @@
 # Service Page IA — authoritative blueprint
 
+> **⚠ AMENDED 2026-08-13 — simplified project model.** `docs/product/CONTENT_MODEL.md` v3.0 (CLIENT-VALIDATED) removes **Discipline** and **Entry Type / Project Type**. Line 169's "discipline-relevant use-cases" reads as **sector-relevant** use-cases; the four Architecture & Design services are Proiectare de arhitectura, Design interior, Vizualizare 3D and Design mobilier. Structure, routes and page responsibilities are unchanged. Impact inventory and sequencing: `docs/product/PROJECT_MODEL_IMPACT.md` — **do not change filters or schema from this document.**
+
 The Service Page defined as an **information-architecture object** — the conversion-focused child of a Pillar Hub, backed by proof from the Work model. **One blueprint for every service**; all services share this Page IA and differ only in the content they consume.
 
 Authoritative inputs (do not reopen or reinterpret): `HOMEPAGE_PAGE_IA.md`, `HUB_PAGE_IA.md`, `INFORMATION_ARCHITECTURE.md`, `CONTENT_MODEL.md` (frozen v2.1), `NAV_DECISION_RECORD.md`, `ARCHITECTURE_REVIEW_02.md`, `DECISIONS_LOG.md`.
@@ -165,8 +167,8 @@ Stages of understanding, not visual sections. Cold-arrival-capable. Order is lar
 ---
 
 ## One blueprint, all services — content differences (not blueprint differences)
-- **Reality Capture services** (3D laser scanning, drone photogrammetry) consume: capture-specific deliverables, **accuracy/specs, equipment**, use-cases (heritage documentation, as-built, survey), and point-cloud/orthophoto proof.
-- **Architecture & Design services** (architectural design, interior design, visualization) consume: design deliverables/process, discipline-relevant use-cases, and render/drawing proof.
+- **Reality Capture services** *(v3.1: Scanare laser 3D · Scan-to-BIM · Fotografie de arhitectura · Vizualizare de arhitectura — **drone photogrammetry is not a Service**, only a capability description)* consume: capture-specific deliverables, **accuracy/specs, equipment**, use-cases (heritage documentation, as-built, survey), and point-cloud/orthophoto proof.
+- **Architecture & Design services** *(v3.1: Proiectare de arhitectura · Design interior · Vizualizare 3D · Design mobilier)* consume: design deliverables/process, **sector-relevant** use-cases, and render/drawing proof.
 - These are **content and UI-treatment differences only** — the Page IA (responsibility, flow, modules, routing) is identical.
 
 ## Open (carried into wireframing / dependencies)

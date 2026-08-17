@@ -24,6 +24,19 @@
 import { countNoun, type WorkArchiveMessages } from '../../lib/i18n/work-archive';
 import type { Locale } from '../../lib/content';
 
+/**
+ * One entry in the quiet secondary readout beside the count.
+ *
+ * It is a MEASUREMENT of the rendered set, never a claim about it: the caller
+ * counts the entries it is already rendering and labels them from the frozen
+ * vocabulary. Nothing here is authored copy, which is why the slot takes numbers
+ * and labels rather than a sentence.
+ */
+export interface OrientationBreakdownEntry {
+  readonly label: string;
+  readonly count: number;
+}
+
 interface Props {
   locale: Locale;
   eyebrow: string;
@@ -33,21 +46,71 @@ interface Props {
   total: number;
   /** The suffix after the count, e.g. "in arhiva". */
   totalLabel: WorkArchiveMessages['orientation']['total'];
+  /**
+   * OPTIONAL quiet secondary readout under the count — the archive's own
+   * composition of the total, which is what stops the count column reading as a
+   * single number floating at the far edge of the spread.
+   *
+   * Optional because the curated views are editorial SLICES of this archive
+   * (`WORK_ARCHIVE_PAGE_IA.md` §1), and a slice breaking itself down by the axis
+   * it was already sliced on says nothing. They pass nothing and keep the
+   * masthead they have.
+   */
+  breakdown?: readonly OrientationBreakdownEntry[];
+  /** The label above the breakdown — an existing authored string, never a new one. */
+  breakdownLabel?: string;
 }
 
-const { locale, eyebrow, heading, statement, total, totalLabel } = Astro.props;
+const {
+  locale,
+  eyebrow,
+  heading,
+  statement,
+  total,
+  totalLabel,
+  breakdown = [],
+  breakdownLabel = '',
+} = Astro.props;
 ---
 
+{
+  /*
+   * ── THE COMPOSITION ───────────────────────────────────────────────────────
+   * One editorial spread, not a heading with a number pushed to the far right:
+   * a lead column (eyebrow · title · rule · statement) and a narrower metadata
+   * column (the count, then the quiet breakdown), separated by the same hairline
+   * the rest of the system uses. Both columns are still exactly the content this
+   * module has always carried — the arrangement changed, nothing was added to it
+   * and nothing invented.
+   */
+}
 <section class="wa-intro" aria-labelledby="wa-heading">
-  <div>
+  <div class="wa-intro-lead">
     <p class="kick rv" data-rv="meta">{eyebrow}</p>
     <h1 class="rv" id="wa-heading" data-rv="head">{heading}</h1>
     <p class="sub rv" data-rv="meta">{statement}</p>
   </div>
 
-  <p class="count rv" data-rv="meta">
-    <b>{total}</b>
-    {countNoun(total, locale)}
-    {totalLabel}
-  </p>
+  <div class="wa-intro-meta">
+    <p class="count rv" data-rv="meta">
+      <b>{total}</b>
+      <span class="count-noun">{countNoun(total, locale)} {totalLabel}</span>
+    </p>
+
+    {
+      breakdown.length > 0 && (
+        <div class="wa-breakdown rv" data-rv="meta">
+          {breakdownLabel && <p class="lab">{breakdownLabel}</p>}
+          <dl>
+            {breakdown.map((entry) => (
+              <div class="row">
+                <dt>{entry.label}</dt>
+                <dd>{entry.count}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      )
+    }
+  </div>
 </section>

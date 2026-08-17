@@ -163,6 +163,43 @@ export function devVisualImage(pool: DevMediaPool, key: string): DevVisualImage 
   };
 }
 
+/**
+ * DEVELOPMENT ONLY — how many archive preview frames to stand in for an entry with no gallery.
+ *
+ * ── THIS ONE CREATES BOXES, AND THAT IS A DEVIATION ────────────────────────────────────────
+ *
+ * Everywhere else the overlay fills a box the composition already drew: the box exists because
+ * content asked for it, and the temporary image only changes the pixels inside it. This function
+ * is the exception — it reports a *count*, and the archive card draws that many frames. It is
+ * therefore the one place where the QA page's layout differs from production's, and it is
+ * declared loudly rather than hidden inside a component.
+ *
+ * WHY IT EXISTS ANYWAY. The archive's project unit shows a small contact sheet of the entry's
+ * own gallery, and the sheet is part of the register's STANDARD grammar rather than a bonus an
+ * entry may or may not earn: three secondary readings beside one cover, in every project row.
+ * Not one Work Entry in the dataset currently carries a gallery — nor a cover — so without this
+ * the composition the archive is built around could not be reviewed at all before it ships.
+ *
+ * IT RETURNS THE FULL COUNT, NOT A HASHED ONE. It used to spread the twelve dev entries across
+ * 0 · 1 · 2 · 3 frames, which was right while the sheet was an optional flourish and is wrong
+ * now: what a QA pass has to see is the standard row, repeated, so that scale and rhythm can be
+ * compared between projects. The degraded sheets (`p`, `pp`, `pl`, …) are still authored in
+ * A-5a and still render for a real gallery that holds fewer than three; they are simply not what
+ * the overlay stands in for. The variation the pass needs comes from the frames' PROPORTIONS —
+ * each frame draws its own image from the pool, so the four compositions all appear across the
+ * page — not from their number.
+ *
+ * WHAT KEEPS IT HONEST:
+ *   - it returns 0 unless `DEV_VISUAL_MEDIA=true` — one cached property read otherwise, and the
+ *     production archive therefore renders `entry.galleryPreview` and nothing else;
+ *   - the frames it produces are marked `data-dev-visual-media` like every other, and
+ *     `verify-no-dev-media.mjs` fails a normal build on that attribute;
+ *   - it never touches `galleryPreview`. The domain model still says the gallery is empty.
+ */
+export function devPreviewSlots(_key: string, max = 3): number {
+  return manifest() === null ? 0 : max;
+}
+
 /** DEVELOPMENT ONLY — the pool a Service draws from, from its single pillar. */
 export function devServicePool(pillar: string): DevMediaPool {
   return pillar === 'reality-capture' ? 'reality-capture' : 'architecture';
@@ -191,18 +228,11 @@ export function devServiceHero(serviceId: string, pillar: string): DevVisualImag
  * draw from is decided by the same hash as the image itself — deterministic, and different
  * entries land in different pools rather than the whole cross-pillar set skewing one way.
  */
-export function poolForPillar(
-  primary: string,
-  secondary: readonly string[] = [],
-  key = '',
-): DevMediaPool {
-  const pillars = [primary, ...secondary];
-  const architecture = pillars.includes('architecture-design');
-  const capture = pillars.includes('reality-capture');
-
-  if (architecture && capture) {
-    return stableHash(`${key}:pillar`) % 2 === 0 ? 'architecture' : 'reality-capture';
-  }
-  if (capture) return 'reality-capture';
-  return 'architecture';
+export function poolForPillar(pillar: string, key = ''): DevMediaPool {
+  /* STAGE 5: the `secondary` parameter is gone with the derived pillar pair. A project has one
+     Pillar, so the "belongs to both, pick deterministically" branch it existed for is
+     unreachable — every caller passed one value and an empty list. `key` is kept because the
+     hash keeps images stable per entry across surfaces. */
+  void key;
+  return pillar === 'reality-capture' ? 'reality-capture' : 'architecture';
 }

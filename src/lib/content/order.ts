@@ -19,12 +19,13 @@
  * (`source.ts`), so this module only ever sees the set that exists in the active locale.
  */
 
-import type { Curation, Pillar, PillarAssignment } from './types.js';
+import type { Curation, Pillar } from './types.js';
 
 /** The minimum an item needs to be ordered. Satisfied by `WorkEntrySummary` and `WorkArchiveItem`. */
 export interface Orderable {
   readonly _id: string;
-  readonly pillars: PillarAssignment;
+  /** Authored, exactly one (v3.1 §2, Stage 5). */
+  readonly pillar: Pillar;
   readonly curation: Curation;
   readonly year: number;
 }
@@ -61,14 +62,15 @@ export function compareYearAscending(a: Orderable, b: Orderable): number {
 }
 
 /**
- * Whether an entry appears under a pillar scope. A cross-pillar entry surfaces in **both**
- * pillar views as one canonical entry (`CONTENT_MODEL.md`:63, IA §2.2), so secondary pillars
- * count for membership — while `pillars.primary` alone decides the default back-path (M2) and
- * which queue the entry balances from below.
+ * Whether an entry appears under a pillar scope.
+ *
+ * STAGE 5: plain equality. A project belongs to exactly one Pillar (v3.1 §2), so the
+ * primary/secondary membership test — which existed so a cross-pillar entry could surface in
+ * both views — collapses. Work spanning both capabilities is two linked projects, and each
+ * appears in its own scope only.
  */
 export function inPillarScope(item: Orderable, scope: PillarScope): boolean {
-  if (scope === 'all') return true;
-  return item.pillars.primary === scope || item.pillars.secondary.includes(scope);
+  return scope === 'all' || item.pillar === scope;
 }
 
 /**
@@ -108,8 +110,9 @@ function interleave<T extends Orderable>(queues: readonly (readonly T[])[]): T[]
  * The default archive/hub/homepage ordering (§7.6).
  *
  * Under a pillar scope, balancing is inert (rule 4) — a single queue, curated order. Under
- * `all`, entries are queued by their **primary** pillar so a cross-pillar entry balances once
- * rather than appearing twice.
+ * `all`, entries are queued by their authored pillar. Rule 2's balancing is unchanged; only its
+ * input is simpler, because each project now falls into exactly one queue by construction
+ * rather than by picking a primary out of a pair.
  */
 export function discoveryOrder<T extends Orderable>(items: readonly T[], scope: PillarScope = 'all'): T[] {
   const scoped = items.filter((item) => inPillarScope(item, scope));
@@ -118,9 +121,9 @@ export function discoveryOrder<T extends Orderable>(items: readonly T[], scope: 
 
   const queues = new Map<Pillar, T[]>();
   for (const item of scoped) {
-    const queue = queues.get(item.pillars.primary);
+    const queue = queues.get(item.pillar);
     if (queue) queue.push(item);
-    else queues.set(item.pillars.primary, [item]);
+    else queues.set(item.pillar, [item]);
   }
 
   return interleave([...queues.values()].map((queue) => queue.sort(compareCurated)));

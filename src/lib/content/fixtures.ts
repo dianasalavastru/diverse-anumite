@@ -23,17 +23,19 @@
  * raw types cannot drift apart.
  *
  * ── Coverage ────────────────────────────────────────────────────────────────────────────────
- *   wf-1  A&D design project — independent, client-commissioned, demonstrates a Service,
- *         homepage placement, related to wf-2.
- *   wf-2  cross-pillar composite — RC primary + A&D secondary, capture metadata **not cleared**
- *         (derivative withheld), related to wf-1.
- *   wf-3  Studio-attributed — Employer + Role + scoped Authorship; **EN untranslated** (§11.2).
- *   wf-4  competition entry — no demonstrated Service, so W-5 is hidden.
- *   wf-5  pure Reality Capture — capture metadata **cleared**, derivative + poster + point count.
+ *   wf-1  **Architecture & Design** — demonstrates a Service, homepage placement, LINKED to wf-2.
+ *   wf-2  **Reality Capture** — capture metadata **not cleared** (derivative withheld), LINKED to
+ *         wf-1. STAGE 5: wf-1 + wf-2 are the linked pair that REPLACED the old cross-pillar
+ *         composite. A project belongs to exactly one Pillar (v3.1 §2); work spanning both is
+ *         two projects related through `relatedWork`, each surfacing in its own pillar view.
+ *   wf-3  **Architecture & Design** — label `diploma-project` alone; **EN untranslated** (§11.2).
+ *   wf-4  **Architecture & Design** — labels `competition` + `diploma-project` (the dual case);
+ *         no demonstrated Service, so W-5 is hidden.
+ *   wf-5  **Reality Capture** — label `competition` (Labels are pillar-independent); capture
+ *         metadata **cleared**, derivative + poster + point count.
  *   sv-1  A&D Service with demonstrating work.
  *   sv-2  RC Service with demonstrating work.
  *   sv-3  Service with **zero** demonstrating entries — the F5 empty state.
- *   emp-1 Employer, for Professional Experience grouping (IA §5.1).
  *
  * RO strings are written without diacritics per OD-8 (§11.3).
  */
@@ -44,7 +46,6 @@ import { toServiceSummary, toWorkEntrySummary } from './derive.js';
 import type {
   RawCaptureMetadata,
   RawCuration,
-  RawEmployer,
   RawImage,
   RawLocalizedString,
   RawService,
@@ -53,13 +54,30 @@ import type {
   RawWorkEntry,
   RawWorkEntrySummary,
 } from './groq.js';
-import type { Employer, Locale, Service, ServiceSummary, WorkEntry, WorkEntrySummary } from './types.js';
+import type { Locale, Service, ServiceSummary, WorkEntry, WorkEntrySummary } from './types.js';
 
 /* ────────────────────────────────────────────────────────────────────────────
  * Fixture-local helpers
  * ──────────────────────────────────────────────────────────────────────────── */
 
 const bi = (ro: string, en: string | null = null): RawLocalizedString => ({ ro, en });
+/** Portable Text is not a string — Description needs its own localized wrapper. */
+const biRich = (ro: string) => ({
+  /* The block carries `style`, `markDefs` and per-span `marks` because a real Sanity block
+     always does. A thinner literal passes every unit test and then fails the live shape
+     comparison, which is exactly the drift the I-3 equivalence check exists to catch. */
+  ro: [
+    {
+      _type: 'block',
+      _key: 'k1',
+      style: 'normal',
+      markDefs: [],
+      children: [{ _type: 'span', _key: 's1', text: ro, marks: [] }],
+    },
+  ],
+  en: null,
+});
+
 const biList = (ro: readonly string[], en: readonly string[] | null = null) => ({ ro, en });
 
 const image = (id: string, altRo: string, altEn: string | null): RawImage => ({
@@ -88,8 +106,7 @@ const curation = (overrides: Partial<RawCuration> = {}): RawCuration => ({
  * `demonstratedBy` join, which is computed from `serviceIds` and never stored.
  */
 interface FixtureWorkEntry {
-  readonly doc: Omit<RawWorkEntry, 'services' | 'relatedWork' | 'employer'>;
-  readonly employerId: string | null;
+  readonly doc: Omit<RawWorkEntry, 'services' | 'relatedWork'>;
   readonly serviceIds: readonly string[];
   readonly relatedIds: readonly string[];
 }
@@ -100,13 +117,10 @@ type FixtureService = Omit<RawService, 'demonstratedBy'>;
  * The fixture dataset
  * ──────────────────────────────────────────────────────────────────────────── */
 
-const EMPLOYERS: readonly RawEmployer[] = [
-  { _id: 'emp-1', _type: 'employer', name: 'Fixture Studio SRL' },
-];
-
 const SERVICES: readonly FixtureService[] = [
   {
     _id: 'sv-1',
+    key: 'proiectare-arhitectura',
     _type: 'service',
     name: bi('Proiectare de arhitectura (fixture)', 'Architectural design (fixture)'),
     slug: bi('proiectare-arhitectura-fixture', 'architectural-design-fixture'),
@@ -124,13 +138,14 @@ const SERVICES: readonly FixtureService[] = [
     ),
     process: null,
     equipment: null,
-    sectors: ['residential', 'cultural'],
+    sectors: ['rezidential', 'cultural-patrimoniu'],
     hero: image('service-design', 'Imagine substituent', 'Placeholder image'),
     curation: curation({ featured: true, editorialPriority: 10 }),
     seo: null,
   },
   {
     _id: 'sv-2',
+    key: 'scanare-laser-3d',
     _type: 'service',
     name: bi('Scanare laser 3D (fixture)', '3D laser scanning (fixture)'),
     slug: bi('scanare-laser-3d-fixture', '3d-laser-scanning-fixture'),
@@ -148,7 +163,7 @@ const SERVICES: readonly FixtureService[] = [
       ['FIXTURE — echipament real nedeclarat'],
       ['FIXTURE — real equipment not yet declared'],
     ),
-    sectors: ['heritage', 'industrial'],
+    sectors: ['cultural-patrimoniu', 'industrial-logistic'],
     hero: image('service-capture', 'Imagine substituent', 'Placeholder image'),
     curation: curation({ editorialPriority: 8 }),
     seo: null,
@@ -157,6 +172,7 @@ const SERVICES: readonly FixtureService[] = [
     // F5: publishable with zero linked Work Entries — editorial message + Contact CTA + hub
     // back-path, never an empty grid (IA Step 6).
     _id: 'sv-3',
+    key: 'scan-to-bim',
     _type: 'service',
     name: bi('Fotogrametrie cu drona (fixture)', 'Drone photogrammetry (fixture)'),
     slug: bi('fotogrametrie-drona-fixture', 'drone-photogrammetry-fixture'),
@@ -171,7 +187,76 @@ const SERVICES: readonly FixtureService[] = [
     deliverables: null,
     process: null,
     equipment: null,
-    sectors: ['infrastructure'],
+    sectors: ['public-comunitar'],
+    hero: null,
+    curation: curation(),
+    seo: null,
+  },
+  /*
+   * STAGE 8 — two more Services so the multi-Service collision cases have real references.
+   * `sv-4` (Vizualizare 3D) makes Location *optional*; `sv-5` (Design mobilier) makes
+   * Implementation Company *mandatory*. Paired with `sv-1` they reproduce v3.1 §8's worked
+   * examples A and C against the real validation layer rather than only the pure resolver.
+   */
+  {
+    _id: 'sv-4',
+    key: 'vizualizare-3d',
+    _type: 'service',
+    name: bi('Vizualizare 3D (fixture)', '3D visualization (fixture)'),
+    slug: bi('vizualizare-3d-fixture', '3d-visualization-fixture'),
+    enPublished: true,
+    pillar: 'architecture-design',
+    shortDescription: bi('Text substituent.', 'Placeholder line.'),
+    description: null,
+    problemSolved: null,
+    deliverables: null,
+    process: null,
+    equipment: null,
+    sectors: ['rezidential'],
+    hero: null,
+    curation: curation(),
+    seo: null,
+  },
+  {
+    _id: 'sv-5',
+    key: 'design-mobilier',
+    _type: 'service',
+    name: bi('Design mobilier (fixture)', 'Furniture design (fixture)'),
+    slug: bi('design-mobilier-fixture', 'furniture-design-fixture'),
+    enPublished: true,
+    pillar: 'architecture-design',
+    shortDescription: bi('Text substituent.', 'Placeholder line.'),
+    description: null,
+    problemSolved: null,
+    deliverables: null,
+    process: null,
+    equipment: null,
+    sectors: ['rezidential'],
+    hero: null,
+    curation: curation(),
+    seo: null,
+  },
+  {
+    /*
+     * STAGE 8. `sv-3` used to be the only Reality Capture Service besides `sv-2`, so the
+     * multi-Service RC entry (wf-5) had to reference it — which would have destroyed the F5
+     * "publishable with zero linked entries" case above. This third RC Service exists so both
+     * invariants can hold at once: wf-5 demonstrates `sv-2` + `sv-6`, `sv-3` stays unlinked.
+     */
+    _id: 'sv-6',
+    key: 'fotografie-arhitectura',
+    _type: 'service',
+    name: bi('Fotografie de arhitectura (fixture)', 'Architectural photography (fixture)'),
+    slug: bi('fotografie-arhitectura-fixture', 'architectural-photography-fixture'),
+    enPublished: true,
+    pillar: 'reality-capture',
+    shortDescription: bi('Text substituent.', 'Placeholder line.'),
+    description: null,
+    problemSolved: null,
+    deliverables: null,
+    process: null,
+    equipment: null,
+    sectors: ['industrial-logistic'],
     hero: null,
     curation: curation(),
     seo: null,
@@ -181,7 +266,6 @@ const SERVICES: readonly FixtureService[] = [
 /** Uncleared: `capturePublicationCleared` is false, so the derivative is withheld (§19.4). */
 const UNCLEARED_CAPTURE: RawCaptureMetadata = {
   accuracy: bi('FIXTURE — acuratete reala nedeclarata', 'FIXTURE — real accuracy not yet declared'),
-  equipment: ['FIXTURE — echipament real nedeclarat'],
   software: ['FIXTURE — software real nedeclarat'],
   pointCount: null,
   derivative: {
@@ -193,7 +277,6 @@ const UNCLEARED_CAPTURE: RawCaptureMetadata = {
 
 const CLEARED_CAPTURE: RawCaptureMetadata = {
   accuracy: bi('FIXTURE — acuratete reala nedeclarata', 'FIXTURE — real accuracy not yet declared'),
-  equipment: ['FIXTURE — echipament real nedeclarat'],
   software: ['FIXTURE — software real nedeclarat'],
   // A real figure from a real derivative in production (§10.4); a labelled placeholder here.
   pointCount: 1_250_000,
@@ -203,6 +286,11 @@ const CLEARED_CAPTURE: RawCaptureMetadata = {
   },
 };
 
+/*
+ * STAGE 8 — two more Services so the multi-Service collision cases have real references.
+ * `sv-4` (Vizualizare 3D) makes Location optional, `sv-5` (Design mobilier) makes Implementation
+ * Company mandatory; paired with `sv-1` they reproduce v3.1 §8's worked examples A and C.
+ */
 const WORK_ENTRIES: readonly FixtureWorkEntry[] = [
   {
     doc: {
@@ -211,17 +299,10 @@ const WORK_ENTRIES: readonly FixtureWorkEntry[] = [
       title: bi('Locuinta substituent (fixture)', 'Placeholder house (fixture)'),
       slug: bi('locuinta-substituent-fixture', 'placeholder-house-fixture'),
       enPublished: true,
-      discipline: { primary: 'architecture', secondary: ['interior-design'] },
-      entryType: { primary: 'design-project', secondary: [] },
-      attribution: 'independent',
-      commissioning: 'client-commissioned',
-      sectors: ['residential'],
-      roles: biList(['Rol substituent'], ['Placeholder role']),
-      description: null,
-      authorship: bi(
-        'Proiect si imagini de arhitect (text substituent).',
-        'Design and images by the architect (placeholder text).',
-      ),
+      pillar: 'architecture-design',
+      labels: [],
+      sector: 'rezidential',
+      description: biRich('Text substituent.'),
       cover: image('wf-1', 'Imagine substituent', 'Placeholder image'),
       gallery: [image('wf-1-a', 'Imagine substituent', 'Placeholder image')],
       capture: null,
@@ -231,7 +312,7 @@ const WORK_ENTRIES: readonly FixtureWorkEntry[] = [
         location: bi('Oras substituent', 'Placeholder city'),
         client: 'Client substituent',
         collaborators: [],
-        status: 'built-realized',
+        status: 'finalizat',
         awards: null,
         area: 180,
         team: [],
@@ -245,8 +326,7 @@ const WORK_ENTRIES: readonly FixtureWorkEntry[] = [
       }),
       seo: null,
     },
-    employerId: null,
-    serviceIds: ['sv-1'],
+    serviceIds: ['sv-1', 'sv-4'],
     relatedIds: ['wf-2'],
   },
 
@@ -258,17 +338,10 @@ const WORK_ENTRIES: readonly FixtureWorkEntry[] = [
       title: bi('Releveu patrimoniu (fixture)', 'Heritage survey (fixture)'),
       slug: bi('releveu-patrimoniu-fixture', 'heritage-survey-fixture'),
       enPublished: true,
-      discipline: { primary: 'reality-capture', secondary: ['architecture'] },
-      entryType: { primary: 'survey-documentation', secondary: ['design-project'] },
-      attribution: 'independent',
-      commissioning: 'client-commissioned',
-      sectors: ['heritage'],
-      roles: biList(['Rol substituent'], ['Placeholder role']),
+      pillar: 'reality-capture',
+      labels: [],
+      sector: 'cultural-patrimoniu',
       description: null,
-      authorship: bi(
-        'Documentare de arhitect (text substituent).',
-        'Documentation by the architect (placeholder text).',
-      ),
       cover: image('wf-2', 'Imagine substituent', 'Placeholder image'),
       gallery: [image('wf-2-a', 'Imagine substituent', 'Placeholder image')],
       capture: UNCLEARED_CAPTURE,
@@ -278,10 +351,11 @@ const WORK_ENTRIES: readonly FixtureWorkEntry[] = [
         location: bi('Oras substituent', 'Placeholder city'),
         client: 'Institutie substituent',
         collaborators: ['Colaborator substituent'],
-        status: 'delivered',
+        status: 'in-desfasurare',
         awards: null,
-        area: null,
+        area: 620,
         team: [],
+        equipment: ['FIXTURE — scaner'],
         deliverables: biList(['Nor de puncte (substituent)'], ['Point cloud (placeholder)']),
       },
       curation: curation({
@@ -291,7 +365,6 @@ const WORK_ENTRIES: readonly FixtureWorkEntry[] = [
       }),
       seo: null,
     },
-    employerId: null,
     serviceIds: ['sv-2'],
     relatedIds: ['wf-1'],
   },
@@ -304,34 +377,31 @@ const WORK_ENTRIES: readonly FixtureWorkEntry[] = [
       title: bi('Proiect de birou (fixture)'),
       slug: bi('proiect-de-birou-fixture'),
       enPublished: false,
-      discipline: { primary: 'architecture', secondary: [] },
-      entryType: { primary: 'design-project', secondary: [] },
-      attribution: 'studio',
-      commissioning: 'client-commissioned',
-      sectors: ['office'],
-      roles: biList(['Rol substituent in echipa']),
-      description: null,
-      authorship: bi('Proiect al biroului; contributie de proiectare a arhitectului (text substituent).'),
+      pillar: 'architecture-design',
+      // Single-label case: PROIECT DE DIPLOMA without CONCURS.
+      labels: ['diploma-project'],
+      sector: 'birouri-business',
+      description: biRich('Text substituent.'),
       cover: image('wf-3', 'Imagine substituent', null),
-      gallery: [],
+      gallery: [image('wf-3-a', 'Imagine substituent', 'Placeholder image')],
       capture: null,
       capturePublicationCleared: false,
       metadata: {
         year: 2022,
         location: bi('Oras substituent'),
-        client: null,
+        client: 'Client substituent',
         collaborators: [],
-        status: 'built-realized',
+        status: 'in-dezvoltare',
         awards: null,
         area: null,
         team: ['Membru substituent'],
+        implementationCompany: 'Atelier substituent',
         deliverables: null,
       },
       curation: curation({ editorialPriority: 6, prominence: 'small' }),
       seo: null,
     },
-    employerId: 'emp-1',
-    serviceIds: [],
+    serviceIds: ['sv-5'],
     relatedIds: [],
   },
 
@@ -343,34 +413,31 @@ const WORK_ENTRIES: readonly FixtureWorkEntry[] = [
       title: bi('Concurs substituent (fixture)', 'Placeholder competition (fixture)'),
       slug: bi('concurs-substituent-fixture', 'placeholder-competition-fixture'),
       enPublished: true,
-      discipline: { primary: 'architecture', secondary: [] },
-      entryType: { primary: 'competition-entry', secondary: [] },
-      attribution: 'collaboration',
-      commissioning: 'self-initiated',
-      sectors: ['cultural'],
-      roles: biList(['Rol substituent'], ['Placeholder role']),
-      description: null,
-      authorship: bi('Proiect in colaborare (text substituent).', 'Collaborative entry (placeholder text).'),
+      pillar: 'architecture-design',
+      // The dual-label case: one project carrying BOTH labels (v3.1 §10).
+      labels: ['competition', 'diploma-project'],
+      sector: 'cultural-patrimoniu',
+      description: biRich('Text substituent.'),
       cover: image('wf-4', 'Imagine substituent', 'Placeholder image'),
-      gallery: [],
+      gallery: [image('wf-4-a', 'Imagine substituent', 'Placeholder image')],
       capture: null,
       capturePublicationCleared: false,
       metadata: {
         year: 2023,
         location: bi('Oras substituent', 'Placeholder city'),
-        client: null,
+        client: 'Client substituent',
         collaborators: ['Colaborator substituent'],
-        status: 'unbuilt-proposal',
+        status: 'nerealizat',
         awards: biList(['Mentiune substituent'], ['Placeholder mention']),
-        area: null,
+        area: 95,
         team: ['Membru substituent'],
+        implementationCompany: 'Atelier substituent',
         deliverables: null,
       },
       curation: curation({ editorialPriority: 12 }),
       seo: null,
     },
-    employerId: null,
-    serviceIds: [],
+    serviceIds: ['sv-1', 'sv-5'],
     relatedIds: [],
   },
 
@@ -382,19 +449,14 @@ const WORK_ENTRIES: readonly FixtureWorkEntry[] = [
       title: bi('Scanare hala industriala (fixture)', 'Industrial hall scan (fixture)'),
       slug: bi('scanare-hala-industriala-fixture', 'industrial-hall-scan-fixture'),
       enPublished: true,
-      discipline: { primary: 'reality-capture', secondary: [] },
-      entryType: { primary: 'survey-documentation', secondary: [] },
-      attribution: 'independent',
-      commissioning: 'client-commissioned',
-      sectors: ['industrial'],
-      roles: biList(['Rol substituent'], ['Placeholder role']),
+      pillar: 'reality-capture',
+      // A Reality Capture project carrying CONCURS — Labels are global, never scoped to a
+      // Pillar (v3.1 §10), and this fixture is what proves it against real data.
+      labels: ['competition'],
+      sector: 'industrial-logistic',
       description: null,
-      authorship: bi(
-        'Scanare si prelucrare de arhitect (text substituent).',
-        'Capture and processing by the architect (placeholder text).',
-      ),
       cover: image('wf-5', 'Imagine substituent', 'Placeholder image'),
-      gallery: [],
+      gallery: [image('wf-5-a', 'Imagine substituent', 'Placeholder image')],
       capture: CLEARED_CAPTURE,
       capturePublicationCleared: true,
       metadata: {
@@ -402,10 +464,11 @@ const WORK_ENTRIES: readonly FixtureWorkEntry[] = [
         location: bi('Oras substituent', 'Placeholder city'),
         client: 'Client substituent',
         collaborators: [],
-        status: 'delivered',
+        status: 'finalizat',
         awards: null,
         area: 4200,
         team: [],
+        equipment: ['FIXTURE — scaner'],
         deliverables: biList(['Nor de puncte (substituent)'], ['Point cloud (placeholder)']),
       },
       curation: curation({
@@ -415,8 +478,7 @@ const WORK_ENTRIES: readonly FixtureWorkEntry[] = [
       }),
       seo: null,
     },
-    employerId: null,
-    serviceIds: ['sv-2'],
+    serviceIds: ['sv-2', 'sv-6'],
     relatedIds: ['wf-2'],
   },
 ];
@@ -435,9 +497,9 @@ function toRawSummary(entry: FixtureWorkEntry): RawWorkEntrySummary {
     title: doc.title,
     slug: doc.slug,
     enPublished: doc.enPublished,
-    discipline: doc.discipline,
-    entryType: doc.entryType,
-    sectors: doc.sectors,
+    pillar: doc.pillar,
+    labels: doc.labels,
+    sector: doc.sector,
     year: doc.metadata?.year,
     status: doc.metadata?.status,
     cover: doc.cover,
@@ -449,19 +511,27 @@ function toRawSummary(entry: FixtureWorkEntry): RawWorkEntrySummary {
 function toRawArchiveItem(entry: FixtureWorkEntry): RawWorkArchiveItem {
   return {
     ...toRawSummary(entry),
-    attribution: entry.doc.attribution,
-    employer: EMPLOYERS.find((employer) => employer._id === entry.employerId) ?? null,
     services: entry.serviceIds.map((id) => {
       const service = SERVICES.find((candidate) => candidate._id === id);
-      return { _id: id, slug: service?.slug ?? null };
+      return {
+        _id: id,
+        key: service?.key ?? null,
+        pillar: service?.pillar ?? null,
+        slug: service?.slug ?? null,
+      };
     }),
     location: entry.doc.metadata?.location ?? null,
+    /* Mirrors the projection's `gallery[0...4]`, including the bound — a fixture that returned
+       the whole array would let a component pass here and overflow against Sanity. The
+       cover-duplicate filter and the final slice to three are `normalize`'s, on both paths. */
+    galleryPreview: (entry.doc.gallery ?? []).slice(0, 4),
   };
 }
 
 function toRawServiceSummary(service: FixtureService): RawServiceSummary {
   return {
     _id: service._id,
+    key: service.key,
     name: service.name,
     slug: service.slug,
     enPublished: service.enPublished,
@@ -472,11 +542,10 @@ function toRawServiceSummary(service: FixtureService): RawServiceSummary {
   };
 }
 
-/** Mirrors `WORK_ENTRY_PROJECTION`, dereferencing `services[]->`, `relatedWork[]->`, `employer->`. */
+/** Mirrors `WORK_ENTRY_PROJECTION`, dereferencing `services[]->` and `relatedWork[]->`. */
 function toRawWorkEntry(entry: FixtureWorkEntry): RawWorkEntry {
   return {
     ...entry.doc,
-    employer: EMPLOYERS.find((employer) => employer._id === entry.employerId) ?? null,
     services: entry.serviceIds
       .map((id) => SERVICES.find((service) => service._id === id))
       .filter((service): service is FixtureService => service !== undefined)
@@ -519,7 +588,6 @@ export const FIXTURE_RAW_DOCUMENTS: RawDocuments = {
     return service ? toRawService(service) : null;
   },
   serviceSummaries: async () => SERVICES.map(toRawServiceSummary),
-  employers: async () => EMPLOYERS,
 };
 
 /**
@@ -537,12 +605,6 @@ export function createFixtureContentSource(): ContentSource {
  * Convenience for synchronous contexts and tests. They are produced by the same normalizers the
  * query layer uses — never authored in the contract shape by hand.
  * ──────────────────────────────────────────────────────────────────────────── */
-
-export const FIXTURE_EMPLOYERS: readonly Employer[] = EMPLOYERS.map((employer) => ({
-  _id: employer._id as string,
-  _type: 'employer',
-  name: employer.name as string,
-}));
 
 export const FIXTURE_WORK_ENTRIES: readonly WorkEntry[] = WORK_ENTRIES.map(toRawWorkEntry).map(
   normalizeWorkEntry,

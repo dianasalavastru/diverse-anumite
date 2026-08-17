@@ -55,7 +55,8 @@
  *   - not create a scroll trap: §14.2 rejects the HiFi viewer's
  *     `preventDefault()` under `{passive:false}` across the whole surface. Zoom
  *     binds to an explicit activation;
- *   - render no fabricated readout. Point count, accuracy and equipment come
+ *   - render no fabricated readout. Point count and accuracy come from capture
+ *     metadata, Equipment from project metadata (Stage 8); all three come
  *     from CMS capture metadata and are rendered *here*, not by the renderer.
  *     §10.4: the HiFi prints `N*1600` as "≈ 8,032,000 puncte" — "a decorative
  *     multiplier surviving into production is a false accuracy claim".
@@ -111,7 +112,11 @@ if (capture?.pointCount != null) {
   readout.push(`${capture.pointCount.toLocaleString(locale)} pt`);
 }
 if (accuracy) readout.push(accuracy);
-if (capture?.equipment.length) readout.push(capture.equipment.join(' · '));
+/* STAGE 8: Equipment moved to project metadata. It is a fact about the project, not about the
+   survey — *Fotografie de arhitectura* requires instruments and has no point cloud at all. The
+   readout still states it beside the cloud it describes; no prop changed, because this seam
+   already receives the whole entry. */
+if (subject?.metadata.equipment.length) readout.push(subject.metadata.equipment.join(' · '));
 ---
 
 <div class="cloud bleed rv" data-rv="img">

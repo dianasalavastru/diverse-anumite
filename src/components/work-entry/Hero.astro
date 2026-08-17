@@ -36,7 +36,7 @@ import type { WorkEntryMessages } from '../../lib/i18n/work-entry';
 import { routePath } from '../../lib/i18n/routes';
 import { poolForPillar } from '../../lib/dev/visual-media';
 import {
-  entryTypeLabel,
+  projectLabelLabel,
   pillarLabel,
   pillarRouteKey,
   sectorLabel,
@@ -58,7 +58,7 @@ const location = localize(entry.metadata.location, locale);
    full-bleed hero and the small card are not forced to be the same photograph: the point of the
    QA pass is to see how one composition reads large and another reads small. */
 const devKey = `${entry._id}:entry-hero`;
-const devPool = poolForPillar(entry.pillars.primary, entry.pillars.secondary, devKey);
+const devPool = poolForPillar(entry.pillar, devKey);
 
 /**
  * The kicker: the "first relevance signal" the wireframe asks for — sector,
@@ -66,23 +66,23 @@ const devPool = poolForPillar(entry.pillars.primary, entry.pillars.secondary, de
  * separator behind.
  */
 const kicker = [
-  entry.sectors.length > 0 ? sectorLabel(entry.sectors[0] as string, locale) : null,
+  sectorLabel(entry.sector, locale),
   String(entry.metadata.year),
   location,
 ].filter((segment): segment is string => Boolean(segment));
 
 /** The measured line — instrument readout voice (VISUAL_DIRECTION_v2.0 §2.5). */
 const measured = [
-  entryTypeLabel(entry.entryType.primary, locale),
+  entry.labels.map((label) => projectLabelLabel(label, locale)).join(' · ') || null,
   entry.metadata.area != null ? `${entry.metadata.area} ${copy.metadata.areaUnit}` : null,
 ].filter((segment): segment is string => Boolean(segment));
 
 /**
  * M2 / F1: the default contextual back-path follows the **Primary Pillar** —
- * "secondary pillars stay available for classification, discovery and filtering
- * but never change default navigation" (IA §2.3).
+ * STAGE 5: there is no primary/secondary pair left — a project has one Pillar, and that is
+ * the hub it links back to.
  */
-const primaryPillar = entry.pillars.primary;
+const primaryPillar = entry.pillar;
 ---
 
 <section class="we-hero-section" data-station={station} aria-labelledby="we-title">

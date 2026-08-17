@@ -34,15 +34,24 @@
  * per-step media would carry them honestly); they are not reproduced from the
  * prototype, and no motion is introduced that carries meaning.
  *
- * ── EQUIPMENT & SPECS: REAL FIGURES, OR NOTHING ───────────────────────────
- * §10.4 governs this list absolutely — "capture metadata is **real data, never
- * computed**… these are technical claims made to institutional clients
- * evaluating a surveying service". Every value here is an authored string from
- * `Service.equipment` (the Studio field says it in the editor: "Real figures
- * only — nothing here is calculated for you"). Nothing is defaulted, nothing is
- * derived, and an unauthored list renders no block rather than a plausible one.
- * The HiFi's "acuratețe 2 mm · Leica RTC360" appears here only if an owner typed
- * it into that service.
+ * ── EQUIPMENT MOVED OUT (Capability Sheet) ────────────────────────────────
+ * `Service.equipment` used to render at the foot of this section, and used to
+ * toggle it. Both were wrong. A list of instruments is a different claim from
+ * a method — §10.4's "technical claims made to institutional clients" — and a
+ * service with instruments but no authored method got the heading "Cum lucram"
+ * over a list of scanners. It is its own station now (`Capabilities.astro`),
+ * gated on its own field.
+ *
+ * ── STEPS APPEAR ONLY IF THE AUTHOR WROTE STEPS ───────────────────────────
+ * `Service.process` is one Portable Text field. There is no step object, no
+ * step index and no per-step media anywhere in `CONTENT_MODEL.md` §2 or in
+ * `types.ts`, so a numbered sequence cannot be *derived*: paragraph breaks are
+ * not steps, and numbering them would invent a structure the author did not
+ * write. What the stylesheet does instead is honest — an authored **heading**
+ * inside this field is treated as a movement and takes a counter-generated
+ * ordinal. An author who writes headings gets a numbered method; an author who
+ * writes prose gets prose. Nothing is fabricated either way, and the page never
+ * claims four steps because it has four paragraphs.
  */
 import RichText from '../RichText.astro';
 import { localize } from '../../lib/content';
@@ -55,10 +64,9 @@ interface Props {
   copy: ServiceMessages;
 }
 
-const { service, locale, copy } = Astro.props;
+const { service, locale } = Astro.props;
 
 const process = localize(service.process, locale);
-const equipment = localize(service.equipment, locale) ?? [];
 ---
 
 <div class="sv-process">
@@ -66,24 +74,6 @@ const equipment = localize(service.equipment, locale) ?? [];
     process && (
       <div class="sv-process-body rv" data-rv="meta">
         <RichText blocks={process} />
-      </div>
-    )
-  }
-
-  {
-    equipment.length > 0 && (
-      <div class="sv-specs rv" data-rv="meta">
-        <h3 class="sv-sublabel mono">{copy.process.equipment}</h3>
-        {/* No `data-fixture` marker here, deliberately. Elsewhere that attribute
-            flags a placeholder standing in for an asset that does not exist
-            (Plate.astro); every string below is an authored technical claim, and
-            marking it "fixture" would invert the meaning for anyone grepping a
-            built page for fabricated content. */}
-        <ul class="sv-spec-list">
-          {equipment.map((item) => (
-            <li class="mono">{item}</li>
-          ))}
-        </ul>
       </div>
     )
   }

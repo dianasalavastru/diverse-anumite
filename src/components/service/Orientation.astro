@@ -1,108 +1,106 @@
 ---
 /**
- * S-1 · Service orientation (Page IA Stage A).
+ * S-1 + S-2 · The identity block — the Capability Sheet's opening.
  *
  * Responsibility (`SERVICE_PAGE_IA.md` S-1): "identify the service and anchor a
- * cold arrival to the parent pillar / practice."
+ * cold arrival to the parent pillar / practice." Plus S-2's: "help visitors
+ * recognize their own problem and whether this service is their solution."
  *
- * Components (`SERVICE_WIREFRAME.md` S-1): "Page Introduction (service name +
- * one-line positioning) · Breadcrumb (parent Pillar Hub — the F1 back-path) · a
- * light text link to About."
+ * ══════════════════════════════════════════════════════════════════════════
+ *  WHY THERE IS NO PHOTOGRAPH HERE ANY MORE
+ * ══════════════════════════════════════════════════════════════════════════
  *
- * Spatial composition, transcribed: "a calm opening that names the service
- * first; the Breadcrumb sits quietly as orientation and back-path, **never an
- * emphasized action**. Image-led if media is present, interface quiet around it."
+ * This module used to open on a 100vh full-bleed photograph with the service
+ * name over it. That composition was a near-verbatim copy of the Work Entry's
+ * hero — same height, same negative gutters, same `scale(1.06)` settle, same
+ * four-stop gradient, same blue scan bar, same pixel display title in the same
+ * corner, and (because both draw from the same pool) frequently the same
+ * photograph. Two page types with two different jobs opened identically.
  *
- * ── THE ARRIVAL ASSUMPTION GOVERNS THIS MODULE ────────────────────────────
- * The Page IA's arrival note is unusually strong: the Service Page is "the
- * site's most common **cold deep-link / search landing**… It must self-orient —
- * it cannot assume the homepage or hub was seen." Hence a breadcrumb that names
- * both the Services index and the parent Pillar Hub, a kicker that states which
- * capability this is before the name is read, and the positioning line directly
- * under the name.
+ * It also contradicted this page's own wireframe. `SERVICE_WIREFRAME.md` §
+ * "Visual emphasis hierarchy" is explicit: "the Service page makes **the
+ * solution itself the strongest visual idea**… Everything else (S-1
+ * orientation, breadcrumb, header, footer, supporting components) **supports**
+ * the visitor's decision rather than competing with it." A 100vh photograph is
+ * not support.
  *
- * ── "IMAGE-LED IF MEDIA IS PRESENT" IS A CONDITIONAL, AND IT IS HONOURED ───
- * `Service.hero` is nullable and many services will have none. The full-bleed
- * dark opening is therefore not unconditional the way the Work Entry's is: with
- * no hero the same content renders as a quiet paper-white introduction, which is
- * what "image-led **if** media is present" asks for, rather than a black
- * rectangle standing in for a photograph that does not exist. `Plate` handles the
- * intermediate case (an authored asset that cannot yet be rendered) by painting
- * its authored tone — see Plate.astro.
+ * So the opening is now typographic and the service's one authored image moves
+ * down to S-3, where it is evidence beside the deliverables rather than the
+ * page's loudest gesture. `Service.hero` is still read — by `Deliverables`.
  *
- * ── WHAT THE HiFi HAS THAT THIS DOES NOT ──────────────────────────────────
- * The approved HiFi's hero carries a measured badge — `2 mm · 46.77°N` — over
- * the photograph. There is no accuracy field on `Service` and no coordinate
- * field anywhere in `CONTENT_MODEL.md`; §10.4 is explicit that the service
- * page's hardcoded `2 mm` is a prototype artifact and a false accuracy claim in
- * production. It is absent, not approximated. The composition — kicker, large
- * name, one positioning line, quiet breadcrumb — is unchanged.
+ * ── THE TITLE BLOCK ───────────────────────────────────────────────────────
+ * A drawing sheet names itself in a ruled band before it draws anything: a
+ * sheet reference on one side, the discipline on the other. That is the
+ * grammar here — mono, hairline-ruled, the two readings pushed to the two
+ * edges of the well. Both values already exist (`pillar`, and the catalogue
+ * position the route derives); neither is decoration.
+ *
+ * ── THE EVALUATION RAIL IS S-2, NOT A DASHBOARD ───────────────────────────
+ * `problemSolved` and `sectors` read in a narrow column beside the name rather
+ * than in a section of their own two screens later. The wireframe wants "is
+ * this my problem?" resolved before the solution, and a cold search arrival
+ * resolves it fastest when it is in the first screen next to the name.
+ *
+ * They are labelled and hairline-separated, not boxed, not chipped and not
+ * counted — VISUAL_DIRECTION_v2.0 §12 forbids the card/pill/panel vocabulary,
+ * and a rail of framed values would read as a status dashboard rather than as
+ * the margin of a specification. `sectors` in particular lost the bordered
+ * chips it carried in the old S-2: at rail width they were pills.
+ *
+ * ── WHAT IS STILL DELIBERATELY ABSENT ─────────────────────────────────────
+ * The approved HiFi's `2 mm · 46.77°N` badge. There is no accuracy field on
+ * `Service` and no coordinate field anywhere in `CONTENT_MODEL.md`; §10.4
+ * names that exact line as a prototype artifact and a false accuracy claim in
+ * production. Absent, not approximated.
  */
-import Plate from '../media/Plate.astro';
+import RichText from '../RichText.astro';
 import { localize } from '../../lib/content';
 import type { Locale, Service } from '../../lib/content';
 import type { ServiceMessages } from '../../lib/i18n/service';
 import { routePath } from '../../lib/i18n/routes';
-import { pillarLabel, pillarRouteKey } from '../../lib/i18n/vocabulary';
-import { devServiceHero, devServiceKey, devServicePool } from '../../lib/dev/visual-media';
+import { pillarLabel, pillarRouteKey, sectorLabel } from '../../lib/i18n/vocabulary';
 
 interface Props {
   service: Service;
   locale: Locale;
   copy: ServiceMessages;
   station: number;
+  /**
+   * The service's 1-based position in the locale's curation-ordered service
+   * list, derived by the route. `null` when the route could not derive one, and
+   * the title block then reads the plain word instead of a reference.
+   *
+   * PROTOTYPE CAVEAT, flagged rather than hidden: this is a *position*, not an
+   * identity. Publishing a new service renumbers every service after it. A
+   * stable sheet reference is an additive `code` field on the Service, and
+   * until that exists this number must not be printed anywhere a client might
+   * quote it back (an offer, an email, a document).
+   */
+  code: string | null;
 }
 
-const { service, locale, copy, station } = Astro.props;
+const { service, locale, copy, station, code } = Astro.props;
 
 const name = localize(service.name, locale) ?? '';
 const positioning = localize(service.shortDescription, locale);
+const description = localize(service.description, locale);
+const problem = localize(service.problemSolved, locale);
+const sectors = service.sectors;
 
 const pillar = service.pillar;
 const pillarName = pillarLabel(pillar, locale);
 /** F1: the parent Pillar Hub, available from orientation onward (Page IA §4). */
 const hubHref = routePath(pillarRouteKey(pillar) as never, locale, undefined as never);
 
-/* DEVELOPMENT ONLY — see `lib/dev/visual-media.ts`.
-   This surface needs more than a substituted `src`, because the image-led layout is *gated*:
-   with no hero the whole `.sv-hero-media` block and the `--media` modifier never render, so a
-   Plate-level substitution alone would be invisible here and the image-led variant would stay
-   unreviewable. The gate therefore also opens for a temporary image — which is honest, because
-   the rule it encodes is "image-led only when there is an image to lead with", and under the
-   flag there is one. `devHero` is `null` in every build that did not opt in, so `hasHero`
-   collapses back to `service.hero !== null` exactly as before. */
-const devHero = service.hero ? null : devServiceHero(service._id, service.pillar);
+const reference = code ? copy.kicker.replace('{code}', code) : copy.kickerPlain;
 
-/* Image-led only when there is an image to lead with. */
-const hasHero = service.hero !== null || devHero !== null;
+/** The rail renders only what is authored; an absent block leaves no label. */
+const hasRail = Boolean(problem?.length) || sectors.length > 0;
 ---
 
-<section
-  class:list={['sv-orientation', hasHero && 'sv-orientation--media']}
-  data-station={station}
-  aria-labelledby="sv-title"
->
-  {
-    hasHero && (
-      <div class="sv-hero-media" aria-hidden="true">
-        {/* Named by the <h1> beside it, so the plate is decorative rather than
-            repeating the service name into the accessible tree. */}
-        <Plate
-          image={service.hero}
-          locale={locale}
-          tone="#3a352d"
-          priority
-          devKey={devServiceKey(service._id)}
-          devPool={devServicePool(service.pillar)}
-        />
-        <div class="sv-hero-grad" />
-        <div class="sv-hero-scan" />
-      </div>
-    )
-  }
-
-  <div class="sv-orientation-in">
-    <nav class="sv-crumbs-nav" aria-label={copy.breadcrumb.label}>
+<section class="sv-identity" data-station={station} aria-labelledby="sv-title">
+  <div class="sv-identity-in">
+    <nav class="sv-crumbs-nav rv" data-rv="meta" aria-label={copy.breadcrumb.label}>
       <ol class="sv-crumbs">
         <li><a href={routePath('services', locale)}>{copy.breadcrumb.services}</a></li>
         <li><a href={hubHref}>{pillarName}</a></li>
@@ -110,14 +108,65 @@ const hasHero = service.hero !== null || devHero !== null;
       </ol>
     </nav>
 
-    <div class="sv-intro">
-      <p class="sv-kick mono">{copy.kicker.replace('{pillar}', pillarName)}</p>
-      <h1 id="sv-title">{name}</h1>
-      {positioning && <p class="sv-positioning">{positioning}</p>}
-      {/* Page IA S-1 destinations: "parent Hub (F1 back-path); About (light)."
-          Light means light — a text link in the supporting voice, never a second
-          action competing with S-5's single conversion action. */}
-      <p class="sv-about"><a href={routePath('about', locale)}>{copy.about}</a></p>
+    {/* The title block. Two readings, both authored, pushed to the two edges of
+        the well and closed by the sheet rule beneath them. */}
+    <p class="sv-titleblock mono rv" data-rv="meta">
+      <span class="sv-ref">{reference}</span>
+      <span class="sv-discipline">{pillarName}</span>
+    </p>
+
+    <div class:list={['sv-identity-body', !hasRail && 'sv-identity-body--solo']}>
+      <div class="sv-identity-name">
+        <h1 id="sv-title" class="rv" data-rv="head">{name}</h1>
+
+        {positioning && <p class="sv-positioning rv" data-rv="meta">{positioning}</p>}
+
+        {
+          description && (
+            <div class="sv-identity-lead rv" data-rv="meta">
+              <RichText blocks={description} headingLevel={3} />
+            </div>
+          )
+        }
+
+        {/* Page IA S-1 destinations: "parent Hub (F1 back-path); About (light)."
+            Light means light — a text link in the supporting voice, never a
+            second action competing with S-5's single conversion action. */}
+        <p class="sv-about rv" data-rv="meta">
+          <a href={routePath('about', locale)}>{copy.about}</a>
+        </p>
+      </div>
+
+      {
+        hasRail && (
+          <aside class="sv-rail rv" data-rv="meta">
+            {problem && (
+              <div class="sv-rail-block">
+                <h2 class="sv-rail-label mono">{copy.identity.solves}</h2>
+                <div class="sv-rail-prose">
+                  {/* headingLevel 4: this block already owns an <h2>, so an
+                      authored heading inside it must not repeat that level. */}
+                  <RichText blocks={problem} headingLevel={4} />
+                </div>
+              </div>
+            )}
+
+            {sectors.length > 0 && (
+              <div class="sv-rail-block">
+                <h2 class="sv-rail-label mono">{copy.identity.useCases}</h2>
+                {/* Display, not filters. Linking each to a scoped archive would
+                    turn the opening into a browse surface, which is the
+                    Archive's responsibility (S-4 "demonstrate, don't browse"). */}
+                <ul class="sv-rail-list">
+                  {sectors.map((sector) => (
+                    <li>{sectorLabel(sector, locale)}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </aside>
+        )
+      }
     </div>
   </div>
 </section>

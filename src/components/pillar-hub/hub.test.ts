@@ -32,6 +32,7 @@ const CURATION: Curation = {
 function service(overrides: Partial<Service> & Pick<Service, '_id'>): Service {
   return {
     _type: 'service',
+    key: 'scanare-laser-3d',
     name: { ro: 'Scanare 3D', en: '3D scanning' },
     slug: { ro: 'scanare-3d', en: '3d-scanning' },
     enPublished: true,
@@ -53,6 +54,7 @@ function service(overrides: Partial<Service> & Pick<Service, '_id'>): Service {
 
 function summary(overrides: Partial<ServiceSummary> & Pick<ServiceSummary, '_id'>): ServiceSummary {
   return {
+    key: 'scanare-laser-3d',
     name: { ro: 'Scanare 3D', en: '3D scanning' },
     slug: { ro: 'scanare-3d', en: '3d-scanning' },
     enPublished: true,
@@ -107,16 +109,34 @@ describe('servicesInPillar', () => {
 describe('useCaseSectors', () => {
   it('unions the pillar services’ sectors in frozen-vocabulary order', () => {
     const services = [
-      service({ _id: 'a', sectors: ['industrial', 'heritage'] }),
-      service({ _id: 'b', sectors: ['heritage', 'cultural'] }),
+      service({ _id: 'a', sectors: ['industrial-logistic', 'cultural-patrimoniu'] }),
+      service({ _id: 'b', sectors: ['cultural-patrimoniu', 'birouri-business'] }),
     ];
-    // KNOWN_SECTORS order: … cultural, heritage, industrial …
-    expect(useCaseSectors(services)).toEqual(['cultural', 'heritage', 'industrial']);
+    // SECTORS order: … birouri-business … industrial-logistic · cultural-patrimoniu …
+    expect(useCaseSectors(services)).toEqual([
+      'birouri-business',
+      'industrial-logistic',
+      'cultural-patrimoniu',
+    ]);
   });
 
-  it('keeps authored values beyond the known list, sorted, after them', () => {
-    const services = [service({ _id: 'a', sectors: ['adaptive-reuse', 'heritage', 'aviation'] })];
-    expect(useCaseSectors(services)).toEqual(['heritage', 'adaptive-reuse', 'aviation']);
+  /*
+   * STAGE 6 replaces the "authored values beyond the known list" case. Sector is closed
+   * (v3.1 §11.1), so a value outside the vocabulary cannot exist — `normalize.ts` fails the
+   * build before one could reach a hub. What is worth asserting instead is that the union is
+   * exactly the vocabulary intersection, with no duplicates.
+   */
+  it('unions without duplicating a sector two services share', () => {
+    const services = [
+      service({ _id: 'a', sectors: ['cultural-patrimoniu'] }),
+      service({ _id: 'b', sectors: ['cultural-patrimoniu'] }),
+    ];
+    expect(useCaseSectors(services)).toEqual(['cultural-patrimoniu']);
+  });
+
+  it('reads in vocabulary order, never in authored order', () => {
+    const reversed = [service({ _id: 'a', sectors: ['mixed-use-dezvoltari', 'rezidential'] })];
+    expect(useCaseSectors(reversed)).toEqual(['rezidential', 'mixed-use-dezvoltari']);
   });
 
   it('is empty when no service declares a sector — the module then disappears', () => {

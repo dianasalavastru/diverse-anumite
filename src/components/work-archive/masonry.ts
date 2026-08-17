@@ -15,6 +15,24 @@
  * nothing editorial. Both halves are precomputed here at **build time** rather
  * than in the island, which is what keeps the client from ever recomputing an
  * order: the browser selects a rank, it does not derive one.
+ *
+ * ── WHERE THE SIZE VOCABULARY IS STILL A PACKED GRID, AND WHERE IT IS NOT ──
+ * `archiveSize` is unchanged and still called for every entry on every surface.
+ * What consumes it differs:
+ *
+ *   curated views    the five sizes are column spans in a packed masonry, as
+ *                    written — `feature` at half the grid, `small` at a third.
+ *   Work Archive     the page moved to a REGISTER (work-archive.css A-5a): one
+ *                    project per row, and the size class now selects how much
+ *                    of the measure that row takes — ten twelfths or eleven.
+ *                    Same editorial input, a tenth of the amplitude.
+ *
+ * Nothing here changed to make that true, deliberately. `prominence` is still
+ * editorial metadata, still authored in the CMS, still the only thing deciding
+ * emphasis, and still mapped by this function — the presentation layer simply
+ * stopped translating it into several-fold differences in footprint. If the
+ * register ever wants a size vocabulary of its own, this is the file it comes
+ * from; it is not something a stylesheet should start inventing.
  */
 
 import { sortArchive, type Pillar, type Prominence, type WorkArchiveItem } from '../../lib/content';

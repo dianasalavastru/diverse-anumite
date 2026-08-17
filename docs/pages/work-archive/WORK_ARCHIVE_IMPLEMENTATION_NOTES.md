@@ -1,5 +1,7 @@
 # Archive — Implementation Notes
 
+> **⚠ SUPERSEDED IN PART (2026-08-13) — simplified project model.** `../../product/CONTENT_MODEL.md` v3.0 removes **Discipline** and **Entry Type / Project Type**. **Everything in lines 72–96 about the contextual Discipline refinement and the canonical-dimension table is withdrawn**, including the already-prohibited Entry Type enumeration at line 88. The archive's dimensions are now **Pillar (mode) · Sector · Service (refinement, both pillars) · Label · Year (sort)**; the URL example at line 135 becomes `?pillar=architecture&service=design-interior` or `?sector=rezidential`. Line 84's principle — expose canonical fields "as independent dimensions. Do not merge them." — **still stands and is why the simplification is safe.** See `docs/product/PROJECT_MODEL_IMPACT.md` §1.5.
+
 > **Migration note (2026-08-10):** This document is **authoritative for Work Archive production behaviour**. Where it touches taxonomy, filters, or metadata dimensions, those details **reconcile to — and never override —** the frozen `../../product/CONTENT_MODEL.md` and locked `../../product/INFORMATION_ARCHITECTURE.md`; any genuine conflict resolves in favour of those upstream docs (U12).
 
 | Field | Value |

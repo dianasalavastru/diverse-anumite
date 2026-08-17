@@ -20,6 +20,7 @@ import { describe, expect, it } from 'vitest';
 import {
   captureSubject,
   hasDeliverables,
+  hasCapabilities,
   hasProblemContent,
   hasProcess,
   serviceComposition,
@@ -59,6 +60,7 @@ function service(overrides: Partial<Service> = {}): Service {
   return {
     _id: 'sv-test',
     _type: 'service',
+    key: 'proiectare-arhitectura',
     name: bi('Serviciu', 'Service'),
     slug: bi('serviciu', 'service'),
     enPublished: true,
@@ -84,11 +86,11 @@ function summary(id: string, enPublished = true): WorkEntrySummary {
     title: bi(`Lucrare ${id}`, `Work ${id}`),
     slug: bi(`lucrare-${id}`, enPublished ? `work-${id}` : null),
     enPublished,
-    pillars: { primary: 'reality-capture', secondary: [] },
-    entryType: { primary: 'survey-documentation', secondary: [] },
-    sectors: [],
+    pillar: 'reality-capture',
+    labels: [],
+    sector: 'cultural-patrimoniu',
     year: 2024,
-    status: 'delivered',
+    status: 'finalizat',
     cover: null,
     curation: CURATION,
   };
@@ -105,23 +107,16 @@ function entry(
     title: bi(`Lucrare ${id}`, `Work ${id}`),
     slug: bi(`lucrare-${id}`, `work-${id}`),
     enPublished: true,
-    discipline: { primary: 'reality-capture', secondary: [] },
-    pillars: { primary: 'reality-capture', secondary: [] },
-    entryType: { primary: 'survey-documentation', secondary: [] },
-    attribution: 'independent',
-    commissioning: 'client-commissioned',
-    employer: null,
-    sectors: [],
-    roles: null,
+    pillar: 'reality-capture',
+    labels: [],
+    sector: 'cultural-patrimoniu',
     services: [],
     relatedWork: [],
     description: null,
-    authorship: null,
     cover: null,
     gallery: [],
     capture: {
       accuracy: bi('2 mm', '2 mm'),
-      equipment: ['Leica RTC360'],
       software: [],
       pointCount: 8_032_000,
       derivative: derivative
@@ -145,11 +140,13 @@ function entry(
       location: null,
       client: null,
       collaborators: [],
-      status: 'delivered',
+      status: 'finalizat',
       awards: null,
       area: null,
       team: [],
       deliverables: null,
+      equipment: [],
+      implementationCompany: null,
     },
     curation: CURATION,
     seo: { title: null, description: null },
@@ -176,17 +173,58 @@ describe('one blueprint for every service (SERVICE_PAGE_IA.md:3, :170)', () => {
       deliverables: bi(['Nor de puncte'], ['Point cloud']),
       process: bi(prose('Cum lucram'), prose('How we work')),
       equipment: bi(['Leica RTC360'], ['Leica RTC360']),
-      sectors: ['heritage'],
+      sectors: ['cultural-patrimoniu'],
     });
 
+    /* S-2 no longer takes a station: its content reads inside the opening as
+       the identity block's evaluation rail, so `orientation` carries both
+       responsibilities. Equipment is its own station rather than a footnote to
+       the process. Neither is an IA change — see `ServiceModuleKey`. */
     expect(serviceComposition(full, 'ro').modules).toEqual([
       'orientation',
-      'problem',
       'deliverables',
+      'process',
+      'capabilities',
+      'proof',
+      'conversion',
+    ]);
+  });
+
+  it('gives equipment its own station, independent of the process', () => {
+    const instrumentsOnly = service({ equipment: bi(['Leica RTC360'], ['Leica RTC360']) });
+    expect(serviceComposition(instrumentsOnly, 'ro').modules).toEqual([
+      'orientation',
+      'capabilities',
+      'proof',
+      'conversion',
+    ]);
+
+    const methodOnly = service({ process: bi(prose('Cum'), prose('How')) });
+    expect(serviceComposition(methodOnly, 'ro').modules).toEqual([
+      'orientation',
       'process',
       'proof',
       'conversion',
     ]);
+  });
+
+  it('reflows the station numbers when a service has no equipment to declare', () => {
+    const fields = {
+      deliverables: bi(['a'], ['a']),
+      process: bi(prose('y'), prose('y')),
+    };
+    const withEquipment = serviceComposition(
+      service({ ...fields, equipment: bi(['Leica RTC360'], ['Leica RTC360']) }),
+      'ro',
+    );
+    const without = serviceComposition(service(fields), 'ro');
+
+    /* The A&D case: no empty capabilities heading, no placeholder, and every
+       later station simply moves up one. */
+    expect(withEquipment.stations).toMatchObject({ capabilities: 4, proof: 5, conversion: 6 });
+    expect(without.stations.capabilities).toBeUndefined();
+    expect(without.stations).toMatchObject({ proof: 4, conversion: 5 });
+    expect(without.footerStation).toBe(withEquipment.footerStation - 1);
   });
 
   it('composes identically for an A&D and a Reality Capture service with the same fields', () => {
@@ -255,9 +293,9 @@ describe('module toggles are locale-aware (§11.2 — no RO content under an EN 
   it('renders the prose modules in RO', () => {
     expect(serviceComposition(roOnly, 'ro').modules).toEqual([
       'orientation',
-      'problem',
       'deliverables',
       'process',
+      'capabilities',
       'proof',
       'conversion',
     ]);
@@ -272,10 +310,11 @@ describe('module toggles are locale-aware (§11.2 — no RO content under an EN 
     expect(hasProblemContent(roOnly, 'en')).toBe(false);
     expect(hasDeliverables(roOnly, 'en')).toBe(false);
     expect(hasProcess(roOnly, 'en')).toBe(false);
+    expect(hasCapabilities(roOnly, 'en')).toBe(false);
   });
 
-  it('still renders S-2 in EN when only the Sector use-cases are locale-neutral', () => {
-    const sectorsOnly = service({ problemSolved: bi(prose('ro'), null), sectors: ['heritage'] });
+  it('still shows the identity rail in EN when only the Sector use-cases are locale-neutral', () => {
+    const sectorsOnly = service({ problemSolved: bi(prose('ro'), null), sectors: ['cultural-patrimoniu'] });
     expect(hasProblemContent(sectorsOnly, 'en')).toBe(true);
   });
 });

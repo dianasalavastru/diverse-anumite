@@ -14,8 +14,9 @@
  *   pillar membership        `inPillarScope`, incl. cross-pillar (§7.4, :63)
  *   homepage placements      `source.highlights('homepage', pillar, locale)`
  *                            — taxonomy ∩ curation, ordered (§7.5)
- *   curated-view membership  `source.curatedView`, `source.professionalExperience`
- *   employer grouping        `groupByEmployer` (IA §5.1)
+ *   curated-view membership  `source.curatedView` — Competitions, the one curated
+ *                            view left after Stage 2 retired Professional
+ *                            Experience (`DECISIONS_LOG.md` #97)
  *
  * At I-3 this file lost `pillarHighlights`, `heroItem`, `resolveEntries` and a
  * re-export of `compareCurated`. Three were thin wrappers that had begun to look
