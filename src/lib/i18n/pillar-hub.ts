@@ -219,7 +219,7 @@ const ro: PillarHubMessages = {
   meta: {
     title: 'Reality Capture — pilon · diverse anumite',
     description:
-      'Scanare 3D, fotogrametrie si relevee — realitatea construita, masurata pe teren si livrata ca nor de puncte, ortofoto sau desen.',
+      'Scanare 3D, fotogrametrie si relevee — realitatea construita, masurata pe teren si livrata ca nor de puncte sau desen.',
   },
 
   orientation: {
@@ -231,7 +231,7 @@ const ro: PillarHubMessages = {
       tail: 'ce este.',
     },
     lead:
-      'Scanare 3D, fotogrametrie si relevee. Transformam cladiri, situri si peisaje reale in masuratori precise — nori de puncte, ortofotografii si desene pe care se poate lua o decizie. Nu o interpretare a locului, ci locul insusi, la scara 1:1.',
+      'Scanare 3D, fotogrametrie si relevee. Transformam cladiri, situri si peisaje reale in masuratori precise — nori de puncte si desene pe care se poate lua o decizie. Nu o interpretare a locului, ci locul insusi, la scara 1:1.',
     heroFallbackAlt: 'Imagine substituent — documentare de sit, in asteptare',
     heroIndex: 'RC—001',
     heroCoordinates: '46.77°N 23.59°E',
@@ -334,7 +334,7 @@ const en: PillarHubMessages = {
   meta: {
     title: 'Reality Capture — capability · diverse anumite',
     description:
-      '3D scanning, photogrammetry and measured surveys — the built world measured on site and delivered as a point cloud, orthophoto or drawing.',
+      '3D scanning, photogrammetry and measured surveys — the built world measured on site and delivered as a point cloud or drawing.',
   },
 
   orientation: {
@@ -346,7 +346,7 @@ const en: PillarHubMessages = {
       tail: 'what is.',
     },
     lead:
-      '3D scanning, photogrammetry and measured surveys. We turn real buildings, sites and landscapes into precise measurements — point clouds, orthophotos and drawings you can make a decision on. Not an interpretation of the place, but the place itself, at 1:1.',
+      '3D scanning, photogrammetry and measured surveys. We turn real buildings, sites and landscapes into precise measurements — point clouds and drawings you can make a decision on. Not an interpretation of the place, but the place itself, at 1:1.',
     heroFallbackAlt: 'Placeholder image — site documentation pending',
     heroIndex: 'RC—001',
     heroCoordinates: '46.77°N 23.59°E',
