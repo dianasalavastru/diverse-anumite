@@ -141,6 +141,35 @@ describe('Contextual refinement — Service under every mode, scoped by Pillar',
   });
 });
 
+describe('Service filter options per mode (v3.2 §2)', () => {
+  it('exposes 6 under Toate, 4 under Architecture & Design, 2 under Reality Capture', () => {
+    /*
+     * The final shape of the secondary filter. The counts are asserted literally because the
+     * asymmetry is a product decision, not an accident of the current data: 4 + 2, never 4 + 4,
+     * and no replacement option is to be introduced to even them out. `servicesInScope` reads
+     * `SERVICE_KEY_TO_PILLAR`, so this fails the moment the vocabulary and the model disagree.
+     */
+    const all = [...SERVICE_KEYS];
+    expect(servicesInScope(all, 'all')).toHaveLength(6);
+    expect(servicesInScope(all, 'architecture-design')).toEqual([
+      'proiectare-arhitectura',
+      'design-interior',
+      'vizualizare-3d',
+      'design-mobilier',
+    ]);
+    expect(servicesInScope(all, 'reality-capture')).toEqual(['scanare-laser-3d', 'scan-to-bim']);
+  });
+
+  it('offers no option for a retired Service, under any mode (#102)', () => {
+    const all = [...SERVICE_KEYS] as readonly string[];
+    for (const mode of ['all', 'architecture-design', 'reality-capture'] as const) {
+      const scoped = servicesInScope(all, mode);
+      expect(scoped).not.toContain('fotografie-arhitectura');
+      expect(scoped).not.toContain('vizualizare-arhitectura');
+    }
+  });
+});
+
 describe('Service identity is the immutable key, never a slug (v3.1 §14.3)', () => {
   it('round-trips every canonical key under All', () => {
     for (const key of SERVICE_KEYS) {

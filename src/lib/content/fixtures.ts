@@ -169,13 +169,37 @@ const SERVICES: readonly FixtureService[] = [
     seo: null,
   },
   {
-    // F5: publishable with zero linked Work Entries — editorial message + Contact CTA + hub
-    // back-path, never an empty grid (IA Step 6).
+    /*
+     * F5: publishable with zero linked Work Entries — editorial message + Contact CTA + hub
+     * back-path, never an empty grid (IA Step 6).
+     *
+     * ── WHY REALITY CAPTURE HAS NO MULTI-SERVICE FIXTURE (v3.2) ──────────────
+     * It used to. `sv-6` (Fotografie de arhitectura) existed only so `wf-5` could reference two
+     * RC Services while `sv-3` stayed unlinked and kept F5 alive. The v3.2 taxonomy retires
+     * both Fotografie de arhitectura and Vizualizare de arhitectura, leaving Reality Capture
+     * with exactly two Services — so those two invariants can no longer both hold inside this
+     * Pillar, and one had to be chosen.
+     *
+     * **F5 wins, and it stays here.** It is the only fixture behind the Service page's
+     * zero-proof branch, and no other Service is unlinked. Multi-Service behaviour is not
+     * recreated inside Reality Capture to compensate: `wf-1` already demonstrates it with
+     * `sv-1` + `sv-4`, and the resolver's merge rule is Pillar-agnostic (v3.1 §8), so nothing
+     * about it is Reality-Capture-specific. Adding a throwaway RC Service to restore symmetry
+     * would put a Service in the vocabulary that the product does not sell — which is the exact
+     * mistake `sv-6` turned out to be.
+     *
+     * Do not link `sv-3` to a Work Entry, and do not add a third RC Service fixture.
+     *
+     * The display name was corrected in the same pass: it still read "Fotogrametrie cu drona",
+     * a leftover from the pre-v3.1 taxonomy in which drone photogrammetry was a Service. The
+     * key has been `scan-to-bim` since Stage 8; only the label lagged. Photogrammetry is a
+     * capability, never a Service (CONTENT_MODEL.md §2).
+     */
     _id: 'sv-3',
     key: 'scan-to-bim',
     _type: 'service',
-    name: bi('Fotogrametrie cu drona (fixture)', 'Drone photogrammetry (fixture)'),
-    slug: bi('fotogrametrie-drona-fixture', 'drone-photogrammetry-fixture'),
+    name: bi('Scan-to-BIM (fixture)', 'Scan-to-BIM (fixture)'),
+    slug: bi('scan-to-bim-fixture', 'scan-to-bim-fixture'),
     enPublished: true,
     pillar: 'reality-capture',
     shortDescription: bi(
@@ -232,31 +256,6 @@ const SERVICES: readonly FixtureService[] = [
     process: null,
     equipment: null,
     sectors: ['rezidential'],
-    hero: null,
-    curation: curation(),
-    seo: null,
-  },
-  {
-    /*
-     * STAGE 8. `sv-3` used to be the only Reality Capture Service besides `sv-2`, so the
-     * multi-Service RC entry (wf-5) had to reference it — which would have destroyed the F5
-     * "publishable with zero linked entries" case above. This third RC Service exists so both
-     * invariants can hold at once: wf-5 demonstrates `sv-2` + `sv-6`, `sv-3` stays unlinked.
-     */
-    _id: 'sv-6',
-    key: 'fotografie-arhitectura',
-    _type: 'service',
-    name: bi('Fotografie de arhitectura (fixture)', 'Architectural photography (fixture)'),
-    slug: bi('fotografie-arhitectura-fixture', 'architectural-photography-fixture'),
-    enPublished: true,
-    pillar: 'reality-capture',
-    shortDescription: bi('Text substituent.', 'Placeholder line.'),
-    description: null,
-    problemSolved: null,
-    deliverables: null,
-    process: null,
-    equipment: null,
-    sectors: ['industrial-logistic'],
     hero: null,
     curation: curation(),
     seo: null,
@@ -478,7 +477,7 @@ const WORK_ENTRIES: readonly FixtureWorkEntry[] = [
       }),
       seo: null,
     },
-    serviceIds: ['sv-2', 'sv-6'],
+    serviceIds: ['sv-2'],
     relatedIds: ['wf-2'],
   },
 ];

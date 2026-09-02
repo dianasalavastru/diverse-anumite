@@ -1,5 +1,13 @@
 # Project Model & Taxonomy — CLIENT-VALIDATED
 
+> **⚠ AMENDED 2026-09-01 (v3.2) — the Service list is now SIX, not eight.** Client input retired
+> two Reality Capture Services: **Fotografie de arhitectură** and **Vizualizare de arhitectură**
+> (`DECISIONS_LOG.md` #102, which supersedes #93). Architecture & Design keeps four Services;
+> Reality Capture has two. **The counts are deliberately asymmetrical — 4 + 2 is the product
+> model, not an unfinished 4 + 4, and no Service is to be invented to balance them.** Everything
+> else in this document — the Pillar base fields, the merge rule, Labels, Sector, Status — is
+> unchanged by the amendment. Sections 2, 7 and 9 are corrected in place below.
+
 **Status: CLIENT-VALIDATED — v3.1, 2026-08-14. This document is the single source of truth for how a project is classified and which fields it requires.** All five questions left open by v3.0 were closed by the client on 2026-08-14 and are now written into the model itself; **nothing in this document is open, and nothing here blocks implementation.** It supersedes the frozen v2.1 model in its entirety on the taxonomy question. Where any other document (IA, Technical Architecture, Page IA, wireframes, Studio schema, code comments) still describes **Discipline**, **Entry Type** or **Project Type**, that description is superseded by this document and must be corrected, not reconciled.
 
 Implementation impact and the migration plan live in [`PROJECT_MODEL_IMPACT.md`](PROJECT_MODEL_IMPACT.md). The historic worksheet [`../references/CONTENT_MODEL_VALIDATION.md`](../references/CONTENT_MODEL_VALIDATION.md) is a superseded point-in-time record and must not be built from.
@@ -37,9 +45,7 @@ PROJECT
 │   │
 │   └── under Reality Capture
 │       ├── Scanare laser 3D
-│       ├── Scan-to-BIM
-│       ├── Fotografie de arhitectură
-│       └── Vizualizare de arhitectură
+│       └── Scan-to-BIM
 │
 ├── SECTOR  [1 — MANDATORY, SINGLE-SELECT · transversal, one vocabulary for both Pillars]
 │   ├── Rezidențial
@@ -66,10 +72,13 @@ PROJECT
     └── requirement derived from the selected Services (§8 merge rule)
 ```
 
-> **The eight Services above are the complete, closed list for v3.1.**
+> **The six Services above are the complete, closed list for v3.2.**
 >
-> - **Drone photogrammetry is not a Service.** It is described in the brief and in older documentation as part of the practice's *capability*, and that framing stays true — but it is **not part of the Service taxonomy** and no ninth Service is created for it. It may be added later if explicitly validated; it is out of scope now.
-> - **`Vizualizare 3D` (A&D) and `Vizualizare de arhitectură` (Reality Capture) are two intentionally distinct Services.** The similar names are not an accident, an oversight, or a duplication to be cleaned up: they are different offerings under different Pillars, with different activated fields (§5, §7). **Do not merge them and do not rename them** to resolve the apparent similarity — this is decided.
+> - **Pillar Service counts are NOT required to be symmetrical.** Architecture & Design has four, Reality Capture has two. This is the offering, not a gap: nothing in the code, the tests, the Studio, the filters or the layouts may assume equal counts, and no replacement Service is to be introduced to restore a 4 + 4 shape. `requirements.test.ts` asserts the asymmetry deliberately so it cannot be "corrected" later by someone reading it as an omission.
+> - **Capabilities are not Services.** A capability is something the practice can do; a Service is something a client commissions and a project is classified by. The two are separate axes and only the second is taxonomy.
+>   - **Drone photogrammetry is not a Service.** It is part of the practice's *capability* — and as of v3.2 a client-confirmed one, used where relevant alongside laser scanning — but it is **not part of the Service taxonomy** and no Service is created for it.
+>   - **Photography is not a Service** (v3.2, #102). *Fotografie de arhitectură* was retired as a canonical Service. Photography remains fully available as **capability, workflow and project medium**: photographic documentation, drone documentation, project photography and the images inside any project are unaffected, and none of them is to be removed on taxonomy grounds. What changed is only that a project is no longer *classified* by it.
+> - **`Vizualizare 3D` (Architecture & Design) is the practice's only visualization Service.** It covers interior, exterior, furniture and product visualization. The Reality Capture Service *Vizualizare de arhitectură* is **retired** (#102, superseding #93): client input established that the visualization offering belongs to Architecture & Design and that Reality Capture never had a distinct one behind the second name. The two were **not merged, aliased or redirected** into one another — `vizualizare-3d` is unchanged and unrenamed, and the Reality Capture key simply ceased to exist.
 
 **Relationships**
 
@@ -176,9 +185,8 @@ REALITY CAPTURE — BASE
 | **Scanare laser 3D** | Echipament · Locație · Suprafață | **[M]** · **[M]** · **[M]** |
 | **Scan-to-BIM** | Locație · Suprafață | **[M]** · **[M]** |
 | | Colaboratori · Echipă | [O] · [O] |
-| **Fotografie de arhitectură** | Echipament · Locație | **[M]** · **[M]** |
-| **Vizualizare de arhitectură** | Locație | [O] |
-| | Colaboratori · Echipă | [O] · [O] |
+
+> **v3.2:** with *Fotografie de arhitectură* retired, **Scanare laser 3D is the only Service that makes Echipament [M]** — and, as a consequence, Echipament [M] now always arrives together with Suprafață [M]. The combination *Echipament [M] with Suprafață not applicable* is no longer reachable in the model.
 
 ---
 
@@ -255,22 +263,22 @@ One row per field, one column per Service. `—` = the Service does not activate
 
 ### Reality Capture
 
-| Field | base | Scanare laser 3D | Scan-to-BIM | Fotografie de arhitectură | Vizualizare de arhitectură |
-|---|:--:|:--:|:--:|:--:|:--:|
-| Servicii | **M** | — | — | — | — |
-| Sector | **M** | — | — | — | — |
-| Titlu | **M** | — | — | — | — |
-| An | **M** | — | — | — | — |
-| Stadiu / Status | **M** | — | — | — | — |
-| Client | **M** | — | — | — | — |
-| Imagine principală | **M** | — | — | — | — |
-| Galerie | **M** | — | — | — | — |
-| Descriere | O | — | — | — | — |
-| **Locație** | — | **M** | **M** | **M** | O |
-| **Suprafață** | — | **M** | **M** | — | — |
-| **Echipament** | — | **M** | — | **M** | — |
-| **Colaboratori** | — | — | O | — | O |
-| **Echipă** | — | — | O | — | O |
+| Field | base | Scanare laser 3D | Scan-to-BIM |
+|---|:--:|:--:|:--:|
+| Servicii | **M** | — | — |
+| Sector | **M** | — | — |
+| Titlu | **M** | — | — |
+| An | **M** | — | — |
+| Stadiu / Status | **M** | — | — |
+| Client | **M** | — | — |
+| Imagine principală | **M** | — | — |
+| Galerie | **M** | — | — |
+| Descriere | O | — | — |
+| **Locație** | — | **M** | **M** |
+| **Suprafață** | — | **M** | **M** |
+| **Echipament** | — | **M** | — |
+| **Colaboratori** | — | — | O |
+| **Echipă** | — | — | O |
 
 ---
 
@@ -341,7 +349,7 @@ These are gone from the model. They must not be reintroduced, and no field, filt
 | Removed | Was | Replaced by |
 |---|---|---|
 | **Discipline** | mandatory axis (Architecture · Interior Design · Reality Capture · Visualization), primary + secondary; **Pillar was derived from it** | **Pillar is now authored directly** (one per project). The granularity Discipline carried is carried by **Services**. |
-| **Entry Type / Project Type** | mandatory axis (Design Project · Concept/Study · Competition Entry · Survey/Documentation · Visualization Commission), primary + secondary | Nothing replaces it as an axis. Its two genuinely useful values become **Labels** (CONCURS) or are expressed by **Service** selection (Survey/Documentation → Scanare laser 3D; Visualization Commission → Vizualizare 3D / Vizualizare de arhitectură). |
+| **Entry Type / Project Type** | mandatory axis (Design Project · Concept/Study · Competition Entry · Survey/Documentation · Visualization Commission), primary + secondary | Nothing replaces it as an axis. Its two genuinely useful values become **Labels** (CONCURS) or are expressed by **Service** selection (Survey/Documentation → Scanare laser 3D; Visualization Commission → Vizualizare 3D — v3.2, the only visualization Service). |
 | **Derived Pillar** | Pillar computed from Discipline via a derivation table; never authored | **Pillar is an authored field.** No derivation table, no read-only Studio readout, no primary/secondary Pillar pair. |
 | **Cross-pillar projects** | one project could resolve into **both** Pillars via secondary Discipline | **A project belongs to exactly one Pillar.** Work spanning both is modelled as **two linked projects** (the "related projects" link already exists for this). |
 | **Separate sector vocabularies** | one open-ended list with per-pillar usage drift | **One global, closed Sector vocabulary**, single-select (§11.1). |
@@ -378,11 +386,11 @@ Written for the build, not for the client.
 
 1. **Pillar becomes an authored, required, single-value field** on the project. Delete the Discipline→Pillar derivation table and every consumer of it.
 2. **Services are constrained to the project's Pillar** in the reference picker, and at least one is required.
-3. **Each Service document needs a stable machine key** (`proiectare-arhitectura`, `design-interior`, `vizualizare-3d`, `design-mobilier`, `scanare-laser-3d`, `scan-to-bim`, `fotografie-arhitectura`, `vizualizare-arhitectura`). The field-activation rules in §5 and §7 must key off that stable value — **never off an editable slug or a display name**, both of which the owner can change from the Studio.
+3. **Each Service document needs a stable machine key** (`proiectare-arhitectura`, `design-interior`, `vizualizare-3d`, `design-mobilier`, `scanare-laser-3d`, `scan-to-bim`). The field-activation rules in §5 and §7 must key off that stable value — **never off an editable slug or a display name**, both of which the owner can change from the Studio.
 4. **The requirement table is data, not branching.** Express §5/§7 as one lookup keyed by service key, and resolve it with a single `max(MANDATORY, OPTIONAL, N/A)` merge (§8). One table, read by the Studio validator and the build validator alike.
 5. **Fields that become [conditional]** — Locație, Suprafață, Premii, Echipament, Colaboratori, Echipă, Firmă implementare — stay **single canonical fields on the project**. Only their validation changes.
 6. **`Firmă implementare` is a new field** and does not exist anywhere today.
-7. **`Echipament` moves out of the capture-metadata group** into project-level metadata, because Fotografie de arhitectură now requires it and that service has no capture asset.
+7. **`Echipament` moves out of the capture-metadata group** into project-level metadata, because Fotografie de arhitectură required it and that service had no capture asset. *(v3.2: that Service is retired, but the field stays project-level — it is a project fact, not a survey one, and Scanare laser 3D still requires it.)*
 8. **Labels are a new multi-select field** with the closed vocabulary in §10.
 9. **Sector becomes a closed vocabulary** (§11) rather than an open free-string axis, and the old values (`residential`, `hospitality`, `office`, `cultural`, `heritage`, `industrial`, `infrastructure`, `education`) map onto the new seven.
 10. **Archive filters:** the frozen filter contract loses `type` and `discipline`. Proposed replacement — Pillar (mode) · Sector (shared) · Service (contextual refinement, now available in **both** pillars) · Label (shared) · Year as sort. Sequencing and URL implications are in [`PROJECT_MODEL_IMPACT.md`](PROJECT_MODEL_IMPACT.md).
@@ -401,7 +409,7 @@ The five questions v3.0 carried were **closed by the client on 2026-08-14** and 
 |---|---|---|---|
 | **Q1** | Are Attribution / Employer / Roles / Authorship retained? | **No — retired.** Colaboratori and Echipă are the crediting fields, and they are sufficient. | §12, §13, §14.13–14 |
 | **Q2** | Where does drone photogrammetry sit? | **Not a Service.** It stays a description of the practice's capability. No ninth Service. | §2 |
-| **Q3** | Are *Vizualizare 3D* and *Vizualizare de arhitectură* too similar? | **They are intentionally distinct.** Keep both names; do not merge or rename. | §2 |
+| **Q3** | Are *Vizualizare 3D* and *Vizualizare de arhitectură* too similar? | ~~**They are intentionally distinct.** Keep both names; do not merge or rename.~~ **SUPERSEDED by v3.2 (#102):** *Vizualizare de arhitectură* is retired; *Vizualizare 3D* is the only visualization Service. | §2 |
 | **Q4** | What is the Status vocabulary? | **În dezvoltare · În desfășurare · Finalizat · Nerealizat.** Mandatory, single-select, both Pillars. | §11.2 |
 | **Q5** | Is Sector single- or multi-select? | **Mandatory, single-select.** `Mixed-use & dezvoltări` covers genuinely mixed projects. | §11.1 |
 
@@ -411,6 +419,7 @@ The five questions v3.0 carried were **closed by the client on 2026-08-14** and 
 
 ## 16. Change log
 
+- **v3.2 (2026-09-01) — CLIENT-VALIDATED. Reality Capture goes from four Services to two.** *Fotografie de arhitectură* and *Vizualizare de arhitectură* are **retired** from the Service taxonomy (`DECISIONS_LOG.md` #102). The canonical list is **six**: four under Architecture & Design, two under Reality Capture — **deliberately asymmetrical, and not to be rebalanced.** Client input established that the practice's visualization offering is the A&D *Vizualizare 3D* Service (superseding Q3 / #93), and that photography is a capability, workflow and project medium rather than something a project is classified by. Retired keys carry **no legacy alias and no reserved slug**; `normalize.ts` refuses one by name. Unchanged: Pillar, the merge rule, Labels, Sector, Status, routes, localization, curation, capture-asset handling, discovery order, and every field contract of the four remaining A&D Services and the two remaining RC Services.
 - **v3.1 (2026-08-14) — CLIENT-VALIDATED. The five open questions closed.** Attribution, Employer, Roles, Authorship and Commissioning context **retired** — crediting is Colaboratori + Echipă (Q1). Drone photogrammetry confirmed **not** a Service; the eight-Service list is closed (Q2). *Vizualizare 3D* and *Vizualizare de arhitectură* confirmed **intentionally distinct** (Q3). Status vocabulary replaced with **În dezvoltare · În desfășurare · Finalizat · Nerealizat**, mandatory and single-select in both Pillars (Q4). Sector confirmed **mandatory and single-select** (Q5). No change to Pillar, Services, Labels, the merge rule, routes, localization, curation, capture-asset handling or discovery order.
 - **v3.0 (2026-08-13) — CLIENT-VALIDATED. Simplified project model.** Discipline and Entry Type / Project Type removed entirely. Pillar becomes authored and single-valued; Services become the multi-select axis and the driver of conditional field requirements; CONCURS and PROIECT DE DIPLOMĂ become optional Labels; one global Sector vocabulary replaces the open per-pillar list. Cross-pillar projects are modelled as two linked projects. The curation layer, the Service object and capture-asset handling are unchanged. *(v3.0 additionally retained the credit fields pending Q1; v3.1 retires them.)*
 - v2.1 (FROZEN 2026-07-28) — **superseded.** Service elevated to a first-class object; curation layer separated from taxonomy. Its Discipline / Entry Type / derived-Pillar taxonomy is withdrawn by v3.0.

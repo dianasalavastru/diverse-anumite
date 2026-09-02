@@ -183,24 +183,35 @@ export type Status = (typeof STATUSES)[number];
  * requirement rule to either of them would mean a rename silently changed what a project is
  * required to carry. That is the single reason this vocabulary exists.
  *
- * Exactly eight, four per Pillar (v3.1 §2). The list is closed: drone photogrammetry is a
- * capability of the practice, deliberately **not** a Service (v3.1 §2, `DECISIONS_LOG.md` #92),
- * and *Vizualizare 3D* / *Vizualizare de arhitectură* are two intentionally distinct Services,
- * one per Pillar, not a duplication to be merged (#93).
+ * **Exactly six: four under Architecture & Design, two under Reality Capture (v3.2 §2).**
+ *
+ * ── THE COUNTS ARE DELIBERATELY NOT SYMMETRICAL ────────────────────────────
+ * 4 + 2 is the product model, not an unfinished 4 + 4. Nothing in the system may assume equal
+ * Service counts per Pillar: every consumer derives its set from `SERVICE_KEY_TO_PILLAR` or
+ * from live `Service.pillar`, and `requirements.test.ts` asserts the asymmetry on purpose so a
+ * later reader cannot mistake it for an omission and "restore" the balance.
+ *
+ * ── THE LIST IS CLOSED ─────────────────────────────────────────────────────
+ * Capabilities are not Services. Drone photogrammetry is a capability of the practice and
+ * deliberately not a Service (`DECISIONS_LOG.md` #92); **photography is the same** — it exists
+ * as capability, workflow and project medium, and stopped being a Service at v3.2 (#102).
+ * *Vizualizare de arhitectură* was retired in the same decision: client input established that
+ * the practice's visualization offering is the Architecture & Design *Vizualizare 3D* Service,
+ * and that Reality Capture never had a distinct one. That supersedes #93, which had kept the
+ * two as intentionally separate Services — **they were not merged, aliased or redirected into
+ * one another; the Reality Capture one simply ceased to exist.**
  *
  * The key ↔ Pillar relationship is declared once, in `SERVICE_KEY_TO_PILLAR` below.
  */
 export const SERVICE_KEYS = [
-  // Arhitectura & Design
+  // Arhitectura & Design — four
   'proiectare-arhitectura', // Proiectare de arhitectură
   'design-interior', // Design interior
   'vizualizare-3d', // Vizualizare 3D
   'design-mobilier', // Design mobilier
-  // Reality Capture
+  // Reality Capture — two
   'scanare-laser-3d', // Scanare laser 3D
   'scan-to-bim', // Scan-to-BIM
-  'fotografie-arhitectura', // Fotografie de arhitectură
-  'vizualizare-arhitectura', // Vizualizare de arhitectură
 ] as const;
 export type ServiceKey = (typeof SERVICE_KEYS)[number];
 
@@ -219,8 +230,6 @@ export const SERVICE_KEY_TO_PILLAR: Readonly<Record<ServiceKey, Pillar>> = {
   'design-mobilier': 'architecture-design',
   'scanare-laser-3d': 'reality-capture',
   'scan-to-bim': 'reality-capture',
-  'fotografie-arhitectura': 'reality-capture',
-  'vizualizare-arhitectura': 'reality-capture',
 };
 
 /**

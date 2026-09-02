@@ -72,9 +72,7 @@ accuracy figure, equipment model or point count appears anywhere in it, and no m
 | `da-test-i4-service-scanning` | service | `scanare-laser-3d` — RC service; its `equipment` row is what the hub's instrument readout renders |
 | `da-test-service-vizualizare-3d` | service | `vizualizare-3d` — the A&D Service that activates Location as **[O]** |
 | `da-test-service-design-mobilier` | service | `design-mobilier` — the only Service that makes Implementation Company **[M]** |
-| `da-test-service-scan-to-bim` | service | `scan-to-bim` — RC, so the RC hub lists more than one Service |
-| `da-test-service-fotografie-arhitectura` | service | `fotografie-arhitectura` — the second RC Service that makes Equipment **[M]** |
-| `da-test-service-vizualizare-arhitectura` | service | `vizualizare-arhitectura` — **F5**: publishable with zero demonstrating Work Entries |
+| `da-test-service-scan-to-bim` | service | `scan-to-bim` — the second RC Service, and **F5**: publishable with zero demonstrating Work Entries |
 | `da-test-i4-work-ad-1` | workEntry | A&D lead — homepage + hub placement, `feature` prominence |
 | `da-test-i4-work-ad-2` | workEntry | second A&D entry; **two Services** inside one Pillar |
 | `da-test-i4-work-rc` | workEntry | pure Reality Capture; **no capture metadata is invented** |
@@ -198,9 +196,24 @@ is refused for the reference it would strand:
 ```bash
 cd studio && npx sanity documents delete --dataset development \
   da-test-i4-service-architecture da-test-i4-service-interior da-test-i4-service-scanning \
-  da-test-service-vizualizare-3d da-test-service-design-mobilier da-test-service-scan-to-bim \
-  da-test-service-fotografie-arhitectura da-test-service-vizualizare-arhitectura
+  da-test-service-vizualizare-3d da-test-service-design-mobilier da-test-service-scan-to-bim
 ```
+
+> **v3.2 — two Services were retired from the taxonomy (`DECISIONS_LOG.md` #102).** A dataset
+> seeded before that change also holds `da-test-service-fotografie-arhitectura` and
+> `da-test-service-vizualizare-arhitectura`. They are **not** part of the canonical seed any
+> more and the commands above no longer create them, but they are not removed from an existing
+> dataset by re-seeding either — `sanity dataset import` adds and replaces, it does not prune.
+> Delete them explicitly, once:
+>
+> ```bash
+> cd studio && npx sanity documents delete --dataset development \
+>   da-test-service-fotografie-arhitectura da-test-service-vizualizare-arhitectura
+> ```
+>
+> Until they are gone the build fails by design: `normalize.ts` resolves `Service.key` through
+> the canonical vocabulary and refuses a retired one by name. That failure is the intended
+> signal, not a regression.
 
 Deleting the entire `development` dataset also works and is cleaner, since nothing else should
 ever live in it.

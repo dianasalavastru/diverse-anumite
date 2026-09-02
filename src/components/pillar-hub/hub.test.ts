@@ -104,6 +104,25 @@ describe('servicesInPillar', () => {
     ];
     expect(servicesInPillar(services, 'reality-capture').map((s) => s._id)).toEqual(['a']);
   });
+
+  it('handles Pillars of different sizes — 4 and 2 is the model (v3.2 §2)', () => {
+    /*
+     * The hub renders whatever the Pillar has. Reality Capture sells two Services and
+     * Architecture & Design four; nothing here may pad, truncate or assume a count, and the
+     * H-3 rows are a flat list with no grid arithmetic behind them, so two render exactly as
+     * four do. Asserted rather than assumed, because the asymmetry is deliberate and permanent.
+     */
+    const services = [
+      service({ _id: 'ad-1', pillar: 'architecture-design' }),
+      service({ _id: 'ad-2', pillar: 'architecture-design' }),
+      service({ _id: 'ad-3', pillar: 'architecture-design' }),
+      service({ _id: 'ad-4', pillar: 'architecture-design' }),
+      service({ _id: 'rc-1', pillar: 'reality-capture' }),
+      service({ _id: 'rc-2', pillar: 'reality-capture' }),
+    ];
+    expect(servicesInPillar(services, 'architecture-design')).toHaveLength(4);
+    expect(servicesInPillar(services, 'reality-capture')).toHaveLength(2);
+  });
 });
 
 describe('useCaseSectors', () => {

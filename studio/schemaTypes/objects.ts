@@ -386,7 +386,7 @@ export const workEntryMetadata = defineType({
       type: 'array',
       of: [defineArrayMember({ type: 'string' })],
       options: { layout: 'tags' },
-      description: 'The instruments used. Required by laser scanning and by architectural photography.',
+      description: 'The instruments used. Required by Scanare laser 3D.',
     })),
     conditional(defineField({
       name: 'implementationCompany',

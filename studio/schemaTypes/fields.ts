@@ -47,8 +47,28 @@ interface Option<T extends string> {
   readonly value: T
 }
 
-/** A list must name every value of its union; TypeScript enforces it. */
+/**
+ * Value-types an option list against its union.
+ *
+ * ⚠ **This does NOT guarantee completeness, despite the name.** `readonly Option<T>[]`
+ * constrains each `value` to be *a member* of the union and accepts any subset — so on its own
+ * it never caught a list falling behind its vocabulary, though the comment here used to claim
+ * it did. Use `AssertComplete` below where completeness actually matters.
+ */
 type CompleteList<T extends string> = readonly Option<T>[] & { length: number }
+
+type ValuesOf<L> = L extends readonly Option<infer V>[] ? V : never
+
+/**
+ * Compile-time proof that an option list covers its whole union.
+ *
+ * The list's own `value` union must cover `T` with nothing left over, or the annotation fails
+ * and the error names what is missing. Generic, and derived entirely from the union — it
+ * duplicates no vocabulary.
+ */
+type AssertComplete<T extends string, L> = [Exclude<T, ValuesOf<L>>] extends [never]
+  ? true
+  : { readonly OPTION_LIST_IS_MISSING: Exclude<T, ValuesOf<L>> }
 
 /**
  * Project Labels (v3.1 §10) — the optional flags that replaced the Entry Type axis at Stage 4.
@@ -127,9 +147,23 @@ export const SERVICE_KEY_OPTIONS = [
   { title: 'Design mobilier', value: 'design-mobilier' },
   { title: 'Scanare laser 3D', value: 'scanare-laser-3d' },
   { title: 'Scan-to-BIM', value: 'scan-to-bim' },
-  { title: 'Fotografie de arhitectură', value: 'fotografie-arhitectura' },
-  { title: 'Vizualizare de arhitectură', value: 'vizualizare-arhitectura' },
 ] as const satisfies CompleteList<ServiceKey>
+
+/*
+ * Service picker ⇄ `ServiceKey` parity — the guard the v3.2 migration requires.
+ *
+ * This is the Studio's only Service picker, so parity with the canonical vocabulary is what
+ * keeps a retired key unauthorable and a live key reachable. Both directions are covered:
+ * dropping an option here fails with `OPTION_LIST_IS_MISSING: "<key>"`, and adding a
+ * `ServiceKey` without an option fails here *and* at the `Record<ServiceKey, …>` tables in
+ * `types.ts` / `requirements.ts`.
+ *
+ * The other option lists in this file are value-typed only — see the note on `CompleteList`.
+ * Extending `AssertComplete` to them is one line each, and is deliberately left out of this
+ * migration's diff.
+ */
+const _serviceOptionsMatchServiceKey: AssertComplete<ServiceKey, typeof SERVICE_KEY_OPTIONS> = true
+void _serviceOptionsMatchServiceKey
 
 /** Re-exported so the schema files never re-derive a vocabulary from a literal. */
 export const VOCABULARY_VALUES = {

@@ -163,7 +163,9 @@ function emptyRequirements(): Record<ProjectField, Requirement> {
  *
  * Collaborators and Team are optional base fields under Architecture & Design (§4) but are
  * **not** base fields under Reality Capture (§6) — there they are raised, still optionally, by
- * Scan-to-BIM and Vizualizare de arhitectură (§7).
+ * Scan-to-BIM alone (§7). It was Scan-to-BIM and *Vizualizare de arhitectură* until v3.2 retired
+ * the latter (`DECISIONS_LOG.md` #102); nothing about the rule changed, only how many Services
+ * reach it.
  */
 export const PILLAR_BASE_REQUIREMENTS: Readonly<
   Record<Pillar, Readonly<Record<ProjectField, Requirement>>>
@@ -254,15 +256,6 @@ export const SERVICE_FIELD_REQUIREMENTS: Readonly<Record<ServiceKey, ServiceFiel
   'scan-to-bim': {
     location: 'mandatory',
     area: 'mandatory',
-    collaborators: 'optional',
-    team: 'optional',
-  },
-  'fotografie-arhitectura': {
-    equipment: 'mandatory',
-    location: 'mandatory',
-  },
-  'vizualizare-arhitectura': {
-    location: 'optional',
     collaborators: 'optional',
     team: 'optional',
   },

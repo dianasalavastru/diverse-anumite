@@ -86,7 +86,6 @@ describe('Work ⇄ Service relationship (IA Step 6)', () => {
       ['sv-3', []],
       ['sv-4', ['wf-1']],
       ['sv-5', ['wf-3', 'wf-4']],
-      ['sv-6', ['wf-5']],
     ]);
   });
 

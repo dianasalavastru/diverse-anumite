@@ -227,12 +227,12 @@ Rationale, from the frozen model:
 
 **These are the CMS contract. They come from the client-validated Content Model, never from a downstream document.**
 
-> **AMENDED 2026-08-13 (v3.0) and 2026-08-14 (v3.1).** `CONTENT_MODEL.md` removes **Discipline** and **Entry Type / Project Type** entirely (v3.0), and **Attribution, Employer, Roles, Authorship and Commissioning context** entirely (v3.1). Their rows are struck below and must not be reintroduced under any name. Pillar is now **authored**, not derived (§7.4). Sector and Status are closed, mandatory, **single-select** vocabularies. Migration inventory and sequencing: `docs/product/PROJECT_MODEL_IMPACT.md`.
+> **AMENDED 2026-08-13 (v3.0), 2026-08-14 (v3.1) and 2026-09-01 (v3.2 — the Service list goes from eight to six; `DECISIONS_LOG.md` #102).** `CONTENT_MODEL.md` removes **Discipline** and **Entry Type / Project Type** entirely (v3.0), and **Attribution, Employer, Roles, Authorship and Commissioning context** entirely (v3.1). Their rows are struck below and must not be reintroduced under any name. Pillar is now **authored**, not derived (§7.4). Sector and Status are closed, mandatory, **single-select** vocabularies. Migration inventory and sequencing: `docs/product/PROJECT_MODEL_IMPACT.md`.
 
 | Axis | Values | Source |
 | --- | --- | --- |
 | **Pillar** (authored, exactly one) | Architecture & Design · Reality Capture | `CONTENT_MODEL.md` §2 |
-| **Services** (references to Service objects, **1..N**, constrained to the project's Pillar) | A&D: Proiectare de arhitectură · Design interior · Vizualizare 3D · Design mobilier — RC: Scanare laser 3D · Scan-to-BIM · Fotografie de arhitectură · Vizualizare de arhitectură | §2 |
+| **Services** (references to Service objects, **1..N**, constrained to the project's Pillar) | **Six (v3.2) — A&D: Proiectare de arhitectură · Design interior · Vizualizare 3D · Design mobilier — RC: Scanare laser 3D · Scan-to-BIM.** ~~RC also: Fotografie de arhitectură · Vizualizare de arhitectură~~ — **both RETIRED, `DECISIONS_LOG.md` #102.** The 4 + 2 counts are deliberately asymmetrical and are not to be rebalanced | §2 |
 | **Sector** (closed, global, **[M] exactly one — not multi-select**) | Rezidențial · Comercial & ospitalitate · Birouri & business · Public & comunitar · Industrial & logistic · Cultural & patrimoniu · Mixed-use & dezvoltări | §11.1 |
 | **Labels** (0..N, not mutually exclusive) | `competition` (CONCURS) · `diploma-project` (PROIECT DE DIPLOMĂ) | §10 |
 | **Status** (closed, **[M] exactly one**, same in both Pillars) | În dezvoltare · În desfășurare · Finalizat · Nerealizat | §11.2 |
@@ -258,7 +258,7 @@ The schema is a **complete realization of `CONTENT_MODEL.md`.** Field *requireme
 | **Location** | [conditional] on Services | W-1 Project Metadata |
 | **Area** | [conditional] on Services | W-1 |
 | **Awards** | [conditional] [O] (A&D design services) | W-4 competition module / W-1 |
-| **Equipment** | [conditional] [M] (Scanare laser 3D · Fotografie de arhitectură) — **project-level, no longer inside capture metadata** | W-1 / W-4 |
+| **Equipment** | [conditional] [M] (**Scanare laser 3D only** — v3.2; *Fotografie de arhitectură* is retired, #102) — **project-level, no longer inside capture metadata** | W-1 / W-4 |
 | **Implementation Company** | [conditional] [M] (Design mobilier) — **new field** | W-1 |
 | **Collaborators · Team** | [O] base for A&D; [conditional] [O] for RC — **the only crediting fields (v3.1)** | W-3 Credits Block |
 | ~~**Authorship** (scoped credit block)~~ | — | **REMOVED (v3.1).** `validateAuthorship()` is **deleted, not re-keyed** — see `PROJECT_MODEL_IMPACT.md` §1.6 |
@@ -781,7 +781,9 @@ URL: `?pillar=` `&sector=` `&service=` `&label=` `&sort=`. `replaceState` for in
 
   **Added:** Status as a closed, mandatory, single-select vocabulary — În dezvoltare · În desfășurare · Finalizat · Nerealizat · Sector as closed, mandatory, **single-select** · Colaboratori and Echipă named as the only crediting fields · the record that **`validateAuthorship()` is deleted, not re-keyed onto a Service**.
 
-  **Unchanged and not reopened:** the eight-Service list (no drone-photogrammetry Service) · the intentional distinction between *Vizualizare 3D* and *Vizualizare de arhitectură* · everything in v1.3.
+  **Unchanged and not reopened:** ~~the eight-Service list (no drone-photogrammetry Service) · the intentional distinction between *Vizualizare 3D* and *Vizualizare de arhitectură*~~ · everything in v1.3.
+
+  > **Both struck clauses were reopened and settled by `DECISIONS_LOG.md` #102 (2026-09-01), after this entry was written.** The canonical Service list is now **six**, and *Vizualizare de arhitectură* is retired. The parenthetical still holds: drone photogrammetry is not a Service, and neither is photography. See `CONTENT_MODEL.md` v3.2.
 
   **Source:** `docs/product/CONTENT_MODEL.md` v3.1, `DECISIONS_LOG.md` #91–#96. **No schema, application, filter or UI change has been made.**
 

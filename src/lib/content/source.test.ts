@@ -39,6 +39,25 @@ describe('No draft reaches build output (§8, R2)', () => {
     expect(() => assertNotDraft('drafts.wf-1')).toThrow(ContentShapeError);
   });
 
+  it('fails the build on a retired Service key rather than emitting it (v3.2 §2, #102)', async () => {
+    /*
+     * The retired v3.1 keys have no legacy value and no alias, so the only thing standing
+     * between an old authored document and a rendered page is `oneOf(raw.key, SERVICE_KEYS)`.
+     * This asserts that gate names the offender — the build must be legible when it stops,
+     * because the fix is a CMS edit and whoever reads the failure is not holding this file.
+     */
+    const [real] = await FIXTURE_RAW_DOCUMENTS.workEntries();
+    for (const retired of ['fotografie-arhitectura', 'vizualizare-arhitectura']) {
+      const entry = real as RawWorkEntry;
+      const poisoned: RawWorkEntry = {
+        ...entry,
+        services: [{ ...(entry.services?.[0] as object), key: retired }],
+      } as RawWorkEntry;
+      expect(() => normalizeWorkEntry(poisoned)).toThrow(ContentShapeError);
+      expect(() => normalizeWorkEntry(poisoned)).toThrow(new RegExp(retired));
+    }
+  });
+
   it('fails the build rather than emitting the document', async () => {
     const [real] = await FIXTURE_RAW_DOCUMENTS.workEntries();
     const leaked: RawWorkEntry = { ...(real as RawWorkEntry), _id: 'drafts.wf-1' };
@@ -165,7 +184,7 @@ describe('Work ⇄ Service (IA Step 6, DECISIONS_LOG #38)', () => {
   });
 
   it('keeps a Service with zero demonstrating entries publishable (F5)', async () => {
-    const service = await source.service('fotogrametrie-drona-fixture', 'ro');
+    const service = await source.service('scan-to-bim-fixture', 'ro');
     expect(service?.demonstratedBy).toEqual([]);
     expect(service?.enPublished).toBe(true);
   });

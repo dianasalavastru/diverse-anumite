@@ -58,7 +58,7 @@ function active(resolved: Readonly<Record<ProjectField, Requirement>>): Record<s
  * ──────────────────────────────────────────────────────────────────────────── */
 
 describe('v3.1 vocabularies (CONTENT_MODEL.md §2, §10, §11)', () => {
-  it('declares exactly the eight canonical Service keys, four per Pillar (§2)', () => {
+  it('declares exactly the six canonical Service keys (v3.2 §2)', () => {
     expect([...SERVICE_KEYS]).toEqual([
       'proiectare-arhitectura',
       'design-interior',
@@ -66,42 +66,72 @@ describe('v3.1 vocabularies (CONTENT_MODEL.md §2, §10, §11)', () => {
       'design-mobilier',
       'scanare-laser-3d',
       'scan-to-bim',
-      'fotografie-arhitectura',
-      'vizualizare-arhitectura',
     ]);
-    expect(SERVICE_KEYS).toHaveLength(8);
-    expect(new Set(SERVICE_KEYS).size).toBe(8);
+    expect(SERVICE_KEYS).toHaveLength(6);
+    expect(new Set(SERVICE_KEYS).size).toBe(6);
   });
 
-  it('assigns each Service key to exactly one Pillar, four and four (§2)', () => {
+  it('has fully retired the two v3.1 Reality Capture Services (v3.2 §2, #102)', () => {
+    /* No legacy value, no alias, no reserved key. `normalize.ts` resolves an authored key
+       through `oneOf(raw.key, SERVICE_KEYS, …)`, so absence here is what makes a retired key
+       unauthorable rather than merely discouraged — the build fails on one by name. */
+    const keys = SERVICE_KEYS as readonly string[];
+    expect(keys).not.toContain('fotografie-arhitectura');
+    expect(keys).not.toContain('vizualizare-arhitectura');
+  });
+
+  it('assigns each Service key to exactly one Pillar, four and two (v3.2 §2)', () => {
     expect(serviceKeysForPillar(AD)).toEqual([
       'proiectare-arhitectura',
       'design-interior',
       'vizualizare-3d',
       'design-mobilier',
     ]);
-    expect(serviceKeysForPillar(RC)).toEqual([
-      'scanare-laser-3d',
-      'scan-to-bim',
-      'fotografie-arhitectura',
-      'vizualizare-arhitectura',
-    ]);
+    expect(serviceKeysForPillar(RC)).toEqual(['scanare-laser-3d', 'scan-to-bim']);
     /* Together they must partition the vocabulary — no key in both, none in neither. */
     expect([...serviceKeysForPillar(AD), ...serviceKeysForPillar(RC)].sort()).toEqual(
       [...SERVICE_KEYS].sort(),
     );
   });
 
-  it('keeps the Service list closed — no drone-photogrammetry Service (§2, DECISIONS_LOG #92)', () => {
-    expect(SERVICE_KEYS.some((key) => /drona|drone|fotogrametri|photogrammetr/i.test(key))).toBe(
-      false,
-    );
+  it('keeps the two Pillars deliberately ASYMMETRICAL in Service count (v3.2 §2)', () => {
+    /*
+     * 4 + 2 is the product model, not an unfinished 4 + 4.
+     *
+     * This case exists to be read, not only to pass. Reality Capture sells two Services; the
+     * previous four included one offering that belonged to Architecture & Design and one that
+     * was never a distinct Service at all. Nothing in this system may assume equal counts per
+     * Pillar, and no replacement Service is to be invented to restore visual balance — every
+     * consumer derives its set from `SERVICE_KEY_TO_PILLAR` or from live `Service.pillar`.
+     */
+    expect(serviceKeysForPillar(AD)).toHaveLength(4);
+    expect(serviceKeysForPillar(RC)).toHaveLength(2);
+    expect(serviceKeysForPillar(AD).length).not.toBe(serviceKeysForPillar(RC).length);
   });
 
-  it('keeps the two visualization Services distinct, one per Pillar (§2, DECISIONS_LOG #93)', () => {
+  it('keeps the Service list closed — no drone, photogrammetry or photography Service (§2, #92, #102)', () => {
+    /* Capabilities are not Services. Drone photogrammetry never was one (#92); photography
+       stopped being one at v3.2 (#102). Both remain available as capability, workflow and
+       project medium — this guard is about the taxonomy, not about the content. */
+    expect(
+      SERVICE_KEYS.some((key) =>
+        /drona|drone|fotogrametri|photogrammetr|fotografi|photograph/i.test(key),
+      ),
+    ).toBe(false);
+  });
+
+  it('keeps exactly one visualization Service, under Architecture & Design (§2, #102 supersedes #93)', () => {
+    /*
+     * #93 kept `vizualizare-3d` and `vizualizare-arhitectura` as two intentionally distinct
+     * Services. Client input superseded it: the practice's visualization offering is the A&D
+     * one, and Reality Capture had no distinct Service behind the second name.
+     *
+     * The A&D key is unchanged — not renamed, not merged, and carrying no legacy alias. The
+     * retired key is simply absent, which is why `vizualizare-3d` must still be asserted here.
+     */
     expect(SERVICE_KEY_TO_PILLAR['vizualizare-3d']).toBe(AD);
-    expect(SERVICE_KEY_TO_PILLAR['vizualizare-arhitectura']).toBe(RC);
-    expect('vizualizare-3d').not.toBe('vizualizare-arhitectura');
+    expect(Object.keys(SERVICE_KEY_TO_PILLAR)).not.toContain('vizualizare-arhitectura');
+    expect(serviceKeysForPillar(RC)).not.toContain('vizualizare-3d');
   });
 
   it('declares the two Project Labels, neither of which is a type (§10)', () => {
@@ -277,12 +307,6 @@ describe('Service-activated fields (§5, §7)', () => {
       collaborators: 'optional',
       team: 'optional',
     },
-    'fotografie-arhitectura': { equipment: 'mandatory', location: 'mandatory' },
-    'vizualizare-arhitectura': {
-      location: 'optional',
-      collaborators: 'optional',
-      team: 'optional',
-    },
   };
 
   for (const key of SERVICE_KEYS) {
@@ -291,11 +315,14 @@ describe('Service-activated fields (§5, §7)', () => {
     });
   }
 
-  it('only the two survey services require Equipment (§7)', () => {
+  it('only Scanare laser 3D requires Equipment (v3.2 §7)', () => {
+    /* Was two Services while Fotografie de arhitectura existed. Retiring it leaves scanning as
+       the only Service that mandates instruments — and, as a side effect, removes the one
+       reachable combination of Equipment [M] with Area [—]. */
     const withEquipment = SERVICE_KEYS.filter(
       (key) => SERVICE_FIELD_REQUIREMENTS[key].equipment === 'mandatory',
     );
-    expect(withEquipment).toEqual(['scanare-laser-3d', 'fotografie-arhitectura']);
+    expect(withEquipment).toEqual(['scanare-laser-3d']);
   });
 
   it('only Design mobilier requires an Implementation Company (§5)', () => {
@@ -475,15 +502,17 @@ describe('resolveRequirements — single Service and edges', () => {
     expect(mandatoryFields(AD, ['vizualizare-3d'])).toContain('description');
   });
 
-  it('Fotografie de arhitectura requires Equipment but not Area (§7)', () => {
-    const resolved = resolveRequirements(RC, ['fotografie-arhitectura']);
+  it('Scanare laser 3D requires Equipment, Location and Area (v3.2 §7)', () => {
+    /* Replaces the retired Fotografie de arhitectura case. Equipment [M] now always arrives
+       together with Area [M], because scanning is the only Service that activates it. */
+    const resolved = resolveRequirements(RC, ['scanare-laser-3d']);
     expect(resolved.equipment).toBe('mandatory');
     expect(resolved.location).toBe('mandatory');
-    expect(resolved.area).toBe('not-applicable');
+    expect(resolved.area).toBe('mandatory');
   });
 
-  it('Vizualizare de arhitectura requires no Location, Collaborators or Team (§7)', () => {
-    expect(active(resolveRequirements(RC, ['vizualizare-arhitectura']))).toEqual({
+  it('Scan-to-BIM requires Location and Area, and offers Collaborators and Team (v3.2 §7)', () => {
+    expect(active(resolveRequirements(RC, ['scan-to-bim']))).toEqual({
       services: 'mandatory',
       sector: 'mandatory',
       title: 'mandatory',
@@ -493,7 +522,8 @@ describe('resolveRequirements — single Service and edges', () => {
       description: 'optional',
       cover: 'mandatory',
       gallery: 'mandatory',
-      location: 'optional',
+      location: 'mandatory',
+      area: 'mandatory',
       collaborators: 'optional',
       team: 'optional',
     });

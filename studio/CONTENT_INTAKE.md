@@ -42,6 +42,15 @@ layer already returns the frozen shape from that dataset.
 > sequencing. **Intake must not start against the old schema**, or every entry authored will need
 > re-classifying by hand. The table below is what the Studio will ask for, and the checklist C
 > should collect material against in the meantime.
+>
+> **⚠ AMENDED 2026-09-01 for `CONTENT_MODEL.md` v3.2 (`DECISIONS_LOG.md` #102).** The Service list is
+> now **six, not eight**: Arhitectura & Design keeps four, and Reality Capture has **two** — Scanare
+> laser 3D · Scan-to-BIM. *Fotografie de arhitectura* and *Vizualizare de arhitectura* are **retired**
+> and are no longer offered by the Studio picker; a project authored against either will fail the
+> build by name. **The 4 + 2 shape is provisional pending further client clarification of the Reality
+> Capture offering, but it is authoritative for authoring now** — author against these six and no
+> others. Nothing else on this page changed: the base fields, the merge rule, Sector, Status and
+> Labels are all as they were.
 
 This is the intake form. Everything on it maps to exactly one field group in the Studio, and the
 group names below are the tab names the editor sees.
@@ -85,8 +94,6 @@ Requirements from several Services are **additive**, and the strongest wins:
 | Design mobilier | **Implementation company** |
 | Scanare laser 3D | **Equipment**, **Location**, **Area** |
 | Scan-to-BIM | **Location**, **Area** (Collaborators, Team optional) |
-| Fotografie de arhitectura | **Equipment**, **Location** |
-| Vizualizare de arhitectura | Location, Collaborators, Team (all optional) |
 
 *Example:* Design interior + Design mobilier ⇒ Location **and** Area **and** Implementation company
 are all required; Awards stays optional.
@@ -116,12 +123,23 @@ project.
 **"Whose work it is" (Attribution), Office, "What you did" (Roles) and the Credit statement
 (Authorship)** — removed (v3.1 §12). Do not collect material for them.
 
-**Drone photogrammetry is not a Service.** It describes the practice's capability and appears in
-older briefs on that basis, but it is not selectable and no project may be tagged with it. The
-Reality Capture list is exactly the four services above.
+**Capabilities are not Services.** A capability is something the practice can do; a Service is
+something a client commissions and a project is classified by (v3.2 §2).
 
-**Vizualizare 3D and Vizualizare de arhitectura are two different services**, deliberately — one
-under each capability. The similar names are intentional; pick by the project's capability.
+**Drone photogrammetry is not a Service.** It describes the practice's capability and appears in
+older briefs on that basis, but it is not selectable and no project may be tagged with it (#92).
+
+**Photography is not a Service.** *Fotografie de arhitectura* was **retired** at v3.2 (#102). It is
+not selectable and no project may be tagged with it. Photography is unaffected as capability,
+workflow and project medium — photographic documentation, drone documentation and the images inside
+any project are collected exactly as before. Only the classification changed.
+
+**Vizualizare 3D is the only visualization Service**, under Arhitectura & Design. It covers interior,
+exterior, furniture and product visualization. *Vizualizare de arhitectura* was **retired** at v3.2
+(#102, superseding #93, which had described the two as deliberately distinct): Reality Capture never
+had a distinct offering behind the second name. The two were **not merged, aliased or redirected** —
+`vizualizare-3d` is unchanged, and the Reality Capture one simply ceased to exist. Do not pick by
+capability; there is only one.
 
 ---
 
