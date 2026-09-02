@@ -43,9 +43,16 @@ const { copy, contactHref, station } = Astro.props;
   <SectionMarker copy={copy.marker} heading id="conversation-heading" />
 
   <div class="hub-invite">
-    <p class="q rv" data-rv="head">
-      {copy.invitation.lead} <span class="b">{copy.invitation.accent}</span>{copy.invitation.tail}
-    </p>
+    {
+      /* H-6 keeps its single primary action whether or not an invitation precedes it — the
+         locked A&D Hub omits the invitation entirely (and `DECISIONS_LOG.md` #105 records the
+         same position for the Service page's S-5). No invitation is authored to fill the slot. */
+      copy.invitation && (
+        <p class="q rv" data-rv="head">
+          {copy.invitation.lead} <span class="b">{copy.invitation.accent}</span>{copy.invitation.tail}
+        </p>
+      )
+    }
 
     <div class="rv" data-rv="meta">
       <a class="hub-primary" href={contactHref}>

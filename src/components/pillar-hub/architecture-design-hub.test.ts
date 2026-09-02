@@ -13,7 +13,7 @@
  *     verified table gives the A&D Hub `no`. Asserting the absence structurally
  *     is what stops it being re-added by a future copy edit;
  *   - the cross-pillar door must leave the pillar, never loop back to this hub;
- *   - RO copy carries no diacritics (OD-8, §11.3);
+ *   - RO and EN carry no placeholder or prototype figures;
  *   - RO and EN describe the same shape, so no module silently disappears in one
  *     locale.
  */
@@ -109,7 +109,7 @@ describe('the message set', () => {
   it('publishes none of the HiFi prototype statistics', () => {
     for (const locale of LOCALES) {
       const serialized = JSON.stringify(architectureDesignHubMessages(locale));
-      for (const figure of ['10+', '40+', '1:1', 'substituent)', 'placeholder)', 'TODO']) {
+      for (const figure of ['10+', '40+', '1:1', 'substituent)', 'placeholder)', 'TODO', 'TEST']) {
         expect(serialized, `${locale}: "${figure}" must not reach production copy`).not.toContain(
           figure,
         );
@@ -117,11 +117,19 @@ describe('the message set', () => {
     }
   });
 
-  /** OD-8 (§11.3): Romanian site copy is authored WITHOUT diacritics. */
-  it('authors the Romanian copy without diacritics', () => {
-    const ro = JSON.stringify(architectureDesignHubMessages('ro'));
-    expect(ro).not.toMatch(/[ăâîșțĂÂÎȘȚşţŞŢ]/);
-  });
+  /*
+   * REMOVED — the "authors the Romanian copy without diacritics" assertion.
+   *
+   * `DECISIONS_LOG.md` #103 (2026-09-02) amends OD-8: Romanian human-facing editorial copy is
+   * authored WITH correct diacritics, and is never transliterated to satisfy an implementation
+   * constraint. This was the only executable enforcement of the old rule anywhere in the suite.
+   *
+   * The identifier half of #103 did not disappear with it — it moved to where it belongs, beside
+   * the identifiers themselves: `lib/i18n/routes.test.ts` (route segments and the derived query
+   * tokens) and `lib/content/requirements.test.ts` (Service keys and every closed vocabulary).
+   * Those assertions landed in the same change as this removal, so the ASCII boundary was never
+   * unguarded for a single commit.
+   */
 
   /**
    * Structural parity. A module whose copy exists in one locale and not the other

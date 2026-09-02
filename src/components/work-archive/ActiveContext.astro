@@ -45,6 +45,27 @@ interface Props {
 
 const { locale, copy, count, total } = Astro.props;
 
+/**
+ * The hub back-path's visible label.
+ *
+ * ── WHY THIS IS A FUNCTION AND NOT `{copy.hub}: {label}` ──────────────────
+ * Every other Pillar-bearing CTA on the site is authored as a template with a `{pillar}`
+ * placeholder and substituted at render — `service.ts`'s `Vezi {pillar}`, the Services index's
+ * `hub`, the Service page's `proof.seeMore`. This one alone concatenated a label onto a
+ * standalone string with a colon, because its copy (`Pagina pilonului`) carried no placeholder.
+ *
+ * That string is retired, and its replacement is the canonical `Vezi {pillar}`. Substituting a
+ * placeholder into a concatenation would emit `Vezi {pillar}: Arhitectură & Design`, so the
+ * composition has to move before the copy does — which is what this is.
+ *
+ * ⚠ TRANSITIONAL, AND DELIBERATELY SO. The second branch reproduces the legacy `label: Pillar`
+ * shape byte-for-byte so this change renders identically until the copy is replaced. **Delete
+ * the fallback branch in the same change that authors `Vezi {pillar}`** — once the message
+ * carries the placeholder, the branch is unreachable and only hides a missing token.
+ */
+const hubLinkLabel = (label: string): string =>
+  copy.hub.includes('{pillar}') ? copy.hub.replace('{pillar}', label) : `${copy.hub}: ${label}`;
+
 const hubs = PILLARS.map((pillar) => ({
   pillar,
   label: pillarLabel(pillar, locale),
@@ -80,7 +101,7 @@ const hubs = PILLARS.map((pillar) => ({
   {
     hubs.map((hub) => (
       <a class="wa-hub" href={hub.href} data-hub-link={hub.pillar} hidden>
-        {copy.hub}: {hub.label} <span class="ar" aria-hidden="true">→</span>
+        {hubLinkLabel(hub.label)} <span class="ar" aria-hidden="true">→</span>
       </a>
     ))
   }

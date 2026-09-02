@@ -53,9 +53,15 @@ const doors = [
 <section class="hub-continue" data-station={station} aria-labelledby="continue-heading">
   <SectionMarker copy={copy.marker} heading id="continue-heading" />
 
-  <p class="hub-frame rv" data-rv="head">
-    {copy.frame.lead} <span class="b">{copy.frame.accent}</span> {copy.frame.tail}
-  </p>
+  {
+    /* Instance-level: the locked A&D Hub's continuation carries no framing line, so the doors
+       follow the marker directly. Reality Capture authors one and is unchanged. */
+    copy.frame && (
+      <p class="hub-frame rv" data-rv="head">
+        {copy.frame.lead} <span class="b">{copy.frame.accent}</span> {copy.frame.tail}
+      </p>
+    )
+  }
 
   <div class="hub-doors">
     {

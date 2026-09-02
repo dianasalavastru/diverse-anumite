@@ -103,9 +103,17 @@ const caption = [copy.heroIndex, heroTitle].filter(Boolean).join(' · ');
         {copy.heading.lead} <span class="sm">{copy.heading.tail}</span>
       </h1>
 
-      <p class="hub-thesis rv" data-rv="head">
-        {copy.thesis.lead} <span class="b">{copy.thesis.accent}</span> {copy.thesis.tail}
-      </p>
+      {
+        /* The hero thesis is an instance-level option, not a template fixture: the locked
+           Architecture & Design Hub has none, while Reality Capture authors one. Absent means
+           absent — no empty paragraph, so the block below it moves up rather than sitting under
+           a blank line. Same mechanism as `work.pointCloud`, one level up the page. */
+        copy.thesis && (
+          <p class="hub-thesis rv" data-rv="head">
+            {copy.thesis.lead} <span class="b">{copy.thesis.accent}</span> {copy.thesis.tail}
+          </p>
+        )
+      }
     </div>
 
     <div class="hub-arrival-media rv" data-rv="img">
@@ -142,14 +150,23 @@ const caption = [copy.heroIndex, heroTitle].filter(Boolean).join(' · ');
     </div>
   </div>
 
-  <div class="hub-arrival-note rv" data-rv="meta">
-    <span class="ln" aria-hidden="true"></span>
-    <div>
-      <p>{copy.lead}</p>
-      {/* Wireframe H-1: "The About link is a quiet secondary affordance." */}
-      <a class="hub-quiet" href={routePath('about', locale)}>
-        {copy.aboutLink}<span class="ar" aria-hidden="true">→</span>
-      </a>
-    </div>
-  </div>
+  {
+    /* The whole note collapses — hairline included — when the instance authors neither half.
+       Guarding only the paragraph would leave a rule drawn across the page under nothing,
+       which is the empty shell this pass exists to avoid rather than an absence. */
+    (copy.lead || copy.aboutLink) && (
+      <div class="hub-arrival-note rv" data-rv="meta">
+        <span class="ln" aria-hidden="true" />
+        <div>
+          {copy.lead && <p>{copy.lead}</p>}
+          {/* Wireframe H-1: "The About link is a quiet secondary affordance." */}
+          {copy.aboutLink && (
+            <a class="hub-quiet" href={routePath('about', locale)}>
+              {copy.aboutLink}<span class="ar" aria-hidden="true">→</span>
+            </a>
+          )}
+        </div>
+      </div>
+    )
+  }
 </section>

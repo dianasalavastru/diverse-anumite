@@ -229,7 +229,10 @@ const groups = PILLARS.map((pillar: Pillar) => ({
       the framing line if C has authored one. Nothing is reserved for content
       that does not exist. */}
   <section class="si-masthead" aria-labelledby="si-title">
-    <p class="si-eyebrow eyebrow rv" data-rv="meta">{copy.eyebrow}</p>
+    {/* ABSENT once the locked H1 becomes "Servicii": the eyebrow said the same word, and a
+        label repeating the heading directly beneath it is noise, not orientation. Guarded
+        rather than deleted, because the slot stays available to a future locale. */}
+    {copy.eyebrow && <p class="si-eyebrow eyebrow rv" data-rv="meta">{copy.eyebrow}</p>}
     <h1 id="si-title" class="si-title rv" data-rv="head">{copy.heading}</h1>
     {copy.intro && <p class="si-intro rv" data-rv="meta">{copy.intro}</p>}
     {

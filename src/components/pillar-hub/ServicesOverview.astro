@@ -78,7 +78,9 @@ const routed = services
     <section class="hub-services" data-station={station} aria-labelledby="services-heading">
       <SectionMarker copy={copy.marker} heading id="services-heading" />
 
-      <p class="hub-services-intro rv" data-rv="meta">{copy.intro}</p>
+      {/* The locked A&D Hub authors no services intro; an unauthored slot renders nothing
+          rather than an empty paragraph between the marker and the rows. */}
+      {copy.intro && <p class="hub-services-intro rv" data-rv="meta">{copy.intro}</p>}
 
       <div class="hub-service-rows">
         {routed.map((entry, index) => (

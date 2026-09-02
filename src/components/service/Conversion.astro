@@ -87,7 +87,12 @@ const contactHref = `${routePath('contact', locale)}${contactPrefillQuery(
 ---
 
 <div class="sv-conversion">
-  <p class="sv-invite rv" data-rv="head">{copy.conversion.invitation}</p>
+  {/* `DECISIONS_LOG.md` #105: the invitation is optional, and S-5 with only its marker, the
+      canonical Contact action and the Pillar back-path is a complete station. No filler
+      invitation is authored to satisfy the wireframe's "one calm invitation" phrasing. */}
+  {copy.conversion.invitation && (
+    <p class="sv-invite rv" data-rv="head">{copy.conversion.invitation}</p>
+  )}
 
   <p class="sv-conversion-act rv" data-rv="meta">
     <a class="sv-action sv-action--primary" href={contactHref}>

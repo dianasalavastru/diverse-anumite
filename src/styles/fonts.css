@@ -20,9 +20,39 @@
    TO ACTIVATE: place the woff2 files under `public/fonts/`, uncomment, and add
    the matching <link rel="preload"> to BaseLayout.astro.
 
-   §11.3 (OD-8): Romanian copy is authored without diacritics, so comma-below
-   glyph coverage (U+0219 / U+021B) is not a subsetting requirement. If RO copy
-   ever reintroduces diacritics the subset must include latin-ext.
+   ROMANIAN DIACRITICS — §11.3 as amended by `DECISIONS_LOG.md` #103 (2026-09-02).
+
+   OD-8 used to author RO copy WITHOUT diacritics, which made `latin-ext` optional.
+   #103 reverses that: Romanian human-facing editorial copy carries correct
+   diacritics, so glyph coverage is now a BINDING SUBSETTING REQUIREMENT for all
+   three families, not a "revisit later" note.
+
+   The five characters that matter, and where they live:
+
+     â  U+00E2   Latin-1 Supplement   — inside the old range
+     î  U+00EE   Latin-1 Supplement   — inside the old range
+     ă  U+0103   Latin Extended-A     — WAS EXCLUDED
+     ș  U+0219   Latin Extended-B     — WAS EXCLUDED
+     ț  U+021B   Latin Extended-B     — WAS EXCLUDED
+
+   That asymmetry is the trap: the old range covered two of the five, so a
+   subsetted build would have rendered "Proiectăm spațiul" with `â`/`î` in
+   Pixelify and `ă`/`ț` silently falling back to the next family in the stack —
+   a mid-word face change, not a missing glyph. The range below now spans Latin
+   Extended-A and Extended-B so all five come from one face.
+
+   Space Mono and Inter declare no `unicode-range` at all and therefore need no
+   CSS change — for them this is a BUILD instruction, recorded here because this
+   is the file that will be uncommented:
+
+     ⚠ WHEN THE BINARIES ARE PRODUCED, SUBSET ALL THREE FAMILIES AS
+       `latin + latin-ext`, NEVER `latin` ALONE.
+
+   Nothing here reselects a face and nothing here changes the approved visual
+   result: all four @font-face blocks remain commented out and the binaries
+   remain absent (see STATUS above). Until they land, tokens.css falls back to
+   `monospace` / `-apple-system`, both of which already carry all five glyphs —
+   which is why RO copy can adopt diacritics now and the font work can follow.
 
 @font-face {
   font-family: "Pixelify Sans";
@@ -30,8 +60,9 @@
   font-weight: 400 600;
   font-style: normal;
   font-display: swap;
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
-    U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215;
+  unicode-range: U+0000-00FF, U+0100-017F, U+0180-024F, U+0131, U+0152-0153,
+    U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215;
 }
 
 @font-face {

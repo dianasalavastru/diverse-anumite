@@ -32,7 +32,10 @@ interface Props {
     readonly no: string;
     /** Section name, mono label voice. */
     readonly label: string;
-    /** The right-side running coordinate, mono. */
+    /**
+     * The right-side running coordinate, mono. `''` where a section authors none — the marker
+     * then renders the hairline, the station number and the label, and nothing on the right.
+     */
     readonly coordinate: string;
   };
   /** Render the section name as this section's `<h2>`. */
@@ -57,5 +60,8 @@ const { copy, heading = false, id } = Astro.props;
       </span>
     )
   }
-  <span class="co">{copy.coordinate}</span>
+  {/* An unauthored coordinate renders no element rather than an empty one. `.smark` is a flex
+      row and `.co` is pushed right by `margin-left: auto`, so its absence leaves the station
+      number and the label exactly where they were — nothing reflows, nothing collapses. */}
+  {copy.coordinate && <span class="co">{copy.coordinate}</span>}
 </div>

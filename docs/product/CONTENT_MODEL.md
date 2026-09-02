@@ -428,4 +428,4 @@ The five questions v3.0 carried were **closed by the client on 2026-08-14** and 
 
 ---
 
-*Romanian labels above are written with diacritics for readability. Site copy follows the standing owner decision (OD-8) to author Romanian **without** diacritics; slugs remain lowercase ASCII and hyphenated.*
+*Romanian labels above are written with diacritics. Site copy does the same: `DECISIONS_LOG.md` **#103** (2026-09-02) amends **OD-8**, and Romanian human-facing editorial copy is authored **with** correct diacritics. Machine values are unaffected — Service keys, vocabulary tokens, route segments, query tokens and slugs all remain lowercase ASCII and hyphenated.*

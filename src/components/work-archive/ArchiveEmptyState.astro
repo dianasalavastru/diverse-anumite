@@ -60,7 +60,11 @@ const suggestions: { pillar: PillarMode; label: string; href: string }[] = [
 
 <div class="wa-empty" data-archive-empty hidden>
   <h2>{copy.heading}</h2>
-  <p>{copy.body}</p>
+  {/* The heading already states the outcome, and the chips and the reset control already
+      state the ways out. An explanatory paragraph between them restates all three, so an
+      unauthored body renders nothing — the empty state is still an empty state, never a bare
+      grid (COMPONENT_INVENTORY A-6). */}
+  {copy.body && <p>{copy.body}</p>}
 
   <div class="sugg">
     <span class="lab">{copy.suggestLabel}</span>

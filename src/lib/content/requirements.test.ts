@@ -610,6 +610,47 @@ describe('field activation depends on ServiceKey alone (§14.3)', () => {
       expect(key).not.toMatch(/[A-Z\sÀ-ɏ]/);
     }
   });
+
+  /**
+   * The vocabulary half of `DECISIONS_LOG.md` #103 (amending OD-8).
+   *
+   * #103 draws one line: Romanian **editorial copy** carries diacritics, Romanian **identifiers**
+   * do not. Every value below is an identifier — it is matched in GROQ, compared in
+   * `normalize.ts`'s `oneOf()`, round-tripped through the archive's `?service=` / `?label=`
+   * query string, and stored in the Content Lake. A diacritic here is not a typo, it is a
+   * silently broken filter link and a build that fails on documents authored before the change.
+   *
+   * The Service-key case above is the narrower, older assertion and is kept exactly as it was.
+   * This widens the same rule to the three vocabularies the archive filters on, and to the
+   * Pillar tokens. `Rezidențial` is the label; `rezidential` is the value — and #103 changes the
+   * first while freezing the second, which is precisely why both need to be asserted somewhere.
+   */
+  it('keeps every closed-vocabulary value ASCII, lowercase and hyphenated (#103)', () => {
+    const MACHINE_VALUE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+    const vocabularies: ReadonlyArray<readonly [string, readonly string[]]> = [
+      ['SERVICE_KEYS', SERVICE_KEYS],
+      ['PILLARS', PILLARS],
+      ['SECTORS', SECTORS],
+      ['STATUSES', STATUSES],
+      ['PROJECT_LABELS', PROJECT_LABELS],
+    ];
+
+    for (const [name, values] of vocabularies) {
+      for (const value of values) {
+        expect(value, `${name}: "${value}" is not ASCII`).not.toMatch(/[^\u0000-\u007F]/);
+        expect(value, `${name}: "${value}" is not a machine value`).toMatch(MACHINE_VALUE);
+      }
+    }
+  });
+
+  /** The Pillar map's keys are Service keys and its values are Pillar tokens — both identifiers. */
+  it('keeps the Service-to-Pillar map ASCII on both sides (#103)', () => {
+    for (const [key, pillar] of Object.entries(SERVICE_KEY_TO_PILLAR)) {
+      expect(key).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+      expect(pillar).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+    }
+  });
 });
 
 /* ────────────────────────────────────────────────────────────────────────────

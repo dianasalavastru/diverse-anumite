@@ -1,0 +1,245 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Reality Capture hub copy — temporary hold baseline > EN copy is unchanged (TEMPORARY HOLD BASELINE — not an editorial lock) 1`] = `
+{
+  "continue": {
+    "archive": {
+      "body": "Sites and buildings documented, survey by survey, in the full archive.",
+      "kind": "Documentation",
+      "title": "See all projects",
+    },
+    "crossPillar": {
+      "body": "The way measurement feeds the architectural project.",
+      "kind": "Architecture & Design",
+      "title": "How it connects",
+    },
+    "frame": {
+      "accent": "Continue",
+      "lead": "We have measured reality.",
+      "tail": "however you like.",
+    },
+    "marker": {
+      "coordinate": "from measurement to decision",
+      "label": "Continue",
+      "no": "05",
+    },
+  },
+  "conversation": {
+    "action": "Start a conversation",
+    "invitation": {
+      "accent": "measure",
+      "lead": "Do you have a site or a building to",
+      "tail": "?",
+    },
+    "marker": {
+      "coordinate": "one site · one message",
+      "label": "Conversation",
+      "no": "06",
+    },
+    "note": "The message starts with the topic already set to Reality Capture.",
+  },
+  "framing": {
+    "instruments": {
+      "label": "What we measure with",
+      "note": "equipment declared on this capability’s services",
+    },
+    "marker": {
+      "coordinate": "observation · measurement",
+      "label": "The question",
+      "no": "02",
+    },
+    "primary": [
+      "A conventional survey records what someone decided to measure. A scan records everything — every settled wall, every plane that is not straight, every centimetre the eye would round off. Reality does not round off.",
+      "Better decisions start there: where you can intervene, how much material is missing, whether a structure has moved, what something looked like before it disappeared.",
+    ],
+    "question": {
+      "accent": "cannot",
+      "lead": "What does measuring reality let us understand that an ordinary survey",
+      "tail": "?",
+    },
+    "secondary": [
+      "Measurement is not the goal. It is the first layer of the project — the one architecture can lean on without guessing.",
+      "Reality capture does not replace a professional eye. It arms it with a reality nobody can dispute: coordinates, not impressions.",
+    ],
+    "useCases": {
+      "label": "Where it applies",
+      "note": "sectors declared on this capability’s services",
+    },
+  },
+  "meta": {
+    "description": "3D scanning, photogrammetry and measured surveys — the built world measured on site and delivered as a point cloud or drawing.",
+    "title": "Reality Capture — capability · diverse anumite",
+  },
+  "orientation": {
+    "aboutLink": "About the studio",
+    "eyebrow": "capability · one of two",
+    "heading": {
+      "lead": "Reality",
+      "tail": "Capture",
+    },
+    "heroCoordinates": "46.77°N 23.59°E",
+    "heroFallbackAlt": "Placeholder image — site documentation pending",
+    "heroIndex": "RC—001",
+    "lead": "3D scanning, photogrammetry and measured surveys. We turn real buildings, sites and landscapes into precise measurements — point clouds and drawings you can make a decision on. Not an interpretation of the place, but the place itself, at 1:1.",
+    "thesis": {
+      "accent": "We measure",
+      "lead": "We do not draw what we think is there.",
+      "tail": "what is.",
+    },
+  },
+  "services": {
+    "cta": "See the service",
+    "intro": "Each service has its own page, with deliverables, process and equipment. Here you only recognise which one fits.",
+    "marker": {
+      "coordinate": "services · reality capture",
+      "label": "What you can commission",
+      "no": "04",
+    },
+  },
+  "work": {
+    "carousel": {
+      "label": "Documentation — use the arrow keys to navigate",
+      "next": "Next documentation",
+      "position": "Documentation in focus",
+      "previous": "Previous documentation",
+      "roleDescription": "documentation carousel",
+    },
+    "cta": "All projects — Reality Capture",
+    "intro": "Each documentation comes into focus in turn. Drag sideways or use the arrows. The selection is curated — the full archive is below.",
+    "marker": {
+      "coordinate": "a curated selection · not the archive",
+      "label": "Documentation in focus",
+      "no": "03",
+    },
+    "pointCloud": {
+      "hint": "drag to inspect →",
+      "label": "03·b — digital twin · point cloud",
+      "posterAlt": "Placeholder image — point cloud pending",
+      "unavailable": "point cloud — asset in preparation",
+    },
+    "title": "Measured sites, one at a time.",
+  },
+}
+`;
+
+exports[`Reality Capture hub copy — temporary hold baseline > RO copy is unchanged (TEMPORARY HOLD BASELINE — not an editorial lock) 1`] = `
+{
+  "continue": {
+    "archive": {
+      "body": "Situri si cladiri documentate, releveu cu releveu, in arhiva completa.",
+      "kind": "Documentari",
+      "title": "Vezi toate proiectele",
+    },
+    "crossPillar": {
+      "body": "Felul in care masurarea hraneste proiectul de arhitectura.",
+      "kind": "Arhitectura & Design",
+      "title": "Cum se leaga",
+    },
+    "frame": {
+      "accent": "Continuati",
+      "lead": "Am masurat realitatea.",
+      "tail": "cum vreti.",
+    },
+    "marker": {
+      "coordinate": "de la masuratoare la decizie",
+      "label": "Continuare",
+      "no": "05",
+    },
+  },
+  "conversation": {
+    "action": "Incepe o conversatie",
+    "invitation": {
+      "accent": "masurat",
+      "lead": "Aveti un sit sau o cladire de",
+      "tail": "?",
+    },
+    "marker": {
+      "coordinate": "un sit · un mesaj",
+      "label": "Conversatie",
+      "no": "06",
+    },
+    "note": "Mesajul porneste cu subiectul deja setat pe Reality Capture.",
+  },
+  "framing": {
+    "instruments": {
+      "label": "Cu ce masuram",
+      "note": "echipament declarat pe serviciile pilonului",
+    },
+    "marker": {
+      "coordinate": "observatie · masurare",
+      "label": "Intrebarea",
+      "no": "02",
+    },
+    "primary": [
+      "Un releveu clasic noteaza ce a decis cineva sa masoare. O scanare noteaza tot — fiecare tasare de zid, fiecare perete care nu e drept, fiecare centimetru pe care ochiul l-ar rotunji. Realitatea nu se rotunjeste.",
+      "De aici pornesc decizii mai bune: unde se poate interveni, cat material lipseste, daca o structura s-a miscat, cum arata ceva inainte sa dispara.",
+    ],
+    "question": {
+      "accent": "poate",
+      "lead": "Ce ne lasa masurarea reala sa intelegem, ce un releveu obisnuit nu",
+      "tail": "?",
+    },
+    "secondary": [
+      "Masurarea nu e un scop. Este primul strat al proiectului — cel pe care arhitectura se poate sprijini fara sa ghiceasca.",
+      "Reality capture nu inlocuieste privirea profesionistului. O inarmeaza cu o realitate pe care nimeni nu o poate contesta: coordonate, nu impresii.",
+    ],
+    "useCases": {
+      "label": "Unde se aplica",
+      "note": "sectoare declarate pe serviciile pilonului",
+    },
+  },
+  "meta": {
+    "description": "Scanare 3D, fotogrametrie si relevee — realitatea construita, masurata pe teren si livrata ca nor de puncte sau desen.",
+    "title": "Reality Capture — pilon · diverse anumite",
+  },
+  "orientation": {
+    "aboutLink": "Despre atelier",
+    "eyebrow": "pilon · capabilitate",
+    "heading": {
+      "lead": "Reality",
+      "tail": "Capture",
+    },
+    "heroCoordinates": "46.77°N 23.59°E",
+    "heroFallbackAlt": "Imagine substituent — documentare de sit, in asteptare",
+    "heroIndex": "RC—001",
+    "lead": "Scanare 3D, fotogrametrie si relevee. Transformam cladiri, situri si peisaje reale in masuratori precise — nori de puncte si desene pe care se poate lua o decizie. Nu o interpretare a locului, ci locul insusi, la scara 1:1.",
+    "thesis": {
+      "accent": "Masuram",
+      "lead": "Nu desenam ce credem ca e acolo.",
+      "tail": "ce este.",
+    },
+  },
+  "services": {
+    "cta": "Vezi serviciul",
+    "intro": "Fiecare serviciu are pagina lui, cu livrabile, proces si echipament. Aici doar recunoasteti care vi se potriveste.",
+    "marker": {
+      "coordinate": "servicii · pilonul reality capture",
+      "label": "Ce puteti comanda",
+      "no": "04",
+    },
+  },
+  "work": {
+    "carousel": {
+      "label": "Documentari — folositi sagetile pentru a naviga",
+      "next": "Documentarea urmatoare",
+      "position": "Documentarea in focus",
+      "previous": "Documentarea anterioara",
+      "roleDescription": "carusel de documentari",
+    },
+    "cta": "Toate proiectele — Reality Capture",
+    "intro": "Fiecare documentare intra pe rand in focus. Trageti lateral sau folositi sagetile. Selectia este curatoriata — arhiva completa este mai jos.",
+    "marker": {
+      "coordinate": "selectie curatoriata · nu arhiva",
+      "label": "Documentari in focus",
+      "no": "03",
+    },
+    "pointCloud": {
+      "hint": "trageti pentru a inspecta →",
+      "label": "03·b — geaman digital · nor de puncte",
+      "posterAlt": "Imagine substituent — nor de puncte, in asteptare",
+      "unavailable": "nor de puncte — asset in pregatire",
+    },
+    "title": "Situri masurate, unul cate unul.",
+  },
+}
+`;

@@ -208,6 +208,34 @@ Running ledger of client-validated decisions for the Atelier portfolio website. 
 
      **Scope of the implementation pass:** canonical vocabulary, Pillar map, requirements contract, Studio picker, fixtures, seed dataset, tests and normative documentation, plus the minimum copy needed to stop the site contradicting the taxonomy. **The editorial rewrites of the Homepage, the Reality Capture Pillar and the Service pages are separate, still in progress, and deliberately not part of this change.**
 
+103. **OD-8 AMENDED — Romanian human-facing editorial copy is authored WITH correct Romanian diacritics. Machine identifiers remain ASCII.** Owner decision, 2026-09-02. This amends **OD-8** (2026-08-11, recorded at `TECHNICAL_ARCHITECTURE.md` §11.3), which had RO site copy authored *without* diacritics. It does **not** revoke OD-8's provenance note, and it changes nothing about identifiers.
+
+     **The boundary, stated once.**
+     - **Human-facing editorial copy carries diacritics.** Every RO string in `src/lib/i18n/*` and every RO field authored in Sanity: `ă â î ș ț` are written correctly. Editorial copy is **never** transliterated to satisfy an implementation constraint.
+     - **Machine identifiers stay ASCII**, lowercase and hyphenated: `ServiceKey` and every closed-vocabulary token (`Sector`, `Status`, `ProjectLabel`, `Pillar`); route path segments (frozen by **OD-1**/#76 and **OD-2**/#77 — restoring diacritics there would break every published URL); Sanity slugs in both locales; the `?pillar=` / `?topic=` / `?regarding=` / `?service=` query tokens; and code identifiers.
+
+     **Why the split is safe rather than a convention.** `types.ts` already states it — "display labels are RO/EN copy owned by Workstream C and deliberately absent from this file." Machine values live in `src/lib/content/`, human copy in `src/lib/i18n/`, and nothing derives one from the other at runtime. The amendment therefore moves one rule and no architecture.
+
+     **Two things this required, and both were done together.** OD-8 was enforced in two places, and changing either alone would have left the decision half-applied:
+     1. **The assertion.** Exactly one test enforced it — the diacritics assertion in `architecture-design-hub.test.ts`. It is removed. The placeholder guard beside it (`substituent)` / `placeholder)` / `TODO`) is **kept and extended with `TEST`**, because that guard is unrelated to OD-8 and still load-bearing.
+     2. **The render layer.** `fonts.css` staged Pixelify Sans with `unicode-range: U+0000-00FF, …`, which covers `â`/`î` but **excludes `ă` (U+0103), `ș` (U+0219), `ț` (U+021B)** — so the copy decision alone would have produced silent mid-word fallbacks once the subsets shipped. The range now includes Latin Extended-A and Extended-B, and the file records that the woff2 subsets must be built as **`latin + latin-ext`**, not `latin`. **No font was replaced, no binary was added, and no visual design changed** — the faces remain staged and commented out, exactly as before.
+
+     Replacing the ASCII rule with nothing would have left the identifier half unguarded, so assertions covering route paths, closed-vocabulary tokens and the derived query tokens were added in the same change as the removal. The pre-existing `ServiceKey` and slug-format assertions are untouched.
+
+104. **A Service with no demonstrating work renders NO S-4 station at all.** Owner decision, 2026-09-02. When `demonstratedBy` is empty the Service page emits **no section marker, no heading, no editorial "examples in preparation" note, no empty grid and no counter** — the station simply does not exist, and the rail numbering reflows exactly as it already does for an undeclared Equipment station.
+
+     **What this supersedes, and only that.** `SERVICE_PAGE_IA.md` S-4 and `SERVICE_WIREFRAME.md` §"Empty state" (F5) required the station to always render and to *switch surface* to an editorial message plus a Contact CTA and a Hub back-path. That surface-switch requirement is superseded. **F5's actual guarantee is unchanged and is still met:** the page remains fully publishable with zero linked Work Entries, and the absence of linked work still does not reduce confidence in the service — it is now expressed by saying nothing rather than by saying that something is missing.
+
+     **Why.** The locked placeholder policy is categorical: an empty state must not announce that the site is incomplete, and asset-in-preparation notes are hidden. An editorial note reading "public examples for this service are being prepared" is exactly such an announcement, published to the reader.
+
+     **What remains in place.** The Contact action and the Pillar back-path both live in S-5, the next station, which is unconditional. Nothing is lost from the page; one redundant surface is.
+
+105. **The Service conversion invitation (S-5) is optional.** Owner decision, 2026-09-02. When it is absent the conversion station may consist of its structural marker, the canonical `Contact` action, and the Pillar back-path.
+
+     No filler invitation is authored merely to satisfy `SERVICE_WIREFRAME.md` S-5's expectation of "one calm invitation, one primary action". **This supersedes that narrow wireframe requirement and nothing else** — S-5 remains the page's single conversion point, the action remains the one primary action on the page, and the back-path remains distinct from it.
+
+     Recorded separately from **#104** deliberately: #104 governs S-4's *absence*, this governs S-5's *composition*, and folding them together would make one wireframe departure look like two halves of the same decision. The locked Architecture & Design Hub already takes the same position at H-6, where `conversation.invitation` is ABSENT and `Contact` stands alone; this entry states the equivalent for the Service page rather than leaving it implicit.
+
 ### Open (non-blocking, carried into design/build)
 - Multi-select within a facet; inline vs expander rendering (design-step).
 - Confirm EU programme publicity rules.

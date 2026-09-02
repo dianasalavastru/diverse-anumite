@@ -4,6 +4,7 @@ import {
   DEFAULT_LOCALE,
   LOCALES,
   RESERVED_SLUGS,
+  ROUTES,
   counterpartPath,
   hreflangAlternates,
   isLocale,
@@ -13,6 +14,8 @@ import {
   routePath,
   type RouteKey,
 } from './routes';
+import { PILLARS } from '../content';
+import { pillarArchiveParam, pillarTopicParam } from './vocabulary';
 
 /**
  * The frozen route contract, restated here independently of the implementation.
@@ -182,5 +185,68 @@ describe('counterparts and hreflang (§11.2, §12)', () => {
       { hreflang: 'en', path: '/en/projects/house-on-a-slope' },
       { hreflang: 'x-default', path: '/proiecte/casa-in-panta' },
     ]);
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/* The ASCII half of DECISIONS_LOG #103                                        */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * #103 amends OD-8: Romanian **editorial copy** carries diacritics, and Romanian **identifiers**
+ * do not. The copy half needs no assertion — it is authored, and a wrong one is visible. The
+ * identifier half does, and this is where it lives, because a URL that gains a `ș` is not a
+ * cosmetic regression: `/arhitectura-design` is frozen by OD-1 (#76) and OD-2 (#77), and every
+ * published link, every hreflang pair and every sitemap entry is built from this table.
+ *
+ * These assertions replace the single diacritics test that used to sit in
+ * `components/pillar-hub/architecture-design-hub.test.ts` and enforced the rule on the wrong
+ * side of the boundary — on one page's copy rather than on the identifiers. They landed in the
+ * same change that removed it, so the ASCII rule was never unenforced.
+ *
+ * The Service-key and closed-vocabulary halves are asserted in `lib/content/requirements.test.ts`,
+ * beside the vocabularies themselves; slug format is enforced at authoring time by
+ * `validation.ts` and covered by `validation.test.ts`.
+ */
+describe('Identifiers stay ASCII (#103, amending OD-8)', () => {
+  /** Lowercase, hyphenated, ASCII — IA §2.2, applied to every segment of every route. */
+  const ROUTE_SEGMENT = /^\/(?:[a-z0-9]+(?:-[a-z0-9]+)*(?:\/[a-z0-9]+(?:-[a-z0-9]+)*)*)?$/;
+
+  it('emits no diacritic in any route path, in either locale', () => {
+    for (const key of Object.keys(ROUTES) as RouteKey[]) {
+      for (const locale of LOCALES) {
+        const path = ROUTES[key].path[locale];
+        expect(path, `${key}.${locale}`).not.toMatch(/[^\u0000-\u007F]/);
+        expect(path, `${key}.${locale}`).toMatch(ROUTE_SEGMENT);
+      }
+    }
+  });
+
+  /**
+   * The reserved-slug list is generated from the route table, so it inherits the rule — asserted
+   * anyway, because it is what the CMS validator compares authored slugs against (§7.7).
+   */
+  it('reserves only ASCII slugs', () => {
+    for (const locale of LOCALES) {
+      for (const slug of RESERVED_SLUGS[locale]) {
+        expect(slug, `${locale}/${slug}`).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+      }
+    }
+  });
+
+  /**
+   * The two derived query tokens. `pillarTopicParam` reads the route table and `pillarArchiveParam`
+   * reads its own declaration; both are public URL surface, and neither may pick up a diacritic
+   * from a Pillar's display label.
+   */
+  it('derives ASCII query tokens for every Pillar', () => {
+    for (const pillar of PILLARS) {
+      expect(pillarArchiveParam(pillar), pillar).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+      for (const locale of LOCALES) {
+        expect(pillarTopicParam(pillar, locale), `${pillar}.${locale}`).toMatch(
+          /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+        );
+      }
+    }
   });
 });

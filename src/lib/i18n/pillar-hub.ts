@@ -91,7 +91,17 @@ export interface PillarHubMessages {
     readonly eyebrow: string;
     /** The capability name, set in the pixel voice over two lines. */
     readonly heading: { readonly lead: string; readonly tail: string };
-    readonly thesis: AccentedHeading;
+    /**
+     * OPTIONAL since the Stable RO pass. The locked Architecture & Design Hub has no hero
+     * thesis, and an instance that omits this field renders none — the same mechanism
+     * `work.pointCloud` already uses to express a per-instance absence on this shared shape.
+     * Reality Capture supplies one and is unaffected.
+     */
+    readonly thesis?: AccentedHeading;
+    /**
+     * `''` when the instance authors no opening lead — the `ui.ts` convention for an absent
+     * slot, so no type change is needed and `Orientation.astro` renders no empty paragraph.
+     */
     readonly lead: string;
     /** Accessible name for the opening media when no authored alt exists. */
     readonly heroFallbackAlt: string;
@@ -164,6 +174,7 @@ export interface PillarHubMessages {
   /** H-3 · Services overview (Stage C) — station 04. */
   readonly services: {
     readonly marker: SectionMarkerCopy;
+    /** `''` when the instance authors no intro — absent slot, not an empty paragraph. */
     readonly intro: string;
     /** Per-card continuation label; extended with the Service name for 2.4.4. */
     readonly cta: string;
@@ -172,7 +183,11 @@ export interface PillarHubMessages {
   /** H-5 · Continue-to-archive (Stage E) — station 05. */
   readonly continue: {
     readonly marker: SectionMarkerCopy;
-    readonly frame: AccentedHeading;
+    /**
+     * OPTIONAL since the Stable RO pass — the locked A&D Hub's `continue.frame` is ABSENT.
+     * An instance that omits it renders the doors with no framing line above them.
+     */
+    readonly frame?: AccentedHeading;
     readonly archive: DoorCopy;
     /**
      * Supporting navigation only. `HUB_PAGE_IA.md` §1: "cross-links to the other
@@ -185,7 +200,12 @@ export interface PillarHubMessages {
   /** H-6 · Contact / next step (Stage E) — station 06. */
   readonly conversation: {
     readonly marker: SectionMarkerCopy;
-    readonly invitation: AccentedHeading;
+    /**
+     * OPTIONAL since the Stable RO pass — the locked A&D Hub's `conversation.invitation` is
+     * ABSENT, leaving the marker, the single `Contact` action and the note. `DECISIONS_LOG.md`
+     * #105 records the equivalent position for the Service page's S-5.
+     */
+    readonly invitation?: AccentedHeading;
     readonly action: string;
     readonly note: string;
   };

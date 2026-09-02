@@ -410,11 +410,27 @@ Preserved exactly as specified; RO content is **never** served under an EN URL:
 
 The **UX of the disabled switcher state** (inline disabled control vs. interstitial) remains open — `NAV_DECISION_RECORD.md`:36 flags it; this document does not invent it (**OD-3**).
 
-### 11.3 Romanian diacritics — owner decision
+### 11.3 Romanian diacritics — owner decision (AMENDED)
 
-**Romanian site copy is intentionally authored without diacritics** (owner decision, 2026-08-11, **OD-8**). Comma-below glyph coverage (U+0219 `ș`, U+021B `ț`) is therefore **not a launch requirement, not a risk, and not a font-selection criterion.**
+**Romanian human-facing editorial copy is authored WITH correct Romanian diacritics** (owner decision, 2026-09-02, `DECISIONS_LOG.md` **#103**, amending **OD-8**). Comma-below glyph coverage (U+0219 `ș`, U+021B `ț`) and Latin Extended-A coverage (U+0103 `ă`) are therefore **launch requirements and font-subsetting criteria**.
 
-Recorded for provenance: the approved HiFis contain 391 `ș`/`ț` characters, and all three candidate faces do carry correct comma-below forms (the glyphs live in the `latin-ext` subset). HiFi copy is a design reference; production RO copy follows the owner decision. If RO copy ever reintroduces diacritics, the font subset must be revisited — a configuration change, not an architectural one.
+~~**Romanian site copy is intentionally authored without diacritics** (owner decision, 2026-08-11, **OD-8**). Comma-below glyph coverage is not a launch requirement, not a risk, and not a font-selection criterion.~~ Superseded by #103. The provenance below stands unchanged and is what made the amendment cheap.
+
+**The boundary — copy is not identifiers.**
+
+| Carries diacritics | Stays ASCII (lowercase, hyphenated) |
+| --- | --- |
+| Every RO string in `src/lib/i18n/*` | `ServiceKey`; the `Sector` / `Status` / `ProjectLabel` / `Pillar` tokens |
+| Every RO field authored in Sanity | Route path segments (frozen by **OD-1**/#76, **OD-2**/#77) |
+| | Sanity slugs, both locales (`validation.ts`) |
+| | `?pillar=` · `?topic=` · `?regarding=` · `?service=` |
+| | Code identifiers |
+
+Editorial copy is never transliterated to satisfy an implementation constraint, and no identifier is ever de-ASCII'd to match its label. The two namespaces already live apart — machine values in `src/lib/content/`, human copy in `src/lib/i18n/` — and nothing derives one from the other at runtime.
+
+**Font consequence, now binding (§9).** The staged `@font-face` for Pixelify Sans carried `unicode-range: U+0000-00FF, …`, which covers `â`/`î` but **excludes `ă` (U+0103), `ș` (U+0219) and `ț` (U+021B)**. The range now spans Latin Extended-A and Extended-B, and the woff2 subsets must be produced as **`latin + latin-ext`**, not `latin`, for all three families. This is the configuration change the original entry anticipated — no face was reselected and no architecture moved.
+
+Recorded for provenance (unchanged): the approved HiFis contain 391 `ș`/`ț` characters, and all three candidate faces do carry correct comma-below forms (the glyphs live in the `latin-ext` subset).
 
 ---
 
@@ -649,7 +665,7 @@ Analytics are cookieless (Plausible or Umami — interchangeable; only the cooki
 | **OD-2** | ✅ EN route segments — full map in §11.1 | `DECISIONS_LOG.md` #77 |
 | **OD-4** | ✅ "Changeable without a deploy" interpretation — see below | this document |
 | **OD-5** | ✅ WCAG 2.2 AA; budgets as engineering targets; browser baseline | `DECISIONS_LOG.md` #78 |
-| **OD-8** | ✅ RO copy authored without diacritics; glyph coverage not a requirement | §11.3 |
+| **OD-8** | ✅ **AMENDED by #103** — RO editorial copy carries diacritics; `latin-ext` glyph coverage IS a requirement; identifiers stay ASCII | §11.3 |
 
 ### OD-4 — recorded interpretation
 
@@ -801,7 +817,7 @@ URL: `?pillar=` `&sector=` `&service=` `&label=` `&sort=`. `replaceState` for in
 
   **Resolved from security review:** secrets model; `.gitignore`/`.env.example`; no write token anywhere; private dataset + build-time read-only token with draft-leak assertion; preview credential isolation and access control; duplicate-host `noindex`; server-side contact validation; no CMS `innerHTML`; controlled Portable Text serialization; no placeholder origins; CSP and security headers; raw survey exclusion; derivative stripping; publication clearance; no submission persistence; retention and logging policy; tested backup recovery; least-privilege CI.
 
-  **Owner decisions recorded:** OD-8 (diacritics, decided); OD-4 ("without a deploy" interpretation, recorded).
+  **Owner decisions recorded:** OD-8 (diacritics, decided — later **amended by `DECISIONS_LOG.md` #103**, 2026-09-02); OD-4 ("without a deploy" interpretation, recorded).
 
   **Deliberately unresolved:** OD-1 … OD-7.
 
