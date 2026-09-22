@@ -98,11 +98,6 @@ const ro: ArchitectureDesignHubMessages = {
   orientation: {
     eyebrow: 'pilon · capabilitate',
     heading: { lead: 'Arhitectura', tail: '& Design' },
-    thesis: {
-      lead: 'Gandim spatiul la fel — de la casa la spatiu public, pana la',
-      accent: 'ultima muchie',
-      tail: '.',
-    },
     lead:
       'Arhitectura, interior si spatiu construit — locuinte, amenajari interioare, concursuri, proiecte publice si lucrari conceptuale. Lucram cu mana si cu instrumentul, de la prima curba de nivel pana la ultima muchie de beton. Un singur fel de a gandi, indiferent de scara.',
     heroFallbackAlt: 'Imagine substituent — fotografie de proiect, in asteptare',
@@ -168,7 +163,6 @@ const ro: ArchitectureDesignHubMessages = {
 
   continue: {
     marker: { no: '05', label: 'Continuare', coordinate: 'ati vazut cum gandim' },
-    frame: { lead: 'Ati vazut cum gandim.', accent: 'Continuati', tail: 'cum vreti.' },
     archive: {
       kind: 'Proiecte',
       title: 'Vezi toate proiectele',
@@ -183,11 +177,6 @@ const ro: ArchitectureDesignHubMessages = {
 
   conversation: {
     marker: { no: '06', label: 'Conversatie', coordinate: 'un teren · un mesaj' },
-    invitation: {
-      lead: 'Un proiect care porneste de la',
-      accent: 'teren',
-      tail: '?',
-    },
     action: 'Incepe o conversatie',
     note: 'Mesajul porneste cu subiectul deja setat pe Arhitectură & Design.',
   },
@@ -207,11 +196,6 @@ const en: ArchitectureDesignHubMessages = {
   orientation: {
     eyebrow: 'capability · one of two',
     heading: { lead: 'Architecture', tail: '& Design' },
-    thesis: {
-      lead: 'We think about space the same way — from a house to a public square, down to the',
-      accent: 'last edge',
-      tail: '.',
-    },
     lead:
       'Architecture, interiors and built space — houses, interior fit-outs, competitions, public projects and conceptual work. We work by hand and by instrument, from the first contour line to the last concrete edge. One way of thinking, whatever the scale.',
     heroFallbackAlt: 'Placeholder image — project photography pending',
@@ -277,7 +261,6 @@ const en: ArchitectureDesignHubMessages = {
 
   continue: {
     marker: { no: '05', label: 'Continue', coordinate: 'you have seen how we think' },
-    frame: { lead: 'You have seen how we think.', accent: 'Continue', tail: 'however you like.' },
     archive: {
       kind: 'Projects',
       title: 'See all projects',
@@ -292,11 +275,6 @@ const en: ArchitectureDesignHubMessages = {
 
   conversation: {
     marker: { no: '06', label: 'Conversation', coordinate: 'one site · one message' },
-    invitation: {
-      lead: 'A project that starts from the',
-      accent: 'ground',
-      tail: '?',
-    },
     action: 'Start a conversation',
     note: 'The message starts with the topic already set to Architecture & Design.',
   },
