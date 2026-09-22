@@ -90,7 +90,7 @@ export type ArchitectureDesignHubMessages = Omit<PillarHubMessages, 'work'> & {
 
 const ro: ArchitectureDesignHubMessages = {
   meta: {
-    title: 'Arhitectura & Design — pilon · diverse anumite',
+    title: 'Arhitectură & Design — pilon · diverse anumite',
     description:
       'Locuinte, interioare, concursuri si spatiu public — arhitectura care porneste de la loc si este dusa pana la ultima muchie.',
   },
@@ -145,7 +145,7 @@ const ro: ArchitectureDesignHubMessages = {
     title: 'Un singur fel de a lucra, la orice scara.',
     intro:
       'Fiecare proiect intra pe rand in focus. Trageti lateral sau folositi sagetile. Selectia este curatoriata — arhiva completa este mai jos.',
-    cta: 'Toate proiectele — Arhitectura & Design',
+    cta: 'Toate proiectele — Arhitectură & Design',
     carousel: {
       roleDescription: 'carusel de proiecte',
       label: 'Proiecte — folositi sagetile pentru a naviga',
@@ -189,7 +189,7 @@ const ro: ArchitectureDesignHubMessages = {
       tail: '?',
     },
     action: 'Incepe o conversatie',
-    note: 'Mesajul porneste cu subiectul deja setat pe Arhitectura & Design.',
+    note: 'Mesajul porneste cu subiectul deja setat pe Arhitectură & Design.',
   },
 };
 

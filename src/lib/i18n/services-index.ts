@@ -33,9 +33,11 @@
  *
  * The two group labels are NOT here: they are the Pillar display labels, which
  * already have exactly one declaration in `vocabulary.ts`. A second copy of
- * "Arhitectura & Design" in a message file is how the two drift apart.
+ * "Arhitectură & Design" in a message file is how the two drift apart.
  *
- * OD-8 (§11.3): Romanian copy is authored WITHOUT diacritics.
+ * OD-8 (§11.3) as AMENDED by `DECISIONS_LOG.md` #103: Romanian human-facing editorial copy is
+ * authored **WITH** correct diacritics (`ă â î ș ț`). Machine identifiers stay ASCII — the
+ * Pillar keys, the Service keys and every slug in this page's routes are unaffected.
  */
 
 import type { Locale } from './routes';

@@ -227,10 +227,10 @@ const ro: HomepageMessages = {
     },
     architectureDesign: {
       index: '04·a',
-      title: 'Arhitectura & Design',
+      title: 'Arhitectură & Design',
       intro:
         'Fiecare proiect intra pe rand in focus — restul raman aproape, pentru context. Culoarea revine doar acolo unde privirea se opreste.',
-      cta: 'Toate lucrarile — Arhitectura & Design',
+      cta: 'Toate lucrarile — Arhitectură & Design',
     },
     realityCapture: {
       index: '04·c',

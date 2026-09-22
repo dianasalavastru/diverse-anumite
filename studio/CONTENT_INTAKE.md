@@ -44,7 +44,7 @@ layer already returns the frozen shape from that dataset.
 > should collect material against in the meantime.
 >
 > **⚠ AMENDED 2026-09-01 for `CONTENT_MODEL.md` v3.2 (`DECISIONS_LOG.md` #102).** The Service list is
-> now **six, not eight**: Arhitectura & Design keeps four, and Reality Capture has **two** — Scanare
+> now **six, not eight**: Arhitectură & Design keeps four, and Reality Capture has **two** — Scanare
 > laser 3D · Scan-to-BIM. *Fotografie de arhitectura* and *Vizualizare de arhitectura* are **retired**
 > and are no longer offered by the Studio picker; a project authored against either will fail the
 > build by name. **The 4 + 2 shape is provisional pending further client clarification of the Reality
@@ -59,7 +59,7 @@ group names below are the tab names the editor sees.
 
 | What | Why it is required |
 | --- | --- |
-| **Capability (Pillar)** — Arhitectura & Design *or* Reality Capture | exactly one; it decides which Services may be chosen (v3.0 §2) |
+| **Capability (Pillar)** — Arhitectură & Design *or* Reality Capture | exactly one; it decides which Services may be chosen (v3.0 §2) |
 | **Services** — one or more, from the chosen capability | mandatory, multi-select; **they decide which other fields are required** (v3.0 §5, §7) |
 | **Sector** — **exactly one** of the seven | mandatory, single-select; classification and filtering only, never activates a field (v3.1 §11.1). Genuinely mixed projects use *Mixed-use & dezvoltări* |
 | Romanian title | root locale (§11.1) |
@@ -72,7 +72,7 @@ group names below are the tab names the editor sees.
 
 ### Required by capability
 
-| What | Arhitectura & Design | Reality Capture |
+| What | Arhitectură & Design | Reality Capture |
 | --- | --- | --- |
 | **Description** | **required** | **optional** — deliberate, client-validated (v3.0 §6) |
 | Collaborators · Team | optional base fields | not base fields; may be activated as optional by a Service |
@@ -134,7 +134,7 @@ not selectable and no project may be tagged with it. Photography is unaffected a
 workflow and project medium — photographic documentation, drone documentation and the images inside
 any project are collected exactly as before. Only the classification changed.
 
-**Vizualizare 3D is the only visualization Service**, under Arhitectura & Design. It covers interior,
+**Vizualizare 3D is the only visualization Service**, under Arhitectură & Design. It covers interior,
 exterior, furniture and product visualization. *Vizualizare de arhitectura* was **retired** at v3.2
 (#102, superseding #93, which had described the two as deliberately distinct): Reality Capture never
 had a distinct offering behind the second name. The two were **not merged, aliased or redirected** —

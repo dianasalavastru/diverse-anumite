@@ -73,13 +73,25 @@ export function projectLabelLabel(value: ProjectLabel, locale: Locale): string {
 /* -------------------------------------------------------------------------- */
 
 /**
- * `CONTENT_MODEL.md`:44 — "Architecture & Design" and "Reality Capture". Both
- * names read identically in RO in the approved HiFis ("Arhitectura & Design",
- * "Reality Capture" — the second is used untranslated as a term of art).
+ * `CONTENT_MODEL.md`:44 — "Architecture & Design" and "Reality Capture". The RO names are
+ * *Arhitectură & Design* and *Reality Capture*; the second is used untranslated, as a term of art.
+ *
+ * ── THESE ARE DISPLAY LABELS, AND ONLY THAT ───────────────────────────────
+ * Human-facing editorial copy, so the RO name carries its diacritic under `DECISIONS_LOG.md`
+ * #103. The Pillar **identifier** (`architecture-design`) is a separate namespace and stays
+ * ASCII, as do the route key, the archive `?pillar=` token and the Contact `?topic=` token —
+ * all three declared below and none derived from this map. Changing a label here changes
+ * rendered text and nothing else.
+ *
+ * This comment previously attributed the diacritic-free spelling *Arhitectura & Design* to the
+ * approved HiFis. That attribution was wrong: the HiFi sources spell it *Arhitectură & Design*
+ * (`docs/pages/pillar-hub/pillar-hub-measured-reality-hifi-v1_1.html`:12), and so do the
+ * normative `CONTENT_MODEL.md` §2 and `DECISIONS_LOG.md` #101. The flat spelling came from the
+ * original OD-8, which #103 amended.
  */
 const PILLAR_LABELS: Readonly<Record<Locale, Readonly<Record<Pillar, string>>>> = {
   ro: {
-    'architecture-design': 'Arhitectura & Design',
+    'architecture-design': 'Arhitectură & Design',
     'reality-capture': 'Reality Capture',
   },
   en: {
