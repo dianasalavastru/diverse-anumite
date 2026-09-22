@@ -24,7 +24,21 @@
  * RC pass intended. Do not refresh it to make an unrelated batch go green — a failure here
  * during Stable RO work means something touched RC that should not have.
  *
- * ── WHY THE BASELINE IS THE WORKING TREE, NOT `HEAD` ──────────────────────
+ * ── WHAT IS PROTECTED ─────────────────────────────────────────────────────
+ * Two surfaces, both held, frozen independently:
+ *   1. the whole Reality Capture **Hub** message set (`pillar-hub.ts`), and
+ *   2. the Homepage's **RC capability plate** — `homepageMessages(…).capabilities.realityCapture`
+ *      (`homepage.ts`), the M-2 gateway's `facets` + `context` pair.
+ *
+ * The Homepage object was added when Stable RO Batch 2A began editing `homepage.ts`. That batch
+ * rewrites the *Architecture & Design* half of the same `capabilities` object, one property away
+ * from the RC half — so the RC half needed a guard of its own before the A&D edit landed, not
+ * after. Until then nothing asserted it, and an RC Homepage line could have changed with no test
+ * failing. Its baseline is `HEAD` 24002ee: two RC `facets` edits were sitting uncommitted in the
+ * working tree when this was written, they were **not** approved, and they were restored to `HEAD`
+ * rather than frozen.
+ *
+ * ── WHY THE HUB BASELINE IS THE WORKING TREE, NOT `HEAD` ──────────────────
  * The RC message file carries two approved editorial hunks that were made before this test
  * existed (the removal of `ortofoto` / `orthophoto` from the RC meta description and the RC
  * opening lead). Those are intentional and belong to the editorial workstream, so the baseline is
@@ -41,7 +55,60 @@
 import { describe, expect, it } from 'vitest';
 
 import { LOCALES } from './routes';
+import { homepageMessages } from './homepage';
 import { realityCaptureHubMessages } from './pillar-hub';
+
+/**
+ * The Homepage's Reality Capture capability plate (M-2).
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ *  TEMPORARY HOLD BASELINE — **not** an editorial lock.
+ *  Update deliberately when the RC editorial hold is lifted.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Frozen at `HEAD` 24002ee, exactly as it stands — `facets` still reads
+ * `scanare 3d · fotogrametrie · patrimoniu`, lowercase `3d` and all, and `context` still names
+ * fotogrametrie, patrimoniu and sit. **None of that is approved wording.** It is what the page
+ * says today, and the point of the snapshot is that it keeps saying exactly that until the RC
+ * pass changes it on purpose.
+ *
+ * Three things this snapshot is deliberately NOT:
+ *   - **Not a claim the wording is right.** RC positioning is held pending client clarification.
+ *   - **Not a diacritics statement.** #103 has RO editorial copy carrying `ă â î ș ț`, and these
+ *     two strings do not. Converting them would be an RC copy change, which is what the hold
+ *     forbids — so the ASCII spelling is frozen with the rest and is not a defect to fix here.
+ *   - **Not a taxonomy assertion.** The current 4 + 2 Service model is provisional. This plate is
+ *     authored prose, not a projection of `SERVICE_KEYS` (see `vocabulary.ts` — Service names are
+ *     authored content, never a label map), so it must not be re-derived from the Service list.
+ *
+ * When the hold lifts: edit `homepage.ts` first, then refresh this snapshot and read the diff to
+ * confirm it contains only what the RC pass intended. Never refresh it to make a neighbouring
+ * batch go green — a failure here during Stable RO work means something reached the RC half of
+ * `capabilities` that should not have.
+ */
+describe('Homepage Reality Capture capability plate — temporary hold baseline', () => {
+  for (const locale of LOCALES) {
+    it(`${locale.toUpperCase()} RC capability copy is unchanged (TEMPORARY HOLD BASELINE — not an editorial lock)`, () => {
+      expect(homepageMessages(locale).capabilities.realityCapture).toMatchSnapshot();
+    });
+  }
+
+  /**
+   * The neighbour test, and the reason this block exists at all.
+   *
+   * Batch 2A rewrites `capabilities.architectureDesign` — the sibling property. This asserts the
+   * two halves stayed distinct objects with distinct wording, so a copy/paste that filled the RC
+   * plate with A&D text (or the reverse) fails here by name rather than passing quietly because
+   * both snapshots were refreshed together.
+   */
+  it('keeps the two capability plates distinct — the A&D edit never bleeds into RC', () => {
+    for (const locale of LOCALES) {
+      const { architectureDesign, realityCapture } = homepageMessages(locale).capabilities;
+      expect(realityCapture.facets).not.toBe(architectureDesign.facets);
+      expect(realityCapture.context).not.toBe(architectureDesign.context);
+    }
+  });
+});
 
 describe('Reality Capture hub copy — temporary hold baseline', () => {
   /**

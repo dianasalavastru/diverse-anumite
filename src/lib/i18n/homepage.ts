@@ -172,7 +172,7 @@ const ro: HomepageMessages = {
     heading: { lead: 'Proiectam spatiul.', accent: 'Masuram', tail: 'realitatea.' },
     statement:
       'Un singur atelier care compune arhitectura si documenteaza lumea construita cu precizie — de la prima schita pana la ultimul milimetru scanat.',
-    cue: 'derulati — 06 statii',
+    cue: '06 stații',
     heroFallbackAlt: 'Imagine substituent — fotografie de atelier, in asteptare',
     heroIndex: 'PT—001',
     heroCoordinates: '46.77°N 23.59°E',
@@ -183,9 +183,14 @@ const ro: HomepageMessages = {
   capabilities: {
     marker: { no: '02', label: 'Capabilitati', coordinate: 'doua discipline · un atelier' },
     architectureDesign: {
-      facets: 'locuinte · interior · concurs',
-      context:
-        'Arhitectura care porneste de la loc si lumina — locuinte, interioare si proiecte de concurs, desenate cu mana si duse pana la detaliu.',
+      /*
+       * Locked (Stable RO). One word per Architecture & Design Service, in the canonical order
+       * of `SERVICE_KEYS` — not a descriptive triple. The previous line mixed a housing type,
+       * a room class and a Label (`concurs` is the CONCURS Label, never a Service), which read
+       * as a taxonomy without being one.
+       */
+      facets: 'arhitectură · interior · mobilier · vizualizare',
+      context: 'Proiectăm pornind de la loc și ducem lucrul până la detaliu.',
     },
     realityCapture: {
       facets: 'scanare 3d · fotogrametrie · patrimoniu',

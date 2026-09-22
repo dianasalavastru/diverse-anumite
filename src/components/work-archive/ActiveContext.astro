@@ -48,23 +48,20 @@ const { locale, copy, count, total } = Astro.props;
 /**
  * The hub back-path's visible label.
  *
- * ── WHY THIS IS A FUNCTION AND NOT `{copy.hub}: {label}` ──────────────────
- * Every other Pillar-bearing CTA on the site is authored as a template with a `{pillar}`
+ * ── ONE SUBSTITUTION PATH, AND ONLY ONE ───────────────────────────────────
+ * Every Pillar-bearing CTA on the site is authored as a template carrying the `{pillar}`
  * placeholder and substituted at render — `service.ts`'s `Vezi {pillar}`, the Services index's
- * `hub`, the Service page's `proof.seeMore`. This one alone concatenated a label onto a
- * standalone string with a colon, because its copy (`Pagina pilonului`) carried no placeholder.
+ * `hub`, the Service page's `proof.seeMore`. This readout now uses the same canonical shape.
  *
- * That string is retired, and its replacement is the canonical `Vezi {pillar}`. Substituting a
- * placeholder into a concatenation would emit `Vezi {pillar}: Arhitectură & Design`, so the
- * composition has to move before the copy does — which is what this is.
+ * The Batch 1 transitional fallback that reproduced the legacy `label: Pillar` concatenation is
+ * **removed**: `work-archive.ts` authors `Vezi {pillar}` in both locales, so the branch was
+ * unreachable and would only have hidden a missing token behind plausible-looking output. A
+ * message without the placeholder now renders visibly wrong, which is the intended failure.
  *
- * ⚠ TRANSITIONAL, AND DELIBERATELY SO. The second branch reproduces the legacy `label: Pillar`
- * shape byte-for-byte so this change renders identically until the copy is replaced. **Delete
- * the fallback branch in the same change that authors `Vezi {pillar}`** — once the message
- * carries the placeholder, the branch is unreachable and only hides a missing token.
+ * The placeholder is a machine identifier and stays ASCII `{pillar}` under `DECISIONS_LOG.md`
+ * #103, whatever diacritics the surrounding editorial copy carries.
  */
-const hubLinkLabel = (label: string): string =>
-  copy.hub.includes('{pillar}') ? copy.hub.replace('{pillar}', label) : `${copy.hub}: ${label}`;
+const hubLinkLabel = (label: string): string => copy.hub.replace('{pillar}', label);
 
 const hubs = PILLARS.map((pillar) => ({
   pillar,

@@ -73,9 +73,18 @@ export interface ServicesIndexMessages {
 }
 
 const ro: ServicesIndexMessages = {
-  meta: { title: 'Servicii · diverse anumite', description: '' },
-  eyebrow: 'Servicii',
-  heading: 'Ce puteti comanda',
+  meta: {
+    title: 'Servicii · diverse anumite',
+    description:
+      'Serviciile atelierului diverse anumite, grupate în două direcții: Arhitectură & Design și Reality Capture.',
+  },
+  /*
+   * ABSENT (locked, Stable RO). The locked `<h1>` is the page name `Servicii`, and the eyebrow
+   * said the same word directly above it. `''` is the absent-slot convention, so
+   * `ServicesIndexPage.astro` renders no eyebrow rather than an empty line.
+   */
+  eyebrow: '',
+  heading: 'Servicii',
   intro: '',
   groupCoordinate: '',
   cta: 'Vezi serviciul',

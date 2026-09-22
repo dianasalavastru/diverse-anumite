@@ -148,16 +148,15 @@ export interface WorkArchiveMessages {
 
 const ro: WorkArchiveMessages = {
   meta: {
-    title: 'Proiecte — arhiva · diverse anumite',
+    title: 'Proiecte · diverse anumite',
     description:
-      'Arhiva completa de lucrari — arhitectura, design si reality capture, intr-un singur loc.',
+      'Arhiva completă de proiecte a atelierului diverse anumite, din Arhitectură & Design și Reality Capture.',
   },
 
   orientation: {
     eyebrow: 'Arhiva · toate proiectele',
     heading: 'Proiecte',
-    statement:
-      'Tot ce a trecut prin atelier — arhitectura si realitate masurata, la un loc. Alegeti un pilon, un serviciu sau un sector; sau derulati pur si simplu.',
+    statement: 'Tot ce a trecut prin atelier — arhitectură și realitate măsurată, la un loc.',
     total: 'in arhiva',
   },
 
@@ -183,7 +182,7 @@ const ro: WorkArchiveMessages = {
     label: 'Vizualizati',
     none: 'toata arhiva',
     clear: 'Resetati filtrele',
-    hub: 'Pagina pilonului',
+    hub: 'Vezi {pillar}',
   },
 
   results: {
@@ -193,7 +192,12 @@ const ro: WorkArchiveMessages = {
 
   empty: {
     heading: 'Niciun proiect nu corespunde acestor filtre.',
-    body: 'Am restrans prea mult cautarea. Reveniti la tot ce e in arhiva sau porniti de la un pilon.',
+    /*
+     * ABSENT (locked, Stable RO). The heading already states the outcome, and the suggestion
+     * chips plus the reset control already offer the way out, so the body only restated both.
+     * `''` is the absent-slot convention — `ArchiveEmptyState.astro` renders no paragraph.
+     */
+    body: '',
     suggestLabel: 'Incercati',
     reset: 'Resetati filtrele',
   },
@@ -257,7 +261,14 @@ const en: WorkArchiveMessages = {
     label: 'Viewing',
     none: 'the whole archive',
     clear: 'Clear filters',
-    hub: 'Pillar page',
+    /*
+     * STRUCTURAL, not EN authoring. `ActiveContext.astro`'s transitional `label: Pillar`
+     * fallback is removed in this change, so this message must carry the `{pillar}` placeholder
+     * or the pillar name would stop rendering. The value is the canonical EN Hub back-path
+     * already authored verbatim at `service.ts`, `services-index.ts` and `work-entry.ts` — it is
+     * reused, not invented. EN editorial prose remains unauthored.
+     */
+    hub: 'See {pillar}',
   },
 
   results: {

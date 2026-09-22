@@ -131,7 +131,11 @@ export interface ServiceMessages {
   };
 
   readonly conversion: {
-    /** PENDING (C) — the quiet invitation above the single action. */
+    /**
+     * `''` when the instance authors no invitation — the absent-slot convention.
+     * `DECISIONS_LOG.md` #105 makes S-5's invitation optional, so a station consisting of its
+     * marker, the single `Contact` action and the back-path is complete, not unfinished.
+     */
     readonly invitation: string;
     /** The one primary action on the page (S-5). */
     readonly contact: string;
@@ -186,7 +190,9 @@ const ro: ServiceMessages = {
   },
 
   conversion: {
-    invitation: 'Aveti un proiect pentru care acest serviciu ar fi potrivit?',
+    /* ABSENT (locked, Stable RO) — #105. No filler invitation is authored to satisfy the
+       wireframe's "one calm invitation" phrasing; `Conversion.astro` renders none. */
+    invitation: '',
     contact: 'Incepeti o conversatie',
     hub: 'Vezi {pillar}',
   },

@@ -1,5 +1,19 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`Homepage Reality Capture capability plate — temporary hold baseline > EN RC capability copy is unchanged (TEMPORARY HOLD BASELINE — not an editorial lock) 1`] = `
+{
+  "context": "The built world, measured on site — surveys, 3D scanning and photogrammetry for heritage and terrain.",
+  "facets": "3d scanning · photogrammetry · heritage",
+}
+`;
+
+exports[`Homepage Reality Capture capability plate — temporary hold baseline > RO RC capability copy is unchanged (TEMPORARY HOLD BASELINE — not an editorial lock) 1`] = `
+{
+  "context": "Realitatea construita, masurata pe teren — relevee, scanare 3D si fotogrametrie pentru patrimoniu si sit.",
+  "facets": "scanare 3d · fotogrametrie · patrimoniu",
+}
+`;
+
 exports[`Reality Capture hub copy — temporary hold baseline > EN copy is unchanged (TEMPORARY HOLD BASELINE — not an editorial lock) 1`] = `
 {
   "continue": {
