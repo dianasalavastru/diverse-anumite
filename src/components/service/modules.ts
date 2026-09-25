@@ -52,19 +52,18 @@
  * `facts`) because the wireframe resolved it spatially. Same here. The rail
  * indexes *sections*, not Page-IA modules, and no responsibility moved.
  *
- * ── ABSENCE, AND THE ONE MODULE THAT NEVER GOES ABSENT ────────────────────
+ * ── ABSENCE — EVERY OPTIONAL MODULE, S-4 INCLUDED (#104) ──────────────────
  * Optional modules follow the Work Entry's rule: content or nothing, never an
  * empty heading and never a defaulted value.
  *
- * **S-4 is the exception, and it is an exception on purpose.** F5
- * (`SERVICE_PAGE_IA.md` S-4, `SERVICE_WIREFRAME.md` §"Empty state") requires
- * that with zero linked Work Entries the page "remains fully publishable" and
- * that the proof set is *replaced* by an editorial message + Contact CTA + Hub
- * back-path — "never an empty grid/carousel/counter", and "the absence of linked
- * Work Entries must never reduce confidence in the service itself". Hiding S-4
- * would satisfy "no empty grid" and violate everything else, so S-4 always
- * renders and switches surface. `COMPONENT_INVENTORY.md` scopes the Empty State
- * component to exactly two places, one of which is this one.
+ * **S-4 follows the same rule (`DECISIONS_LOG.md` #104).** F5's surface switch
+ * — an editorial "examples in preparation" note + Contact CTA + Hub back-path in
+ * place of the proof set — is superseded. A Service with no demonstrating work
+ * this locale can link to renders no S-4 at all: no marker, no heading, no note,
+ * no grid, no counter. The rail numbering reflows exactly as it does for an
+ * undeclared capabilities station. F5's guarantee still holds — the page stays
+ * fully publishable — because S-5, which is unconditional, already carries the
+ * Contact action and the Hub back-path.
  *
  * S-1 and S-5 are unconditional too: S-1 is the page's identity (a Service
  * always has a name), and S-5 is the page's single reason to exist.
@@ -198,6 +197,19 @@ export function hasCapabilities(service: Service, locale: Locale): boolean {
   return (localize(service.equipment, locale)?.length ?? 0) > 0;
 }
 
+/**
+ * S-4 · Proof — at least one demonstrating Work Entry this locale can link to.
+ *
+ * `DECISIONS_LOG.md` #104: an empty proof set renders no module. The predicate
+ * is the same test `Proof.astro` applies to build its cards (a localized slug),
+ * so a station is never allocated to a strip that would come out empty.
+ * `demonstratedBy` is already locale-scoped by the source (`scopeService`), which
+ * makes the slug check a type guard rather than an expected state.
+ */
+export function hasProof(service: Service, locale: Locale): boolean {
+  return service.demonstratedBy.some((entry) => Boolean(localize(entry.slug, locale)));
+}
+
 /* -------------------------------------------------------------------------- */
 /* S-4's point-cloud subject                                                   */
 /* -------------------------------------------------------------------------- */
@@ -271,9 +283,8 @@ export function serviceComposition(service: Service, locale: Locale): ServiceCom
     deliverables: hasDeliverables(service, locale),
     process: hasProcess(service, locale),
     capabilities: hasCapabilities(service, locale),
-    // F5: always. Zero demonstrating entries switches the surface, never the
-    // presence of the module — see the file header.
-    proof: true,
+    // #104: content or nothing, like every other optional module.
+    proof: hasProof(service, locale),
     conversion: true,
   };
 

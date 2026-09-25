@@ -129,7 +129,7 @@ export const service = defineType({
       options: { list: [...SERVICE_KEY_OPTIONS] },
       readOnly: ({ value }) => Boolean(value),
       description:
-        'Which of the eight services this is. Chosen once, on creation, and locked afterwards — the site decides which fields each project must fill in from this, so it can never be re-pointed. Renaming the service or its address is always safe.',
+        'Which of the six services this is. Chosen once, on creation, and locked afterwards — the site decides which fields each project must fill in from this, so it can never be re-pointed. Renaming the service or its address is always safe.',
       validation: (Rule) =>
         Rule.required().custom(async (value: string | undefined, context) => {
           const vocabulary = toSanityResult(validateVocabulary(value, 'serviceKey', 'key'))
@@ -142,7 +142,7 @@ export const service = defineType({
             { key: value, id, draftId: `drafts.${id}` },
           )
           return taken
-            ? `Another service already uses the identity '${value}'. Each of the eight exists once.`
+            ? `Another service already uses the identity '${value}'. Each of the six exists once.`
             : true
         }),
     }),
@@ -231,7 +231,7 @@ export const service = defineType({
       group: 'proof',
       readOnly: true,
       description:
-        'Set on each project, under Links → "Services this demonstrates". A service with none is still fully publishable: the page shows a short editorial note and a contact prompt instead of an empty grid.',
+        'Set on each project, under Links → "Services this demonstrates". A service with none is still fully publishable: the page simply shows no projects section (DECISIONS_LOG.md #104); the contact action and the pillar link stay.',
       validation: (Rule) =>
         Rule.custom(async (_value: unknown, context) => {
           const id = (context.document?._id ?? '').replace(/^drafts\./, '')

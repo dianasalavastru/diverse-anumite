@@ -21,6 +21,7 @@ import {
   captureSubject,
   hasDeliverables,
   hasCapabilities,
+  hasProof,
   hasProblemContent,
   hasProcess,
   serviceComposition,
@@ -160,10 +161,10 @@ const index = (...entries: WorkEntry[]) => new Map(entries.map((e) => [e._id, e]
 /* -------------------------------------------------------------------------- */
 
 describe('one blueprint for every service (SERVICE_PAGE_IA.md:3, :170)', () => {
-  it('renders S-1, S-4 and S-5 for a service that carries nothing but a name', () => {
+  it('renders S-1 and S-5 for a service that carries nothing but a name (#104: no proof, no S-4)', () => {
     const composition = serviceComposition(service(), 'ro');
-    expect(composition.modules).toEqual(['orientation', 'proof', 'conversion']);
-    expect(composition.footerStation).toBe(4);
+    expect(composition.modules).toEqual(['orientation', 'conversion']);
+    expect(composition.footerStation).toBe(3);
   });
 
   it('renders every module for a fully authored service, in the wireframe order', () => {
@@ -174,6 +175,7 @@ describe('one blueprint for every service (SERVICE_PAGE_IA.md:3, :170)', () => {
       process: bi(prose('Cum lucram'), prose('How we work')),
       equipment: bi(['Leica RTC360'], ['Leica RTC360']),
       sectors: ['cultural-patrimoniu'],
+      demonstratedBy: [summary('w1')],
     });
 
     /* S-2 no longer takes a station: its content reads inside the opening as
@@ -195,7 +197,6 @@ describe('one blueprint for every service (SERVICE_PAGE_IA.md:3, :170)', () => {
     expect(serviceComposition(instrumentsOnly, 'ro').modules).toEqual([
       'orientation',
       'capabilities',
-      'proof',
       'conversion',
     ]);
 
@@ -203,7 +204,6 @@ describe('one blueprint for every service (SERVICE_PAGE_IA.md:3, :170)', () => {
     expect(serviceComposition(methodOnly, 'ro').modules).toEqual([
       'orientation',
       'process',
-      'proof',
       'conversion',
     ]);
   });
@@ -221,9 +221,9 @@ describe('one blueprint for every service (SERVICE_PAGE_IA.md:3, :170)', () => {
 
     /* The A&D case: no empty capabilities heading, no placeholder, and every
        later station simply moves up one. */
-    expect(withEquipment.stations).toMatchObject({ capabilities: 4, proof: 5, conversion: 6 });
+    expect(withEquipment.stations).toMatchObject({ capabilities: 4, conversion: 5 });
     expect(without.stations.capabilities).toBeUndefined();
-    expect(without.stations).toMatchObject({ proof: 4, conversion: 5 });
+    expect(without.stations).toMatchObject({ conversion: 4 });
     expect(without.footerStation).toBe(withEquipment.footerStation - 1);
   });
 
@@ -248,32 +248,49 @@ describe('one blueprint for every service (SERVICE_PAGE_IA.md:3, :170)', () => {
     const partial = service({ deliverables: bi(['a'], ['a']) });
     const { modules, stations, footerStation } = serviceComposition(partial, 'ro');
 
-    expect(modules.map((key) => stations[key])).toEqual([1, 2, 3, 4]);
+    expect(modules.map((key) => stations[key])).toEqual([1, 2, 3]);
     expect(footerStation).toBe(modules.length + 1);
-    expect(stationLabel(stations.proof as number)).toBe('03');
+    expect(stationLabel(stations.conversion as number)).toBe('03');
   });
 });
 
 /* -------------------------------------------------------------------------- */
-/* F5                                                                          */
+/* #104 — S-4 is content-or-nothing                                            */
 /* -------------------------------------------------------------------------- */
 
-describe('F5 — zero demonstrating entries is a valid published state', () => {
-  it('keeps S-4 in the composition when the proof set is empty', () => {
+describe('#104 — S-4 renders only when there is demonstrating work', () => {
+  it('drops S-4 from the composition when the proof set is empty', () => {
     const composition = serviceComposition(service({ demonstratedBy: [] }), 'ro');
-    expect(composition.modules).toContain('proof');
+    expect(composition.modules).not.toContain('proof');
+    expect(composition.stations.proof).toBeUndefined();
+    expect(hasProof(service({ demonstratedBy: [] }), 'ro')).toBe(false);
   });
 
-  it('keeps S-4 in the same station whether or not there is proof', () => {
-    const withProof = serviceComposition(
-      service({ demonstratedBy: [summary('w1')] }),
-      'ro',
-    );
-    const withoutProof = serviceComposition(service({ demonstratedBy: [] }), 'ro');
-    expect(withProof.stations.proof).toBe(withoutProof.stations.proof);
+  it('keeps S-4, in reading order, when at least one entry demonstrates the service', () => {
+    const svc = service({ demonstratedBy: [summary('w1')] });
+    const composition = serviceComposition(svc, 'ro');
+    expect(composition.modules).toEqual(['orientation', 'proof', 'conversion']);
+    expect(composition.stations).toMatchObject({ orientation: 1, proof: 2, conversion: 3 });
+    expect(hasProof(svc, 'ro')).toBe(true);
   });
 
-  it('never loses S-5: a proof-thin service still converts', () => {
+  it('reflows the rail when S-4 is absent, exactly as for an undeclared capabilities station', () => {
+    const fields = { deliverables: bi(['a'], ['a']) };
+    const withProof = serviceComposition(service({ ...fields, demonstratedBy: [summary('w1')] }), 'ro');
+    const withoutProof = serviceComposition(service({ ...fields, demonstratedBy: [] }), 'ro');
+    expect(withProof.stations).toMatchObject({ deliverables: 2, proof: 3, conversion: 4 });
+    expect(withoutProof.stations).toMatchObject({ deliverables: 2, conversion: 3 });
+    expect(withoutProof.footerStation).toBe(withProof.footerStation - 1);
+  });
+
+  it('allocates no station to demonstrating entries this locale cannot link to', () => {
+    // An EN-unpublished demonstrator has no EN slug, so an EN strip would be empty.
+    const svc = service({ demonstratedBy: [summary('w1', false)] });
+    expect(serviceComposition(svc, 'ro').modules).toContain('proof');
+    expect(serviceComposition(svc, 'en').modules).not.toContain('proof');
+  });
+
+  it('never loses S-5: a proof-less service still converts', () => {
     expect(serviceComposition(service(), 'ro').modules).toContain('conversion');
   });
 });
@@ -296,7 +313,6 @@ describe('module toggles are locale-aware (§11.2 — no RO content under an EN 
       'deliverables',
       'process',
       'capabilities',
-      'proof',
       'conversion',
     ]);
   });
@@ -304,7 +320,6 @@ describe('module toggles are locale-aware (§11.2 — no RO content under an EN 
   it('drops them in EN rather than emitting a heading over Romanian prose', () => {
     expect(serviceComposition(roOnly, 'en').modules).toEqual([
       'orientation',
-      'proof',
       'conversion',
     ]);
     expect(hasProblemContent(roOnly, 'en')).toBe(false);

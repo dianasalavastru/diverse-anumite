@@ -52,8 +52,9 @@
  *
  * What changed here: the header is no longer `on-hero`, S-2 no longer takes a
  * station of its own, and equipment is a station rather than a footnote to the
- * process. What did not change: the route contract, the prefill contract, F5,
- * the §19.4 capture gate, the rail, the section-marker grammar, or any token.
+ * process. What did not change: the route contract, the prefill contract, the
+ * §19.4 capture gate, the rail, the section-marker grammar, or any token. S-4 is
+ * conditional on demonstrating work (`DECISIONS_LOG.md` #104).
  *
  * ── CONTENT: THE I-3 CONTRACT ─────────────────────────────────────────────
  * Every value on this page comes from Workstream B's `ContentSource`. This file
@@ -218,15 +219,19 @@ const marker = (key: keyof typeof copy.markers, station: number) => ({
     )
   }
 
-  {/* S-4 is unconditional — F5 swaps the surface, never the module. */}
-  <section
-    class="sv-section sv-proof-section"
-    data-station={stations.proof}
-    aria-labelledby="sv-proof-h"
-  >
-    <SectionMarker copy={marker('proof', stations.proof ?? 1)} heading id="sv-proof-h" />
-    <Proof service={service} locale={locale} copy={copy} />
-  </section>
+  {/* S-4 renders only with demonstrating work (#104); absent, the rail reflows. */}
+  {
+    stations.proof && (
+      <section
+        class="sv-section sv-proof-section"
+        data-station={stations.proof}
+        aria-labelledby="sv-proof-h"
+      >
+        <SectionMarker copy={marker('proof', stations.proof)} heading id="sv-proof-h" />
+        <Proof service={service} locale={locale} copy={copy} />
+      </section>
+    )
+  }
 
   <section
     class="sv-section sv-conversion-section"

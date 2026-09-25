@@ -171,6 +171,7 @@ function surveyedEntry(id: string, cleared: boolean): WorkEntry {
 describe('an A&D service with demonstrating work', () => {
   const design = service({
     _id: 'sv-ad',
+    key: 'proiectare-arhitectura',
     name: bi('Proiectare de arhitectura', 'Architectural design'),
     slug: bi('proiectare-arhitectura', 'architectural-design'),
     pillar: 'architecture-design',
@@ -197,6 +198,7 @@ describe('an A&D service with demonstrating work', () => {
     // §23.5: pillar filter, and NOT `?service=` — Service is not the A&D refinement.
     expect(html).toContain('/proiecte?pillar=architecture');
     expect(html).not.toContain('service=proiectare-arhitectura');
+    expect(html).not.toMatch(/pillar=architecture&#38;service=/);
     expect(html).toContain('<div class="rail"');
   });
 
@@ -237,6 +239,8 @@ describe('a Reality Capture service with demonstrating, cleared survey work', ()
     expect(html).toContain('releveu din Biserica a');
     expect(html).toContain('8.032.000 pt · 2 mm · Leica RTC360');
     expect(html).toContain('href="/proiecte/biserica-a"');
+    // Real capture metadata is never marked as a fixture (postbuild guard).
+    expect(html).not.toContain('data-fixture');
   });
 
   it('renders no renderer and no fabricated figure', async () => {
@@ -255,9 +259,11 @@ describe('a Reality Capture service with demonstrating, cleared survey work', ()
     expect(html).toContain('href="/proiecte/biserica-a"');
   });
 
-  it('narrows see-more with the frozen RC refinement (§23.5)', async () => {
+  it('narrows see-more with the frozen RC refinement, by Service KEY (§23.5, v3.1 §14.3)', async () => {
     const html = await render(capture, 'ro', [surveyedEntry('a', true)]);
-    expect(html).toContain('/proiecte?pillar=reality-capture&#38;service=scanare-3d');
+    expect(html).toContain('/proiecte?pillar=reality-capture&#38;service=scanare-laser-3d');
+    // The localized slug is not what the archive validates; it must not be sent.
+    expect(html).not.toContain('service=scanare-3d');
   });
 
   it('states equipment as authored, and nothing else', async () => {
@@ -296,13 +302,27 @@ describe('a Reality Capture service with demonstrating, cleared survey work', ()
     expect(cloud).toBeLessThan(proof);
     expect(html).toContain('sv-caps-h');
   });
+
+  it('never prints a placeholder alt or an in-preparation note beside the cloud', async () => {
+    const bare = surveyedEntry('a', true);
+    const silent: WorkEntry = {
+      ...bare,
+      capture: { ...bare.capture!, accuracy: null, pointCount: null },
+      metadata: { ...bare.metadata, equipment: [] },
+    };
+    const html = await render(capture, 'ro', [silent]);
+    expect(html).toContain('data-media-viewer="point-cloud"');
+    expect(html).not.toContain('class="stat"');
+    expect(html).not.toMatch(/substituent|în pregătire|in pregatire|în așteptare|in asteptare/i);
+    expect(html).not.toContain('data-fixture');
+  });
 });
 
 /* -------------------------------------------------------------------------- */
-/* F5                                                                          */
+/* #104                                                                        */
 /* -------------------------------------------------------------------------- */
 
-describe('F5 — a service with zero demonstrating work stays publishable', () => {
+describe('#104 — a service with zero demonstrating work renders no S-4', () => {
   const thin = service({
     _id: 'sv-f5',
     problemSolved: bi(prose('Ce rezolva.'), prose('What it solves.')),
@@ -310,31 +330,39 @@ describe('F5 — a service with zero demonstrating work stays publishable', () =
     demonstratedBy: [],
   });
 
-  it('renders the editorial note, a Contact CTA and the Hub back-path', async () => {
+  it('emits no proof marker, heading, note, grid, counter or see-more', async () => {
     const html = await render(thin, 'ro');
-
-    expect(html).toContain('data-empty-state="service-proof"');
-    expect(html).toContain('Exemplele publice pentru acest serviciu sunt in pregatire');
-    expect(html).toContain('href="/contact"');
-    expect(html).toContain('href="/reality-capture"');
-  });
-
-  it('renders no grid, no carousel, no counter and no see-more', async () => {
-    const html = await render(thin, 'ro');
-
+    expect(html).not.toContain('sv-proof-section');
+    expect(html).not.toContain('id="sv-proof-h"');
+    expect(html).not.toContain('Proiecte în care am folosit serviciul');
+    expect(html).not.toContain('data-empty-state');
+    expect(html).not.toContain('sv-empty');
     expect(html).not.toContain('sv-proof-strip');
     expect(html).not.toContain('sv-see-more');
     expect(html).not.toContain('data-media-viewer');
-    expect(html).not.toMatch(/\b0\s+(proiecte|lucrari|projects)\b/i);
+    expect(html).not.toMatch(/în pregătire|in pregatire/);
+    expect(html).not.toMatch(/\b0\s+(proiecte|lucrari|lucrări|projects)\b/i);
   });
 
-  it('leaves S-1…S-3 and S-5 fully intact — confidence undiminished', async () => {
+  it('reflows the station numbers — S-5 takes the station S-4 would have held', async () => {
     const html = await render(thin, 'ro');
+    // orientation 1 · deliverables 2 · conversion 3 — no gap where S-4 was.
+    expect(html).toMatch(/class="sv-section" data-station="2" aria-labelledby="sv-deliverables-h"/);
+    expect(html).toMatch(/class="sv-section sv-conversion-section" data-station="3"/);
+  });
 
+  it('keeps S-5 complete: the Contact action and the Hub back-path', async () => {
+    const html = await render(thin, 'ro');
+    expect(html).toContain('/contact?topic=reality-capture&#38;regarding=scanare-3d');
+    expect(html).toContain('sv-conversion-back');
+    expect(html).toContain('Vezi Reality Capture');
+  });
+
+  it('leaves S-1…S-3 fully intact — confidence undiminished', async () => {
+    const html = await render(thin, 'ro');
     expect(html).toContain('Scanare 3D');
     expect(html).toContain('Ce rezolva.');
     expect(html).toContain('Nor de puncte');
-    expect(html).toContain('/contact?topic=reality-capture&#38;regarding=scanare-3d');
   });
 });
 

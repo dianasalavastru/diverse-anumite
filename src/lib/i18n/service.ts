@@ -13,17 +13,12 @@
  * list, the accessible names of the two navigational paths, and the invitation
  * that carries the single conversion action.
  *
- * Two strings are unavoidably editorial and are marked PENDING (C):
+ * Two editorial slots are resolved by owner decision rather than by copy:
  *
- *   · `proof.empty.note` — F5 requires "a concise editorial message (relevant
- *     examples being added)" (`SERVICE_PAGE_IA.md` S-4; `SERVICE_WIREFRAME.md`
- *     §"Empty state (F5)"). Leaving it empty, the ui.ts convention for
- *     unauthored copy, would produce the empty module F5 exists to forbid — so
- *     a factual working sentence stands in until C authors one. It states only
- *     that examples are being added; it makes no claim about the service.
- *   · `conversion.invitation` — S-5 is "one calm invitation, one primary
- *     action". Same reasoning, same constraint: nothing here asserts a
- *     capability, a timeline or a result.
+ *   · `proof.empty.*` — RETIRED (`DECISIONS_LOG.md` #104). A Service with no
+ *     demonstrating work renders no S-4, so no "examples in preparation" note
+ *     exists to label.
+ *   · `conversion.invitation` — OPTIONAL (#105), authored `''` (absent) in RO.
  *
  * There is deliberately **no FAQ copy**. `SERVICE_WIREFRAME.md` S-3 lists an
  * Accordion / FAQ as *optional secondary detail* and `SERVICE_PAGE_IA.md` S-3
@@ -32,7 +27,8 @@
  * of them for one service. A HiFi does not create a CMS field — see
  * `components/service/modules.ts`.
  *
- * OD-8 (§11.3): Romanian copy is authored WITHOUT diacritics.
+ * RO carries correct Romanian diacritics (`DECISIONS_LOG.md` #103, amending
+ * OD-8 §11.3). Identifiers, slugs and query tokens never live here.
  */
 
 import type { Locale } from './routes';
@@ -114,20 +110,12 @@ export interface ServiceMessages {
       /** Label above the field. `{work}` = the entry the cloud belongs to. */
       readonly label: string;
       readonly hint: string;
-      readonly posterAlt: string;
-      readonly unavailable: string;
       /** Link naming the entry the cloud and its readout come from. */
       readonly source: string;
     };
-    /** F5 — zero demonstrating entries is a valid published state. */
-    readonly empty: {
-      /** PENDING (C). Never an empty grid, carousel or counter. */
-      readonly note: string;
-      /** F5's Contact CTA. */
-      readonly contact: string;
-      /** F5's Hub back-path. `{pillar}` is substituted. */
-      readonly hub: string;
-    };
+    /* `empty` (F5 note + Contact + Hub) is retired by #104. `cloud.posterAlt` and
+       `cloud.unavailable` are retired too: the Service page passes neither
+       (Capabilities.astro), so no placeholder alt or in-preparation note renders. */
   };
 
   readonly conversion: {
@@ -145,7 +133,7 @@ export interface ServiceMessages {
 }
 
 /* -------------------------------------------------------------------------- */
-/* RO — diacritics removed per OD-8                                            */
+/* RO — with diacritics (DECISIONS_LOG.md #103)                                */
 /* -------------------------------------------------------------------------- */
 
 const ro: ServiceMessages = {
@@ -155,37 +143,30 @@ const ro: ServiceMessages = {
   about: 'Despre atelier',
 
   markers: {
-    deliverables: { label: 'Ce primiti', coordinate: 'livrabile, nu functii' },
-    process: { label: 'Cum lucram', coordinate: 'metoda, pas cu pas' },
-    capabilities: { label: 'Capabilitati si echipamente', coordinate: 'cifre reale, nimic calculat' },
+    deliverables: { label: 'Ce primiți', coordinate: 'livrabile, nu funcții' },
+    process: { label: 'Cum lucrăm', coordinate: 'metoda, pas cu pas' },
+    capabilities: { label: 'Capabilități și echipamente', coordinate: 'cifre reale, nimic calculat' },
     proof: {
-      label: 'Proiecte in care am folosit serviciul',
+      label: 'Proiecte în care am folosit serviciul',
       coordinate: 'exemple, nu arhiva',
     },
-    conversion: { label: 'Continuare', coordinate: 'de la intrebare la conversatie' },
+    conversion: { label: 'Continuare', coordinate: 'de la întrebare la conversație' },
   },
 
-  identity: { solves: 'Ce rezolva', useCases: 'Util pentru' },
+  identity: { solves: 'Ce rezolvă', useCases: 'Util pentru' },
   deliverables: {
     listLabel: 'Livrabilele serviciului',
-    mediaCaption: 'imagine de referinta a serviciului',
+    mediaCaption: 'imagine de referință a serviciului',
   },
-  capabilities: { listLabel: 'Echipament si specificatii' },
+  capabilities: { listLabel: 'Echipament și specificații' },
 
   proof: {
     seeMore: 'Toate proiectele — {pillar}',
-    listLabel: 'Proiecte care demonstreaza acest serviciu',
+    listLabel: 'Proiecte care demonstrează acest serviciu',
     cloud: {
       label: 'nor de puncte · releveu din {work}',
-      hint: 'trageti pentru a inspecta →',
-      posterAlt: 'Imagine substituent — nor de puncte, in asteptare',
-      unavailable: 'nor de puncte — asset in pregatire',
+      hint: 'trageți pentru a inspecta →',
       source: 'Vezi proiectul',
-    },
-    empty: {
-      note: 'Exemplele publice pentru acest serviciu sunt in pregatire. Pana atunci, va putem arata lucrari relevante la cerere.',
-      contact: 'Scrieti-ne',
-      hub: 'Vezi {pillar}',
     },
   },
 
@@ -193,7 +174,7 @@ const ro: ServiceMessages = {
     /* ABSENT (locked, Stable RO) — #105. No filler invitation is authored to satisfy the
        wireframe's "one calm invitation" phrasing; `Conversion.astro` renders none. */
     invitation: '',
-    contact: 'Incepeti o conversatie',
+    contact: 'Începeți o conversație',
     hub: 'Vezi {pillar}',
   },
 };
@@ -235,14 +216,7 @@ const en: ServiceMessages = {
     cloud: {
       label: 'point cloud · survey from {work}',
       hint: 'drag to inspect →',
-      posterAlt: 'Placeholder image — point cloud pending',
-      unavailable: 'point cloud — asset in preparation',
       source: 'See the project',
-    },
-    empty: {
-      note: 'Public examples for this service are being prepared. Until then, we can show relevant work on request.',
-      contact: 'Get in touch',
-      hub: 'See {pillar}',
     },
   },
 

@@ -27,7 +27,8 @@
  * Attribution and Commissioning were here too until Stage 3 retired them. Nothing
  * is added for a page that does not yet exist.
  *
- * OD-8 (§11.3): Romanian copy is authored WITHOUT diacritics.
+ * RO labels carry correct Romanian diacritics (DECISIONS_LOG.md #103, amending OD-8 §11.3).
+ * The machine tokens (the map keys) are a separate namespace and stay ASCII.
  */
 
 import type {
@@ -48,15 +49,15 @@ import { ROUTES, type Locale, type RouteKey } from './routes';
  * Only `competition-entry`'s meaning survived the retirement, as `competition`; the other four
  * Entry Types are gone with no successor. `diploma-project` is new, client-validated.
  *
- * RO is authored WITHOUT diacritics (OD-8, §11.3) — the model document writes "PROIECT DE
- * DIPLOMĂ" for readability, site copy does not. Casing follows the surrounding metadata voice
+ * RO carries its diacritics (DECISIONS_LOG.md #103) — "Proiect de diplomă", as the model
+ * document writes "PROIECT DE DIPLOMĂ". Casing follows the surrounding metadata voice
  * rather than the document's display convention: these render inside caption and readout rows
  * that are sentence-cased, and the CSS applies whatever transform the design calls for.
  */
 const PROJECT_LABEL_LABELS: Readonly<Record<Locale, Readonly<Record<ProjectLabel, string>>>> = {
   ro: {
     competition: 'Concurs',
-    'diploma-project': 'Proiect de diploma',
+    'diploma-project': 'Proiect de diplomă',
   },
   en: {
     competition: 'Competition',
@@ -187,13 +188,13 @@ export function pillarTopicParam(value: Pillar, locale: Locale): string {
  * to a new label, because the vocabulary change is lossy and a label map is the wrong place to
  * hide a content decision.
  *
- * RO is authored WITHOUT diacritics (OD-8, §11.3) — the model document writes "În dezvoltare"
- * for readability; site copy does not. EN labels are working translations, PENDING (C).
+ * RO carries its diacritics (DECISIONS_LOG.md #103), matching the model document's
+ * "În dezvoltare". EN labels are working translations, PENDING (C).
  */
 const STATUS_LABELS: Readonly<Record<Locale, Readonly<Record<Status, string>>>> = {
   ro: {
-    'in-dezvoltare': 'In dezvoltare',
-    'in-desfasurare': 'In desfasurare',
+    'in-dezvoltare': 'În dezvoltare',
+    'in-desfasurare': 'În desfășurare',
     finalizat: 'Finalizat',
     nerealizat: 'Nerealizat',
   },
@@ -234,17 +235,17 @@ export function statusLabel(value: Status, locale: Locale): string {
  * an unknown token cannot reach here: `normalize.ts` fails the build first. A fallback would
  * now only hide that.
  *
- * OD-8 (§11.3): Romanian copy is authored WITHOUT diacritics.
+ * RO labels carry their diacritics (DECISIONS_LOG.md #103); the tokens stay ASCII.
  */
 const SECTOR_LABELS: Readonly<Record<Locale, Readonly<Record<Sector, string>>>> = {
   ro: {
-    rezidential: 'Rezidential',
+    rezidential: 'Rezidențial',
     'comercial-ospitalitate': 'Comercial & ospitalitate',
     'birouri-business': 'Birouri & business',
     'public-comunitar': 'Public & comunitar',
     'industrial-logistic': 'Industrial & logistic',
     'cultural-patrimoniu': 'Cultural & patrimoniu',
-    'mixed-use-dezvoltari': 'Mixed-use & dezvoltari',
+    'mixed-use-dezvoltari': 'Mixed-use & dezvoltări',
   },
   en: {
     rezidential: 'Residential',

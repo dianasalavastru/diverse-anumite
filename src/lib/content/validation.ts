@@ -407,7 +407,7 @@ export function validateServiceDemonstration(count: number, path = 'demonstrated
     return [
       warning(
         path,
-        'No Work Entry currently demonstrates this service, so the page will show the editorial empty state and a Contact CTA instead of a proof section. This is a valid published state. (INFORMATION_ARCHITECTURE.md Step 6, F5)',
+        'No Work Entry currently demonstrates this service, so the page shows no projects section at all (DECISIONS_LOG.md #104). This is a valid published state.',
       ),
     ];
   }

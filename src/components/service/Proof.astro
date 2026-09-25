@@ -24,36 +24,27 @@
  * Locale scoping matters here more than anywhere else on the page. Under `/en/`
  * the set contains only EN-published entries, so a proof card can never link to
  * a Work Entry that §11.2 guarantees does not exist — and an RO-rich, EN-thin
- * service correctly reaches F5 in EN while showing its proof in RO.
+ * service correctly renders no S-4 in EN while showing its proof in RO.
  *
  * ══════════════════════════════════════════════════════════════════════════
- *  F5 — ZERO DEMONSTRATING ENTRIES IS A VALID PUBLISHED STATE
+ *  #104 — NO DEMONSTRATING ENTRIES, NO MODULE
  * ══════════════════════════════════════════════════════════════════════════
  *
- * Page IA S-4, verbatim: "with **zero** linked entries, the page remains fully
- * publishable — replace the proof set with a concise editorial message (relevant
- * examples being added) + a **Contact CTA** + the **Hub back-path**; never an
- * empty grid/carousel/counter. **The absence of linked Work Entries must never
- * reduce confidence in the service itself.**"
- *
- * So the module renders in both states and swaps its surface. In F5 there is no
- * grid element, no carousel, no count, and no "see more" — the wireframe's F5
- * paragraph names exactly three things and the module renders exactly those
- * three. The rest of the page (S-1…S-3, S-5) is untouched, which is what keeps
- * a proof-thin service credible.
+ * `DECISIONS_LOG.md` #104 supersedes F5's surface switch. `ServicePage.astro`
+ * mounts this module only when `modules.ts` `hasProof` is true, so there is no
+ * empty-state branch here: no editorial note, no Contact CTA, no Hub back-path
+ * (S-5 carries both), and never an empty grid, carousel or counter. The guard
+ * below is defensive only — the predicate and the card filter are the same test.
  *
  * ── "SEE MORE" USES THE FROZEN FILTER CONTRACT ────────────────────────────
- * Page IA S-4: module "see more" → the **pillar-filtered Work Archive**. §23.5
- * freezes the archive URL and gives each pillar exactly one contextual
- * refinement — **Service under Reality Capture** (A&D's Discipline refinement was retired at
- * Stage 5). For a Reality Capture
- * service the localized Service slug is therefore a legal, frozen narrowing of
- * the same destination, and it lands the visitor on the archive already showing
- * this service's work rather than the whole pillar. For A&D, Service is not the
- * exposed refinement under that scope (`archive-state.ts` `contextualFacet`), so
- * emitting it would produce a parameter the archive discards — the pillar filter
- * alone is used. Both tokens come from the single declarations in
- * `vocabulary.ts`; nothing is concatenated from a Pillar value.
+ * Page IA S-4: module "see more" → the **pillar-filtered Work Archive**. The
+ * pillar token comes from the single declaration in `vocabulary.ts`; nothing is
+ * concatenated from a Pillar value. For a Reality Capture service the link also
+ * narrows by Service, and the value is the Service's machine **key**: since
+ * Stage 8 `archive-state.ts` validates `?service=` against `ServiceKey`s, so the
+ * localized slug this used to send was silently discarded. A&D keeps the pillar
+ * filter alone (unchanged behaviour); the archive would accept the key there too
+ * — widening the narrowing to A&D is an open decision, not a bug fix.
  *
  * ── A STRIP, NOT A GRID (Capability Sheet) ────────────────────────────────
  * The proof set was a three-across grid of the same card the Work Archive
@@ -80,7 +71,7 @@ import { localize } from '../../lib/content';
 import type { Locale, Service } from '../../lib/content';
 import type { ServiceMessages } from '../../lib/i18n/service';
 import { routePath } from '../../lib/i18n/routes';
-import { pillarArchiveParam, pillarLabel, pillarRouteKey } from '../../lib/i18n/vocabulary';
+import { pillarArchiveParam, pillarLabel } from '../../lib/i18n/vocabulary';
 
 interface Props {
   service: Service;
@@ -92,7 +83,6 @@ const { service, locale, copy } = Astro.props;
 
 const pillar = service.pillar;
 const pillarName = pillarLabel(pillar, locale);
-const hubHref = routePath(pillarRouteKey(pillar) as never, locale, undefined as never);
 
 /**
  * One card per demonstrating entry. An entry whose slug is missing in this
@@ -107,60 +97,39 @@ const cards = service.demonstratedBy
   })
   .filter((card): card is NonNullable<typeof card> => card !== null);
 
-/** §23.5's frozen URL, built from the two single-declaration token maps. */
-const serviceSlug = localize(service.slug, locale);
+/**
+ * §23.5's frozen URL. `?service=` carries the stable machine KEY (v3.1 §14.3) —
+ * the value `archive-state.ts` validates — never the editable localized slug.
+ */
 const seeMoreParams = new URLSearchParams({ pillar: pillarArchiveParam(pillar) });
-if (pillar === 'reality-capture' && serviceSlug) seeMoreParams.set('service', serviceSlug);
+if (pillar === 'reality-capture') seeMoreParams.set('service', service.key);
 const seeMoreHref = `${routePath('workArchive', locale)}?${seeMoreParams.toString()}`;
 ---
 
-<div class="sv-proof">
-  {
-    cards.length === 0 ? (
-      /* ── F5 ────────────────────────────────────────────────────────────
-         The Empty State component, service variant (`COMPONENT_INVENTORY.md`
-         scopes it to A-6 and to S-4/F5 and to nowhere else). Editorial note,
-         Contact CTA, Hub back-path — and nothing that counts, grids or
-         carousels an absent set. */
-      <div class="sv-empty rv" data-rv="meta" data-empty-state="service-proof">
-        <p class="sv-empty-note">{copy.proof.empty.note}</p>
-        <p class="sv-empty-actions">
-          <a class="sv-action" href={routePath('contact', locale)}>
-            <span class="box" aria-hidden="true" />
-            {copy.proof.empty.contact}
-          </a>
-          <a class="sv-backpath" href={hubHref}>
-            {copy.proof.empty.hub.replace('{pillar}', pillarName)}
-            <span class="ar" aria-hidden="true">
-              →
-            </span>
-          </a>
-        </p>
-      </div>
-    ) : (
-      <>
-        <ul class="sv-proof-strip" aria-label={copy.proof.listLabel}>
-          {cards.map((card, index) => (
-            <li class="sv-proof-item rv" data-rv="img">
-              <WorkPreviewCard
-                entry={card.entry}
-                locale={locale}
-                href={card.href}
-                index={index + 1}
-              />
-            </li>
-          ))}
-        </ul>
+{
+  cards.length > 0 && (
+    <div class="sv-proof">
+      <ul class="sv-proof-strip" aria-label={copy.proof.listLabel}>
+        {cards.map((card, index) => (
+          <li class="sv-proof-item rv" data-rv="img">
+            <WorkPreviewCard
+              entry={card.entry}
+              locale={locale}
+              href={card.href}
+              index={index + 1}
+            />
+          </li>
+        ))}
+      </ul>
 
-        <p class="sv-see-more rv" data-rv="meta">
-          <a class="sv-more" href={seeMoreHref}>
-            {copy.proof.seeMore.replace('{pillar}', pillarName)}
-            <span class="ar" aria-hidden="true">
-              →
-            </span>
-          </a>
-        </p>
-      </>
-    )
-  }
-</div>
+      <p class="sv-see-more rv" data-rv="meta">
+        <a class="sv-more" href={seeMoreHref}>
+          {copy.proof.seeMore.replace('{pillar}', pillarName)}
+          <span class="ar" aria-hidden="true">
+            →
+          </span>
+        </a>
+      </p>
+    </div>
+  )
+}

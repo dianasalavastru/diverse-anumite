@@ -78,7 +78,7 @@ interface Props {
   /** Drag affordance — shown only once a live renderer can honour it. */
   hint: string;
   posterAlt: string;
-  /** Copy shown in the readout when nothing is publishable yet. */
+  /** Copy shown in the readout when nothing is publishable yet. `''` renders no readout element. */
   unavailable: string;
   /**
    * The one entry this field is about — its derivative is what may be mounted
@@ -122,9 +122,14 @@ if (subject?.metadata.equipment.length) readout.push(subject.metadata.equipment.
 <div class="cloud bleed rv" data-rv="img">
   <div class="cap-l">
     <span class="scanlbl">{label}</span>
-    <span class="stat" data-fixture={capture ? 'capture-metadata' : undefined}>
-      {readout.length > 0 ? readout.join(' · ') : unavailable}
-    </span>
+    {/* Authored capture metadata is a real technical claim, not a fixture — no
+        `data-fixture` marker (verify-no-placeholder-content.mjs fails a
+        production build on any). An empty `unavailable` renders nothing. */}
+    {(readout.length > 0 || unavailable) && (
+      <span class="stat">
+        {readout.length > 0 ? readout.join(' · ') : unavailable}
+      </span>
+    )}
   </div>
 
   <div

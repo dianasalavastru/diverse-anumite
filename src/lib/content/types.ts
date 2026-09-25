@@ -666,9 +666,10 @@ export interface Service {
    * reference; the Service page renders demonstrating entries dynamically). Locale-scoped
    * (§7.1) and curation-ordered (§7.6).
    *
-   * **Zero entries is a valid published state** (IA Step 6, F5): render the editorial
-   * empty state + Contact CTA + hub back-path, never an empty grid. The CMS surfaces the
-   * zero-linked state to editors as a non-blocking warning.
+   * **Zero entries is a valid published state** (IA Step 6, F5): the page renders no S-4
+   * station at all (`DECISIONS_LOG.md` #104, superseding F5's editorial empty state); S-5
+   * still carries Contact and the hub back-path. The CMS surfaces the zero-linked state to
+   * editors as a non-blocking warning.
    */
   readonly demonstratedBy: readonly WorkEntrySummary[];
 

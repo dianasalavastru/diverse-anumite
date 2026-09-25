@@ -95,12 +95,15 @@ const captureSlug = captureSubject ? localize(captureSubject.slug, locale) : nul
   {
     captureSubject && (
       <div class="sv-cloud-block rv" data-rv="img">
+        {/* No placeholder alt and no "asset in preparation" note (locked placeholder
+            policy, #104): the poster carries its own required authored alt, and a
+            cloud with no readout states nothing rather than announcing a gap. */}
         <PointCloudField
           locale={locale}
           label={copy.proof.cloud.label.replace('{work}', captureTitle)}
           hint={copy.proof.cloud.hint}
-          posterAlt={copy.proof.cloud.posterAlt}
-          unavailable={copy.proof.cloud.unavailable}
+          posterAlt=""
+          unavailable=""
           subject={captureSubject}
         />
         {captureSlug && (
