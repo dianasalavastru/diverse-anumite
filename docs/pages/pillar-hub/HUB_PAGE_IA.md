@@ -176,8 +176,8 @@ The hub is the **canonical topical destination** for its pillar and the **canoni
 ---
 
 ## One blueprint, two instances — content differences (not blueprint differences)
-- **Architecture & Design Hub** consumes: A&D Services (architectural design, interior design, visualization), A&D use-cases (residential, interior, competitions), A&D curated Work Entries.
-- **Reality Capture Hub** consumes: RC Services *(v3.1: Scanare laser 3D · Scan-to-BIM · Fotografie de arhitectura · Vizualizare de arhitectura — **drone photogrammetry is not a Service**)*, RC use-cases (heritage documentation, as-built, survey), RC curated Work Entries; capability framing may reference deliverables/accuracy, and curated media may be point-cloud/orthophoto.
+- **Architecture & Design Hub** consumes: A&D Services (architectural design, interior design, visualization) *(v3.2: Proiectare de arhitectură · Design interior · Vizualizare 3D · Design mobilier — `CONTENT_MODEL.md` §2)*, A&D use-cases (residential, interior, competitions), A&D curated Work Entries.
+- **Reality Capture Hub** consumes: RC Services *(v3.1: Scanare laser 3D · Scan-to-BIM · ~~Fotografie de arhitectura · Vizualizare de arhitectura~~ — **drone photogrammetry is not a Service**; v3.2: those two are retired, `DECISIONS_LOG.md` #102 — RC = Scanare laser 3D · Scan-to-BIM)*, RC use-cases (heritage documentation, as-built, survey), RC curated Work Entries; capability framing may reference deliverables/accuracy, and curated media may be point-cloud/orthophoto.
 - These are **content and UI-treatment differences only** — the Page IA (responsibility, flow, modules, routing) is identical.
 
 ## Open (carried into wireframing / dependencies)

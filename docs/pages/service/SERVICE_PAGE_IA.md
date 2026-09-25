@@ -61,7 +61,7 @@ Stages of understanding, not visual sections. Cold-arrival-capable. Order is lar
 
 **Stage D — Proof (demonstrated work).**
 - *Understand:* the service has been delivered well, via a curated set of Work Entries that demonstrate **this specific service** — or, if none exist yet, an honest editorial note.
-- *Why:* trust through **relevant** evidence (portfolio feeds conversion); the **F5 empty-state** keeps a proof-thin service credible.
+- *Why:* trust through **relevant** evidence (portfolio feeds conversion); the **F5 empty-state** *(as amended by #104: S-4 is absent when empty)* keeps a proof-thin service credible.
 - *Hands next:* Work Entries (proof) / relevant work; and toward Contact.
 
 **Stage E — Decide & continue (Contact).**
@@ -105,7 +105,7 @@ Stages of understanding, not visual sections. Cold-arrival-capable. Order is lar
 - *Consumes:* the **Work Entries that demonstrate this Service** (many-to-many, referenced not copied, curated).
 - *Destinations:* individual items → **Work Entries**; module "see more" → the **pillar-filtered Work Archive**.
 - *Dependencies:* demonstrating Work Entries.
-- ***Empty state (F5):*** with **zero** linked entries, the page remains fully publishable — replace the proof set with a concise editorial message (relevant examples being added) + a **Contact CTA** + the **Hub back-path**; never an empty grid/carousel/counter. **The absence of linked Work Entries must never reduce confidence in the service itself.**
+- ***Empty state (F5):*** ~~with **zero** linked entries, the page remains fully publishable — replace the proof set with a concise editorial message (relevant examples being added) + a **Contact CTA** + the **Hub back-path**; never an empty grid/carousel/counter.~~ **Superseded by `DECISIONS_LOG.md` #104 (2026-09-02):** with zero linked entries S-4 renders **no station at all** (no marker, heading, note, grid or counter); Contact and the Hub back-path remain in S-5. **The absence of linked Work Entries must never reduce confidence in the service itself.**
 - *Future:* none.
 
 **S-5 · Contact / conversion module** *(Stage E)*
@@ -155,7 +155,7 @@ Stages of understanding, not visual sections. Cold-arrival-capable. Order is lar
 - **Decision readiness:** a visitor feels they have enough information to either **continue to Contact** or **conclude that another service is more appropriate.** The goal is an **informed decision, not conversion at any cost.**
 - **Routing:** clear paths to Contact (prefilled), to proof Work Entries, back to the Hub (F1), and to more work — each reachable.
 - **Responsibility boundaries:** not a Hub (one service), not the Archive (curated proof), not About (no identity story), not Contact (path + prefill, not the inbox), not a persuasion-only landing. **One responsibility, no duplication.**
-- **Consistency with the finalized IA:** expresses the locked architecture — Service as a first-class object; the demonstrates relationship (referenced, not copied); the F1 back-path; the canonical-intent split; service-aware Contact; the F5 empty-state. **All services share this blueprint with different content; no IA concept missing or added.**
+- **Consistency with the finalized IA:** expresses the locked architecture — Service as a first-class object; the demonstrates relationship (referenced, not copied); the F1 back-path; the canonical-intent split; service-aware Contact; the F5 empty-state *(as amended by #104: S-4 is absent when empty)*. **All services share this blueprint with different content; no IA concept missing or added.**
 
 **Concrete pass/fail tests**
 - A **cold search arrival** can understand the service and reach Contact **with the service prefilled**, without the homepage or hub.
@@ -167,7 +167,7 @@ Stages of understanding, not visual sections. Cold-arrival-capable. Order is lar
 ---
 
 ## One blueprint, all services — content differences (not blueprint differences)
-- **Reality Capture services** *(v3.1: Scanare laser 3D · Scan-to-BIM · Fotografie de arhitectura · Vizualizare de arhitectura — **drone photogrammetry is not a Service**, only a capability description)* consume: capture-specific deliverables, **accuracy/specs, equipment**, use-cases (heritage documentation, as-built, survey), and point-cloud/orthophoto proof.
+- **Reality Capture services** *(v3.1: Scanare laser 3D · Scan-to-BIM · ~~Fotografie de arhitectura · Vizualizare de arhitectura~~ — **drone photogrammetry is not a Service**, only a capability description; v3.2: those two are retired, `DECISIONS_LOG.md` #102 — RC = Scanare laser 3D · Scan-to-BIM)* consume: capture-specific deliverables, **accuracy/specs, equipment**, use-cases (heritage documentation, as-built, survey), and point-cloud/orthophoto proof.
 - **Architecture & Design services** *(v3.1: Proiectare de arhitectura · Design interior · Vizualizare 3D · Design mobilier)* consume: design deliverables/process, **sector-relevant** use-cases, and render/drawing proof.
 - These are **content and UI-treatment differences only** — the Page IA (responsibility, flow, modules, routing) is identical.
 

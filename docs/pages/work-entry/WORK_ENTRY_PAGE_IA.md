@@ -200,7 +200,7 @@ Stages of understanding, not visual sections. The Core Facts → work → profes
 - **Design Project / Concept / Study** — description + drawings/plans/renders in W-2; Credits (often sole/independent); may demonstrate a design Service.
 - **Competition Entry** — enables the Competition module (awards/jury/team); often no demonstrated Service (W-5 hidden).
 - **Survey / Documentation (Reality Capture)** — enables the Reality Capture module (specs/accuracy/equipment/deliverables/point-cloud); demonstrates a capture Service.
-- **Visualization work** *(v3.1: a Service — Vizualizare 3D or Vizualizare de arhitectură — not an Entry Type)* — where the building design is someone else's, that is stated in the Description and in Colaboratori; there is no scoped Authorship field.
+- **Visualization work** *(v3.1: a Service — Vizualizare 3D ~~or Vizualizare de arhitectură~~ (v3.2: retired, #102) — not an Entry Type)* — where the building design is someone else's, that is stated in the Description and in Colaboratori; there is no scoped Authorship field.
 - ~~**Studio-attributed (any type)** — Credits foreground Employer + Role + scoped Authorship; links to Professional Experience.~~ *(v3.1: retired with Attribution and Employer. Office work names the office in Colaboratori or Echipă.)*
 - These are **content and module-toggle differences only** — the Page IA (responsibility, flow, base modules, routing) is identical.
 

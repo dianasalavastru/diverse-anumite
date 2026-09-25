@@ -85,7 +85,7 @@ Derived exclusively from: `SERVICE_PAGE_IA.md`, `PAGE_IA_INDEX.md`, `COMPONENT_I
 
 **Responsive intent:** cards reflow/stack; proof reads as relevant to the service.
 
-**Empty state (F5) — see the F5 section below.**
+**Empty state (F5) — see the F5 section below** *(superseded by `DECISIONS_LOG.md` #104: with no demonstrating work, S-4 is not rendered).*
 
 ---
 
@@ -141,6 +141,8 @@ The page expresses:
 
 ## Empty state (F5)
 
+> **Superseded by `DECISIONS_LOG.md` #104 (2026-09-02).** With zero demonstrating Work Entries the S-4 station is **not rendered** — no marker, heading, editorial note, grid or counter; the rail reflows. Contact and the Hub back-path live in S-5, which is unconditional. F5's guarantee (fully publishable, confidence undiminished) is unchanged. The paragraph below is retained as the record.
+
 If a service currently has little or no demonstrating work, the **S-4 proof module** applies the locked **F5** behaviour (no architectural change): the empty proof set is replaced by the **Empty State** component (service variant) — a concise editorial note that relevant examples are being added, a **Contact CTA**, and the **Hub back-path**; **never** an empty grid/carousel/counter. The rest of the page (S-1–S-3, S-5) remains fully intact, so the page still explains and converts, and **confidence in the service itself is undiminished.**
 
 ## Contact continuity
@@ -173,7 +175,7 @@ Follows the system-wide convention — one idea per module; split rather than co
 - **Depth appropriate for a Service page** — resolves one solution; defers breadth to the Archive, identity to About ✔.
 - **Uncertainty reduced progressively** — each transition removes one question ✔.
 - **Representative evidence supports the solution** — proof is service-relevant, not a general gallery ✔.
-- **F5 behaviour preserved** — proof-thin services stay credible; no empty grid ✔.
+- **F5 behaviour preserved** — proof-thin services stay credible; no empty grid ✔. *(as amended by #104: S-4 absent when empty)*
 - **Topic/Regarding continuity preserved** into Contact ✔.
 - **One primary action:** single primary conversion action (Contact, S-5); "see more" and hub back-path are navigation, kept distinct ✔.
 - **Central Design Principle** — work is the protagonist in S-4; interface stays quiet ✔.

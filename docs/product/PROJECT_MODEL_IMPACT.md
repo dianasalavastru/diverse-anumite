@@ -4,6 +4,8 @@
 
 > **Updated 2026-08-14 for v3.1.** The five questions this report previously deferred to `CONTENT_MODEL.md` §15 are **closed**. The changes that follow from them are folded into the sections below and marked **(v3.1)**. **No open model question remains.** The *Experiență profesională* view was the last open consequence and is now **permanently retired by product decision** (2026-08-14, §1.7). One item needs a code audit rather than a design decision (§1.6, `validateAuthorship()`).
 
+> **v3.2 (2026-09-01, `DECISIONS_LOG.md` #102).** *Fotografie de arhitectură* and *Vizualizare de arhitectură* are retired as Services. Where the tables below name them, they record the v3.1 audit; the current requirements are in `CONTENT_MODEL.md` v3.2.
+
 **Nothing in the Sanity schema, the application code, the filters or the UI has been changed by this pass.** This is the audit and the plan.
 
 ---
@@ -31,12 +33,12 @@
 | Field | Today | Under v3.0 / v3.1 |
 |---|---|---|
 | **Description** | one optional project field, same for all | **[M] for Architecture & Design · [O] for Reality Capture** — a Pillar-level rule |
-| **Location** | one optional project field | **[conditional]** — [M] under Proiectare de arhitectură, Design interior, Scanare laser 3D, Scan-to-BIM, Fotografie de arhitectură; [O] under Vizualizare 3D, Vizualizare de arhitectură |
+| **Location** | one optional project field | **[conditional]** — [M] under Proiectare de arhitectură, Design interior, Scanare laser 3D, Scan-to-BIM, Fotografie de arhitectură; [O] under Vizualizare 3D, Vizualizare de arhitectură *(v3.2: Fotografie de arhitectură and Vizualizare de arhitectură retired — #102)* |
 | **Area** | one optional project field | **[conditional]** — [M] under Proiectare de arhitectură, Design interior, Scanare laser 3D, Scan-to-BIM |
 | **Awards** | one optional project field | **[conditional]** — [O] under Proiectare de arhitectură, Design interior; otherwise not applicable |
-| **Collaborators** | one optional project field | **[O] base for A&D**; **[conditional] [O]** for RC (Scan-to-BIM, Vizualizare de arhitectură) |
+| **Collaborators** | one optional project field | **[O] base for A&D**; **[conditional] [O]** for RC (Scan-to-BIM, Vizualizare de arhitectură) *(v3.2: Vizualizare de arhitectură retired — #102)* |
 | **Team** | one optional project field | same as Collaborators |
-| **Equipment** | lives inside the **capture metadata group**, RC-only, optional | **project-level [conditional] [M]** under Scanare laser 3D and Fotografie de arhitectură. Must move out of the capture group — Fotografie de arhitectură requires it and has no capture asset. |
+| **Equipment** | lives inside the **capture metadata group**, RC-only, optional | **project-level [conditional] [M]** under Scanare laser 3D and Fotografie de arhitectură. Must move out of the capture group — Fotografie de arhitectură requires it and has no capture asset. *(v3.2: Fotografie de arhitectură retired — #102)* |
 | **Client** | optional ("leave empty for self-initiated work") | **[M] in both Pillars** |
 | **Cover / Gallery** | optional, no validation | **[M] in both Pillars** |
 | **Implementation Company** | **does not exist** | new field, **[conditional] [M]** under Design mobilier |
