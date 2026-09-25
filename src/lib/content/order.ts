@@ -19,7 +19,7 @@
  * (`source.ts`), so this module only ever sees the set that exists in the active locale.
  */
 
-import type { Curation, Pillar } from './types.js';
+import { SERVICE_KEYS, type Curation, type Pillar, type ServiceKey } from './types.js';
 
 /** The minimum an item needs to be ordered. Satisfied by `WorkEntrySummary` and `WorkArchiveItem`. */
 export interface Orderable {
@@ -140,4 +140,63 @@ export function sortArchive<T extends Orderable>(
   if (sort === 'curated') return discoveryOrder(items, scope);
   const scoped = items.filter((item) => inPillarScope(item, scope));
   return scoped.sort(sort === 'newest' ? compareYearDescending : compareYearAscending);
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * Service order — C5 (Wave 2 client decision), NOT §7.6
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+/** The minimum a Service needs to be ordered. Satisfied by `Service`, `ServiceSummary`, `ServiceRef`. */
+export interface ServiceOrderable {
+  readonly _id: string;
+  readonly key: ServiceKey;
+}
+
+/**
+ * A Service's canonical 0-based rank: its index in `SERVICE_KEYS`.
+ *
+ * C5 fixes one site-wide order — Proiectare de arhitectură, Design interior, Vizualizare 3D,
+ * Design mobilier, Scanare laser 3D, Scan-to-BIM — and that is exactly the declaration order of
+ * `SERVICE_KEYS`, so the vocabulary is the single source for it and no second list exists to
+ * drift. `normalize.ts` refuses any key outside `SERVICE_KEYS`, so `-1` cannot reach here from
+ * the query layer; it is ranked last rather than first so a hand-built value cannot jump the
+ * queue.
+ */
+export function serviceRank(key: ServiceKey): number {
+  const rank = (SERVICE_KEYS as readonly string[]).indexOf(key);
+  return rank === -1 ? SERVICE_KEYS.length : rank;
+}
+
+/**
+ * Canonical Service comparator (C5). **Curation does not participate.**
+ *
+ * Services used to sort by `pinned`, then Editorial Priority, then `_id` (the old
+ * `compareCurated0` in `source.ts`), which let an authored weight — or, with equal weights, the
+ * random document id — decide that *Design mobilier* preceded *Vizualizare 3D*. C5 makes the
+ * order deterministic in code: the stable key decides, and nothing an editor can change in the
+ * Studio (name, slug, pinned, Editorial Priority, document id) moves a Service. `Service.curation`
+ * stays in the contract, unread for ordering. The `_id` tie-break is only reachable if two
+ * documents share a key, which validation forbids; it keeps the sort total regardless.
+ */
+export function compareServiceKeys(a: ServiceOrderable, b: ServiceOrderable): number {
+  const rank = serviceRank(a.key) - serviceRank(b.key);
+  if (rank !== 0) return rank;
+  return a._id < b._id ? -1 : a._id > b._id ? 1 : 0;
+}
+
+/** A sorted copy in canonical Service order. Never mutates its input. */
+export function byCanonicalServiceOrder<T extends ServiceOrderable>(services: readonly T[]): T[] {
+  return [...services].sort(compareServiceKeys);
+}
+
+/**
+ * The Service page's `S·NN` sheet reference: the canonical 1-based position, two digits.
+ *
+ * Derived from the KEY, not from a list position, so it is an identity rather than a row
+ * number: it does not change when another Service is published or withheld, it is the same in
+ * every locale, and it matches C5's own numbering (01 Proiectare de arhitectură … 06 Scan-to-BIM).
+ * It is deliberately not the Services index's row number, which counts within one Pillar column.
+ */
+export function serviceSheetCode(key: ServiceKey): string {
+  return String(serviceRank(key) + 1).padStart(2, '0');
 }

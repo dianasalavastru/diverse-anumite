@@ -28,7 +28,7 @@
  */
 import ServicePage from '../../components/service/ServicePage.astro';
 import { contentSource } from '../../lib/content/build-source';
-import { localize } from '../../lib/content';
+import { localize, serviceSheetCode } from '../../lib/content';
 import { indexById } from '../../components/homepage/highlights';
 import type { Service, WorkEntry } from '../../lib/content';
 
@@ -42,18 +42,19 @@ export async function getStaticPaths() {
   const entries = indexById(workEntries);
 
   return services
-    .map((service, index) => {
+    .map((service) => {
       const slug = localize(service.slug, 'ro');
       // RO is required to publish at all (`validation.ts`), so this is a type
       // guard rather than an expected state.
       return slug
         ? {
             params: { serviciu: slug },
-            // The identity block's sheet reference. Derived here because this is
-            // the only place that holds the whole curation-ordered list; it is
-            // the same numbering the Services index already prints. A POSITION,
-            // not a stored identity — see ServicePage.astro.
-            props: { service, entries, code: String(index + 1).padStart(2, '0') },
+            // The identity block's `S·NN` sheet reference: the Service's canonical
+            // C5 position (01 Proiectare de arhitectură … 06 Scan-to-BIM), derived
+            // from its immutable key — not from this list's order, so publishing or
+            // withholding another Service never renumbers it, and RO and EN agree.
+            // It is not the Services index's per-Pillar row number.
+            props: { service, entries, code: serviceSheetCode(service.key) },
           }
         : null;
     })

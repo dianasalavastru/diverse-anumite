@@ -31,6 +31,8 @@
  * entry whose only Service is untranslated hides this module under `/en/`
  * instead of linking at a page §11.2 guarantees does not exist. Nothing here
  * re-filters; it consumes the scoped set.
+ *
+ * Order is canonical (C5, `SERVICE_KEYS`), applied in `source.ts` — not authored order.
  */
 import { localize } from '../../lib/content';
 import type { Locale, ServiceSummary } from '../../lib/content';

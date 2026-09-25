@@ -18,15 +18,15 @@ import {
 import { createContentClient } from './client.js';
 import { ContentShapeError, assertNotDraft, normalizeWorkEntry } from './normalize.js';
 import { isCompetition } from './derive.js';
-import { SECTORS, STATUSES } from './types.js';
-import { createContentSource } from './source.js';
+import { SECTORS, SERVICE_KEYS, STATUSES, type ServiceKey } from './types.js';
+import { createContentSource, type RawDocuments } from './source.js';
 import {
   FIXTURE_RAW_DOCUMENTS,
   FIXTURE_SERVICES,
   FIXTURE_WORK_ENTRIES,
   createFixtureContentSource,
 } from './fixtures.js';
-import type { RawWorkEntry } from './groq.js';
+import type { RawCuration, RawWorkEntry } from './groq.js';
 
 const source = createFixtureContentSource();
 
@@ -581,5 +581,89 @@ describe('Fixture and Sanity sources are interchangeable (§23.4)', () => {
         'workEntry',
       ].sort(),
     );
+  });
+});
+
+describe('Service order is canonical in every Service list, in both sources (C5)', () => {
+  const rank = (key: string | null | undefined) => SERVICE_KEYS.indexOf(key as ServiceKey);
+  /** The fixture set carries five of the six Services (no Design interior). */
+  const FIXTURE_ORDER = [
+    'proiectare-arhitectura',
+    'vizualizare-3d',
+    'design-mobilier',
+    'scanare-laser-3d',
+    'scan-to-bim',
+  ];
+
+  /** Inverts every signal the old comparator read: document order, pin, priority and id. */
+  function adversarial<
+    T extends { readonly _id?: string | null; readonly key?: string | null; readonly curation?: RawCuration | null },
+  >(docs: readonly T[]): T[] {
+    return [...docs].reverse().map((doc) => ({
+      ...doc,
+      _id: `sv-${9 - rank(doc.key)}`,
+      curation: {
+        ...(doc.curation ?? {}),
+        pinned: doc.key === 'scan-to-bim',
+        editorialPriority: rank(doc.key) * 10,
+      },
+    }));
+  }
+
+  const ADVERSARIAL: RawDocuments = {
+    ...FIXTURE_RAW_DOCUMENTS,
+    services: async () => adversarial(await FIXTURE_RAW_DOCUMENTS.services()),
+    serviceSummaries: async () => adversarial(await FIXTURE_RAW_DOCUMENTS.serviceSummaries()),
+    workEntries: async () =>
+      (await FIXTURE_RAW_DOCUMENTS.workEntries()).map((entry) => ({
+        ...entry,
+        services: [...(entry.services ?? [])].reverse(),
+      })),
+    workArchive: async () =>
+      (await FIXTURE_RAW_DOCUMENTS.workArchive()).map((item) => ({
+        ...item,
+        services: [...(item.services ?? [])].reverse(),
+      })),
+  };
+  const hostile = createContentSource(ADVERSARIAL);
+  const keysOf = (list: readonly { key: string }[]) => list.map((service) => service.key);
+  const canonicalOf = (list: readonly string[]) => SERVICE_KEYS.filter((key) => list.includes(key));
+
+  it('returns the exact canonical order from the fixture source', async () => {
+    expect(keysOf(await source.services('ro'))).toEqual(FIXTURE_ORDER);
+    expect(keysOf(await source.serviceSummaries('ro'))).toEqual(FIXTURE_ORDER);
+  });
+
+  it('returns the same order when document order, pin, priority and _id all point the other way', async () => {
+    for (const locale of ['ro', 'en'] as const) {
+      expect(keysOf(await hostile.services(locale)), locale).toEqual(FIXTURE_ORDER);
+      expect(keysOf(await hostile.serviceSummaries(locale)), locale).toEqual(FIXTURE_ORDER);
+    }
+  });
+
+  it('keeps canonical order inside a Pillar scope', async () => {
+    expect(keysOf(await hostile.serviceSummaries('ro', 'architecture-design'))).toEqual([
+      'proiectare-arhitectura',
+      'vizualizare-3d',
+      'design-mobilier',
+    ]);
+    expect(keysOf(await hostile.serviceSummaries('ro', 'reality-capture'))).toEqual([
+      'scanare-laser-3d',
+      'scan-to-bim',
+    ]);
+  });
+
+  it("orders a Work Entry's Services (W-5) and an archive item's Services canonically", async () => {
+    const entries = await hostile.workEntries('ro');
+    expect(
+      entries.some((entry) => entry.services.length > 1),
+      'a fixture must carry two Services',
+    ).toBe(true);
+    for (const entry of entries) {
+      expect(keysOf(entry.services), entry._id).toEqual(canonicalOf(keysOf(entry.services)));
+    }
+    for (const item of await hostile.workArchive('ro')) {
+      expect(keysOf(item.services), item._id).toEqual(canonicalOf(keysOf(item.services)));
+    }
   });
 });

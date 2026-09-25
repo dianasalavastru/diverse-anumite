@@ -7,14 +7,18 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  byCanonicalServiceOrder,
+  compareServiceKeys,
   compareYearAscending,
   compareYearDescending,
   discoveryOrder,
   inPillarScope,
+  serviceRank,
+  serviceSheetCode,
   sortArchive,
   type Orderable,
 } from './order.js';
-import type { Curation, Pillar } from './types.js';
+import { SERVICE_KEYS, type Curation, type Pillar, type ServiceKey } from './types.js';
 
 const curation = (overrides: Partial<Curation> = {}): Curation => ({
   featured: false,
@@ -183,5 +187,66 @@ describe('Archive sorts (§23.5)', () => {
     const same = [item({ id: 'y', primary: AD, year: 2020 }), item({ id: 'x', primary: AD, year: 2020 })];
     expect(ids([...same].sort(compareYearDescending))).toEqual(['x', 'y']);
     expect(ids([...same].sort(compareYearAscending))).toEqual(['x', 'y']);
+  });
+});
+
+describe('C5 — canonical Service order (SERVICE_KEYS), never curation', () => {
+  const CANONICAL: readonly ServiceKey[] = [
+    'proiectare-arhitectura',
+    'design-interior',
+    'vizualizare-3d',
+    'design-mobilier',
+    'scanare-laser-3d',
+    'scan-to-bim',
+  ];
+  const svc = (key: ServiceKey, _id: string, overrides: Partial<Curation> = {}) => ({
+    _id,
+    key,
+    curation: curation(overrides),
+  });
+  const keys = (list: readonly { key: ServiceKey }[]) => list.map((service) => service.key);
+
+  it('is exactly the C5 list, and that list is SERVICE_KEYS', () => {
+    expect([...SERVICE_KEYS]).toEqual(CANONICAL);
+    expect(CANONICAL.map(serviceRank)).toEqual([0, 1, 2, 3, 4, 5]);
+  });
+
+  it('orders by key regardless of input order', () => {
+    const reversed = [...CANONICAL].reverse().map((key, index) => svc(key, `id-${index}`));
+    const rotated = [...CANONICAL.slice(3), ...CANONICAL.slice(0, 3)].map((key, index) =>
+      svc(key, `id-${index}`),
+    );
+    expect(keys(byCanonicalServiceOrder(reversed))).toEqual(CANONICAL);
+    expect(keys(byCanonicalServiceOrder(rotated))).toEqual(CANONICAL);
+  });
+
+  it('ignores pinned, Editorial Priority and _id — every one of them points the other way here', () => {
+    const input = CANONICAL.map((key, index) =>
+      svc(key, `sv-${9 - index}`, { pinned: key === 'scan-to-bim', editorialPriority: index * 10 }),
+    );
+    expect(keys(byCanonicalServiceOrder(input))).toEqual(CANONICAL);
+  });
+
+  it('puts Vizualizare 3D before Design mobilier (the accidental order C5 corrects)', () => {
+    const input = [
+      svc('design-mobilier', 'a', { editorialPriority: 5, pinned: true }),
+      svc('vizualizare-3d', 'b'),
+    ];
+    expect(keys(byCanonicalServiceOrder(input))).toEqual(['vizualizare-3d', 'design-mobilier']);
+  });
+
+  it('does not mutate its input', () => {
+    const input = [svc('scan-to-bim', 'a'), svc('proiectare-arhitectura', 'b')];
+    byCanonicalServiceOrder(input);
+    expect(keys(input)).toEqual(['scan-to-bim', 'proiectare-arhitectura']);
+  });
+
+  it('is total: two documents with one key fall back to _id', () => {
+    expect(compareServiceKeys(svc('design-interior', 'b'), svc('design-interior', 'a'))).toBeGreaterThan(0);
+    expect(compareServiceKeys(svc('design-interior', 'a'), svc('design-interior', 'a'))).toBe(0);
+  });
+
+  it('numbers the S·NN sheet reference by canonical position, 01–06, from the key alone', () => {
+    expect(CANONICAL.map(serviceSheetCode)).toEqual(['01', '02', '03', '04', '05', '06']);
   });
 });

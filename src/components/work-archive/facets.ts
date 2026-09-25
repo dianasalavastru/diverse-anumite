@@ -21,6 +21,7 @@
 import {
   PROJECT_LABELS,
   SECTORS,
+  SERVICE_KEYS,
   localize,
   type Locale,
   type Pillar,
@@ -103,7 +104,7 @@ export function collectFacetValues(
   return {
     labels: [...PROJECT_LABELS],
     sectors: present(SECTORS, sectors),
-    services: [...services],
+    services: present(SERVICE_KEYS, services),
   };
 }
 
@@ -113,8 +114,9 @@ export function collectFacetValues(
  *
  * Services are content objects, not an enum (`CONTENT_MODEL.md` §2), so their labels can only
  * come from `ContentSource.serviceSummaries()` — never from a label map in `vocabulary.ts`.
- * Order is B's (curation-led); Services no entry demonstrates are dropped, so no control ever
- * offers a value that matches nothing.
+ * Order is the canonical C5 Service order, applied once in `source.ts` and inherited here;
+ * Services no entry demonstrates are dropped, so no control ever offers a value that matches
+ * nothing.
  *
  * ── STAGE 5's REALITY-CAPTURE SCOPE IS GONE ────────────────────────────────
  * This used to `continue` past every Service whose pillar was not `reality-capture`, because

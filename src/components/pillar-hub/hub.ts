@@ -14,7 +14,8 @@
  *   pillar membership     `inPillarScope`, incl. cross-pillar (§7.4, :63)
  *   hub placements        `source.highlights('pillar-hub', pillar, locale)`
  *                         — taxonomy ∩ curation, ordered (§7.5)
- *   Service order         `source.serviceSummaries(locale, pillar)` (§7.6)
+ *   Service order         `source.serviceSummaries(locale, pillar)` — canonical C5
+ *                         order (`SERVICE_KEYS`, `compareServiceKeys`), not curation
  *
  * It also holds no URL strings. The three destinations the hub owns are built
  * from the frozen route map (`i18n/routes.ts`) and the frozen archive filter
@@ -199,7 +200,7 @@ export interface InstrumentReadout {
  * declare no equipment renders no readout at all — the module is marked optional
  * upstream, and an empty instrument list is the honest state.
  *
- * Ordered by the Services' own curated order (the caller passes
+ * Ordered by the canonical C5 Service order (the caller passes
  * `source.serviceSummaries`, already ordered by B); `byId` supplies the authored
  * field that the recognition projection does not carry.
  */

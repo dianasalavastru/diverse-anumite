@@ -191,6 +191,17 @@ describe('Label options are vocabulary-driven, Services and Sectors are presence
     expect(values.sectors.length).toBeLessThan(SECTORS.length);
   });
 
+  it('lists Service facet values in canonical order (C5), not first-seen order', () => {
+    const values = collectFacetValues(
+      [
+        item('a', { services: [ref('scan-to-bim', 'reality-capture', 'scan-to-bim')] }),
+        item('b', { services: [ref('proiectare-arhitectura', 'architecture-design', 'proiectare')] }),
+      ],
+      'ro',
+    );
+    expect(values.services).toEqual(['proiectare-arhitectura', 'scan-to-bim']);
+  });
+
   it('does NOT generalize that rule to Services', () => {
     const values = collectFacetValues(
       [item('a', { services: [ref('design-mobilier', 'architecture-design', 'mobilier')] })],

@@ -125,7 +125,7 @@ import { pillarLabel, pillarRouteKey } from '../../lib/i18n/vocabulary';
 
 interface Props {
   locale: Locale;
-  /** Locale-scoped and curation-ordered by `ContentSource` before it arrives. */
+  /** Locale-scoped and in canonical C5 Service order (`ContentSource`) before it arrives. */
   services: readonly ServiceSummary[];
   /**
    * Representative media per pillar — the leading curated work of that pillar,

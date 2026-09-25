@@ -27,7 +27,7 @@
  * ── THE TAXONOMY IS NOT HARDCODED ─────────────────────────────────────────
  * The set is `source.serviceSummaries(locale, 'reality-capture')` — live Service
  * objects, filtered by their **authored** `pillar` (IA §2.3, "Service → Pillar")
- * and ordered by B's curation comparator. The wireframe's parenthetical "(RC: 3D
+ * and in B's canonical C5 order (`SERVICE_KEYS`). The wireframe's parenthetical "(RC: 3D
  * laser scanning, drone photogrammetry)" is an illustration of the pillar's
  * content, not a fixed list: `CONTENT_MODEL.md` §2 makes Service a first-class
  * content object the owner authors without touching code, so a Scanner / Drone /
@@ -51,7 +51,7 @@ import { routePath } from '../../lib/i18n/routes';
 interface Props {
   locale: Locale;
   copy: PillarHubMessages['services'];
-  /** This pillar's Services, curation-ordered and locale-scoped by B. */
+  /** This pillar's Services, in canonical C5 order and locale-scoped by B. */
   services: readonly ServiceSummary[];
   station: number;
 }

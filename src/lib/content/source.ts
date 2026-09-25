@@ -20,6 +20,11 @@
  * locale. Discovery order and balanced pillar representation must remain valid when the EN set
  * is a proper subset of RO." Scoping therefore happens here, before ordering — never in a
  * component, and never after.
+ *
+ * **Every Service list leaves here in canonical order (C5)** — `services`, `serviceSummaries`,
+ * a Work Entry's `services` and an archive item's `services` alike — via the one comparator in
+ * `order.ts`. Consumers (Services index, both hubs, Contact topics, archive facets, W-5, the
+ * `S·NN` sheet reference) inherit it and must not re-sort.
  */
 
 import { createContentClient, type ContentClient } from './client.js';
@@ -42,7 +47,7 @@ import {
   normalizeWorkArchiveItem,
   normalizeWorkEntry,
 } from './normalize.js';
-import { compareCurated, discoveryOrder, type PillarScope } from './order.js';
+import { byCanonicalServiceOrder, compareCurated, discoveryOrder, type PillarScope } from './order.js';
 import type { SanityConfig } from './config.js';
 import type {
   HighlightSlot,
@@ -101,7 +106,7 @@ export function availableIn<T extends EnGated>(items: readonly T[], locale: Loca
 function scopeWorkEntry(entry: WorkEntry, locale: Locale): WorkEntry {
   return {
     ...entry,
-    services: availableIn(entry.services, locale),
+    services: byCanonicalServiceOrder(availableIn(entry.services, locale)),
     relatedWork: availableIn(entry.relatedWork, locale),
   };
 }
@@ -109,7 +114,8 @@ function scopeWorkEntry(entry: WorkEntry, locale: Locale): WorkEntry {
 function scopeService(service: Service, locale: Locale): Service {
   return {
     ...service,
-    // F5 stays intact: scoping may empty this set, and an empty set is a valid published state.
+    // Scoping may empty this set, and an empty set is a valid published state: the Service page
+    // then renders no S-4 station at all (`DECISIONS_LOG.md` #104, superseding F5's surface).
     demonstratedBy: [...availableIn(service.demonstratedBy, locale)].sort(compareCurated),
   };
 }
@@ -166,7 +172,10 @@ export interface RawDocuments {
 export function createContentSource(documents: RawDocuments): ContentSource {
   async function archiveItems(locale: Locale): Promise<readonly WorkArchiveItem[]> {
     const raw = await documents.workArchive();
-    return availableIn(raw.map(normalizeWorkArchiveItem), locale);
+    const items = raw
+      .map(normalizeWorkArchiveItem)
+      .map((item) => ({ ...item, services: byCanonicalServiceOrder(item.services) }));
+    return availableIn(items, locale);
   }
 
   return {
@@ -197,7 +206,7 @@ export function createContentSource(documents: RawDocuments): ContentSource {
     async services(locale) {
       const raw = await documents.services();
       const services = raw.map(normalizeService).map((service) => scopeService(service, locale));
-      return availableIn(services, locale);
+      return byCanonicalServiceOrder(availableIn(services, locale));
     },
 
     async service(slug, locale) {
@@ -212,7 +221,7 @@ export function createContentSource(documents: RawDocuments): ContentSource {
       const raw = await documents.serviceSummaries();
       const summaries = availableIn(raw.map(normalizeServiceSummary), locale);
       const scoped = pillar ? summaries.filter((service) => service.pillar === pillar) : summaries;
-      return [...scoped].sort(compareCurated0);
+      return byCanonicalServiceOrder(scoped);
     },
 
     async highlights(slot, pillar, locale) {
@@ -222,18 +231,11 @@ export function createContentSource(documents: RawDocuments): ContentSource {
   };
 }
 
-/**
- * Services carry curation but no Year (`CONTENT_MODEL.md` §4 attaches curation to both objects;
- * §3's Metadata axis belongs to the Work Entry). `compareCurated` needs a year, so Service
- * ordering uses the same precedence minus that tie-break.
+/*
+ * `compareCurated0` — the pinned → Editorial Priority → `_id` comparator Services used to sort
+ * by — is deleted. C5 replaced curation-led Service order with the canonical `SERVICE_KEYS`
+ * order (`compareServiceKeys`, `order.ts`); `Service.curation` no longer moves a Service.
  */
-function compareCurated0(a: ServiceSummary, b: ServiceSummary): number {
-  if (a.curation.pinned !== b.curation.pinned) return a.curation.pinned ? -1 : 1;
-  if (a.curation.editorialPriority !== b.curation.editorialPriority) {
-    return b.curation.editorialPriority - a.curation.editorialPriority;
-  }
-  return a._id < b._id ? -1 : a._id > b._id ? 1 : 0;
-}
 
 /* ────────────────────────────────────────────────────────────────────────────
  * The Sanity-backed source

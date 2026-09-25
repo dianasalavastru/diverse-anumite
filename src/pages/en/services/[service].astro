@@ -23,7 +23,7 @@
  */
 import ServicePage from '../../../components/service/ServicePage.astro';
 import { contentSource } from '../../../lib/content/build-source';
-import { localize } from '../../../lib/content';
+import { localize, serviceSheetCode } from '../../../lib/content';
 import { indexById } from '../../../components/homepage/highlights';
 import type { Service, WorkEntry } from '../../../lib/content';
 
@@ -37,16 +37,15 @@ export async function getStaticPaths() {
   const entries = indexById(workEntries);
 
   return services
-    .map((service, index) => {
+    .map((service) => {
       const slug = localize(service.slug, 'en');
       // Guaranteed non-null by the EN gate above; kept as a type guard.
       return slug
         ? {
             params: { service: slug },
-            // See the RO route: a derived position within this locale's ordered
-            // list, not a stored code. It is locale-scoped like everything else
-            // here, so an RO-only service does not consume an EN number.
-            props: { service, entries, code: String(index + 1).padStart(2, '0') },
+            // See the RO route: the canonical C5 number derived from the key —
+            // identical to the RO page's, whichever Services EN publishes.
+            props: { service, entries, code: serviceSheetCode(service.key) },
           }
         : null;
     })
