@@ -90,13 +90,17 @@ describe('H-4 · the capture field is an instance option (§10.1)', () => {
     }
   });
 
-  /** The RC instance keeps the seam, with the §19.4 gate applied inside it. */
-  it('keeps the point-cloud seam on the Reality Capture instance', async () => {
+  /**
+   * Since the Reality Capture lock (#106) the RC instance authors no `copy.pointCloud` either
+   * (the key is ABSENT in RO and EN), so the shared module must emit no capture field there too.
+   * The seam itself stays in `CuratedWork.astro` for an instance that authors the copy.
+   */
+  it('renders no point-cloud field on the Reality Capture instance (absent since #106)', async () => {
     for (const locale of LOCALES) {
       const html = await curatedWork(locale, 'rc');
-      const copy = realityCaptureHubMessages(locale).work.pointCloud;
-      expect(copy, `${locale}: the RC instance must author the capture copy`).toBeDefined();
-      expect(html, locale).toContain(copy!.label);
+      expect(Object.keys(realityCaptureHubMessages(locale).work), locale).not.toContain('pointCloud');
+      expect(html, locale).not.toMatch(/id="cloud"|point-cloud|pointcloud|pc-field/i);
+      expect(html, locale).not.toMatch(/nor de puncte|point cloud/i);
     }
   });
 

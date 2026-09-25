@@ -1,105 +1,154 @@
 /**
- * Reality Capture copy — TEMPORARY HOLD BASELINE, **not** an editorial lock.
+ * Reality Capture editorial LOCK (approved 2026-09-25, DECISIONS_LOG #106).
  *
  * ══════════════════════════════════════════════════════════════════════════
- *  WHAT THIS TEST MEANS, AND WHAT IT DOES NOT MEAN
+ *  WHAT THIS TEST PINS
  * ══════════════════════════════════════════════════════════════════════════
  *
- * MEANS:     "Do not change Reality Capture copy while the Stable RO editorial
- *            work is happening."
+ * RO:  the approved Reality Capture wording, as explicit literal `toEqual` locks — the whole RC
+ *      Hub message set (`pillar-hub.ts`) and the Homepage's RC keys (`homepage.ts`:
+ *      `arrival.heading`, `capabilities.realityCapture`, `work.realityCapture`,
+ *      `work.marker.coordinate`). A reword fails here by name. Changing one of these values is
+ *      an editorial decision and must be logged before this file is edited to match it.
  *
- * DOES NOT   "This Reality Capture wording is permanently approved."
- * MEAN:
+ * EN:  WITHHELD for the initial launch and NOT translated. It is frozen as snapshots so that no
+ *      edit changes it by accident. The EN hub carries only the structural omissions that mirror
+ *      RO; every surviving EN string is byte-identical to what it was before the lock.
  *
- * The Reality Capture pillar is editorially **held** pending client clarification: its final
- * taxonomy beyond the current provisional two Services, its positioning and its copy are all
- * open. The snapshot below is therefore a *hold baseline* — it freezes whatever RC says today so
- * that a Stable RO change cannot alter it **by accident**, as a side effect of a neighbouring
- * edit or a "consistency" sweep across the message files.
- *
- * ── UPDATING THIS SNAPSHOT IS A NORMAL, EXPECTED OPERATION ────────────────
- * When the RC editorial hold is lifted, RC copy is *supposed* to change, and this test is
- * *supposed* to be updated in the same change. Update it **deliberately**: edit the RC message
- * values first, then refresh the snapshot and read the diff to confirm it contains only what the
- * RC pass intended. Do not refresh it to make an unrelated batch go green — a failure here
- * during Stable RO work means something touched RC that should not have.
- *
- * ── WHAT IS PROTECTED ─────────────────────────────────────────────────────
- * Two surfaces, both held, frozen independently:
- *   1. the whole Reality Capture **Hub** message set (`pillar-hub.ts`), and
- *   2. the Homepage's **RC capability plate** — `homepageMessages(…).capabilities.realityCapture`
- *      (`homepage.ts`), the M-2 gateway's `facets` + `context` pair.
- *
- * The Homepage object was added when Stable RO Batch 2A began editing `homepage.ts`. That batch
- * rewrites the *Architecture & Design* half of the same `capabilities` object, one property away
- * from the RC half — so the RC half needed a guard of its own before the A&D edit landed, not
- * after. Until then nothing asserted it, and an RC Homepage line could have changed with no test
- * failing. Its baseline is `HEAD` 24002ee: two RC `facets` edits were sitting uncommitted in the
- * working tree when this was written, they were **not** approved, and they were restored to `HEAD`
- * rather than frozen.
- *
- * ── WHY THE HUB BASELINE IS THE WORKING TREE, NOT `HEAD` ──────────────────
- * The RC message file carries two approved editorial hunks that were made before this test
- * existed (the removal of `ortofoto` / `orthophoto` from the RC meta description and the RC
- * opening lead). Those are intentional and belong to the editorial workstream, so the baseline is
- * taken **with them applied** — freezing `HEAD` instead would have re-introduced wording the
- * editorial pass had already removed.
- *
- * ── THE SECOND ASSERTION: `Documentări` MUST NOT LEAK ─────────────────────
- * The locked global governance fixes the canonical archive noun as *Proiect / Proiecte* and
- * forbids `Documentări` as a competing one. RC copy still uses it in five places. That is a
- * problem for the RC pass to resolve, **not** for a Stable RO cleanup — so the noun is pinned to
- * exactly one file. It may stay where it is; it may not spread.
+ * Alongside the locks, three guards: no precision, placeholder or capture-claim vocabulary on
+ * the RO RC surfaces; the retired archive noun (`Documentări`) never reaches a stable RO
+ * surface; and each hub's cross-pillar door names the other pillar by its canonical label.
  */
 
 import { describe, expect, it } from 'vitest';
 
-import { LOCALES } from './routes';
+import { LOCALES, type Locale } from './routes';
 import { homepageMessages } from './homepage';
 import { realityCaptureHubMessages } from './pillar-hub';
+import { architectureDesignHubMessages } from './architecture-design-hub';
+import { pillarLabel } from './vocabulary';
+
+/** The Homepage's RC keys, RO — the approved lock. */
+const HOMEPAGE_RC_RO = {
+  arrivalHeading: { lead: 'Proiectăm spațiul.', accent: 'Măsurăm', tail: 'realitatea.' },
+  capabilitiesRealityCapture: {
+    facets: 'scanare laser 3D · Scan-to-BIM',
+    context:
+      'Scanăm clădiri, spații interioare, fațade și teren, iar din norul de puncte realizăm modelul BIM.',
+  },
+  workRealityCapture: {
+    index: '04·c',
+    title: 'Reality Capture',
+    intro: 'Proiecte de scanare laser 3D și Scan-to-BIM.',
+    cta: 'Toate proiectele — Reality Capture',
+  },
+  workMarkerCoordinate: 'a · arhitectură & design — c · reality capture',
+} as const;
+
+/** The whole Reality Capture Hub message set, RO — the approved lock. */
+const RC_HUB_RO = {
+  meta: {
+    title: 'Reality Capture · diverse anumite',
+    description:
+      'Scanare laser 3D și Scan-to-BIM — serviciile de Reality Capture ale atelierului diverse anumite.',
+  },
+  orientation: {
+    eyebrow: 'pilon · capabilitate',
+    heading: { lead: 'Reality', tail: 'Capture' },
+    lead: 'Scanare laser 3D și Scan-to-BIM: nor de puncte, model BIM, planuri, secțiuni și fațade.',
+    heroIndex: 'RC—001',
+    aboutLink: 'Despre atelier',
+  },
+  framing: {
+    marker: { no: '02', label: 'Întrebarea', coordinate: 'utilizări frecvente' },
+    question: { lead: 'Pentru ce este folosit cel mai des', accent: 'rezultatul', tail: '?' },
+    primary: [
+      'Scanăm locuințe, clădiri comerciale și industriale, clădiri de patrimoniu, spații interioare, fațade, exterior și teren, precum și parcuri industriale.',
+      'Scanarea laser 3D este folosită cel mai des pentru releveu, documentarea situației existente, renovare / intervenție pe existent, bază pentru proiectare, patrimoniu, BIM / Scan-to-BIM și As-Built.',
+    ],
+    secondary: [
+      'Scan-to-BIM poate porni de la o scanare realizată de noi sau de la un nor de puncte furnizat de client.',
+      'Rezultatul Scan-to-BIM este folosit cel mai des pentru proiectare pe clădiri existente, renovare / reabilitare, documentație, patrimoniu și facility management.',
+    ],
+    instruments: { label: 'Cu ce măsurăm', note: 'echipament declarat pe serviciile pilonului' },
+  },
+  work: {
+    marker: { no: '03', label: 'Proiecte în focus', coordinate: 'selecție curatoriată · nu arhiva' },
+    intro:
+      'Fiecare proiect intră pe rând în focus. Trageți lateral sau folosiți săgețile. Selecția este curatoriată — arhiva completă este mai jos.',
+    cta: 'Toate proiectele — Reality Capture',
+    carousel: {
+      roleDescription: 'carusel de proiecte',
+      label: 'Proiecte — folosiți săgețile pentru a naviga',
+      previous: 'Proiectul anterior',
+      next: 'Proiectul următor',
+      position: 'Proiectul în focus',
+    },
+  },
+  services: {
+    marker: { no: '04', label: 'Ce puteți comanda', coordinate: 'servicii · pilonul reality capture' },
+    intro: 'Fiecare serviciu are pagina lui, cu livrabilele sale. Alegeți serviciul care vi se potrivește.',
+    cta: 'Vezi serviciul',
+  },
+  continue: {
+    marker: { no: '05', label: 'Continuare', coordinate: 'arhivă · cealaltă direcție' },
+    archive: { kind: 'Proiecte', title: 'Vezi toate proiectele' },
+    crossPillar: {
+      kind: 'Cealaltă direcție',
+      title: 'Arhitectură & Design',
+      body: 'Proiectare de arhitectură, design interior, vizualizare 3D și design mobilier.',
+    },
+  },
+  conversation: {
+    marker: { no: '06', label: 'Conversație', coordinate: 'un proiect · un mesaj' },
+    action: 'Începe o conversație',
+    note: 'Mesajul pornește cu subiectul deja setat pe Reality Capture.',
+  },
+} as const;
 
 /**
- * The Homepage's Reality Capture capability plate (M-2).
- *
- * ══════════════════════════════════════════════════════════════════════════
- *  TEMPORARY HOLD BASELINE — **not** an editorial lock.
- *  Update deliberately when the RC editorial hold is lifted.
- * ══════════════════════════════════════════════════════════════════════════
- *
- * Frozen at `HEAD` 24002ee, exactly as it stands — `facets` still reads
- * `scanare 3d · fotogrametrie · patrimoniu`, lowercase `3d` and all, and `context` still names
- * fotogrametrie, patrimoniu and sit. **None of that is approved wording.** It is what the page
- * says today, and the point of the snapshot is that it keeps saying exactly that until the RC
- * pass changes it on purpose.
- *
- * Three things this snapshot is deliberately NOT:
- *   - **Not a claim the wording is right.** RC positioning is held pending client clarification.
- *   - **Not a diacritics statement.** #103 has RO editorial copy carrying `ă â î ș ț`, and these
- *     two strings do not. Converting them would be an RC copy change, which is what the hold
- *     forbids — so the ASCII spelling is frozen with the rest and is not a defect to fix here.
- *   - **Not a taxonomy assertion.** The current 4 + 2 Service model is provisional. This plate is
- *     authored prose, not a projection of `SERVICE_KEYS` (see `vocabulary.ts` — Service names are
- *     authored content, never a label map), so it must not be re-derived from the Service list.
- *
- * When the hold lifts: edit `homepage.ts` first, then refresh this snapshot and read the diff to
- * confirm it contains only what the RC pass intended. Never refresh it to make a neighbouring
- * batch go green — a failure here during Stable RO work means something reached the RC half of
- * `capabilities` that should not have.
+ * Precision, capture-claim and placeholder vocabulary. None of it may appear on an RO Reality
+ * Capture surface: accuracy, scale and capture metrics are rendered from live values or not at
+ * all (§10.4), and a marked stand-in is never page copy.
  */
-describe('Homepage Reality Capture capability plate — temporary hold baseline', () => {
-  for (const locale of LOCALES) {
-    it(`${locale.toUpperCase()} RC capability copy is unchanged (TEMPORARY HOLD BASELINE — not an editorial lock)`, () => {
-      expect(homepageMessages(locale).capabilities.realityCapture).toMatchSnapshot();
-    });
-  }
+const RC_FORBIDDEN =
+  /\d+(\.\d+)?°|milimetr|centimetr|\b1:1\b|precis|precizi|±|\bmm\b|puncte\/m|ortofoto|peisaj|geam[aă]n|substituent|a[sș]teptare|preg[aă]tire|\bADA\b/i;
+
+/** The RO surfaces that carry Reality Capture copy. */
+const rcSurfacesRo = () => {
+  const home = homepageMessages('ro');
+  const ad = architectureDesignHubMessages('ro');
+  return {
+    'pillar-hub.ts (RC hub, RO)': realityCaptureHubMessages('ro'),
+    'homepage.ts (RC keys, RO)': {
+      arrivalHeading: home.arrival.heading,
+      capabilitiesRealityCapture: home.capabilities.realityCapture,
+      workRealityCapture: home.work.realityCapture,
+      workMarkerCoordinate: home.work.marker.coordinate,
+    },
+    'architecture-design-hub.ts (RO)': ad,
+  };
+};
+
+describe('Homepage Reality Capture keys — editorial lock', () => {
+  it('RO RC keys carry the approved wording (LOCK #106)', () => {
+    const ro = homepageMessages('ro');
+    expect({
+      arrivalHeading: ro.arrival.heading,
+      capabilitiesRealityCapture: ro.capabilities.realityCapture,
+      workRealityCapture: ro.work.realityCapture,
+      workMarkerCoordinate: ro.work.marker.coordinate,
+    }).toEqual(HOMEPAGE_RC_RO);
+  });
+
+  it('EN RC capability copy is frozen (EN withheld — not translated)', () => {
+    expect(homepageMessages('en').capabilities.realityCapture).toMatchSnapshot();
+  });
 
   /**
-   * The neighbour test, and the reason this block exists at all.
-   *
-   * Batch 2A rewrites `capabilities.architectureDesign` — the sibling property. This asserts the
-   * two halves stayed distinct objects with distinct wording, so a copy/paste that filled the RC
-   * plate with A&D text (or the reverse) fails here by name rather than passing quietly because
-   * both snapshots were refreshed together.
+   * The neighbour test. The A&D and RC halves of `capabilities` are sibling properties; this
+   * asserts they stayed distinct, so a copy/paste that filled one plate with the other's text
+   * fails here by name.
    */
   it('keeps the two capability plates distinct — the A&D edit never bleeds into RC', () => {
     for (const locale of LOCALES) {
@@ -110,57 +159,62 @@ describe('Homepage Reality Capture capability plate — temporary hold baseline'
   });
 });
 
-describe('Reality Capture hub copy — temporary hold baseline', () => {
-  /**
-   * Whole-message-set snapshots. Deliberately not field-by-field assertions: the point is to
-   * catch *any* change, including one to a field nobody thought to enumerate.
-   */
-  it('RO copy is unchanged (TEMPORARY HOLD BASELINE — not an editorial lock)', () => {
-    expect(realityCaptureHubMessages('ro')).toMatchSnapshot();
+describe('Reality Capture hub copy — editorial lock', () => {
+  it('RO copy carries the approved wording (LOCK #106)', () => {
+    expect(realityCaptureHubMessages('ro')).toEqual(RC_HUB_RO);
   });
 
-  it('EN copy is unchanged (TEMPORARY HOLD BASELINE — not an editorial lock)', () => {
+  it('EN copy is frozen (EN withheld — not translated)', () => {
     expect(realityCaptureHubMessages('en')).toMatchSnapshot();
   });
 
-  /**
-   * The competing archive noun, pinned by count.
-   *
-   * ── THE RULE IS ABOUT THE PLURAL, AND ONLY THE PLURAL ────────────────────
-   * The locked governance forbids **`Documentări`** as an archive taxonomy noun competing with
-   * *Proiecte*. That is the plural, and in RC's diacritic-free RO it is spelled `Documentari`. It
-   * appears three times: the H-4 marker label, the carousel's accessible label, and the H-5
-   * archive door's `kind`.
-   *
-   * `Documentarea` — the definite singular, in the three carousel item labels — is deliberately
-   * NOT counted here. It names one item ("the previous documentation"), it is not a category
-   * name, and folding it into this assertion would make the test enforce something stricter than
-   * the decision it exists to enforce.
-   *
-   * Pinned in both directions: adding a fourth fails, and quietly "tidying" one away during
-   * Stable RO fails too. The noun is held, which means held **in place** — its resolution belongs
-   * to the RC editorial pass, not to a neighbouring cleanup.
-   */
-  it('keeps the archive noun `Documentari` at exactly its three Reality Capture sites', () => {
-    const ro = JSON.stringify(realityCaptureHubMessages('ro'));
-    expect(ro.match(/Documentari|Documentări/g)?.length ?? 0).toBe(3);
+  /** Clone of the A&D hub's parity test: no module renders in one locale and vanishes in the other. */
+  it('describes the same shape in both locales', () => {
+    const shape = (value: unknown): unknown => {
+      if (Array.isArray(value)) return value.length > 0 ? [shape(value[0])] : [];
+      if (value && typeof value === 'object') {
+        return Object.fromEntries(
+          Object.entries(value as Record<string, unknown>)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([key, entry]) => [key, shape(entry)]),
+        );
+      }
+      return typeof value;
+    };
+
+    const [ro, en] = LOCALES.map((locale: Locale) => shape(realityCaptureHubMessages(locale)));
+    expect(en).toEqual(ro);
+  });
+
+  it('publishes no precision, capture-claim or placeholder vocabulary on an RO RC surface', () => {
+    for (const [surface, messages] of Object.entries(rcSurfacesRo())) {
+      expect(JSON.stringify(messages), surface).not.toMatch(RC_FORBIDDEN);
+    }
+  });
+
+  /** Each hub's cross-pillar door names the other pillar by its one canonical label. */
+  it('titles each cross-pillar door with the other pillar’s canonical label', () => {
+    expect(realityCaptureHubMessages('ro').continue.crossPillar.title).toBe(
+      pillarLabel('architecture-design', 'ro'),
+    );
+    expect(architectureDesignHubMessages('ro').continue.crossPillar.title).toBe(
+      pillarLabel('reality-capture', 'ro'),
+    );
   });
 
   /**
-   * The Stable RO surfaces, asserted from the outside. If a Stable RO edit ever reaches for the
-   * RC archive noun — in a homepage work section, an A&D hub door, the archive, a Service page —
-   * this fails naming the file. The Architecture & Design hub is the likeliest place for it to
-   * appear, because it is the one page built from the same shared blueprint as Reality Capture.
+   * The canonical archive noun is *Proiect / Proiecte*; `Documentări` (and its ASCII spelling,
+   * and the `Documentare` module title it replaced) must not compete with it on any stable
+   * surface — the Reality Capture hub included, now that it is locked.
    *
-   * Scoped to the plural for the reason given above. Note for the reader who greps and finds a
-   * near-miss: the Homepage's RC work module is titled `Documentare` (singular) and its prose
-   * says "arhiva de documentare". Neither is the forbidden archive noun, both predate this test,
-   * and both disappear on their own when the locked Homepage collapses its two work modules into
-   * one selected-work section — so they are left alone rather than swept up here.
+   * On RO the check is case-insensitive and word-bounded, so it catches `Documentări`,
+   * `Documentari`, `Documentare` and `Documentar` in any case, while ordinary prose such as
+   * "documentarea situației existente" and "documentație" — not archive nouns — stays allowed.
    */
-  it('never lets the RC archive noun reach a stable Romanian surface', async () => {
+  it('never lets the archive noun reach a stable surface', async () => {
     const stable = await Promise.all([
       import('./homepage').then((m) => m.homepageMessages),
+      import('./pillar-hub').then((m) => m.realityCaptureHubMessages),
       import('./architecture-design-hub').then((m) => m.architectureDesignHubMessages),
       import('./services-index').then((m) => m.servicesIndexMessages),
       import('./work-archive').then((m) => m.workArchiveMessages),
@@ -171,6 +225,7 @@ describe('Reality Capture hub copy — temporary hold baseline', () => {
       for (const locale of LOCALES) {
         expect(JSON.stringify(messages(locale))).not.toMatch(/Documentari|Documentări/);
       }
+      expect(JSON.stringify(messages('ro'))).not.toMatch(/\bdocument(?:ari|ări|are|ar)\b/i);
     }
   });
 });

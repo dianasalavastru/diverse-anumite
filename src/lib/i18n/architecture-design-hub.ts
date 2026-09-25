@@ -2,10 +2,10 @@
  * Pillar Hub editorial copy — the **Architecture & Design** instance.
  *
  * STATUS (Wave 3): the RO strings are the locked Stable RO copy, with correct diacritics
- * (DECISIONS_LOG.md #103). Two RO lines are deliberately left exactly as they were — the
- * measurement sentence in `framing.primary[0]` and the whole `continue.crossPillar` door —
- * because they carry Reality Capture positioning and belong to the RC synthesis, not to this
- * pass. EN is WITHHELD for the initial launch; it is not a translation of the RO copy and is
+ * (DECISIONS_LOG.md #103). The two RO lines that carry Reality Capture positioning —
+ * `framing.primary[0]` and the `continue.crossPillar` door — are locked by the Reality Capture
+ * editorial LOCK (approved 2026-09-25, DECISIONS_LOG.md #106). EN is WITHHELD for the
+ * initial launch; it is not a translation of the RO copy and is
  * kept only so the locale shape stays whole (its absences mirror RO's, for shape parity).
  *
  * OWNERSHIP: Workstream A commits the STRUCTURE; Workstream C authors the
@@ -96,7 +96,7 @@ export type ArchitectureDesignHubMessages = Omit<PillarHubMessages, 'work'> & {
 };
 
 /* -------------------------------------------------------------------------- */
-/* RO — locked Stable RO copy (#103); two RC-held lines left as-is (header)     */
+/* RO — locked Stable RO copy (#103); RC-positioning lines locked by #106      */
 /* -------------------------------------------------------------------------- */
 
 const ro: ArchitectureDesignHubMessages = {
@@ -122,7 +122,7 @@ const ro: ArchitectureDesignHubMessages = {
       tail: '.',
     },
     primary: [
-      'Panta, lumina, vecinatatile, programul, felul in care se ajunge la intrare — toate se citesc inainte de prima linie. Masuram locul, uneori la milimetru, pentru ca un proiect bun incepe de la o citire onesta a lui, nu de la o imagine.',
+      'Panta, lumina, vecinătățile, programul, felul în care se ajunge la intrare — toate se citesc înainte de prima linie. Pentru clădirile existente, proiectul pornește de la releveu.',
       'De la o locuință la un concurs public, întrebările rămân aceleași. Desenăm puțin și tăiem mult — un gest clar în locul a zece decorative.',
     ],
     secondary: [
@@ -174,9 +174,9 @@ const ro: ArchitectureDesignHubMessages = {
       title: 'Vezi toate proiectele',
     },
     crossPillar: {
-      kind: 'Reality Capture',
-      title: 'Cum masuram',
-      body: 'Felul in care masurarea reala hraneste proiectul de arhitectura.',
+      kind: 'Cealaltă direcție',
+      title: 'Reality Capture',
+      body: 'Scanare laser 3D și Scan-to-BIM.',
     },
   },
 

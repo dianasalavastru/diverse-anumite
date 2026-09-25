@@ -242,11 +242,12 @@ describe('the message set', () => {
 });
 
 /**
- * The absences above, as rendered by the SHARED modules. Each guard is instance-level: the A&D
- * instance renders no element for an omitted key, while Reality Capture — under the editorial
- * hold — keeps rendering exactly what it did (its values are frozen by `rc-copy-firewall.test.ts`).
+ * The absences above, as rendered by the SHARED modules. Each guard is instance-level: an
+ * instance renders no element for an omitted key. Since the Reality Capture lock (#106) RC omits
+ * the same slots, so it renders none of them either (its values are pinned by
+ * `rc-copy-firewall.test.ts`).
  */
-describe('absent slots render nothing on A&D, and nothing changes on RC', () => {
+describe('absent slots render nothing on A&D, nor on RC since #106', () => {
   let container: AstroContainer;
 
   beforeAll(async () => {
@@ -265,19 +266,22 @@ describe('absent slots render nothing on A&D, and nothing changes on RC', () => 
     }
   });
 
-  it('H-1 keeps the RC coordinate line and fallback alt (held until the RC synthesis)', async () => {
+  it('H-1 renders no coordinate line and an unnamed plate on RC (absent since #106)', async () => {
     for (const locale of LOCALES) {
       const copy = realityCaptureHubMessages(locale).orientation;
+      expect(copy, locale).not.toHaveProperty('heroCoordinates');
+      expect(copy, locale).not.toHaveProperty('heroFallbackAlt');
       const html = await container.renderToString(Orientation, {
         props: { locale, copy, hero: null, overlay: 'measurement', station: 1 },
       });
-      expect(html, locale).toContain('hub-arrival-dim');
-      expect(html, locale).toContain(copy.heroCoordinates!);
-      expect(html, locale).toContain(`aria-label="${copy.heroFallbackAlt!}"`);
+      expect(html, locale).not.toContain('hub-arrival-dim');
+      expect(html, locale).not.toMatch(/\d{1,3}\.\d+°\s*[NS]/);
+      expect(html, locale).not.toContain('role="img"');
+      expect(html, locale).not.toContain('data-fixture');
     }
   });
 
-  it('H-4 renders no heading under the marker on A&D, and keeps RC\'s', async () => {
+  it('H-4 renders no heading under the marker on A&D, nor on RC (absent since #106)', async () => {
     for (const locale of LOCALES) {
       const ad = await container.renderToString(CuratedWork, {
         props: {
@@ -292,10 +296,11 @@ describe('absent slots render nothing on A&D, and nothing changes on RC', () => 
       expect(ad, locale).not.toMatch(/<h3[\s>]/);
 
       const rcCopy = realityCaptureHubMessages(locale).work;
+      expect(rcCopy, locale).not.toHaveProperty('title');
       const rc = await container.renderToString(CuratedWork, {
         props: { locale, copy: rcCopy, entries: [], tones: ['#cbc6bc'], cadence: 'docs', archiveHref: '/x', station: 3 },
       });
-      expect(rc, locale).toContain(rcCopy.title!);
+      expect(rc, locale).not.toMatch(/<h3[\s>]/);
     }
   });
 
@@ -309,7 +314,7 @@ describe('absent slots render nothing on A&D, and nothing changes on RC', () => 
           station: 5,
         },
       });
-      /* One body line only: the cross-pillar door's (RC-flavoured, held for the RC synthesis). */
+      /* One body line only: the cross-pillar door's (locked by #106). */
       expect(html.match(/class="d"/g)?.length, locale).toBe(1);
     }
   });

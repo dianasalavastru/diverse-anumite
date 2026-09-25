@@ -1,7 +1,11 @@
 /**
  * Pillar Hub editorial copy — the **Reality Capture** instance.
  *
- * ⚠ PLACEHOLDER COPY — PENDING WORKSTREAM C. NOTHING HERE IS AUTHORED CONTENT.
+ * STATUS: the RO strings are the Reality Capture editorial LOCK (approved 2026-09-25,
+ * DECISIONS_LOG.md #106), with correct diacritics (#103). `rc-copy-firewall.test.ts` pins every
+ * RO value literally. EN is WITHHELD for the initial launch: it is not a translation of the RO
+ * copy, its surviving strings are frozen byte-identical, and it carries only the structural
+ * omissions that mirror RO (so the two locales keep one shape).
  *
  * OWNERSHIP: Workstream A commits the STRUCTURE; Workstream C authors the
  * STRINGS (TECHNICAL_ARCHITECTURE.md §23.3, "i18n message files | A (RO/EN
@@ -12,38 +16,20 @@
  * `HUB_PAGE_IA.md` §"One blueprint, two instances" and `PILLAR_HUB_WIREFRAME.md`
  * §"Pillar inheritance" are explicit that the two hubs share the module set, the
  * order and the composition, and differ **only in the content they consume**.
- * `PillarHubMessages` is therefore the shape of *a* hub, and `realityCapture` is
- * the only instance authored — the Architecture & Design hub is not built by this
- * workstream and no A&D strings are invented here.
+ * `PillarHubMessages` is therefore the shape of *a* hub; this file is the Reality
+ * Capture instance and `architecture-design-hub.ts` is the other.
  *
- * ── WHAT WAS REMOVED FROM THE APPROVED HiFi TRANSCRIPTION ─────────────────
- * The strings below are transcribed from
- * `docs/pages/pillar-hub/reality-capture-hub-measured-reality-hifi-v1.html`
- * (owner-approved 2026-08-10) so that line lengths, `max-width: Nch` measures and
- * the authored rhythm are exercised at their real sizes. Three corrections:
+ * ── ABSENT SLOTS ──────────────────────────────────────────────────────────
+ * A slot the lock does not author is an OMITTED key, never `''` and never a stand-in, and the
+ * shared module renders no element for it. Absent for Reality Capture (RO and EN): the hero
+ * thesis, the hero fallback alt, the hero coordinates, the H-2 use-case block, the H-4 heading,
+ * the H-4 point-cloud field, the H-5 frame, the H-5 archive door's body, and the H-6 invitation.
  *
- *  1. **Diacritics removed** (OD-8, §11.3) — the HiFi carries them because it is
- *     a design reference, not production copy.
+ * No capture claim is page copy (§10.4): accuracy, equipment, point counts and capture metrics
+ * are rendered from live Sanity values or not at all — see `components/pillar-hub/hub.ts`.
  *
- *  2. **Every capture claim deleted, not neutralised.** §10.4 is categorical:
- *     fabricated readouts "must not reach production… these are technical claims
- *     made to institutional clients evaluating a surveying service". The HiFi
- *     prints, as page copy, `2 mm · 46.77°N`, `GSD 1.2 cm/px`, `zbor · 78 m /
- *     1.240 imagini`, `± 2 mm`, `acuratete 2 mm · Leica RTC360 + drona`, and a
- *     four-figure "Masurat" row (`2 mm`, `1:1`, `7 tipuri de sit`, `2 metode`).
- *     **None of it is here.** Accuracy, equipment, point counts and capture
- *     metrics are rendered from live Sanity values or not at all — see
- *     `components/pillar-hub/hub.ts` and `media/PointCloudField.astro`.
- *     Marking them "(substituent)" as the Homepage does for its three
- *     credibility readouts would not be enough: those are practice-level facts
- *     with no CMS field behind them, while these have real fields that either
- *     carry a value or do not.
- *
- *  3. **The "1:1" figure kept once, as prose.** "la scara 1:1" in the opening
- *     lead is a statement about what surveying *is*, not a measurement of any
- *     delivered project — it names no instrument, no tolerance and no dataset.
- *
- * OD-8 (§11.3): Romanian site copy is authored WITHOUT diacritics.
+ * DIACRITICS: RO human-facing copy carries ă â î ș ț (DECISIONS_LOG.md #103, amending
+ * OD-8). Identifiers stay ASCII.
  */
 
 import type { Locale } from './routes';
@@ -93,10 +79,9 @@ export interface PillarHubMessages {
     /** The capability name, set in the pixel voice over two lines. */
     readonly heading: { readonly lead: string; readonly tail: string };
     /**
-     * OPTIONAL since the Stable RO pass. The locked Architecture & Design Hub has no hero
-     * thesis, and an instance that omits this field renders none — the same mechanism
-     * `work.pointCloud` already uses to express a per-instance absence on this shared shape.
-     * Reality Capture supplies one and is unaffected.
+     * OPTIONAL since the Stable RO pass. Neither locked hub has a hero thesis, and an instance
+     * that omits this field renders none — the same mechanism `work.pointCloud` uses to express
+     * a per-instance absence on this shared shape.
      */
     readonly thesis?: AccentedHeading;
     /**
@@ -106,17 +91,15 @@ export interface PillarHubMessages {
     readonly lead: string;
     /**
      * Accessible name for the opening media when no authored alt exists. OPTIONAL since Wave 3:
-     * the locked Architecture & Design Hub has none (a stand-in alt is placeholder copy), and an
-     * instance that omits it renders a decorative plate. Reality Capture supplies one and is
-     * unaffected.
+     * neither locked hub has one (a stand-in alt is placeholder copy), and an instance that omits
+     * it renders a decorative plate.
      */
     readonly heroFallbackAlt?: string;
     /** Decorative measurement annotations on the opening plate (aria-hidden). */
     readonly heroIndex: string;
     /**
      * OPTIONAL since Wave 3 (X3): unconfirmed geography is removed, never neutralised. An
-     * instance that omits it renders no coordinate annotation. Reality Capture keeps its value
-     * until the RC synthesis, under the editorial hold.
+     * instance that omits it renders no coordinate annotation (neither locked hub has one).
      */
     readonly heroCoordinates?: string;
     /** PILLAR_HUB_WIREFRAME H-1: "a light text link to About". */
@@ -134,8 +117,12 @@ export interface PillarHubMessages {
      * The use-case set. `label` names it; `note` states where the values come
      * from, because they are live Sector values off the pillar's Services rather
      * than authored copy.
+     *
+     * OPTIONAL since the Reality Capture lock (#106): an instance that omits it renders no
+     * use-case block at all, whatever Sectors its Services declare. Reality Capture omits it;
+     * Architecture & Design supplies it.
      */
-    readonly useCases: { readonly label: string; readonly note: string };
+    readonly useCases?: { readonly label: string; readonly note: string };
     /** The capability-facts readout — live `Service.equipment`, never a figure. */
     readonly instruments: { readonly label: string; readonly note: string };
   };
@@ -173,6 +160,9 @@ export interface PillarHubMessages {
      * all, which is what §10.1 requires: rendering the seam with a `null`
      * subject would put "point cloud — asset in preparation" onto a page that
      * has no point cloud, i.e. advertise a capability the pillar does not offer.
+     *
+     * Since the Reality Capture lock (#106) the RC instance omits it too, so neither hub
+     * currently renders the field; the seam stays for an instance that authors it.
      */
     readonly pointCloud?: {
       readonly label: string;
@@ -224,53 +214,41 @@ export interface PillarHubMessages {
 }
 
 /* -------------------------------------------------------------------------- */
-/* RO — transcribed from the approved RC Hub HiFi, per the header notes         */
+/* RO — Reality Capture editorial LOCK (#106)                                  */
 /* -------------------------------------------------------------------------- */
 
 const ro: PillarHubMessages = {
   meta: {
-    title: 'Reality Capture — pilon · diverse anumite',
+    title: 'Reality Capture · diverse anumite',
     description:
-      'Scanare 3D, fotogrametrie si relevee — realitatea construita, masurata pe teren si livrata ca nor de puncte sau desen.',
+      'Scanare laser 3D și Scan-to-BIM — serviciile de Reality Capture ale atelierului diverse anumite.',
   },
 
   orientation: {
     eyebrow: 'pilon · capabilitate',
     heading: { lead: 'Reality', tail: 'Capture' },
-    thesis: {
-      lead: 'Nu desenam ce credem ca e acolo.',
-      accent: 'Masuram',
-      tail: 'ce este.',
-    },
-    lead:
-      'Scanare 3D, fotogrametrie si relevee. Transformam cladiri, situri si peisaje reale in masuratori precise — nori de puncte si desene pe care se poate lua o decizie. Nu o interpretare a locului, ci locul insusi, la scara 1:1.',
-    heroFallbackAlt: 'Imagine substituent — documentare de sit, in asteptare',
+    lead: 'Scanare laser 3D și Scan-to-BIM: nor de puncte, model BIM, planuri, secțiuni și fațade.',
     heroIndex: 'RC—001',
-    heroCoordinates: '46.77°N 23.59°E',
     aboutLink: 'Despre atelier',
   },
 
   framing: {
-    marker: { no: '02', label: 'Intrebarea', coordinate: 'observatie · masurare' },
+    marker: { no: '02', label: 'Întrebarea', coordinate: 'utilizări frecvente' },
     question: {
-      lead: 'Ce ne lasa masurarea reala sa intelegem, ce un releveu obisnuit nu',
-      accent: 'poate',
+      lead: 'Pentru ce este folosit cel mai des',
+      accent: 'rezultatul',
       tail: '?',
     },
     primary: [
-      'Un releveu clasic noteaza ce a decis cineva sa masoare. O scanare noteaza tot — fiecare tasare de zid, fiecare perete care nu e drept, fiecare centimetru pe care ochiul l-ar rotunji. Realitatea nu se rotunjeste.',
-      'De aici pornesc decizii mai bune: unde se poate interveni, cat material lipseste, daca o structura s-a miscat, cum arata ceva inainte sa dispara.',
+      'Scanăm locuințe, clădiri comerciale și industriale, clădiri de patrimoniu, spații interioare, fațade, exterior și teren, precum și parcuri industriale.',
+      'Scanarea laser 3D este folosită cel mai des pentru releveu, documentarea situației existente, renovare / intervenție pe existent, bază pentru proiectare, patrimoniu, BIM / Scan-to-BIM și As-Built.',
     ],
     secondary: [
-      'Masurarea nu e un scop. Este primul strat al proiectului — cel pe care arhitectura se poate sprijini fara sa ghiceasca.',
-      'Reality capture nu inlocuieste privirea profesionistului. O inarmeaza cu o realitate pe care nimeni nu o poate contesta: coordonate, nu impresii.',
+      'Scan-to-BIM poate porni de la o scanare realizată de noi sau de la un nor de puncte furnizat de client.',
+      'Rezultatul Scan-to-BIM este folosit cel mai des pentru proiectare pe clădiri existente, renovare / reabilitare, documentație, patrimoniu și facility management.',
     ],
-    useCases: {
-      label: 'Unde se aplica',
-      note: 'sectoare declarate pe serviciile pilonului',
-    },
     instruments: {
-      label: 'Cu ce masuram',
+      label: 'Cu ce măsurăm',
       note: 'echipament declarat pe serviciile pilonului',
     },
   },
@@ -278,68 +256,53 @@ const ro: PillarHubMessages = {
   work: {
     marker: {
       no: '03',
-      label: 'Documentari in focus',
-      coordinate: 'selectie curatoriata · nu arhiva',
+      label: 'Proiecte în focus',
+      coordinate: 'selecție curatoriată · nu arhiva',
     },
-    title: 'Situri masurate, unul cate unul.',
     intro:
-      'Fiecare documentare intra pe rand in focus. Trageti lateral sau folositi sagetile. Selectia este curatoriata — arhiva completa este mai jos.',
+      'Fiecare proiect intră pe rând în focus. Trageți lateral sau folosiți săgețile. Selecția este curatoriată — arhiva completă este mai jos.',
     cta: 'Toate proiectele — Reality Capture',
     carousel: {
-      roleDescription: 'carusel de documentari',
-      label: 'Documentari — folositi sagetile pentru a naviga',
-      previous: 'Documentarea anterioara',
-      next: 'Documentarea urmatoare',
-      position: 'Documentarea in focus',
-    },
-    pointCloud: {
-      label: '03·b — geaman digital · nor de puncte',
-      hint: 'trageti pentru a inspecta →',
-      posterAlt: 'Imagine substituent — nor de puncte, in asteptare',
-      unavailable: 'nor de puncte — asset in pregatire',
+      roleDescription: 'carusel de proiecte',
+      label: 'Proiecte — folosiți săgețile pentru a naviga',
+      previous: 'Proiectul anterior',
+      next: 'Proiectul următor',
+      position: 'Proiectul în focus',
     },
   },
 
   services: {
     marker: {
       no: '04',
-      label: 'Ce puteti comanda',
+      label: 'Ce puteți comanda',
       coordinate: 'servicii · pilonul reality capture',
     },
-    intro:
-      'Fiecare serviciu are pagina lui, cu livrabile, proces si echipament. Aici doar recunoasteti care vi se potriveste.',
+    intro: 'Fiecare serviciu are pagina lui, cu livrabilele sale. Alegeți serviciul care vi se potrivește.',
     cta: 'Vezi serviciul',
   },
 
   continue: {
-    marker: { no: '05', label: 'Continuare', coordinate: 'de la masuratoare la decizie' },
-    frame: { lead: 'Am masurat realitatea.', accent: 'Continuati', tail: 'cum vreti.' },
+    marker: { no: '05', label: 'Continuare', coordinate: 'arhivă · cealaltă direcție' },
     archive: {
-      kind: 'Documentari',
+      kind: 'Proiecte',
       title: 'Vezi toate proiectele',
-      body: 'Situri si cladiri documentate, releveu cu releveu, in arhiva completa.',
     },
     crossPillar: {
-      kind: 'Arhitectura & Design',
-      title: 'Cum se leaga',
-      body: 'Felul in care masurarea hraneste proiectul de arhitectura.',
+      kind: 'Cealaltă direcție',
+      title: 'Arhitectură & Design',
+      body: 'Proiectare de arhitectură, design interior, vizualizare 3D și design mobilier.',
     },
   },
 
   conversation: {
-    marker: { no: '06', label: 'Conversatie', coordinate: 'un sit · un mesaj' },
-    invitation: {
-      lead: 'Aveti un sit sau o cladire de',
-      accent: 'masurat',
-      tail: '?',
-    },
-    action: 'Incepe o conversatie',
-    note: 'Mesajul porneste cu subiectul deja setat pe Reality Capture.',
+    marker: { no: '06', label: 'Conversație', coordinate: 'un proiect · un mesaj' },
+    action: 'Începe o conversație',
+    note: 'Mesajul pornește cu subiectul deja setat pe Reality Capture.',
   },
 };
 
 /* -------------------------------------------------------------------------- */
-/* EN — placeholder translation of the above, PENDING (C)                      */
+/* EN — WITHHELD at launch; not a translation. Absences mirror RO (parity).     */
 /* -------------------------------------------------------------------------- */
 
 const en: PillarHubMessages = {
@@ -352,16 +315,9 @@ const en: PillarHubMessages = {
   orientation: {
     eyebrow: 'capability · one of two',
     heading: { lead: 'Reality', tail: 'Capture' },
-    thesis: {
-      lead: 'We do not draw what we think is there.',
-      accent: 'We measure',
-      tail: 'what is.',
-    },
     lead:
       '3D scanning, photogrammetry and measured surveys. We turn real buildings, sites and landscapes into precise measurements — point clouds and drawings you can make a decision on. Not an interpretation of the place, but the place itself, at 1:1.',
-    heroFallbackAlt: 'Placeholder image — site documentation pending',
     heroIndex: 'RC—001',
-    heroCoordinates: '46.77°N 23.59°E',
     aboutLink: 'About the studio',
   },
 
@@ -380,10 +336,6 @@ const en: PillarHubMessages = {
       'Measurement is not the goal. It is the first layer of the project — the one architecture can lean on without guessing.',
       'Reality capture does not replace a professional eye. It arms it with a reality nobody can dispute: coordinates, not impressions.',
     ],
-    useCases: {
-      label: 'Where it applies',
-      note: 'sectors declared on this capability’s services',
-    },
     instruments: {
       label: 'What we measure with',
       note: 'equipment declared on this capability’s services',
@@ -396,7 +348,6 @@ const en: PillarHubMessages = {
       label: 'Documentation in focus',
       coordinate: 'a curated selection · not the archive',
     },
-    title: 'Measured sites, one at a time.',
     intro:
       'Each documentation comes into focus in turn. Drag sideways or use the arrows. The selection is curated — the full archive is below.',
     cta: 'All projects — Reality Capture',
@@ -406,12 +357,6 @@ const en: PillarHubMessages = {
       previous: 'Previous documentation',
       next: 'Next documentation',
       position: 'Documentation in focus',
-    },
-    pointCloud: {
-      label: '03·b — digital twin · point cloud',
-      hint: 'drag to inspect →',
-      posterAlt: 'Placeholder image — point cloud pending',
-      unavailable: 'point cloud — asset in preparation',
     },
   },
 
@@ -428,11 +373,9 @@ const en: PillarHubMessages = {
 
   continue: {
     marker: { no: '05', label: 'Continue', coordinate: 'from measurement to decision' },
-    frame: { lead: 'We have measured reality.', accent: 'Continue', tail: 'however you like.' },
     archive: {
       kind: 'Documentation',
       title: 'See all projects',
-      body: 'Sites and buildings documented, survey by survey, in the full archive.',
     },
     crossPillar: {
       kind: 'Architecture & Design',
@@ -443,11 +386,6 @@ const en: PillarHubMessages = {
 
   conversation: {
     marker: { no: '06', label: 'Conversation', coordinate: 'one site · one message' },
-    invitation: {
-      lead: 'Do you have a site or a building to',
-      accent: 'measure',
-      tail: '?',
-    },
     action: 'Start a conversation',
     note: 'The message starts with the topic already set to Reality Capture.',
   },

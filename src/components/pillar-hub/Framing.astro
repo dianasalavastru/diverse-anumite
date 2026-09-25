@@ -31,7 +31,9 @@
  * the contract does hold — `Service.equipment` (`CONTENT_MODEL.md`:31), verbatim,
  * attributed to the Service that declares it.
  *
- * Both sub-modules disappear entirely when the live content carries nothing.
+ * Both sub-modules disappear entirely when the live content carries nothing. The
+ * use-case block also disappears when the instance omits `copy.useCases` — the
+ * Reality Capture lock (#106) hides it for RC whatever Sectors its Services declare.
  * The wireframe marks the statistics "optional", and the framing prose alone
  * still discharges H-2's responsibility.
  */
@@ -71,7 +73,7 @@ const { locale, copy, useCases, instruments, station } = Astro.props;
   </div>
 
   {
-    useCases.length > 0 && (
+    copy.useCases && useCases.length > 0 && (
       <div class="hub-usecases rv" data-rv="meta">
         <div class="hub-sublabel">
           <span class="k">{copy.useCases.label}</span>

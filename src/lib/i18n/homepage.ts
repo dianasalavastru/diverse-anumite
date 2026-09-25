@@ -1,11 +1,10 @@
 /**
  * Homepage editorial copy.
  *
- * STATUS (Wave 3): the RO strings are the locked Stable RO copy, EXCEPT three keys that
- * carry Reality Capture positioning and are under the RC editorial hold — `arrival.heading`,
- * `capabilities.realityCapture` and `work.realityCapture`. Those stay byte-identical, ASCII
- * spelling included, until the RC pass (`rc-copy-firewall.test.ts` snapshots the RC
- * capability plate). Converting their diacritics would be an RC copy change.
+ * STATUS (Wave 3): the RO strings are the locked Stable RO copy. The keys that carry Reality
+ * Capture positioning — `arrival.heading`, `capabilities.realityCapture`, `work.realityCapture`
+ * and `work.marker.coordinate` — are the Reality Capture editorial LOCK (approved 2026-09-25,
+ * DECISIONS_LOG.md #106); `rc-copy-firewall.test.ts` pins them literally.
  *
  * OWNERSHIP: Workstream A commits the STRUCTURE; Workstream C authors the
  * STRINGS (TECHNICAL_ARCHITECTURE.md §23.3, "i18n message files | A (RO/EN
@@ -154,7 +153,7 @@ export interface HomepageMessages {
 }
 
 /* -------------------------------------------------------------------------- */
-/* RO — locked Stable RO copy (#103); the three RC-HELD keys are marked         */
+/* RO — locked Stable RO copy (#103); RC keys locked by #106                    */
 /* -------------------------------------------------------------------------- */
 
 const ro: HomepageMessages = {
@@ -166,8 +165,7 @@ const ro: HomepageMessages = {
 
   arrival: {
     eyebrow: 'atelier multidisciplinar · Cluj-Napoca',
-    // HELD (RC editorial hold) — do not edit before the RC pass.
-    heading: { lead: 'Proiectam spatiul.', accent: 'Masuram', tail: 'realitatea.' },
+    heading: { lead: 'Proiectăm spațiul.', accent: 'Măsurăm', tail: 'realitatea.' },
     statement:
       'Explorăm potențialul fiecărui proiect, folosind tehnologii contemporane și respectând realitățile profesiei, peisajul cultural și nevoile celor implicați.',
     cue: '06 stații',
@@ -192,11 +190,9 @@ const ro: HomepageMessages = {
       context: 'Proiectăm pornind de la loc și ducem lucrul până la detaliu.',
     },
     realityCapture: {
-      facets: 'scanare 3d · fotogrametrie · patrimoniu',
-      // "masurata la 2 mm" removed: an accuracy claim belongs to capture
-      // metadata on a real entry, never to page copy (§10.4).
+      facets: 'scanare laser 3D · Scan-to-BIM',
       context:
-        'Realitatea construita, masurata pe teren — relevee, scanare 3D si fotogrametrie pentru patrimoniu si sit.',
+        'Scanăm clădiri, spații interioare, fațade și teren, iar din norul de puncte realizăm modelul BIM.',
     },
   },
 
@@ -220,21 +216,20 @@ const ro: HomepageMessages = {
     marker: {
       no: '04',
       label: 'Lucrări, în focus',
-      coordinate: 'a · arhitectura — c · documentare',
+      coordinate: 'a · arhitectură & design — c · reality capture',
     },
     architectureDesign: {
       index: '04·a',
       title: 'Arhitectură & Design',
       intro:
         'Fiecare proiect intră pe rând în focus — restul rămân aproape, pentru context. Culoarea revine doar acolo unde privirea se oprește.',
-      cta: 'Toate lucrările — Arhitectură & Design',
+      cta: 'Toate proiectele — Arhitectură & Design',
     },
     realityCapture: {
       index: '04·c',
-      title: 'Documentare',
-      intro:
-        'Cladiri reale, masurate pe teren: relevee, drone si scanare 3D — cadre din arhiva de documentare.',
-      cta: 'Toate lucrarile — Reality Capture',
+      title: 'Reality Capture',
+      intro: 'Proiecte de scanare laser 3D și Scan-to-BIM.',
+      cta: 'Toate proiectele — Reality Capture',
     },
     carousel: {
       roleDescription: 'carusel de proiecte',
