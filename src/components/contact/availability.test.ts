@@ -37,14 +37,34 @@ beforeAll(async () => {
 
 afterEach(() => {
   vi.doUnmock('./availability');
+  vi.doUnmock('../../lib/i18n/contact');
   vi.resetModules();
 });
 
+/**
+ * Flips the flag for everything that reads it: the constant itself AND the
+ * `isContactActionable` default, which closes over the real module's binding. The
+ * override still runs the real rule — only the flag it is handed changes.
+ */
+function mockFormFlag(enabled: boolean): void {
+  vi.doMock('./availability', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('./availability')>();
+    const { contactChannels } = await import('../../lib/i18n/contact');
+    return {
+      ...actual,
+      ENQUIRY_FORM_ENABLED: enabled,
+      isContactActionable: (locale: 'ro' | 'en') =>
+        actual.isContactActionable(locale, {
+          formEnabled: enabled,
+          channels: contactChannels(locale),
+        }),
+    };
+  });
+}
+
 async function renderContact(enabled?: boolean): Promise<string> {
   vi.resetModules();
-  if (enabled !== undefined) {
-    vi.doMock('./availability', () => ({ ENQUIRY_FORM_ENABLED: enabled }));
-  }
+  if (enabled !== undefined) mockFormFlag(enabled);
   const { default: ContactPage } = await import('./ContactPage.astro');
   return container.renderToString(ContactPage, { props: { locale: 'ro' } });
 }
@@ -103,6 +123,49 @@ describe('Contact page — enquiry form disabled (launch default)', () => {
     ]) {
       expect(html).not.toContain(forbidden);
     }
+  });
+});
+
+describe('isContactActionable — the one contact-availability predicate', () => {
+  const CHANNEL = { label: 'Test', value: 'test', href: null };
+
+  it('is false at launch: form off, no confirmed channel', async () => {
+    const { isContactActionable } = await import('./availability');
+    expect(isContactActionable('ro')).toBe(false);
+    expect(isContactActionable('en')).toBe(false);
+  });
+
+  it('is true when the form is enabled, with no channel', async () => {
+    const { isContactActionable } = await import('./availability');
+    expect(isContactActionable('ro', { formEnabled: true, channels: [] })).toBe(true);
+  });
+
+  it('is true when a confirmed channel exists even though the form is disabled', async () => {
+    const { isContactActionable } = await import('./availability');
+    expect(isContactActionable('ro', { formEnabled: false, channels: [CHANNEL] })).toBe(true);
+  });
+
+  it('reads the real channel source by default — a published channel alone makes it true', async () => {
+    vi.resetModules();
+    vi.doMock('../../lib/i18n/contact', async (importOriginal) => ({
+      ...(await importOriginal<typeof import('../../lib/i18n/contact')>()),
+      contactChannels: () => [CHANNEL],
+    }));
+    const { ENQUIRY_FORM_ENABLED, isContactActionable } = await import('./availability');
+    expect(ENQUIRY_FORM_ENABLED).toBe(false);
+    expect(isContactActionable('ro')).toBe(true);
+  });
+
+  it('the Contact page uses the same predicate: a channel alone lifts the no-channel copy', async () => {
+    vi.resetModules();
+    vi.doMock('../../lib/i18n/contact', async (importOriginal) => ({
+      ...(await importOriginal<typeof import('../../lib/i18n/contact')>()),
+      contactChannels: () => [CHANNEL],
+    }));
+    const { default: ContactPage } = await import('./ContactPage.astro');
+    const html = await container.renderToString(ContactPage, { props: { locale: 'ro' } });
+    expect(html).not.toContain('Datele de contact ale atelierului vor fi disponibile aici.');
+    expect(html).not.toMatch(/<form\b/); // the form stays off — only the copy follows the predicate
   });
 });
 

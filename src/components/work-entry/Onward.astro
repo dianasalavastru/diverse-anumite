@@ -35,6 +35,7 @@ import type { Locale, Pillar } from '../../lib/content';
 import type { WorkEntryMessages } from '../../lib/i18n/work-entry';
 import { routePath } from '../../lib/i18n/routes';
 import { pillarLabel, pillarRouteKey } from '../../lib/i18n/vocabulary';
+import { isContactActionable } from '../contact/availability';
 
 interface Props {
   pillar: Pillar;
@@ -46,6 +47,14 @@ const { pillar, locale, copy } = Astro.props;
 
 const hubHref = routePath(pillarRouteKey(pillar) as never, locale, undefined as never);
 const hubLabel = copy.onward.hub.replace('{pillar}', pillarLabel(pillar, locale));
+
+/**
+ * The light contact link's only destination is Contact, so it renders only while
+ * Contact offers a way to reach the studio (`contact/availability.ts`); the locked
+ * string returns untouched with the form or a confirmed channel. W-7 keeps its hub
+ * back-path, so the module stays and the rail is unchanged.
+ */
+const showContact = isContactActionable(locale);
 ---
 
 <div class="we-onward">
@@ -56,10 +65,12 @@ const hubLabel = copy.onward.hub.replace('{pillar}', pillarLabel(pillar, locale)
     </a>
   </p>
 
-  <p class="we-onward-contact rv" data-rv="meta">
-    <a href={routePath('contact', locale)}>
-      <span class="box" aria-hidden="true"></span>
-      {copy.onward.contact}
-    </a>
-  </p>
+  {showContact && (
+    <p class="we-onward-contact rv" data-rv="meta">
+      <a href={routePath('contact', locale)}>
+        <span class="box" aria-hidden="true"></span>
+        {copy.onward.contact}
+      </a>
+    </p>
+  )}
 </div>

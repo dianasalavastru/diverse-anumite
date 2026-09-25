@@ -1,3 +1,6 @@
+import { contactChannels, type ContactChannel } from '../../lib/i18n/contact';
+import type { Locale } from '../../lib/i18n/routes';
+
 /**
  * Whether the Contact page offers the enquiry form (C-3) at all.
  *
@@ -31,3 +34,38 @@
  * Flipping this to `true` restores the full composition exactly as it was.
  */
 export const ENQUIRY_FORM_ENABLED = false;
+
+/**
+ * What the contact-availability check reads. Injectable so the rule itself can be
+ * exercised without mocking a module; the pages never pass it.
+ */
+export interface ContactAvailability {
+  readonly formEnabled: boolean;
+  readonly channels: readonly ContactChannel[];
+}
+
+/**
+ * Whether the Contact route currently offers the visitor any way to reach the
+ * studio: the enquiry form is enabled, OR at least one confirmed direct channel
+ * is published (`contactChannels()` in `lib/i18n/contact.ts`).
+ *
+ * The one gate for every actionable CTA whose sole destination is Contact
+ * (Service S-5, hub H-6, homepage M-6, Work Entry W-7, the About closing). While
+ * it is `false`, those CTAs are not rendered — an invitation to "start a
+ * conversation" on a page that offers no way to have one is a dead end. The CTA
+ * strings stay locked and untouched in the message files; enabling the form or
+ * publishing a channel brings every CTA back with no editorial change.
+ *
+ * NOT gated by this: the header / footer "Contact" navigation item — navigation,
+ * not a call to action — and the Contact page itself, which stays reachable and
+ * uses the same predicate to choose its no-channel copy (`ContactPage.astro`).
+ */
+export function isContactActionable(
+  locale: Locale,
+  availability: ContactAvailability = {
+    formEnabled: ENQUIRY_FORM_ENABLED,
+    channels: contactChannels(locale),
+  },
+): boolean {
+  return availability.formEnabled || availability.channels.length > 0;
+}

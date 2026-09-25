@@ -27,17 +27,19 @@
  * injection surface later.
  */
 import SectionMarker from '../SectionMarker.astro';
+import type { Locale } from '../../lib/content';
 import type { PillarHubMessages } from '../../lib/i18n/pillar-hub';
-import { ENQUIRY_FORM_ENABLED } from '../contact/availability';
+import { ENQUIRY_FORM_ENABLED, isContactActionable } from '../contact/availability';
 
 interface Props {
+  locale: Locale;
   copy: PillarHubMessages['conversation'];
   /** Contact with the pillar Topic prefilled. */
   contactHref: string;
   station: number;
 }
 
-const { copy, contactHref, station } = Astro.props;
+const { locale, copy, contactHref, station } = Astro.props;
 
 /**
  * The note ("Mesajul pornește cu subiectul deja setat pe …") describes the
@@ -47,8 +49,23 @@ const { copy, contactHref, station } = Astro.props;
  * the message files; flipping the flag brings it back unchanged.
  */
 const showNote = ENQUIRY_FORM_ENABLED && copy.note !== '';
+
+/**
+ * The single primary action points only at Contact, so it renders only while
+ * Contact offers a way to reach the studio (`isContactActionable`). The string is
+ * locked and untouched; it returns the moment the form or a channel does.
+ *
+ * With the action gone (and the note already gone with the form), a hub that
+ * authors no invitation — both locked hubs today — would be left with nothing but
+ * its section marker. An empty station is not rendered: the whole section is
+ * omitted. Its rail stop (06) simply never activates, the same inert state H-3
+ * leaves when it hides itself; the locked numbering is not reflowed.
+ */
+const showAction = isContactActionable(locale);
+const hasContent = showAction || Boolean(copy.invitation);
 ---
 
+{hasContent && (
 <section class="hub-conversation" data-station={station} aria-labelledby="conversation-heading">
   <SectionMarker copy={copy.marker} heading id="conversation-heading" />
 
@@ -64,11 +81,14 @@ const showNote = ENQUIRY_FORM_ENABLED && copy.note !== '';
       )
     }
 
-    <div class="rv" data-rv="meta">
-      <a class="hub-primary" href={contactHref}>
-        {copy.action}<span class="ar" aria-hidden="true">→</span>
-      </a>
-      {showNote && <p class="note">{copy.note}</p>}
-    </div>
+    {showAction && (
+      <div class="rv" data-rv="meta">
+        <a class="hub-primary" href={contactHref}>
+          {copy.action}<span class="ar" aria-hidden="true">→</span>
+        </a>
+        {showNote && <p class="note">{copy.note}</p>}
+      </div>
+    )}
   </div>
 </section>
+)}

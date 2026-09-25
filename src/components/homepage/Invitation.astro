@@ -28,6 +28,7 @@ import SectionMarker from '../SectionMarker.astro';
 import type { Locale } from '../../lib/content';
 import type { HomepageMessages } from '../../lib/i18n/homepage';
 import { routePath } from '../../lib/i18n/routes';
+import { isContactActionable } from '../contact/availability';
 
 interface Props {
   locale: Locale;
@@ -36,6 +37,15 @@ interface Props {
 }
 
 const { locale, copy, station } = Astro.props;
+
+/**
+ * The action's only destination is Contact, so it renders only while Contact
+ * offers a way to reach the studio (`contact/availability.ts`); the locked string
+ * returns untouched with the form or a confirmed channel. The section itself
+ * stays: its question and its confirmed contact rows are content in their own
+ * right, and its locked station number (06) is not touched.
+ */
+const showAction = isContactActionable(locale);
 ---
 
 <section class="invite" data-station={station} aria-labelledby="invite-heading">
@@ -44,11 +54,13 @@ const { locale, copy, station } = Astro.props;
 
     <h2 class="q rv" data-rv="head" id="invite-heading">{copy.question}</h2>
 
-    <a class="act rv" data-rv="meta" href={routePath('contact', locale)}>
-      <span class="box" aria-hidden="true"></span>
-      {copy.action}
-      <span class="ar" aria-hidden="true">→</span>
-    </a>
+    {showAction && (
+      <a class="act rv" data-rv="meta" href={routePath('contact', locale)}>
+        <span class="box" aria-hidden="true"></span>
+        {copy.action}
+        <span class="ar" aria-hidden="true">→</span>
+      </a>
+    )}
   </div>
 
   {

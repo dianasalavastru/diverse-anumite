@@ -72,15 +72,17 @@ describe('About RO — absent sections render nothing', () => {
     }
   });
 
-  it('offers the three onward paths, Services included, in the IA order', () => {
-    const onward = html.slice(html.indexOf('ab-onward'));
+  it('offers Work then Services, and no Contact path while Contact is not actionable', () => {
+    const onward = html.slice(html.indexOf('ab-onward'), html.indexOf('</ul>', html.indexOf('ab-onward')));
     const work = onward.indexOf('Vezi proiectele');
     const services = onward.indexOf('Servicii');
-    const contact = onward.indexOf('Discutăm despre un proiect');
     expect(work).toBeGreaterThan(-1);
     expect(services).toBeGreaterThan(work);
-    expect(contact).toBeGreaterThan(services);
+    expect(onward).not.toContain('Discutăm despre un proiect');
+    expect(onward).not.toContain('/contact');
+    expect(onward.match(/<li\b/g)).toHaveLength(2);
   });
+  // The three-path order with Contact available is pinned in `contact/cta-gating.test.ts`.
 
   it('renders the locked footer statement', () => {
     expect(html).toContain('Atelier multidisciplinar din Cluj-Napoca.');

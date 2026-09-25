@@ -57,6 +57,7 @@ import type { ServiceMessages } from '../../lib/i18n/service';
 import { localize } from '../../lib/content';
 import { routePath } from '../../lib/i18n/routes';
 import { pillarLabel, pillarRouteKey } from '../../lib/i18n/vocabulary';
+import { isContactActionable } from '../contact/availability';
 import { contactPrefillQuery } from '../contact/prefill';
 
 interface Props {
@@ -84,6 +85,15 @@ const contactHref = `${routePath('contact', locale)}${contactPrefillQuery(
   { topic: pillar, regarding: serviceSlug },
   locale,
 )}`;
+
+/**
+ * The primary action's only destination is Contact, so it renders only while
+ * Contact offers a way to reach the studio (`contact/availability.ts`). The locked
+ * string is untouched and returns with the form or a confirmed channel. S-5 is
+ * still a real station without it — the Pillar back-path stays — so the module,
+ * and therefore the rail's numbering (`modules.ts`), is unchanged.
+ */
+const showAction = isContactActionable(locale);
 ---
 
 <div class="sv-conversion">
@@ -94,13 +104,15 @@ const contactHref = `${routePath('contact', locale)}${contactPrefillQuery(
     <p class="sv-invite rv" data-rv="head">{copy.conversion.invitation}</p>
   )}
 
-  <p class="sv-conversion-act rv" data-rv="meta">
-    <a class="sv-action sv-action--primary" href={contactHref}>
-      <span class="box" aria-hidden="true"></span>
-      {copy.conversion.contact}
-      <span class="ar" aria-hidden="true">→</span>
-    </a>
-  </p>
+  {showAction && (
+    <p class="sv-conversion-act rv" data-rv="meta">
+      <a class="sv-action sv-action--primary" href={contactHref}>
+        <span class="box" aria-hidden="true"></span>
+        {copy.conversion.contact}
+        <span class="ar" aria-hidden="true">→</span>
+      </a>
+    </p>
+  )}
 
   <p class="sv-conversion-back rv" data-rv="meta">
     <a class="sv-backpath" href={hubHref}>

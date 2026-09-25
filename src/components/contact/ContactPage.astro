@@ -94,7 +94,7 @@ import { localize, type Locale } from '../../lib/content';
 import { contactChannels, contactMessages } from '../../lib/i18n/contact';
 import { pillarLabel } from '../../lib/i18n/vocabulary';
 import type { PrefillService } from './prefill';
-import { ENQUIRY_FORM_ENABLED } from './availability';
+import { ENQUIRY_FORM_ENABLED, isContactActionable } from './availability';
 
 /* ── I-3 — the one content read on this page ───────────────────────────────── */
 import { contentSource } from '../../lib/content/build-source';
@@ -180,9 +180,10 @@ const hasDirect = channels.length > 0 || copy.expectation !== '';
  * so the form-enabled eyebrow / statement / description ("începem o conversație",
  * "Aici începe conversația…", "un formular scurt…") would promise something the
  * page cannot do. They are swapped here — not rewritten — so enabling the form or
- * publishing a channel restores them untouched.
+ * publishing a channel restores them untouched. `isContactActionable` is the same
+ * predicate that gates every Contact CTA elsewhere on the site.
  */
-const noChannel = !formEnabled && channels.length === 0;
+const noChannel = !isContactActionable(locale);
 const orientation = noChannel
   ? { ...copy.orientation, eyebrow: copy.closed.eyebrow }
   : copy.orientation;

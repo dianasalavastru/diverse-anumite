@@ -26,9 +26,10 @@
  */
 
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
-import { beforeAll, describe, expect, it } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import ServicePage from './ServicePage.astro';
+import type { ContactChannel } from '../../lib/i18n/contact';
 import type {
   Curation,
   ImageAsset,
@@ -38,6 +39,26 @@ import type {
   WorkEntry,
   WorkEntrySummary,
 } from '../../lib/content';
+
+/**
+ * S-5's Contact action renders only while Contact is actionable
+ * (`contact/availability.ts`: the enquiry form OR a confirmed direct channel). Neither
+ * exists at launch, so the prefill assertions below publish a stand-in channel through
+ * the real source (`contactChannels`) and let the real predicate decide. The channel is
+ * test data, never rendered on this page.
+ */
+const contact = vi.hoisted(() => ({ channels: [] as ContactChannel[] }));
+vi.mock('../../lib/i18n/contact', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../lib/i18n/contact')>()),
+  contactChannels: () => contact.channels,
+}));
+const CHANNEL: ContactChannel = { label: 'Test', value: 'test', href: null };
+const withContactChannel = () => {
+  contact.channels = [CHANNEL];
+};
+afterEach(() => {
+  contact.channels = [];
+});
 
 let container: AstroContainer;
 
@@ -205,6 +226,7 @@ describe('an A&D service with demonstrating work', () => {
   });
 
   it('emits the frozen Contact prefill and no other query contract', async () => {
+    withContactChannel();
     const html = await render(design, 'ro');
     expect(html).toContain('/contact?topic=arhitectura-design&#38;regarding=proiectare-arhitectura');
   });
@@ -354,8 +376,19 @@ describe('#104 — a service with zero demonstrating work renders no S-4', () =>
   });
 
   it('keeps S-5 complete: the Contact action and the Hub back-path', async () => {
+    withContactChannel();
     const html = await render(thin, 'ro');
     expect(html).toContain('/contact?topic=reality-capture&#38;regarding=scanare-3d');
+    expect(html).toContain('sv-conversion-back');
+    expect(html).toContain('Vezi Reality Capture');
+  });
+
+  it('while Contact is not actionable, S-5 keeps its back-path and its station, without the action', async () => {
+    const html = await render(thin, 'ro');
+    expect(html).not.toContain('/contact?topic=');
+    expect(html).not.toContain('sv-action--primary');
+    expect(html).not.toContain('Începeți o conversație');
+    expect(html).toMatch(/class="sv-section sv-conversion-section" data-station="3"/);
     expect(html).toContain('sv-conversion-back');
     expect(html).toContain('Vezi Reality Capture');
   });
@@ -401,6 +434,7 @@ describe('localization (§11.2)', () => {
   });
 
   it('localizes both prefill parameters together', async () => {
+    withContactChannel();
     const html = await render(service({ _id: 'sv-en' }), 'en');
     expect(html).toContain('/en/contact?topic=reality-capture&#38;regarding=3d-scanning');
   });

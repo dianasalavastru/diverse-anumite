@@ -87,6 +87,7 @@ import ViewTransition from '../ViewTransition.astro';
 import type { Locale } from '../../lib/content';
 import { aboutMessages } from '../../lib/i18n/about';
 import { routePath } from '../../lib/i18n/routes';
+import { isContactActionable } from '../contact/availability';
 
 interface Props {
   locale: Locale;
@@ -105,7 +106,12 @@ const copy = aboutMessages(locale);
 const onward = [
   { href: routePath('workArchive', locale), label: copy.closing.work },
   { href: routePath('services', locale), label: copy.closing.services },
-  { href: routePath('contact', locale), label: copy.closing.contact },
+  /* The Contact path is an action whose only destination is Contact, so it is listed
+     only while Contact offers a way to reach the studio (`contact/availability.ts`).
+     The locked label returns untouched with the form or a confirmed channel. */
+  ...(isContactActionable(locale)
+    ? [{ href: routePath('contact', locale), label: copy.closing.contact }]
+    : []),
 ];
 
 const hasClosingSay = Boolean(copy.closing.statement || copy.closing.funding);
