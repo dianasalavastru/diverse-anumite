@@ -173,6 +173,21 @@ const hasSecondary = hasTopics || channels.length > 0 || copy.expectation !== ''
  */
 const formEnabled = ENQUIRY_FORM_ENABLED;
 const hasDirect = channels.length > 0 || copy.expectation !== '';
+
+/**
+ * The NO-CHANNEL copy (`copy.closed`, human-approved): with the form off AND no
+ * confirmed direct channel, nothing on the page lets a visitor reach the studio,
+ * so the form-enabled eyebrow / statement / description ("începem o conversație",
+ * "Aici începe conversația…", "un formular scurt…") would promise something the
+ * page cannot do. They are swapped here — not rewritten — so enabling the form or
+ * publishing a channel restores them untouched.
+ */
+const noChannel = !formEnabled && channels.length === 0;
+const orientation = noChannel
+  ? { ...copy.orientation, eyebrow: copy.closed.eyebrow }
+  : copy.orientation;
+const statement = noChannel ? copy.closed.statement : copy.orientation.statement;
+const description = noChannel ? copy.closed.description : copy.meta.description;
 ---
 
 <BaseLayout
@@ -180,7 +195,7 @@ const hasDirect = channels.length > 0 || copy.expectation !== '';
   rhythm="service"
   routeKey="contact"
   title={copy.meta.title}
-  description={copy.meta.description}
+  description={description}
 >
   <ViewTransition />
 
@@ -216,14 +231,14 @@ const hasDirect = channels.length > 0 || copy.expectation !== '';
       </div>
     ) : (
       <div class="c-page">
-        <ContactOrientation locale={locale} copy={copy.orientation} />
+        <ContactOrientation locale={locale} copy={orientation} />
 
         {/* One column, no grid: `.c-body`'s desktop grid seats the lead in the
             SECOND track beside the form, and with no form that would leave the
             first track empty. The block below keeps `.c-body`'s own vertical
             pacing (see the scoped style) and nothing else. */}
         <div class="c-closed">
-          <p class="c-statement rv" data-rv="meta">{copy.orientation.statement}</p>
+          <p class="c-statement rv" data-rv="meta">{statement}</p>
           {hasDirect && (
             <>
               <ContactMethods channels={channels} />

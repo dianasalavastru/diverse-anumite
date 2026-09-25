@@ -22,7 +22,11 @@
  *     page — the parameters are simply ignored;
  *   · C-4 (direct channels) and C-5 (response expectation) still render the
  *     moment they carry confirmed values — today both are empty, so neither
- *     appears (`lib/i18n/contact.ts`).
+ *     appears (`lib/i18n/contact.ts`);
+ *   · while `contactChannels()` is also empty, C-1 and the meta description use
+ *     the no-channel copy (`copy.closed` in `lib/i18n/contact.ts`) instead of the
+ *     form-enabled invitation, and the hubs' H-6 prefill note is not rendered
+ *     (`pillar-hub/Conversation.astro`).
  *
  * Flipping this to `true` restores the full composition exactly as it was.
  */

@@ -28,6 +28,7 @@
  */
 import SectionMarker from '../SectionMarker.astro';
 import type { PillarHubMessages } from '../../lib/i18n/pillar-hub';
+import { ENQUIRY_FORM_ENABLED } from '../contact/availability';
 
 interface Props {
   copy: PillarHubMessages['conversation'];
@@ -37,6 +38,15 @@ interface Props {
 }
 
 const { copy, contactHref, station } = Astro.props;
+
+/**
+ * The note ("Mesajul pornește cu subiectul deja setat pe …") describes the
+ * Contact FORM's topic prefill — it tells the visitor they can send a message
+ * through the site. While the form is off (`contact/availability.ts`) that is
+ * untrue, so the note is not rendered. The string itself is locked and stays in
+ * the message files; flipping the flag brings it back unchanged.
+ */
+const showNote = ENQUIRY_FORM_ENABLED && copy.note !== '';
 ---
 
 <section class="hub-conversation" data-station={station} aria-labelledby="conversation-heading">
@@ -58,7 +68,7 @@ const { copy, contactHref, station } = Astro.props;
       <a class="hub-primary" href={contactHref}>
         {copy.action}<span class="ar" aria-hidden="true">→</span>
       </a>
-      <p class="note">{copy.note}</p>
+      {showNote && <p class="note">{copy.note}</p>}
     </div>
   </div>
 </section>

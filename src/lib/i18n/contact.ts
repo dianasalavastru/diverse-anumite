@@ -74,6 +74,25 @@ export interface ContactMessages {
     readonly here: string;
   };
 
+  /**
+   * C-1 · the NO-CHANNEL variant — used instead of `meta.description`,
+   * `orientation.eyebrow` and `orientation.statement` while the enquiry form is
+   * OFF (`availability.ts`) AND no confirmed direct channel exists
+   * (`contactChannels()` is empty). The `meta` / `orientation` values above
+   * belong to the form-enabled page: they invite a visitor to start a
+   * conversation here, which is untrue while nothing on the page accepts one.
+   * Both sets are kept, so re-enabling the form (or publishing a channel)
+   * restores the original copy without a copy change. `ContactPage.astro`
+   * selects between them.
+   *
+   * Carries no fact: no address, no response time, no availability.
+   */
+  readonly closed: {
+    readonly description: string;
+    readonly eyebrow: string;
+    readonly statement: string;
+  };
+
   /** C-2 · Context summary — Topic / Regarding (Stage B). */
   readonly context: {
     readonly label: string;
@@ -165,6 +184,13 @@ const ro: ContactMessages = {
     here: 'Contact',
   },
 
+  /* Human-approved (Stable RO): the page until confirmed contact channels exist. */
+  closed: {
+    description: 'Contact · diverse anumite',
+    eyebrow: 'Contact',
+    statement: 'Datele de contact ale atelierului vor fi disponibile aici.',
+  },
+
   context: {
     label: 'Ne scrieți despre',
     neutral: 'încă nu știți exact — e în regulă, începem de la mesajul dumneavoastră',
@@ -248,6 +274,14 @@ const en: ContactMessages = {
     breadcrumbLabel: 'Breadcrumb',
     home: 'Home',
     here: 'Contact',
+  },
+
+  /* EN is WITHHELD at launch — no translation authored. Empty until C supplies it;
+     never rendered while `/en/` is withheld. */
+  closed: {
+    description: '',
+    eyebrow: '',
+    statement: '',
   },
 
   context: {

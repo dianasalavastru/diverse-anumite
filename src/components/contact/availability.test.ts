@@ -77,14 +77,32 @@ describe('Contact page — enquiry form disabled (launch default)', () => {
     expect(html).not.toContain('Mesajul a ajuns la noi.');
   });
 
-  it('keeps the orientation: breadcrumb, eyebrow, heading, statement', async () => {
+  it('keeps the breadcrumb and renders the no-channel copy exactly', async () => {
     const html = await renderContact();
 
     expect(html).toContain('class="c-crumbs"');
     expect(html).toContain('Acasă');
-    expect(html).toContain('Contact · începem o conversație');
+    expect(html).toMatch(/<p class="eyebrow[^"]*"[^>]*>Contact<\/p>/);
     expect(html).toMatch(/<h1[^>]*>Contact<\/h1>/);
-    expect(html).toContain('Aici începe conversația.');
+    expect(html).toMatch(
+      /<p class="c-statement[^"]*"[^>]*>Datele de contact ale atelierului vor fi disponibile aici\.<\/p>/,
+    );
+    expect(html).toMatch(/<meta name="description" content="Contact · diverse anumite"/);
+  });
+
+  it('carries no wording that implies a message can be sent through the site', async () => {
+    const html = await renderContact();
+
+    for (const forbidden of [
+      '<form',
+      'începem o conversație',
+      'Aici începe conversația',
+      'formular',
+      '[dev]',
+      '/api/contact',
+    ]) {
+      expect(html).not.toContain(forbidden);
+    }
   });
 });
 
@@ -100,5 +118,14 @@ describe('Contact page — enquiry form enabled (flag flipped)', () => {
     expect(html).toContain('data-confirmation');
     expect(html).toMatch(/<script[^>]*type="module"/);
     expect(html).not.toContain('[dev]');
+  });
+
+  it('restores the form-enabled orientation and description', async () => {
+    const html = await renderContact(true);
+
+    expect(html).toContain('Contact · începem o conversație');
+    expect(html).toContain('Aici începe conversația.');
+    expect(html).toContain('un formular scurt');
+    expect(html).not.toContain('Datele de contact ale atelierului vor fi disponibile aici.');
   });
 });
