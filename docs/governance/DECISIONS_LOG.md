@@ -250,6 +250,10 @@ The client supplied a factual service description (`Descriere servicii.odt`, 202
 
 110. **Contact form hidden until a backend exists; production 404 added.** `ENQUIRY_FORM_ENABLED = false` removes the form, its prefill context, topics, confirmation and island from `/contact`; no `[dev]` submission text ships. Direct channels render only from confirmed client values (none yet). `src/pages/404.astro` renders exactly `Pagina nu a fost găsită.` / `Pagina pe care o cauți nu există sau a fost mutată.` / `Înapoi la pagina principală`, so Cloudflare Pages serves a real 404 for unknown paths and `/en/*`.
 
+111. **Competitions are withheld while there is no eligible entry.** `/proiecte/concursuri` emits no file, and every link to it (Homepage M-5 station, archive A-7) is omitted, whenever no published, non-illustrative Work carries the `competition` Label (`isEligibleCompetition` / `ContentSource.hasCompetitions`). No entry is fabricated and the empty-state copy is unchanged; the first real competition entry restores page and links with no code change.
+
+112. **Contact shows temporary no-channel copy.** While the form is disabled and no confirmed channel exists, `/contact` renders exactly eyebrow `Contact`, H1 `Contact`, statement `Datele de contact ale atelierului vor fi disponibile aici.` and meta description `Contact · diverse anumite`; the form-enabled strings are kept for later. The hubs' locked prefill note ("Mesajul pornește cu subiectul deja setat pe …") renders only while the form is enabled; its text is unchanged.
+
 ### Open (non-blocking, carried into design/build)
 - Multi-select within a facet; inline vs expander rendering (design-step).
 - Confirm EU programme publicity rules.
