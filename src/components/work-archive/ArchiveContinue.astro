@@ -33,9 +33,15 @@ interface Props {
   copy: WorkArchiveMessages['continue'];
   /** Which archive-family surface this is, so it never links to itself. */
   current: RouteKey;
+  /**
+   * `source.hasCompetitions(locale)`. When `false` the Competitions page emits no file (launch
+   * withholding, `pages/proiecte/concursuri.astro`), so its destination is omitted — never a
+   * dead link. Required, so no caller can forget the gate.
+   */
+  hasCompetitions: boolean;
 }
 
-const { locale, copy, current } = Astro.props;
+const { locale, copy, current, hasCompetitions } = Astro.props;
 
 /*
  * STAGE 2: the Professional Experience destination is gone. That curated view is permanently
@@ -44,21 +50,24 @@ const { locale, copy, current } = Astro.props;
  */
 const destinations: { key: RouteKey; label: string }[] = [
   { key: 'workArchive', label: copy.fullArchive },
-  { key: 'competitions', label: copy.competitions },
+  ...(hasCompetitions ? [{ key: 'competitions' as RouteKey, label: copy.competitions }] : []),
 ].filter((destination) => destination.key !== current) as { key: RouteKey; label: string }[];
 ---
 
-<nav class="wa-continue" aria-label={copy.label}>
-  <span class="lab">{copy.label}</span>
-  <ul>
-    {
-      destinations.map((destination) => (
-        <li>
-          <a href={routePath(destination.key as never, locale, undefined as never)}>
-            {destination.label} <span class="ar" aria-hidden="true">→</span>
-          </a>
-        </li>
-      ))
-    }
-  </ul>
-</nav>
+{/* Nothing left to offer (e.g. the full archive with Competitions withheld) → no empty nav. */}
+{
+  destinations.length > 0 && (
+    <nav class="wa-continue" aria-label={copy.label}>
+      <span class="lab">{copy.label}</span>
+      <ul>
+        {destinations.map((destination) => (
+          <li>
+            <a href={routePath(destination.key as never, locale, undefined as never)}>
+              {destination.label} <span class="ar" aria-hidden="true">→</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}

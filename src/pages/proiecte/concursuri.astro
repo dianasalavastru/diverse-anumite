@@ -6,8 +6,21 @@
  * Work Entry may claim `concursuri` in RO. `RESERVED_SLUGS` in `routes.ts`
  * generates that list from this same route table, and the CMS validator reads it
  * (§7.7) — so this file existing is what reserves the slug, in one place.
+ *
+ * LAUNCH WITHHOLDING (human-approved decision): with zero eligible entries
+ * (`ContentSource.hasCompetitions` → `isEligibleCompetition`, derive.ts) this page
+ * returns an empty 404, for which Astro's static build writes NO file — the same
+ * technique as the EN withholding (`withheldLocaleResponse`). Every discovery
+ * link to this route reads the same gate, so nothing links to the missing page.
+ * It is data-driven: publishing one real competition entry brings the page and
+ * its links back with no code change. The slug stays reserved either way.
  */
 import CuratedCompetitions from '../../components/work-archive/CuratedCompetitions.astro';
+import { contentSource } from '../../lib/content/build-source';
+
+if (!(await contentSource().hasCompetitions('ro'))) {
+  return new Response(null, { status: 404 });
+}
 ---
 
 <CuratedCompetitions locale="ro" />

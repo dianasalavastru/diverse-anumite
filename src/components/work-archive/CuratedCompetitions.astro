@@ -91,7 +91,13 @@ const items = await source.curatedView('competitions', locale);
         /* The aggregate empty state IA M3 defers to this layer: an editorial
            message and a way onward, never a bare grid — the same philosophy A-6
            and F5 apply, which is the only guidance the corpus gives for an
-           aggregate page with nothing in it. */
+           aggregate page with nothing in it.
+
+           UNREACHABLE while the launch withholding stands: the RO page file
+           (`pages/proiecte/concursuri.astro`) emits nothing unless
+           `hasCompetitions` is true, so this branch never renders there. It is
+           kept, copy unchanged, so the component stays correct on its own and
+           the withholding can be lifted without re-deriving it. */
         items.length > 0 ? (
           <ResultsGrid locale={locale} items={items} openLabel={copy.results.open} />
         ) : (
@@ -100,6 +106,12 @@ const items = await source.curatedView('competitions', locale);
       }
     </section>
 
-    <ArchiveContinue locale={locale} copy={copy.continue} current="competitions" />
+    {/* `current` already drops the self-link; `hasCompetitions` is passed for the contract. */}
+    <ArchiveContinue
+      locale={locale}
+      copy={copy.continue}
+      current="competitions"
+      hasCompetitions={items.length > 0}
+    />
   </div>
 </BaseLayout>

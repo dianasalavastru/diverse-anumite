@@ -62,9 +62,11 @@ interface Props {
 const { locale } = Astro.props;
 const copy = workArchiveMessages(locale);
 
-const [items, services] = await Promise.all([
+const [items, services, hasCompetitions] = await Promise.all([
   source.workArchive(locale),
   source.serviceSummaries(locale),
+  // The Competitions launch-withholding gate (A-7 link) — see `pages/proiecte/concursuri.astro`.
+  source.hasCompetitions(locale),
 ]);
 
 /** Option lists projected from the rendered set — never from the full vocabulary. */
@@ -174,7 +176,12 @@ const basePath = routePath('workArchive', locale);
       />
     </section>
 
-    <ArchiveContinue locale={locale} copy={copy.continue} current="workArchive" />
+    <ArchiveContinue
+      locale={locale}
+      copy={copy.continue}
+      current="workArchive"
+      hasCompetitions={hasCompetitions}
+    />
   </div>
 
   <script>

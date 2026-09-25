@@ -28,7 +28,7 @@
  */
 
 import { createContentClient, type ContentClient } from './client.js';
-import { isCompetition, isEnAvailable, type EnGated } from './derive.js';
+import { isEligibleCompetition, isEnAvailable, type EnGated } from './derive.js';
 import {
   QUERY_ALL_SERVICES,
   QUERY_ALL_SERVICE_SUMMARIES,
@@ -79,6 +79,12 @@ export interface ContentSource {
   /** The archive set, in discovery order (§7.6), carrying the §23.5 filter facets. */
   workArchive(locale: Locale, scope?: PillarScope): Promise<readonly WorkArchiveItem[]>;
   curatedView(view: 'competitions', locale: Locale): Promise<readonly WorkArchiveItem[]>;
+  /**
+   * Does `locale` have at least one eligible Competitions entry (`isEligibleCompetition`)?
+   * The single gate for the Competitions route AND every discovery link to it: when `false` the
+   * page emits no file and no surface links to it (launch withholding; reverses automatically).
+   */
+  hasCompetitions(locale: Locale): Promise<boolean>;
   services(locale: Locale): Promise<readonly Service[]>;
   service(slug: string, locale: Locale): Promise<Service | null>;
   serviceSummaries(locale: Locale, pillar?: Pillar): Promise<readonly ServiceSummary[]>;
@@ -125,7 +131,7 @@ function scopeService(service: Service, locale: Locale): Service {
  * ──────────────────────────────────────────────────────────────────────────── */
 
 /*
- * The Label predicates — `hasLabel` and `isCompetition` — live in `derive.ts`, not here.
+ * The Label predicates — `hasLabel`, `isCompetition` and `isEligibleCompetition` — live in `derive.ts`, not here.
  *
  * `components/work-entry/modules.ts` needs the same "is this a competition" answer for the W-4
  * toggle, and it is browser-reachable: it may only import the boundary barrel (§8, B4), which
@@ -200,7 +206,11 @@ export function createContentSource(documents: RawDocuments): ContentSource {
     },
 
     async curatedView(_view, locale) {
-      return discoveryOrder((await archiveItems(locale)).filter(isCompetition));
+      return discoveryOrder((await archiveItems(locale)).filter(isEligibleCompetition));
+    },
+
+    async hasCompetitions(locale) {
+      return (await archiveItems(locale)).some(isEligibleCompetition);
     },
 
     async services(locale) {

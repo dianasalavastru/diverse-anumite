@@ -139,3 +139,30 @@ export function hasLabel(item: LabelledItem, label: ProjectLabel): boolean {
 export function isCompetition(item: LabelledItem): boolean {
   return hasLabel(item, 'competition');
 }
+
+/**
+ * The minimum an object needs for the Competitions eligibility test: its Labels and its
+ * illustrative flag. Satisfied by `WorkEntry`, `WorkEntrySummary` and `WorkArchiveItem`.
+ */
+export interface CompetitionCandidate extends LabelledItem {
+  readonly illustrative: boolean;
+}
+
+/**
+ * Does this project count towards the Competitions curated view? — **the one eligibility
+ * predicate** for `/proiecte/concursuri` and every link that leads to it.
+ *
+ * Eligible = carries the `competition` Label AND is real Work. Illustrative Work is forbidden
+ * from carrying Labels (`requirements.ts`, ILLUSTRATIVE extras), so the second clause should
+ * never bite on valid content; it is asserted here anyway so an example can never, even through
+ * invalid data, be what keeps the route alive. Publication (no drafts) and locale availability
+ * are applied upstream by `ContentSource` before any item reaches this test.
+ *
+ * LAUNCH WITHHOLDING (human-approved decision): when a locale has zero eligible entries the
+ * Competitions page emits no file and every discovery link to it is omitted. Both read
+ * `ContentSource.hasCompetitions(locale)`, which is built on this predicate, so the withholding
+ * reverses itself the moment one real competition entry is published — no code change needed.
+ */
+export function isEligibleCompetition(item: CompetitionCandidate): boolean {
+  return !item.illustrative && isCompetition(item);
+}

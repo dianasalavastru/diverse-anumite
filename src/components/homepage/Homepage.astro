@@ -61,12 +61,13 @@ interface Props {
 const { locale } = Astro.props;
 const copy = homepageMessages(locale);
 
-const [placedAnywhere, placedArchitecture, placedRealityCapture, competitions] =
+const [placedAnywhere, placedArchitecture, placedRealityCapture, competitions, hasCompetitions] =
   await Promise.all([
     source.highlights('homepage', null, locale),
     source.highlights('homepage', 'architecture-design', locale),
     source.highlights('homepage', 'reality-capture', locale),
     source.curatedView('competitions', locale),
+    source.hasCompetitions(locale),
   ]);
 
 /**
@@ -171,12 +172,21 @@ const STATIONS = {
     station={STATIONS.work}
   />
 
-  <CuratedViews
-    locale={locale}
-    copy={copy.curated}
-    competitions={competitions}
-    station={STATIONS.curated}
-  />
+  {/* M-5 is Competitions alone, and its heading links to the Competitions route. Under the launch
+      withholding (`pages/proiecte/concursuri.astro`) that route emits no file while no eligible
+      entry exists, so the whole station is omitted rather than shown as a dead doorway. The
+      station numbers stay fixed (they are locked copy: markers, "06 stații"); rail stop 05 simply
+      has no section until a real competition entry is published, which restores it. */}
+  {
+    hasCompetitions && (
+      <CuratedViews
+        locale={locale}
+        copy={copy.curated}
+        competitions={competitions}
+        station={STATIONS.curated}
+      />
+    )
+  }
 
   <Invitation locale={locale} copy={copy.invitation} station={STATIONS.invitation} />
 </BaseLayout>

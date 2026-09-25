@@ -236,6 +236,13 @@ describe('Curated views (IA §2.2, §5.1)', () => {
     /* `curatedView` still takes a literal union; Competitions is now its only member. */
     expect((await source.curatedView('competitions', 'ro')).length).toBeGreaterThan(0);
   });
+
+  it('hasCompetitions is exactly "the curated view is non-empty", per locale', async () => {
+    for (const locale of ['ro', 'en'] as const) {
+      const view = await source.curatedView('competitions', locale);
+      expect(await source.hasCompetitions(locale)).toBe(view.length > 0);
+    }
+  });
 });
 
 describe('Curation placements (CONTENT_MODEL.md:77)', () => {
@@ -578,6 +585,8 @@ describe('Fixture and Sanity sources are interchangeable (§23.4)', () => {
     expect(Object.keys(source).sort()).toEqual(
       [
         'curatedView',
+        // The Competitions launch-withholding gate (`isEligibleCompetition`).
+        'hasCompetitions',
         'highlights',
         'service',
         'serviceSummaries',
