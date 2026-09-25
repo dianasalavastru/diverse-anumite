@@ -66,6 +66,12 @@ export default defineConfig({
     plugins: [credentialGuard()],
   },
 
+  /**
+   * `locales` = the locales the architecture SUPPORTS. Which locales a build actually EMITS is
+   * decided in one place, `src/lib/i18n/publication.ts` (`PUBLISHED_LOCALES`) — EN is withheld
+   * for the initial launch, and its pages emit no file. EN stays listed here so the route
+   * contract and the reversal (add 'en' there) are unchanged.
+   */
   i18n: {
     defaultLocale: 'ro',
     locales: ['ro', 'en'],

@@ -24,10 +24,14 @@
 import ServicePage from '../../../components/service/ServicePage.astro';
 import { contentSource } from '../../../lib/content/build-source';
 import { localize, serviceSheetCode } from '../../../lib/content';
+import { isLocalePublished } from '../../../lib/i18n/publication';
 import { indexById } from '../../../components/homepage/highlights';
 import type { Service, WorkEntry } from '../../../lib/content';
 
 export async function getStaticPaths() {
+  /* EN withheld for launch (lib/i18n/publication.ts): no path, and no Sanity query. */
+  if (!isLocalePublished('en')) return [];
+
   const source = contentSource();
 
   const [services, workEntries] = await Promise.all([

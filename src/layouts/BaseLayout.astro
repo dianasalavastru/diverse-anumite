@@ -16,11 +16,11 @@ import GlobalFooter from '../components/GlobalFooter.astro';
 import GlobalHeader from '../components/GlobalHeader.astro';
 import {
   counterpartPath,
-  hreflangAlternates,
   otherLocale,
   type Locale,
   type RouteKey,
 } from '../lib/i18n/routes';
+import { isLocalePublished, publishedHreflangAlternates } from '../lib/i18n/publication';
 import { ui } from '../lib/i18n/ui';
 import type { PageRhythm } from './rhythm';
 
@@ -63,8 +63,13 @@ const {
 
 const t = ui(locale);
 const alternateLocale = otherLocale(locale);
-const counterpart = counterpartPath(routeKey, alternateLocale, slugs?.[alternateLocale]);
-const alternates = hreflangAlternates(routeKey, slugs);
+/* An unpublished locale (EN, withheld for launch — lib/i18n/publication.ts) gets no
+   counterpart link, no hreflang set and no language toggle at all. */
+const alternatePublished = isLocalePublished(alternateLocale);
+const counterpart = alternatePublished
+  ? counterpartPath(routeKey, alternateLocale, slugs?.[alternateLocale])
+  : null;
+const alternates = publishedHreflangAlternates(routeKey, slugs);
 
 /** Absolute where `site` is configured, relative until it is (see astro.config). */
 const absolute = (path: string) => (Astro.site ? new URL(path, Astro.site).href : path);
@@ -86,7 +91,8 @@ const absolute = (path: string) => (Astro.site ? new URL(path, Astro.site).href 
     {description && <meta name="description" content={description} />}
 
     {/* §12: reciprocal hreflang + x-default -> RO, emitted only where both
-        counterparts exist. Self-referencing canonical URLs also belong here and
+        counterparts exist AND both locales are published (publication.ts).
+        Self-referencing canonical URLs also belong here and
         are NOT emitted yet: they require the production origin, which
         astro.config.mjs cannot set because no authoritative document names the
         custom domain. */}
@@ -171,6 +177,7 @@ const absolute = (path: string) => (Astro.site ? new URL(path, Astro.site).href 
       variant={headerVariant}
       counterpart={counterpart}
       counterpartLocale={alternateLocale}
+      languageToggle={alternatePublished}
     />
 
     {/* The coordinate rail, on the page types that have one (HP, HUB, RC, WE,

@@ -12,6 +12,12 @@
  */
 import ServicesIndexPage from '../../../components/services-index/ServicesIndexPage.astro';
 import { contentSource } from '../../../lib/content/build-source';
+import { withheldLocaleResponse } from '../../../lib/i18n/publication';
+
+/* EN is withheld for the initial launch (lib/i18n/publication.ts): no file is emitted,
+   and no Sanity query is made. */
+const withheld = withheldLocaleResponse('en');
+if (withheld) return withheld;
 
 /* ── I-3 — live Sanity, no fixture fallback ────────────────────────────────── */
 const source = contentSource();

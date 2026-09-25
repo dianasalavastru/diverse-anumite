@@ -59,6 +59,12 @@ interface Props {
   counterpart?: string | null;
   /** The other locale, for the switcher's `hreflang`/`lang`. */
   counterpartLocale: Locale;
+  /**
+   * `false` when the other locale is not published at all (lib/i18n/publication.ts): the
+   * toggle is OMITTED from both navs — not disabled — so no control points at a locale that
+   * does not ship. BaseLayout always passes it; the default keeps direct renders unchanged.
+   */
+  languageToggle?: boolean;
 }
 
 const {
@@ -67,6 +73,7 @@ const {
   variant = 'default',
   counterpart = null,
   counterpartLocale,
+  languageToggle = true,
 } = Astro.props;
 
 const t = ui(locale);
@@ -126,7 +133,7 @@ function isCurrent(key: RouteKey): boolean {
     }
 
     {
-      counterpart ? (
+      languageToggle && (counterpart ? (
         <a class="en" href={counterpart} hreflang={counterpartLocale} lang={counterpartLocale}>
           {toggleLabel}
         </a>
@@ -139,7 +146,7 @@ function isCurrent(key: RouteKey): boolean {
         >
           {toggleLabel}
         </span>
-      )
+      ))
     }
   </nav>
 
@@ -171,7 +178,7 @@ function isCurrent(key: RouteKey): boolean {
     }
 
     {
-      counterpart ? (
+      languageToggle && (counterpart ? (
         <a class="en" href={counterpart} hreflang={counterpartLocale} lang={counterpartLocale}>
           {toggleLabel}
         </a>
@@ -184,7 +191,7 @@ function isCurrent(key: RouteKey): boolean {
         >
           {toggleLabel}
         </span>
-      )
+      ))
     }
   </nav>
 </div>

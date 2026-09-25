@@ -52,6 +52,7 @@ type HeaderProps = {
   variant?: 'default' | 'on-hero';
   counterpart?: string | null;
   counterpartLocale: Locale;
+  languageToggle?: boolean;
 };
 
 const render = (props: HeaderProps) => container.renderToString(GlobalHeader, { props });
@@ -173,6 +174,41 @@ describe('the panel offers every destination the desktop row does', () => {
     const row = navHrefs(html.slice(0, split));
     expect(row.length).toBe(5); // four task links + the language toggle
     expect(navHrefs(html.slice(split))).toEqual(row);
+  });
+});
+
+describe('an unpublished locale has NO toggle at all (EN withheld, lib/i18n/publication.ts)', () => {
+  it('omits the toggle from the row and the panel — not disabled, absent', async () => {
+    const html = await render({
+      locale: 'ro',
+      counterpartLocale: 'en',
+      counterpart: null,
+      languageToggle: false,
+    });
+
+    expect(html).not.toContain('class="en"');
+    expect(html).not.toContain('aria-disabled="true"');
+    expect(html).not.toContain('lang="en"');
+    expect(html).not.toContain('href="/en');
+  });
+
+  it('keeps the four task links, identical in row and panel, and the enabled menu button', async () => {
+    const html = await render({ locale: 'ro', counterpartLocale: 'en', languageToggle: false });
+    const split = html.indexOf('<div class="menu-panel"');
+    const navHrefs = (part: string) =>
+      [...part.matchAll(/<nav[\s\S]*?<\/nav>/g)]
+        .flatMap((nav) => [...nav[0].matchAll(/href="([^"]+)"/g)].map((m) => m[1]))
+        .sort();
+
+    const row = navHrefs(html.slice(0, split));
+    expect(row).toEqual(
+      TASK_ROUTES.map((key) => routePath(key as never, 'ro', undefined as never)).sort(),
+    );
+    expect(navHrefs(html.slice(split))).toEqual(row);
+
+    const button = /<button[^>]*class="menu"[^>]*>/.exec(html)?.[0] ?? '';
+    expect(button).not.toBe('');
+    expect(button).not.toMatch(/\bdisabled\b/);
   });
 });
 

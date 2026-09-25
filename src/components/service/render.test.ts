@@ -384,10 +384,12 @@ describe('localization (§11.2)', () => {
     expect(html).toContain('lang="en"');
   });
 
-  it('emits the reciprocal hreflang pair only when both counterparts exist', async () => {
+  /* EN is withheld for launch (lib/i18n/publication.ts). The reciprocal pair that returns once EN
+     is published is proven in src/layouts/en-published.test.ts. */
+  it('emits no hreflang while EN is withheld for launch, even when both slugs exist', async () => {
     const both = await render(service({ _id: 'sv-both' }), 'ro');
-    expect(both).toContain('hreflang="en"');
-    expect(both).toContain('hreflang="x-default"');
+    expect(both).not.toContain('hreflang=');
+    expect(both).not.toContain('href="/en/');
 
     const roOnly = await render(
       service({ _id: 'sv-ro', slug: bi('doar-ro', null), enPublished: false }),

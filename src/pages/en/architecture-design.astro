@@ -13,6 +13,11 @@
  * `src/lib/i18n/architecture-design-hub.ts` (PENDING Workstream C).
  */
 import ArchitectureDesignHub from '../../components/pillar-hub/ArchitectureDesignHub.astro';
+import { withheldLocaleResponse } from '../../lib/i18n/publication';
+
+/* EN is withheld for the initial launch (lib/i18n/publication.ts): no file is emitted. */
+const withheld = withheldLocaleResponse('en');
+if (withheld) return withheld;
 ---
 
 <ArchitectureDesignHub locale="en" />

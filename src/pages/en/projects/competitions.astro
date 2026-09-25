@@ -6,6 +6,11 @@
  * Entry slugs, exactly as `concursuri` is to RO ones.
  */
 import CuratedCompetitions from '../../../components/work-archive/CuratedCompetitions.astro';
+import { withheldLocaleResponse } from '../../../lib/i18n/publication';
+
+/* EN is withheld for the initial launch (lib/i18n/publication.ts): no file is emitted. */
+const withheld = withheldLocaleResponse('en');
+if (withheld) return withheld;
 ---
 
 <CuratedCompetitions locale="en" />
