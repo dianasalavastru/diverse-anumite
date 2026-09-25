@@ -20,7 +20,8 @@
  * authors all three by hand for one fictional project, and no field in
  * `CONTENT_MODEL.md` §3 carries them (see WorkEntryPage.astro).
  *
- * OD-8 (§11.3): Romanian copy is authored WITHOUT diacritics.
+ * OD-8 (§11.3) as AMENDED by `DECISIONS_LOG.md` #103: Romanian human-facing copy is
+ * authored **WITH** correct diacritics (`ă â î ș ț`). Machine identifiers stay ASCII.
  */
 
 import type { Locale } from './routes';
@@ -152,20 +153,20 @@ export interface WorkEntryMessages {
 }
 
 /* -------------------------------------------------------------------------- */
-/* RO — diacritics removed per OD-8                                            */
+/* RO — diacritics per #103 (amending OD-8)                                    */
 /* -------------------------------------------------------------------------- */
 
 const ro: WorkEntryMessages = {
   breadcrumb: { label: 'Firul paginii', archive: 'Proiecte' },
 
   markers: {
-    facts: { no: '02', label: 'Fisa tehnica', coordinate: 'date masurate' },
+    facts: { no: '02', label: 'Fișa tehnică', coordinate: 'date măsurate' },
     evidence: { no: '03', label: 'Lucrarea', coordinate: 'descriere · imagini' },
-    credits: { no: '04', label: 'Credite', coordinate: 'atribuire onesta' },
-    competition: { no: '05', label: 'Concurs', coordinate: 'rezultat · echipa' },
+    credits: { no: '04', label: 'Credite', coordinate: 'atribuire onestă' },
+    competition: { no: '05', label: 'Concurs', coordinate: 'rezultat · echipă' },
     capture: { no: '06', label: 'Reality capture', coordinate: 'releveul acestui proiect' },
     services: { no: '07', label: 'Servicii demonstrate', coordinate: 'pe acest proiect' },
-    related: { no: '08', label: 'Proiecte inrudite', coordinate: 'context' },
+    related: { no: '08', label: 'Proiecte înrudite', coordinate: 'context' },
     onward: { no: '09', label: 'Mai departe', coordinate: 'capabilitate · contact' },
   },
 
@@ -173,15 +174,15 @@ const ro: WorkEntryMessages = {
     labels: 'Etichete',
     sector: 'Sector',
     year: 'An',
-    location: 'Locatie',
+    location: 'Locație',
     status: 'Status',
-    area: 'Suprafata',
+    area: 'Suprafață',
     client: 'Client',
     deliverables: 'Livrabile',
-    awards: 'Distinctii',
-    team: 'Echipa',
+    awards: 'Distincții',
+    team: 'Echipă',
     equipment: 'Echipament',
-    implementationCompany: 'Firma implementare',
+    implementationCompany: 'Firmă implementare',
     areaUnit: 'm²',
   },
 
@@ -191,14 +192,23 @@ const ro: WorkEntryMessages = {
 
   evidence: {
     galleryLabel: 'Imaginile proiectului',
-    heroFallbackAlt: 'Imagine substituent — fotografia proiectului, in asteptare',
+    /*
+     * ABSENT (C13). A placeholder announcement must not render publicly — not even as an
+     * accessible name. `''` is the absent-slot convention: `Plate` renders `alt=""` on a cover
+     * with no authored alt, and an `aria-hidden` empty plate otherwise.
+     */
+    heroFallbackAlt: '',
   },
 
   capture: {
     label: 'nor de puncte · releveul proiectului',
-    hint: 'trageti pentru a inspecta →',
-    posterAlt: 'Imagine substituent — nor de puncte, in asteptare',
-    unavailable: 'nor de puncte — asset in pregatire',
+    hint: 'trageți pentru a inspecta →',
+    /*
+     * ABSENT (C13; the placeholder policy #104 cites: asset-in-preparation notes are hidden).
+     * `''` is the absent-slot convention — no placeholder alt, no "in preparation" readout.
+     */
+    posterAlt: '',
+    unavailable: '',
     equipment: 'Echipament',
     software: 'Software',
     deliverables: 'Livrabile',
@@ -209,27 +219,27 @@ const ro: WorkEntryMessages = {
   related: {
     seeMore: 'Toate proiectele',
     carousel: {
-      roleDescription: 'strip de proiecte inrudite',
-      label: 'Proiecte inrudite — folositi sagetile pentru a naviga',
+      roleDescription: 'strip de proiecte înrudite',
+      label: 'Proiecte înrudite — folosiți săgețile pentru a naviga',
       previous: 'Proiectul anterior',
-      next: 'Proiectul urmator',
-      position: 'Proiectul in focus',
+      next: 'Proiectul următor',
+      position: 'Proiectul în focus',
     },
   },
 
-  onward: { hub: 'Vezi {pillar}', contact: 'Scrieti-ne' },
+  onward: { hub: 'Vezi {pillar}', contact: 'Scrieți-ne' },
 
   viewer: {
     label: 'Vizualizator de imagini',
     openItem: 'Deschide imaginea',
-    close: 'Inchide',
-    previous: 'Imaginea anterioara',
-    next: 'Imaginea urmatoare',
-    zoomIn: 'Mareste',
-    zoomOut: 'Micsoreaza',
-    reset: 'Revino la marimea initiala',
-    inspect: 'Inspectie — zoom si deplasare',
-    keys: '+ / − zoom · 0 reset · sagetile deplaseaza cand este marit · Esc inchide',
+    close: 'Închide',
+    previous: 'Imaginea anterioară',
+    next: 'Imaginea următoare',
+    zoomIn: 'Mărește',
+    zoomOut: 'Micșorează',
+    reset: 'Revino la mărimea inițială',
+    inspect: 'Inspecție — zoom și deplasare',
+    keys: '+ / − zoom · 0 reset · săgețile deplasează când este mărit · Esc închide',
     zoomLevel: 'Zoom',
     position: 'Imaginea',
   },

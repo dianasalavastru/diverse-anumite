@@ -1,7 +1,9 @@
 /**
  * Work Archive editorial copy.
  *
- * ⚠ PLACEHOLDER COPY — PENDING WORKSTREAM C. NOTHING HERE IS AUTHORED CONTENT.
+ * Stable RO: `meta`, `orientation.statement` and `empty.body` (absent) are LOCKED client copy
+ * (Batch 2A). Every other RO value is frame copy transcribed from the HiFi. EN is withheld for
+ * launch and unchanged.
  *
  * OWNERSHIP: Workstream A commits the STRUCTURE; Workstream C authors the
  * STRINGS (TECHNICAL_ARCHITECTURE.md §23.3, "i18n message files | A (RO/EN
@@ -13,8 +15,9 @@
  * authored measures and rhythm are exercised at their real sizes, with three
  * corrections applied to the transcription:
  *
- *  1. **Diacritics removed** (OD-8, §11.3) — the HiFi carries them because it is
- *     a design reference, not production copy.
+ *  1. **Diacritics** — OD-8 (§11.3) as AMENDED by `DECISIONS_LOG.md` #103: RO
+ *     human-facing copy carries correct diacritics (ă â î ș ț); identifiers stay
+ *     ASCII.
  *
  *  2. **The page name is "Proiecte", not the HiFi's "Lucrări".**
  *     TECHNICAL_ARCHITECTURE.md §22 "Settled — not open": "Public RO label and
@@ -26,7 +29,9 @@
  *     item that reaches it would fail the Page IA's own orientation test
  *     ("a visitor always knows which archive they are on").
  *
- *  3. **"Alegeti un pilon, un tip sau un an" → "…un serviciu sau un sector".**
+ *  3. (Historical — the locked Stable RO statement no longer carries this
+ *     sentence; only EN does.)
+ *     **"Alegeti un pilon, un tip sau un an" → "…un serviciu sau un sector".**
  *     Year went first: it is a sort, not a filter (IA Step 5;
  *     `WORK_ARCHIVE_IMPLEMENTATION_NOTES.md`:64), so the invitation could not offer
  *     a year filter that no longer existed. "Un tip" went next, for the same
@@ -157,7 +162,7 @@ const ro: WorkArchiveMessages = {
     eyebrow: 'Arhiva · toate proiectele',
     heading: 'Proiecte',
     statement: 'Tot ce a trecut prin atelier — arhitectură și realitate măsurată, la un loc.',
-    total: 'in arhiva',
+    total: 'în arhivă',
   },
 
   pillar: {
@@ -172,16 +177,16 @@ const ro: WorkArchiveMessages = {
     service: { legend: 'Serviciu', any: 'orice serviciu' },
     sort: {
       legend: 'Ordonare',
-      curated: 'selectie',
+      curated: 'selecție',
       newest: 'cele mai noi',
       oldest: 'cele mai vechi',
     },
   },
 
   activeContext: {
-    label: 'Vizualizati',
-    none: 'toata arhiva',
-    clear: 'Resetati filtrele',
+    label: 'Vizualizați',
+    none: 'toată arhiva',
+    clear: 'Resetați filtrele',
     hub: 'Vezi {pillar}',
   },
 
@@ -198,22 +203,22 @@ const ro: WorkArchiveMessages = {
      * `''` is the absent-slot convention — `ArchiveEmptyState.astro` renders no paragraph.
      */
     body: '',
-    suggestLabel: 'Incercati',
-    reset: 'Resetati filtrele',
+    suggestLabel: 'Încercați',
+    reset: 'Resetați filtrele',
   },
 
   continue: {
-    label: 'Continuati',
+    label: 'Continuați',
     competitions: 'Concursuri',
-    fullArchive: 'Toata arhiva',
+    fullArchive: 'Toată arhiva',
   },
 
   curated: {
     competitions: {
-      eyebrow: 'Arhiva · selectie editoriala',
+      eyebrow: 'Arhiva · selecție editorială',
       heading: 'Concursuri',
-      statement: 'Propunerile de concurs din arhiva, in ordinea selectiei editoriale.',
-      empty: 'Nu exista inca proiecte de concurs publicate. Arhiva completa ramane deschisa.',
+      statement: 'Propunerile de concurs din arhivă, în ordinea selecției editoriale.',
+      empty: 'Nu există încă proiecte de concurs publicate. Arhiva completă rămâne deschisă.',
     },
   },
 

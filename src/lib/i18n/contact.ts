@@ -28,14 +28,11 @@
  * response-time expectation (C-5 content)" — and TECHNICAL_ARCHITECTURE.md
  * §10.4 forbids fabricated content in production output. So they are empty.
  *
- * NOTE ON THE HOMEPAGE PRECEDENT. `homepage.ts` ships
- * `salut@diverseanumite.ro (substituent)` inside a `data-fixture` block, and
- * that is right for the Homepage: the row is a composition anchor at the tail of
- * a page whose purpose is elsewhere. It is NOT right here. On Contact the same
- * string is the primary affordance of the module it sits in, and a visitor
- * would act on it. See `channels()` below.
+ * The Homepage no longer ships a placeholder email row either (Stable RO, X2):
+ * no contact channel is published anywhere until the client supplies one.
  *
- * OD-8 (§11.3): Romanian site copy is authored WITHOUT diacritics.
+ * RO carries correct Romanian diacritics (DECISIONS_LOG.md #103, amending OD-8
+ * §11.3). Query tokens (`?topic=`, `?regarding=`) are identifiers and stay ASCII.
  */
 
 import type { Locale } from './routes';
@@ -155,68 +152,68 @@ export interface ContactMessages {
 const ro: ContactMessages = {
   meta: {
     title: 'Contact · diverse anumite',
-    description: 'Incepeti o conversatie cu atelierul — un formular scurt, fara pasi in plus.',
+    description: 'Începeți o conversație cu atelierul — un formular scurt, fără pași în plus.',
   },
 
   orientation: {
-    eyebrow: 'Contact · incepem o conversatie',
+    eyebrow: 'Contact · începem o conversație',
     heading: 'Contact',
     statement:
-      'Aici incepe conversatia. Cateva randuri sunt de ajuns — detaliile le lamurim impreuna, dupa primul mesaj.',
+      'Aici începe conversația. Câteva rânduri sunt de ajuns — detaliile le lămurim împreună, după primul mesaj.',
     breadcrumbLabel: 'Firul paginii',
-    home: 'Acasa',
+    home: 'Acasă',
     here: 'Contact',
   },
 
   context: {
-    label: 'Ne scrieti despre',
-    neutral: 'inca nu stiti exact — e in regula, incepem de la mesajul dumneavoastra',
+    label: 'Ne scrieți despre',
+    neutral: 'încă nu știți exact — e în regulă, începem de la mesajul dumneavoastră',
     topicOnly: '{topic}',
     withService: '{service} · {topic}',
   },
 
   form: {
-    legend: 'Mesajul dumneavoastra',
+    legend: 'Mesajul dumneavoastră',
     name: {
       label: 'Nume',
       hint: '',
       errors: {
-        required: 'Va rugam sa completati numele.',
+        required: 'Vă rugăm să completați numele.',
         tooLong: 'Numele este prea lung.',
       },
     },
     email: {
       label: 'Email',
-      hint: 'Aici va raspundem.',
+      hint: 'Aici vă răspundem.',
       errors: {
-        required: 'Va rugam sa completati adresa de email.',
-        invalid: 'Adresa de email nu pare completa. Verificati-o, va rugam.',
-        tooLong: 'Adresa de email este prea lunga.',
+        required: 'Vă rugăm să completați adresa de email.',
+        invalid: 'Adresa de email nu pare completă. Verificați-o, vă rugăm.',
+        tooLong: 'Adresa de email este prea lungă.',
       },
     },
     topic: {
       label: 'Subiect',
-      hint: 'Optional.',
+      hint: 'Opțional.',
       errors: {},
     },
     message: {
       label: 'Mesaj',
-      hint: 'Cateva randuri despre ce aveti in minte.',
+      hint: 'Câteva rânduri despre ce aveți în minte.',
       errors: {
-        required: 'Va rugam sa scrieti un mesaj.',
-        tooLong: 'Mesajul depaseste lungimea maxima.',
+        required: 'Vă rugăm să scrieți un mesaj.',
+        tooLong: 'Mesajul depășește lungimea maximă.',
       },
     },
-    topicNotSure: 'Nu stiu inca',
-    submit: 'Trimiteti mesajul',
+    topicNotSure: 'Nu știu încă',
+    submit: 'Trimiteți mesajul',
     submitting: 'Se trimite…',
-    requiredNote: 'Campurile marcate cu * sunt obligatorii.',
+    requiredNote: 'Câmpurile marcate cu * sunt obligatorii.',
     requiredMark: '*',
-    invalidSummary: 'Mesajul nu a fost trimis. Verificati campurile marcate mai jos.',
+    invalidSummary: 'Mesajul nu a fost trimis. Verificați câmpurile marcate mai jos.',
   },
 
   status: {
-    failed: 'Mesajul nu a putut fi trimis. Va rugam sa incercati din nou.',
+    failed: 'Mesajul nu a putut fi trimis. Vă rugăm să încercați din nou.',
     unavailable: '',
   },
 
@@ -226,10 +223,10 @@ const ro: ContactMessages = {
 
   confirmation: {
     heading: 'Mesajul a ajuns la noi.',
-    body: 'Va multumim. Va raspundem pe adresa de email pe care ati lasat-o.',
-    bodyTopic: 'Va multumim. Mesajul dumneavoastra despre {topic} a ajuns la noi.',
-    bodyService: 'Va multumim. Mesajul dumneavoastra despre {service} ({topic}) a ajuns la noi.',
-    home: 'Inapoi la pagina principala',
+    body: 'Vă mulțumim. Vă răspundem pe adresa de email pe care ați lăsat-o.',
+    bodyTopic: 'Vă mulțumim. Mesajul dumneavoastră despre {topic} a ajuns la noi.',
+    bodyService: 'Vă mulțumim. Mesajul dumneavoastră despre {service} ({topic}) a ajuns la noi.',
+    home: 'Înapoi la pagina principală',
   },
 };
 

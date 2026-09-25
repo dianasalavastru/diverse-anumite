@@ -22,6 +22,7 @@ import { FIXTURE_WORK_ENTRIES } from '../../lib/content/fixtures';
 import { createFixtureContentSource } from '../../lib/content/fixtures';
 import { isCompetition } from '../../lib/content';
 import type { WorkEntry } from '../../lib/content';
+import { workEntryMessages } from '../../lib/i18n/work-entry';
 import {
   awardsAndTeamInCompetition,
   deliverablesInCapture,
@@ -352,5 +353,16 @@ describe('related work is authored, never inferred', () => {
     const entry = fixture('wf-3');
     expect(entry.relatedWork).toHaveLength(0);
     expect(workEntryComposition(entry, 'ro').modules).not.toContain('related');
+  });
+});
+
+describe('the RO Work Entry frame carries no placeholder vocabulary (C13)', () => {
+  /* The hero alt, the point-cloud poster alt and the "asset in preparation" readout used to
+     announce missing content to the reader. #104's placeholder policy hides such notes; they are
+     now absent slots (`''`), and this keeps any of them from coming back under another key. */
+  it('has no "substituent", "în așteptare", "în pregătire", placeholder, TODO or TEST string', () => {
+    expect(JSON.stringify(workEntryMessages('ro'))).not.toMatch(
+      /substituent|a[sș]teptare|preg[aă]tire|placeholder|\bTODO\b|\bTEST\b/i,
+    );
   });
 });
