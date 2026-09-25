@@ -80,7 +80,8 @@ export interface AccentedHeading {
 export interface DoorCopy {
   readonly kind: string;
   readonly title: string;
-  readonly body: string;
+  /** OPTIONAL since Wave 3 — the locked A&D Hub's archive door has no body line. */
+  readonly body?: string;
 }
 
 export interface PillarHubMessages {
@@ -103,11 +104,21 @@ export interface PillarHubMessages {
      * slot, so no type change is needed and `Orientation.astro` renders no empty paragraph.
      */
     readonly lead: string;
-    /** Accessible name for the opening media when no authored alt exists. */
-    readonly heroFallbackAlt: string;
+    /**
+     * Accessible name for the opening media when no authored alt exists. OPTIONAL since Wave 3:
+     * the locked Architecture & Design Hub has none (a stand-in alt is placeholder copy), and an
+     * instance that omits it renders a decorative plate. Reality Capture supplies one and is
+     * unaffected.
+     */
+    readonly heroFallbackAlt?: string;
     /** Decorative measurement annotations on the opening plate (aria-hidden). */
     readonly heroIndex: string;
-    readonly heroCoordinates: string;
+    /**
+     * OPTIONAL since Wave 3 (X3): unconfirmed geography is removed, never neutralised. An
+     * instance that omits it renders no coordinate annotation. Reality Capture keeps its value
+     * until the RC synthesis, under the editorial hold.
+     */
+    readonly heroCoordinates?: string;
     /** PILLAR_HUB_WIREFRAME H-1: "a light text link to About". */
     readonly aboutLink: string;
   };
@@ -132,7 +143,8 @@ export interface PillarHubMessages {
   /** H-4 · Curated work (Stage D) — station 03. */
   readonly work: {
     readonly marker: SectionMarkerCopy;
-    readonly title: string;
+    /** OPTIONAL since Wave 3 — the locked A&D Hub's H-4 has no heading under its marker. */
+    readonly title?: string;
     readonly intro: string;
     /** Module CTA → the pillar-filtered Work Archive (the shared highlight rule). */
     readonly cta: string;

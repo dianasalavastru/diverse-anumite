@@ -28,9 +28,11 @@
  * per-row `transition-delay`. Identical result, no page script, and reduced
  * motion resolves it with everything else.
  *
- * THE STATISTIC VALUES are placeholder (see `src/lib/i18n/homepage.ts`) and are
- * marked `data-fixture` so a fabricated credibility claim cannot reach
- * production unnoticed — the same discipline §10.4 imposes on capture readouts.
+ * THE STATISTICS ARE ABSENT (Wave 3). The locked copy confirms no practice figure,
+ * so `readouts` is `[]` and no list renders — an unconfirmed credibility claim is
+ * removed, never marked (§10.4; `scripts/verify-no-placeholder-content.mjs`). The
+ * list, and its dot sequence, return unchanged the day a confirmed figure exists.
+ * The figure caption follows the same rule.
  */
 import SectionMarker from '../SectionMarker.astro';
 import Plate from '../media/Plate.astro';
@@ -60,7 +62,7 @@ const { locale, copy, station } = Astro.props;
       devKey="homepage:credibility"
       devPool="general"
     />
-    <span class="tag" aria-hidden="true">{copy.figureCaption}</span>
+    {copy.figureCaption && <span class="tag" aria-hidden="true">{copy.figureCaption}</span>}
   </div>
 
   <div class="body">
@@ -72,22 +74,24 @@ const { locale, copy, station } = Astro.props;
 
     <p class="state rv" data-rv="meta">{copy.statement}</p>
 
-    <dl class="readouts rv" data-rv="meta" data-fixture="statistics">
-      {
-        copy.readouts.map((readout) => (
-          <div class="ro">
-            <dt class="v">
-              {readout.value}
-              {readout.unit && <span class="u">{readout.unit}</span>}
-            </dt>
-            <dd class="k">
-              <span class="dot" aria-hidden="true" />
-              {readout.label}
-            </dd>
-          </div>
-        ))
-      }
-    </dl>
+    {
+      copy.readouts.length > 0 && (
+        <dl class="readouts rv" data-rv="meta">
+          {copy.readouts.map((readout) => (
+            <div class="ro">
+              <dt class="v">
+                {readout.value}
+                {readout.unit && <span class="u">{readout.unit}</span>}
+              </dt>
+              <dd class="k">
+                <span class="dot" aria-hidden="true" />
+                {readout.label}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      )
+    }
 
     <a class="quiet-link rv" data-rv="meta" href={routePath('about', locale)}>
       {copy.aboutLink}<span class="ar" aria-hidden="true">→</span>

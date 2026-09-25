@@ -90,7 +90,7 @@ const rows: Row[] = competitions.flatMap((item) => {
       <h3>
         <a href={routePath('competitions', locale)}>{copy.competitions.title}</a>
       </h3>
-      <p class="cintro">{copy.competitions.intro}</p>
+      {copy.competitions.intro && <p class="cintro">{copy.competitions.intro}</p>}
 
       {
         rows.length > 0 && (

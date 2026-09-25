@@ -107,13 +107,15 @@ const devImage = renderable || devKey === null ? null : devVisualImage(devPool, 
       decoding={priority ? 'sync' : 'async'}
     />
   ) : (
-    /* Marked, inert and named only when it stands in for named content. */
+    /* Inert, and named only when it stands in for named content. No `data-fixture` marker: this
+       is the honest production state of a box with no photograph (the authored plate tone), not
+       provisional content, and `verify-no-placeholder-content.mjs` rejects the attribute in any
+       production build. `.plate-fixture` stays the styling hook. */
     <span
       class="plate-fixture"
       style={`--plate-tone:${tone}`}
-      data-fixture="media"
       role={alt ? 'img' : undefined}
-      aria-label={alt ?? undefined}
+      aria-label={alt || undefined}
       aria-hidden={alt ? undefined : 'true'}
     />
   )

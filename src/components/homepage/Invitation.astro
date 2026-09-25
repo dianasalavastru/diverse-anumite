@@ -20,9 +20,9 @@
  * Service pages and Pillar Hubs. The Homepage's invitation is pillar-neutral and
  * carries no context to hand over.
  *
- * The contact rows are placeholder values (`src/lib/i18n/homepage.ts`) and are
- * marked `data-fixture`; the composition needs the second anchor, the facts are
- * Workstream C's.
+ * The contact rows are confirmed facts only (`src/lib/i18n/homepage.ts`): a row
+ * the practice has not confirmed is absent, not marked, and an empty set renders
+ * no list at all. The facts are Workstream C's.
  */
 import SectionMarker from '../SectionMarker.astro';
 import type { Locale } from '../../lib/content';
@@ -51,14 +51,16 @@ const { locale, copy, station } = Astro.props;
     </a>
   </div>
 
-  <dl class="contact rv" data-rv="meta" data-fixture="contact-details">
-    {
-      copy.contact.map((row) => (
-        <div class="row">
-          <dt class="lab">{row.label}</dt>
-          <dd class="val">{row.value}</dd>
-        </div>
-      ))
-    }
-  </dl>
+  {
+    copy.contact.length > 0 && (
+      <dl class="contact rv" data-rv="meta">
+        {copy.contact.map((row) => (
+          <div class="row">
+            <dt class="lab">{row.label}</dt>
+            <dd class="val">{row.value}</dd>
+          </div>
+        ))}
+      </dl>
+    )
+  }
 </section>

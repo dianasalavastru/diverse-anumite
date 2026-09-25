@@ -72,7 +72,7 @@ const doors = [
             {door.copy.title}
             <span class="ar" aria-hidden="true">→</span>
           </span>
-          <span class="d">{door.copy.body}</span>
+          {door.copy.body && <span class="d">{door.copy.body}</span>}
         </a>
       ))
     }

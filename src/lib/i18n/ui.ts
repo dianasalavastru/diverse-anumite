@@ -16,9 +16,10 @@
  *              so an unauthored string is an absent element rather than a
  *              placeholder shipped to production.
  *
- * OD-8 (§11.3): Romanian site copy is authored WITHOUT diacritics. The approved
- * HiFis' RO copy carries diacritics because it is a design reference, not
- * production copy. Strings below follow the owner decision.
+ * DIACRITICS: RO human-facing copy carries ă â î ș ț (DECISIONS_LOG.md #103,
+ * amending OD-8). Identifiers stay ASCII. The footer statement and social heading
+ * are locked Stable RO copy (Wave 3); the EU-funding note and the colophon stay
+ * absent (`''`) — the former is gated on the EU programme publicity rules.
  */
 
 import type { Locale } from './routes';
@@ -37,9 +38,9 @@ export interface FooterLabels {
   /** Column heading over the social links. From the approved HiFis. */
   readonly socialGroup: string;
   /**
-   * PENDING (C) — the short studio statement under the footer wordmark.
-   * VISUAL_DIRECTION_v2.0 §6 "The closing" requires a composed ending, not a
-   * utility footer; the sentence itself is authored copy.
+   * The short studio statement under the footer wordmark. VISUAL_DIRECTION_v2.0
+   * §6 "The closing" requires a composed ending, not a utility footer; the
+   * sentence itself is authored copy (RO locked, Wave 3; EN absent).
    */
   readonly statement: string;
   /**
@@ -92,8 +93,8 @@ const ro: UiMessages = {
   },
   footer: {
     navGroup: 'Atelier',
-    socialGroup: 'Urmariti',
-    statement: '',
+    socialGroup: 'Urmăriți',
+    statement: 'Atelier multidisciplinar din Cluj-Napoca.',
     euFunding: '',
     colophon: '',
   },
@@ -102,9 +103,9 @@ const ro: UiMessages = {
     unavailable: '',
   },
   menu: 'Meniu',
-  menuClose: 'Inchide',
-  primaryNavigation: 'Navigare principala',
-  skipToContent: 'Sari la continut',
+  menuClose: 'Închide',
+  primaryNavigation: 'Navigare principală',
+  skipToContent: 'Sari la conținut',
 };
 
 /**

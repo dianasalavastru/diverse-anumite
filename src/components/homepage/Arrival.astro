@@ -63,7 +63,7 @@ const devPool = hero
       <Plate
         image={hero?.cover ?? null}
         locale={locale}
-        alt={copy.heroFallbackAlt}
+        alt={copy.heroFallbackAlt || null}
         tone="#cbc6bc"
         priority
         devKey={devKey}
@@ -73,13 +73,23 @@ const devPool = hero
     <div class="hero-scrim" aria-hidden="true"></div>
     <div class="hero-scan" aria-hidden="true"></div>
 
-    <div class="hero-cap" aria-hidden="true">
-      <span class="k">{caption}</span>
-      <span class="measure">{copy.heroCoordinates}</span>
-    </div>
-    <span class="hero-dim measure" aria-hidden="true" data-fixture="hero-dimension">
-      {copy.heroDimension}
-    </span>
+    {/* Decorative annotations, each rendered only when authored. X3 removed the unconfirmed
+        coordinate and the fabricated dimension, so today only the caption renders. */}
+    {
+      (caption || copy.heroCoordinates) && (
+        <div class="hero-cap" aria-hidden="true">
+          {caption && <span class="k">{caption}</span>}
+          {copy.heroCoordinates && <span class="measure">{copy.heroCoordinates}</span>}
+        </div>
+      )
+    }
+    {
+      copy.heroDimension && (
+        <span class="hero-dim measure" aria-hidden="true">
+          {copy.heroDimension}
+        </span>
+      )
+    }
 
     {/* The editorial wordmark — identity as graphic, not as a second landmark. */}
     <span class="hw" aria-hidden="true">diverse anumite</span>

@@ -1,7 +1,12 @@
 /**
  * Pillar Hub editorial copy — the **Architecture & Design** instance.
  *
- * ⚠ PLACEHOLDER COPY — PENDING WORKSTREAM C. NOTHING HERE IS AUTHORED CONTENT.
+ * STATUS (Wave 3): the RO strings are the locked Stable RO copy, with correct diacritics
+ * (DECISIONS_LOG.md #103). Two RO lines are deliberately left exactly as they were — the
+ * measurement sentence in `framing.primary[0]` and the whole `continue.crossPillar` door —
+ * because they carry Reality Capture positioning and belong to the RC synthesis, not to this
+ * pass. EN is WITHHELD for the initial launch; it is not a translation of the RO copy and is
+ * kept only so the locale shape stays whole (its absences mirror RO's, for shape parity).
  *
  * OWNERSHIP: Workstream A commits the STRUCTURE; Workstream C authors the
  * STRINGS (TECHNICAL_ARCHITECTURE.md §23.3, "i18n message files | A (RO/EN
@@ -36,10 +41,11 @@
  * The strings below are transcribed from
  * `docs/pages/pillar-hub/pillar-hub-measured-reality-hifi-v1_1.html`
  * (owner-approved 2026-08-10) so that line lengths, `max-width: Nch` measures and
- * the authored rhythm are exercised at their real sizes. Four corrections:
+ * the authored rhythm are exercised at their real sizes. The corrections below
+ * still hold; the locked Stable RO pass has since replaced most of the strings:
  *
- *  1. **Diacritics removed** (OD-8, §11.3) — the HiFi carries them because it is
- *     a design reference, not production copy.
+ *  1. (Superseded.) The transcription originally removed diacritics under OD-8;
+ *     #103 reversed that, and the RO copy now carries them.
  *
  *  2. **The "Masurat" figure row is not here at all.** The HiFi prints `10+` years
  *     of practice, `40+` projects, `6` programme types and `1:1`, under its own
@@ -60,10 +66,15 @@
  *     The heading states the idea without counting.
  *
  *  4. **`h — 18.4 m` dropped.** A dimension annotation on the opening plate is a
- *     measurement of one fictional prototype building (§10.4). The studio
- *     coordinate line is kept, exactly as the Homepage and the RC hub keep it.
+ *     measurement of one fictional prototype building (§10.4). Since Wave 3 (X3)
+ *     the studio coordinate line is dropped too: unconfirmed geography is removed,
+ *     never neutralised, so `orientation.heroCoordinates` is absent here.
  *
- * OD-8 (§11.3): Romanian site copy is authored WITHOUT diacritics.
+ * ── LOCKED ABSENCES ───────────────────────────────────────────────────────
+ * Absent means the key is omitted (the shared shape marks each one optional) and
+ * the shared module renders no element for it: `orientation.thesis`,
+ * `orientation.heroFallbackAlt`, `orientation.heroCoordinates`, `work.title`,
+ * `continue.frame`, `continue.archive.body`, `conversation.invitation`.
  */
 
 import type { PillarHubMessages } from './pillar-hub';
@@ -85,48 +96,45 @@ export type ArchitectureDesignHubMessages = Omit<PillarHubMessages, 'work'> & {
 };
 
 /* -------------------------------------------------------------------------- */
-/* RO — transcribed from the approved A&D Hub HiFi, per the header notes        */
+/* RO — locked Stable RO copy (#103); two RC-held lines left as-is (header)     */
 /* -------------------------------------------------------------------------- */
 
 const ro: ArchitectureDesignHubMessages = {
   meta: {
-    title: 'Arhitectură & Design — pilon · diverse anumite',
+    title: 'Arhitectură & Design · diverse anumite',
     description:
-      'Locuinte, interioare, concursuri si spatiu public — arhitectura care porneste de la loc si este dusa pana la ultima muchie.',
+      'Proiectare de arhitectură, design interior, vizualizare 3D și design mobilier — serviciile de Arhitectură & Design ale atelierului diverse anumite.',
   },
 
   orientation: {
     eyebrow: 'pilon · capabilitate',
-    heading: { lead: 'Arhitectura', tail: '& Design' },
-    lead:
-      'Arhitectura, interior si spatiu construit — locuinte, amenajari interioare, concursuri, proiecte publice si lucrari conceptuale. Lucram cu mana si cu instrumentul, de la prima curba de nivel pana la ultima muchie de beton. Un singur fel de a gandi, indiferent de scara.',
-    heroFallbackAlt: 'Imagine substituent — fotografie de proiect, in asteptare',
+    heading: { lead: 'Arhitectură', tail: '& Design' },
+    lead: 'Proiectare de arhitectură, design interior, vizualizare 3D și design mobilier.',
     heroIndex: 'AD—001',
-    heroCoordinates: '46.77°N 23.59°E',
     aboutLink: 'Despre atelier',
   },
 
   framing: {
-    marker: { no: '02', label: 'Cum gandim', coordinate: 'metoda, nu stilul' },
+    marker: { no: '02', label: 'Cum gândim', coordinate: 'metoda, nu stilul' },
     question: {
-      lead: 'Nu incepem de la forma. Incepem de la',
+      lead: 'Nu începem de la formă. Începem de la',
       accent: 'loc',
       tail: '.',
     },
     primary: [
       'Panta, lumina, vecinatatile, programul, felul in care se ajunge la intrare — toate se citesc inainte de prima linie. Masuram locul, uneori la milimetru, pentru ca un proiect bun incepe de la o citire onesta a lui, nu de la o imagine.',
-      'De la o locuinta la un concurs public, intrebarile raman aceleasi. Desenam putin si taiem mult — un gest clar in locul a zece decorative.',
+      'De la o locuință la un concurs public, întrebările rămân aceleași. Desenăm puțin și tăiem mult — un gest clar în locul a zece decorative.',
     ],
     secondary: [
-      'Materialele nu imita: betonul ramane beton, lemnul ramane lemn, piatra ramane piatra. Le alegem putine si le lasam sa imbatraneasca frumos.',
-      'Detaliul este locul unde se castiga sau se pierde un proiect — o locuinta, un interior sau un spatiu public deopotriva. Petrecem la fel de mult timp pe o muchie de tamplarie cat pe volumetria de ansamblu.',
+      'Materialele nu imită: betonul rămâne beton, lemnul rămâne lemn, piatra rămâne piatră. Le alegem puține și le lăsăm să îmbătrânească frumos.',
+      'Detaliul este locul unde se câștigă sau se pierde un proiect — o locuință, un interior sau un spațiu public deopotrivă. Petrecem la fel de mult timp pe o muchie de tâmplărie cât pe volumetria de ansamblu.',
     ],
     useCases: {
-      label: 'Unde se aplica',
+      label: 'Unde se aplică',
       note: 'sectoare declarate pe serviciile pilonului',
     },
     instruments: {
-      label: 'Cu ce lucram',
+      label: 'Cu ce lucrăm',
       note: 'echipament declarat pe serviciile pilonului',
     },
   },
@@ -134,39 +142,36 @@ const ro: ArchitectureDesignHubMessages = {
   work: {
     marker: {
       no: '03',
-      label: 'Proiecte in focus',
-      coordinate: 'selectie curatoriata · nu arhiva',
+      label: 'Proiecte în focus',
+      coordinate: 'selecție curatoriată · nu arhiva',
     },
-    title: 'Un singur fel de a lucra, la orice scara.',
     intro:
-      'Fiecare proiect intra pe rand in focus. Trageti lateral sau folositi sagetile. Selectia este curatoriata — arhiva completa este mai jos.',
+      'Fiecare proiect intră pe rând în focus. Trageți lateral sau folosiți săgețile. Selecția este curatoriată — arhiva completă este mai jos.',
     cta: 'Toate proiectele — Arhitectură & Design',
     carousel: {
       roleDescription: 'carusel de proiecte',
-      label: 'Proiecte — folositi sagetile pentru a naviga',
+      label: 'Proiecte — folosiți săgețile pentru a naviga',
       previous: 'Proiectul anterior',
-      next: 'Proiectul urmator',
-      position: 'Proiectul in focus',
+      next: 'Proiectul următor',
+      position: 'Proiectul în focus',
     },
   },
 
   services: {
     marker: {
       no: '04',
-      label: 'Ce puteti comanda',
-      coordinate: 'servicii · pilonul arhitectura & design',
+      label: 'Ce puteți comanda',
+      coordinate: 'servicii · pilonul arhitectură & design',
     },
-    intro:
-      'Fiecare serviciu are pagina lui, cu livrabile, proces si etape. Aici doar recunoasteti care vi se potriveste.',
+    intro: 'Fiecare serviciu are pagina lui, cu livrabilele sale. Alegeți serviciul care vi se potrivește.',
     cta: 'Vezi serviciul',
   },
 
   continue: {
-    marker: { no: '05', label: 'Continuare', coordinate: 'ati vazut cum gandim' },
+    marker: { no: '05', label: 'Continuare', coordinate: 'ați văzut cum gândim' },
     archive: {
       kind: 'Proiecte',
       title: 'Vezi toate proiectele',
-      body: 'Toata arhitectura, proiect cu proiect, in arhiva completa.',
     },
     crossPillar: {
       kind: 'Reality Capture',
@@ -176,14 +181,14 @@ const ro: ArchitectureDesignHubMessages = {
   },
 
   conversation: {
-    marker: { no: '06', label: 'Conversatie', coordinate: 'un teren · un mesaj' },
-    action: 'Incepe o conversatie',
-    note: 'Mesajul porneste cu subiectul deja setat pe Arhitectură & Design.',
+    marker: { no: '06', label: 'Conversație', coordinate: 'un teren · un mesaj' },
+    action: 'Începe o conversație',
+    note: 'Mesajul pornește cu subiectul deja setat pe Arhitectură & Design.',
   },
 };
 
 /* -------------------------------------------------------------------------- */
-/* EN — placeholder translation of the above, PENDING (C)                      */
+/* EN — WITHHELD at launch; not a translation. Absences mirror RO (parity).     */
 /* -------------------------------------------------------------------------- */
 
 const en: ArchitectureDesignHubMessages = {
@@ -198,9 +203,7 @@ const en: ArchitectureDesignHubMessages = {
     heading: { lead: 'Architecture', tail: '& Design' },
     lead:
       'Architecture, interiors and built space — houses, interior fit-outs, competitions, public projects and conceptual work. We work by hand and by instrument, from the first contour line to the last concrete edge. One way of thinking, whatever the scale.',
-    heroFallbackAlt: 'Placeholder image — project photography pending',
     heroIndex: 'AD—001',
-    heroCoordinates: '46.77°N 23.59°E',
     aboutLink: 'About the studio',
   },
 
@@ -235,7 +238,6 @@ const en: ArchitectureDesignHubMessages = {
       label: 'Projects in focus',
       coordinate: 'a curated selection · not the archive',
     },
-    title: 'One way of working, at any scale.',
     intro:
       'Each project comes into focus in turn. Drag sideways or use the arrows. The selection is curated — the full archive is below.',
     cta: 'All projects — Architecture & Design',
@@ -264,7 +266,6 @@ const en: ArchitectureDesignHubMessages = {
     archive: {
       kind: 'Projects',
       title: 'See all projects',
-      body: 'All of the architecture, project by project, in the full archive.',
     },
     crossPillar: {
       kind: 'Reality Capture',

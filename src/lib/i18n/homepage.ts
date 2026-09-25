@@ -1,40 +1,30 @@
 /**
  * Homepage editorial copy.
  *
- * ⚠ PLACEHOLDER COPY — PENDING WORKSTREAM C. NOTHING HERE IS AUTHORED CONTENT.
+ * STATUS (Wave 3): the RO strings are the locked Stable RO copy, EXCEPT three keys that
+ * carry Reality Capture positioning and are under the RC editorial hold — `arrival.heading`,
+ * `capabilities.realityCapture` and `work.realityCapture`. Those stay byte-identical, ASCII
+ * spelling included, until the RC pass (`rc-copy-firewall.test.ts` snapshots the RC
+ * capability plate). Converting their diacritics would be an RC copy change.
  *
  * OWNERSHIP: Workstream A commits the STRUCTURE; Workstream C authors the
  * STRINGS (TECHNICAL_ARCHITECTURE.md §23.3, "i18n message files | A (RO/EN
  * strings authored by C) | two-party file"). Replacing a value here is a copy
  * change and touches no component.
  *
- * WHY THE STRINGS ARE SEEDED RATHER THAN LEFT EMPTY. `ui.ts` leaves unauthored
- * chrome copy as `''` and its consumers omit the slot — correct for a footer
- * statement, useless here: the Homepage *is* editorial copy, and an empty page
- * cannot validate the one thing Phase 3 exists to validate, which is motion-port
- * fidelity against the approved HiFi (§23.2). The seed below is transcribed from
- * that approved HiFi so that line lengths, `max-width: Nch` measures and the
- * authored rhythm are exercised at their real sizes.
+ * DIACRITICS: RO human-facing copy carries ă â î ș ț (DECISIONS_LOG.md #103, amending
+ * OD-8). Identifiers stay ASCII.
  *
- * TWO CORRECTIONS APPLIED TO THE TRANSCRIPTION:
+ * ABSENT SLOTS. A fact the practice has not confirmed is ABSENT, never a marked stand-in
+ * (§10.4; `scripts/verify-no-placeholder-content.mjs`). Absent is `''` for a string and `[]`
+ * for a list — the `ui.ts` convention — and every consumer renders the slot only when it is
+ * non-empty, so an absent value emits no element and no `data-fixture` marker. Absent in RO:
+ * the hero fallback alt, the hero coordinate and dimension annotations (X3), the credibility
+ * figure caption and readouts, the competitions intro, and the Email and reply-time contact
+ * rows (the Email row returns when the client supplies the address).
  *
- *  1. **Diacritics removed** (OD-8, §11.3). "Romanian site copy is intentionally
- *     authored without diacritics." The HiFi carries them because it is a design
- *     reference, not production copy.
- *
- *  2. **Verifiable claims neutralised or marked.** §10.4 forbids fabricated
- *     technical readouts from reaching production — "these are technical claims
- *     made to institutional clients evaluating a surveying service", and a
- *     fabricated one is a false accuracy claim against `CONTENT_MODEL.md`:101.
- *     The HiFi's "masurata la 2 mm" in the Reality Capture capability line is
- *     dropped; the three credibility readouts keep their numerals (they carry the
- *     composition) but every label is suffixed "(substituent)" so no reader and
- *     no reviewer can mistake them for authored facts. The Homepage's *capture*
- *     readout is not here at all — it renders from `CaptureMetadata` on the real
- *     entry (§10.4), never from copy.
- *
- * Every string below is additionally exposed to review through `data-fixture`
- * attributes on the elements that render placeholder facts.
+ * EN is WITHHELD for the initial launch. It is not a translation of the RO copy, still
+ * carries the superseded HiFi transcription, and must not be published as it stands.
  */
 
 import type { Locale } from './routes';
@@ -84,9 +74,12 @@ export interface HomepageMessages {
     readonly heading: AccentedHeading;
     readonly statement: string;
     readonly cue: string;
-    /** Accessible name for the identity hero image when no authored alt exists. */
+    /**
+     * Accessible name for the identity hero image when no authored alt exists. `''` = none:
+     * the plate is then decorative, never named by a stand-in.
+     */
     readonly heroFallbackAlt: string;
-    /** Decorative measurement annotations on the hero plate (aria-hidden). */
+    /** Decorative measurement annotations on the hero plate (aria-hidden). `''` = absent. */
     readonly heroIndex: string;
     readonly heroCoordinates: string;
     readonly heroDimension: string;
@@ -106,7 +99,9 @@ export interface HomepageMessages {
     readonly marker: SectionMarkerCopy;
     readonly heading: AccentedHeading;
     readonly statement: string;
+    /** `''` = absent — the figure renders its plate with no caption. */
     readonly figureCaption: string;
+    /** `[]` = absent — no readout list is rendered at all. */
     readonly readouts: readonly StatisticCopy[];
     readonly aboutLink: string;
   };
@@ -144,6 +139,7 @@ export interface HomepageMessages {
   /** M-5 · Curated views (Stage E). */
   readonly curated: {
     readonly marker: SectionMarkerCopy;
+    /** `intro: ''` = absent — the title and the rows render without an intro line. */
     readonly competitions: { readonly title: string; readonly intro: string };
   };
 
@@ -152,44 +148,47 @@ export interface HomepageMessages {
     readonly marker: SectionMarkerCopy;
     readonly question: string;
     readonly action: string;
+    /** Confirmed facts only; `[]` renders no contact list. */
     readonly contact: readonly ContactRowCopy[];
   };
 }
 
 /* -------------------------------------------------------------------------- */
-/* RO — transcribed from the approved HiFi, diacritics removed (OD-8)          */
+/* RO — locked Stable RO copy (#103); the three RC-HELD keys are marked         */
 /* -------------------------------------------------------------------------- */
 
 const ro: HomepageMessages = {
   meta: {
-    title: 'diverse anumite — arhitectura si reality capture',
+    title: 'diverse anumite — atelier multidisciplinar din Cluj-Napoca',
     description:
-      'Un singur atelier care compune arhitectura si documenteaza lumea construita cu precizie.',
+      'Atelier multidisciplinar din Cluj-Napoca: proiectare de arhitectură, design interior, vizualizare 3D, design mobilier, scanare laser 3D și Scan-to-BIM.',
   },
 
   arrival: {
-    eyebrow: 'atelier · arhitectura + reality capture',
+    eyebrow: 'atelier multidisciplinar · Cluj-Napoca',
+    // HELD (RC editorial hold) — do not edit before the RC pass.
     heading: { lead: 'Proiectam spatiul.', accent: 'Masuram', tail: 'realitatea.' },
     statement:
-      'Un singur atelier care compune arhitectura si documenteaza lumea construita cu precizie — de la prima schita pana la ultimul milimetru scanat.',
+      'Explorăm potențialul fiecărui proiect, folosind tehnologii contemporane și respectând realitățile profesiei, peisajul cultural și nevoile celor implicați.',
     cue: '06 stații',
-    heroFallbackAlt: 'Imagine substituent — fotografie de atelier, in asteptare',
+    heroFallbackAlt: '',
     heroIndex: 'PT—001',
-    heroCoordinates: '46.77°N 23.59°E',
-    heroDimension: 'h — 18.4 m',
+    heroCoordinates: '',
+    heroDimension: '',
     aboutLink: 'Despre atelier',
   },
 
   capabilities: {
-    marker: { no: '02', label: 'Capabilitati', coordinate: 'doua discipline · un atelier' },
+    marker: { no: '02', label: 'Capabilități', coordinate: 'două direcții' },
     architectureDesign: {
       /*
-       * Locked (Stable RO). One word per Architecture & Design Service, in the canonical order
-       * of `SERVICE_KEYS` — not a descriptive triple. The previous line mixed a housing type,
-       * a room class and a Label (`concurs` is the CONCURS Label, never a Service), which read
-       * as a taxonomy without being one.
+       * Locked (Stable RO, X1). One word per Architecture & Design Service, in the canonical
+       * order of `SERVICE_KEYS` (`lib/content/types.ts`): proiectare-arhitectura → arhitectură,
+       * design-interior → interior, vizualizare-3d → vizualizare, design-mobilier → mobilier.
+       * Not a descriptive triple — the previous line mixed a housing type, a room class and a
+       * Label (`concurs` is the CONCURS Label, never a Service).
        */
-      facets: 'arhitectură · interior · mobilier · vizualizare',
+      facets: 'arhitectură · interior · vizualizare · mobilier',
       context: 'Proiectăm pornind de la loc și ducem lucrul până la detaliu.',
     },
     realityCapture: {
@@ -202,35 +201,33 @@ const ro: HomepageMessages = {
   },
 
   credibility: {
-    marker: { no: '03', label: 'Practica, masurata', coordinate: 'ani de practica · substituent' },
+    marker: { no: '03', label: 'Atelierul', coordinate: 'Cluj-Napoca' },
+    /* `tail` opens with a space: `Credibility.astro` sets the accent and the tail flush
+       (`</span>{tail}`), so the space belongs to the copy. */
     heading: {
-      lead: 'Precizia are nevoie de',
-      accent: 'maini',
-      tail: ', nu doar de instrumente.',
+      lead: 'Un proces creativ',
+      accent: 'dinamic',
+      tail: ' și adaptabil.',
     },
     statement:
-      'Suntem un atelier mic, cu mana ferma. Desenam spatii care raman si documentam construitul cu instrumente pe care le stapanim — fiecare milimetru conteaza, de la schita la nor de puncte.',
-    figureCaption: 'releveu · mana + instrument',
-    readouts: [
-      { value: '12', unit: 'ani', label: 'practica continua in arhitectura si relevee (substituent)' },
-      { value: '2', unit: 'mm', label: 'acuratete de scanare pe teren (substituent)' },
-      { value: 'UE', unit: null, label: 'echipament cofinantat din fonduri europene (substituent)' },
-    ],
-    aboutLink: 'Despre practica',
+      'Proiectele de arhitectură se dezvoltă în colaborare cu specialiști externi — ingineri de structură și de instalații, consultant nZEB și, după caz, expert tehnic și consultant ISU.',
+    figureCaption: '',
+    readouts: [],
+    aboutLink: 'Despre atelier',
   },
 
   work: {
     marker: {
       no: '04',
-      label: 'Lucrari, in focus',
+      label: 'Lucrări, în focus',
       coordinate: 'a · arhitectura — c · documentare',
     },
     architectureDesign: {
       index: '04·a',
       title: 'Arhitectură & Design',
       intro:
-        'Fiecare proiect intra pe rand in focus — restul raman aproape, pentru context. Culoarea revine doar acolo unde privirea se opreste.',
-      cta: 'Toate lucrarile — Arhitectură & Design',
+        'Fiecare proiect intră pe rând în focus — restul rămân aproape, pentru context. Culoarea revine doar acolo unde privirea se oprește.',
+      cta: 'Toate lucrările — Arhitectură & Design',
     },
     realityCapture: {
       index: '04·c',
@@ -241,36 +238,31 @@ const ro: HomepageMessages = {
     },
     carousel: {
       roleDescription: 'carusel de proiecte',
-      label: 'Proiecte — folositi sagetile pentru a naviga',
+      label: 'Proiecte — folosiți săgețile pentru a naviga',
       previous: 'Proiectul anterior',
-      next: 'Proiectul urmator',
-      position: 'Proiectul in focus',
+      next: 'Proiectul următor',
+      position: 'Proiectul în focus',
     },
   },
 
   curated: {
-    marker: { no: '05', label: 'Selectie', coordinate: 'concursuri' },
+    marker: { no: '05', label: 'Selecție', coordinate: 'concursuri' },
     competitions: {
       title: 'Concursuri',
-      intro:
-        'Proiecte de concurs, ordonate in timp — spatii publice si culturale propuse de atelier.',
+      intro: '',
     },
   },
 
   invitation: {
-    marker: { no: '06', label: 'Invitatie', coordinate: 'un atelier · un mesaj' },
+    marker: { no: '06', label: 'Invitație', coordinate: 'un atelier · un mesaj' },
     question: 'Un proiect prinde contur?',
-    action: 'Incepe o conversatie',
-    contact: [
-      { label: 'Email', value: 'salut@diverseanumite.ro (substituent)' },
-      { label: 'Atelier', value: 'Cluj-Napoca · 46.77°N 23.59°E (substituent)' },
-      { label: 'Raspuns', value: 'in cel mult 48h (substituent)' },
-    ],
+    action: 'Începe o conversație',
+    contact: [{ label: 'Atelier', value: 'Cluj-Napoca' }],
   },
 };
 
 /* -------------------------------------------------------------------------- */
-/* EN — placeholder translation of the above, PENDING (C)                      */
+/* EN — WITHHELD at launch; superseded transcription, NOT publishable as is    */
 /* -------------------------------------------------------------------------- */
 
 const en: HomepageMessages = {

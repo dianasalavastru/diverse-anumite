@@ -117,13 +117,19 @@ const caption = [copy.heroIndex, heroTitle].filter(Boolean).join(' · ');
     </div>
 
     <div class="hub-arrival-media rv" data-rv="img">
-      <span class="hub-arrival-dim measure" aria-hidden="true">{copy.heroCoordinates}</span>
+      {
+        /* Instance-level since Wave 3 (X3): an instance that authors no coordinate line renders
+           no annotation — not an empty one. Reality Capture keeps its value and is unchanged. */
+        copy.heroCoordinates && (
+          <span class="hub-arrival-dim measure" aria-hidden="true">{copy.heroCoordinates}</span>
+        )
+      }
 
       <div class="hub-plate">
         <Plate
           image={hero?.cover ?? null}
           locale={locale}
-          alt={copy.heroFallbackAlt}
+          alt={copy.heroFallbackAlt ?? null}
           tone="#cbc6bc"
           priority
           devKey={devKey}

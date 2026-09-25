@@ -18,10 +18,15 @@
  *     locale.
  */
 
-import { describe, expect, it } from 'vitest';
+import { experimental_AstroContainer as AstroContainer } from 'astro/container';
+import { beforeAll, describe, expect, it } from 'vitest';
 
+import ContinueToArchive from './ContinueToArchive.astro';
+import CuratedWork from './CuratedWork.astro';
+import Orientation from './Orientation.astro';
 import { LOCALES, type Locale } from '../../lib/i18n/routes';
 import { architectureDesignHubMessages } from '../../lib/i18n/architecture-design-hub';
+import { realityCaptureHubMessages } from '../../lib/i18n/pillar-hub';
 import { contactTopicHref, pillarArchiveHref, pillarHubHref } from './hub';
 
 const PILLAR = 'architecture-design' as const;
@@ -177,11 +182,135 @@ describe('the message set', () => {
     }
   });
 
-  /** The H-4 heading must not hard-code a count the curated set may not have. */
-  it('states the curated-work heading without counting the set', () => {
+  /**
+   * The H-4 heading must not hard-code a count the curated set may not have. Since Wave 3 the
+   * locked A&D Hub has no H-4 heading at all (`work.title` is ABSENT); the count rule still
+   * applies if one is ever authored.
+   */
+  it('states the curated-work heading, if any, without counting the set', () => {
     for (const locale of LOCALES) {
       const { title } = architectureDesignHubMessages(locale).work;
-      expect(title).not.toMatch(/\b(sase|six|\d+)\b/i);
+      if (title !== undefined) expect(title).not.toMatch(/\b(sase|six|\d+)\b/i);
+    }
+  });
+
+  /**
+   * Locked absences (Stable RO + Wave 3). Absent is an omitted key — the shared shape marks each
+   * optional and the shared module renders no element for it — never `''` and never a stand-in.
+   * Asserted in both locales because EN mirrors RO's shape.
+   */
+  it('omits every locked-absent slot', () => {
+    for (const locale of LOCALES) {
+      const copy = architectureDesignHubMessages(locale);
+      expect(copy.orientation, locale).not.toHaveProperty('thesis');
+      expect(copy.orientation, locale).not.toHaveProperty('heroFallbackAlt');
+      expect(copy.orientation, locale).not.toHaveProperty('heroCoordinates');
+      expect(copy.work, locale).not.toHaveProperty('title');
+      expect(copy.continue, locale).not.toHaveProperty('frame');
+      expect(copy.continue.archive, locale).not.toHaveProperty('body');
+      expect(copy.conversation, locale).not.toHaveProperty('invitation');
+    }
+  });
+
+  /** X3 — unconfirmed geography and fabricated dimensions never reach this hub's copy. */
+  it('carries no coordinates and no dimension readout', () => {
+    for (const locale of LOCALES) {
+      const serialized = JSON.stringify(architectureDesignHubMessages(locale));
+      expect(serialized, locale).not.toMatch(/\d{1,3}\.\d+°\s*[NS]/);
+      expect(serialized, locale).not.toMatch(/\bh\s*—\s*\d+(\.\d+)?\s*m\b/);
+    }
+  });
+
+  /** The locked Stable RO values, exactly. A reword fails here by name. */
+  it('carries the locked Stable RO strings', () => {
+    const ro = architectureDesignHubMessages('ro');
+    expect(ro.meta.title).toBe('Arhitectură & Design · diverse anumite');
+    expect(ro.meta.description).toBe(
+      'Proiectare de arhitectură, design interior, vizualizare 3D și design mobilier — serviciile de Arhitectură & Design ale atelierului diverse anumite.',
+    );
+    expect(ro.orientation.lead).toBe(
+      'Proiectare de arhitectură, design interior, vizualizare 3D și design mobilier.',
+    );
+    expect(ro.services.intro).toBe(
+      'Fiecare serviciu are pagina lui, cu livrabilele sale. Alegeți serviciul care vi se potrivește.',
+    );
+    expect(ro.work.cta).toBe('Toate proiectele — Arhitectură & Design');
+    expect(ro.conversation.note).toBe(
+      'Mesajul pornește cu subiectul deja setat pe Arhitectură & Design.',
+    );
+  });
+});
+
+/**
+ * The absences above, as rendered by the SHARED modules. Each guard is instance-level: the A&D
+ * instance renders no element for an omitted key, while Reality Capture — under the editorial
+ * hold — keeps rendering exactly what it did (its values are frozen by `rc-copy-firewall.test.ts`).
+ */
+describe('absent slots render nothing on A&D, and nothing changes on RC', () => {
+  let container: AstroContainer;
+
+  beforeAll(async () => {
+    container = await AstroContainer.create();
+  });
+
+  it('H-1 renders no coordinate line and an unnamed plate on A&D', async () => {
+    for (const locale of LOCALES) {
+      const html = await container.renderToString(Orientation, {
+        props: { locale, copy: architectureDesignHubMessages(locale).orientation, hero: null, station: 1 },
+      });
+      expect(html, locale).not.toContain('hub-arrival-dim');
+      expect(html, locale).not.toMatch(/\d{1,3}\.\d+°\s*[NS]/);
+      expect(html, locale).not.toContain('role="img"');
+      expect(html, locale).not.toContain('data-fixture');
+    }
+  });
+
+  it('H-1 keeps the RC coordinate line and fallback alt (held until the RC synthesis)', async () => {
+    for (const locale of LOCALES) {
+      const copy = realityCaptureHubMessages(locale).orientation;
+      const html = await container.renderToString(Orientation, {
+        props: { locale, copy, hero: null, overlay: 'measurement', station: 1 },
+      });
+      expect(html, locale).toContain('hub-arrival-dim');
+      expect(html, locale).toContain(copy.heroCoordinates!);
+      expect(html, locale).toContain(`aria-label="${copy.heroFallbackAlt!}"`);
+    }
+  });
+
+  it('H-4 renders no heading under the marker on A&D, and keeps RC\'s', async () => {
+    for (const locale of LOCALES) {
+      const ad = await container.renderToString(CuratedWork, {
+        props: {
+          locale,
+          copy: architectureDesignHubMessages(locale).work,
+          entries: [],
+          tones: ['#cbc6bc'],
+          archiveHref: pillarArchiveHref(PILLAR, locale),
+          station: 3,
+        },
+      });
+      expect(ad, locale).not.toMatch(/<h3[\s>]/);
+
+      const rcCopy = realityCaptureHubMessages(locale).work;
+      const rc = await container.renderToString(CuratedWork, {
+        props: { locale, copy: rcCopy, entries: [], tones: ['#cbc6bc'], cadence: 'docs', archiveHref: '/x', station: 3 },
+      });
+      expect(rc, locale).toContain(rcCopy.title!);
+    }
+  });
+
+  it('H-5 renders the archive door with no body line on A&D', async () => {
+    for (const locale of LOCALES) {
+      const html = await container.renderToString(ContinueToArchive, {
+        props: {
+          copy: architectureDesignHubMessages(locale).continue,
+          archiveHref: pillarArchiveHref(PILLAR, locale),
+          crossPillarHref: pillarHubHref('reality-capture', locale),
+          station: 5,
+        },
+      });
+      /* One body line only: the cross-pillar door's (RC-flavoured, held for the RC synthesis). */
+      expect(html.match(/class="d"/g)?.length, locale).toBe(1);
     }
   });
 });

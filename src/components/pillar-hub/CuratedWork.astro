@@ -122,7 +122,11 @@ const entryHref = (entry: WorkEntrySummary): string | null => {
   <SectionMarker copy={copy.marker} heading id="work-heading" />
 
   <div class="hub-work-head rv" data-rv="head">
-    <h3>{copy.title}</h3>
+    {
+      /* Instance-level since Wave 3: the locked A&D Hub has no H-4 heading under its marker.
+         Reality Capture authors one and is unchanged. */
+      copy.title && <h3>{copy.title}</h3>
+    }
     <p class="sub">{copy.intro}</p>
   </div>
 

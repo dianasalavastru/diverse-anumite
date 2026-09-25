@@ -208,6 +208,17 @@
   border-inline-start: 1px solid var(--hair);
 }
 
+/* A band whose partner cell is absent (Wave 3: §01, §03 and §04 carry no locked
+   copy). The lone cell spans the row and carries both gutters; with nothing beside
+   it there is no division to draw. Specificity (0,3,0) outranks `:last-child` at
+   every breakpoint, so the mobile hairline is not drawn either. */
+.ab-band > .ab-cell:only-child {
+  grid-column: 1 / -1;
+  padding-inline: var(--gutter-start) var(--gutter-end);
+  border-inline-start: 0;
+  border-block-start: 0;
+}
+
 /* ---- 01 · Cine -----------------------------------------------------------
    Prose beside a portrait-format frame. `align-items: start` keeps the image
    deriving its height from its own ratio rather than from the text column —
@@ -220,14 +231,16 @@
   align-items: start;
 }
 
-.ab-who-text p {
+.ab-who-text p,
+.ab-how-text p {
   font-size: clamp(13.5px, 1.15vw, 15px);
   line-height: 1.65;
   color: var(--ink-60);
   max-width: 44ch;
 }
 
-.ab-who-text p + p {
+.ab-who-text p + p,
+.ab-how-text p + p {
   margin-block-start: 1em;
 }
 
