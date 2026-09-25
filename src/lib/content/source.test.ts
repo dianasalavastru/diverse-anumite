@@ -5,7 +5,7 @@
  * OWNER: Workstream B. `TECHNICAL_ARCHITECTURE.md` §7.1, §8, §11.2, §18, §19.4.
  */
 
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 import {
   ContentConfigError,
@@ -16,7 +16,13 @@ import {
   resolveSanityConfig,
 } from './config.js';
 import { createContentClient } from './client.js';
-import { ContentShapeError, assertNotDraft, normalizeWorkEntry } from './normalize.js';
+import {
+  ContentShapeError,
+  assertNotDraft,
+  normalizeService,
+  normalizeWorkEntry,
+  normalizeWorkEntrySummary,
+} from './normalize.js';
 import { isCompetition } from './derive.js';
 import { SECTORS, SERVICE_KEYS, STATUSES, type ServiceKey } from './types.js';
 import { createContentSource, type RawDocuments } from './source.js';
@@ -665,5 +671,214 @@ describe('Service order is canonical in every Service list, in both sources (C5)
     for (const item of await hostile.workArchive('ro')) {
       expect(keysOf(item.services), item._id).toEqual(canonicalOf(keysOf(item.services)));
     }
+  });
+});
+
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * Illustrative Work — normalized against its own table, and never proof
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+describe('Illustrative Work at build time', () => {
+  /* Built inline from the first fixture document (wf-1, Architecture & Design, demonstrating
+     Proiectare de arhitectura + Vizualizare 3D). No fixture document is added. */
+  async function realRaw(): Promise<RawWorkEntry> {
+    const [entry] = await FIXTURE_RAW_DOCUMENTS.workEntries();
+    return entry as RawWorkEntry;
+  }
+
+  /** An illustrative example: title, Services, cover, gallery — and no factual field at all. */
+  async function illustrativeRaw(overrides: Partial<RawWorkEntry> = {}): Promise<RawWorkEntry> {
+    const raw = await realRaw();
+    return {
+      ...raw,
+      illustrative: true,
+      labels: [],
+      sector: null,
+      description: null,
+      metadata: null,
+      capture: null,
+      capturePublicationCleared: false,
+      ...overrides,
+    };
+  }
+
+  it('normalizes with no Year, Status, Sector or any other fact — nothing is invented', async () => {
+    const entry = normalizeWorkEntry(await illustrativeRaw());
+    expect(entry.illustrative).toBe(true);
+    expect(entry.sector).toBeNull();
+    expect(entry.description).toBeNull();
+    expect(entry.capture).toBeNull();
+    expect(entry.labels).toEqual([]);
+    expect(entry.metadata).toEqual({
+      year: null,
+      location: null,
+      client: null,
+      collaborators: [],
+      status: null,
+      awards: null,
+      area: null,
+      team: [],
+      deliverables: null,
+      equipment: [],
+      implementationCompany: null,
+    });
+  });
+
+  it('keeps an authored Sector, still vocabulary-checked', async () => {
+    expect(normalizeWorkEntry(await illustrativeRaw({ sector: 'rezidential' })).sector).toBe('rezidential');
+    await expect(async () => normalizeWorkEntry(await illustrativeRaw({ sector: 'heritage' }))).rejects.toThrow(
+      /controlled vocabulary/,
+    );
+  });
+
+  it('accepts an optional Description', async () => {
+    const raw = await realRaw();
+    const entry = normalizeWorkEntry(await illustrativeRaw({ description: raw.description }));
+    expect(entry.description).not.toBeNull();
+  });
+
+  const FORBIDDEN_METADATA: readonly (readonly [string, Record<string, unknown>])[] = [
+    ['year', { year: 2024 }],
+    ['status', { status: 'finalizat' }],
+    ['client', { client: 'Client' }],
+    ['location', { location: { ro: 'Oras', en: null } }],
+    ['area', { area: 120 }],
+    ['awards', { awards: { ro: ['Premiu'], en: null } }],
+    ['equipment', { equipment: ['Leica RTC360'] }],
+    ['collaborators', { collaborators: ['Birou'] }],
+    ['team', { team: ['Persoana'] }],
+    ['implementationCompany', { implementationCompany: 'Firma' }],
+    ['deliverables', { deliverables: { ro: ['Planse'], en: null } }],
+  ];
+
+  it.each(FORBIDDEN_METADATA.map(([field, metadata]) => ({ field, metadata })))(
+    'refuses a filled-in $field — error, never a silent drop',
+    async ({ field, metadata }) => {
+      const raw = await illustrativeRaw({ metadata });
+      expect(() => normalizeWorkEntry(raw)).toThrow(ContentShapeError);
+      expect(() => normalizeWorkEntry(raw)).toThrow(new RegExp(`'${field}' must be empty on an illustrative project`));
+    },
+  );
+
+  it('refuses Labels — a competition or diploma claim is a fact', async () => {
+    expect(() => normalizeWorkEntry({ ...FIXTURE_ILLUSTRATIVE_PLACEHOLDER, labels: ['competition'] })).toThrow(
+      /'labels' must be empty/,
+    );
+  });
+
+  it.each([
+    ['survey metadata', { capture: { pointCount: 1_000_000 } }],
+    ['an accuracy statement, even EN-only', { capture: { accuracy: { ro: null, en: '2 mm' } } }],
+    ['an UNCLEARED point-cloud derivative', { capture: { derivative: { assetUrl: 'https://cdn.example/x.bin' } } }],
+    ['the publication clearance', { capturePublicationCleared: true }],
+  ] as const)('refuses %s', async (_name, overrides) => {
+    const raw = await illustrativeRaw(overrides as Partial<RawWorkEntry>);
+    expect(() => normalizeWorkEntry(raw)).toThrow(/'capture' must be empty/);
+  });
+
+  it('still requires a cover and a gallery', async () => {
+    expect(() => normalizeWorkEntryFrom({ cover: null })).toThrow(/'cover' is required, even for an illustrative project/);
+    expect(() => normalizeWorkEntryFrom({ gallery: [] })).toThrow(/'gallery' is required, even for an illustrative project/);
+  });
+
+  it('still requires Services, all inside its own Pillar', async () => {
+    const raw = await illustrativeRaw();
+    expect(() => normalizeWorkEntry({ ...raw, services: [] })).toThrow(/at least one Service/);
+    expect(() => normalizeWorkEntry({ ...raw, pillar: 'reality-capture' })).toThrow(/other capability/);
+  });
+
+  it('a real project is unchanged: an explicit `illustrative: false` or an absent flag normalizes identically', async () => {
+    const raw = await realRaw();
+    const baseline = normalizeWorkEntry(raw);
+    expect(baseline.illustrative).toBe(false);
+    expect(normalizeWorkEntry({ ...raw, illustrative: false })).toEqual(baseline);
+    expect(normalizeWorkEntry({ ...raw, illustrative: null })).toEqual(baseline);
+    const { illustrative: _dropped, ...withoutFlag } = raw;
+    expect(normalizeWorkEntry(withoutFlag)).toEqual(baseline);
+    expect(baseline).toEqual(FIXTURE_WORK_ENTRIES[0]);
+  });
+
+  it('a real project still cannot drop its Year, Status or Sector', async () => {
+    const raw = await realRaw();
+    expect(() => normalizeWorkEntry({ ...raw, metadata: { ...raw.metadata, year: null } })).toThrow(/metadata.year/);
+    expect(() => normalizeWorkEntry({ ...raw, metadata: { ...raw.metadata, status: null } })).toThrow(/metadata.status/);
+    expect(() => normalizeWorkEntry({ ...raw, sector: null })).toThrow(/'sector'/);
+  });
+
+  it('every fixture entry is real Work', () => {
+    for (const entry of FIXTURE_WORK_ENTRIES) expect(entry.illustrative, entry._id).toBe(false);
+  });
+
+  describe('summaries', () => {
+    it('an illustrative summary carries null — never 0 — for its missing Year, and no Status or Sector', async () => {
+      const summary = normalizeWorkEntrySummary({
+        _id: 'ex-1',
+        title: { ro: 'Exemplu' },
+        slug: { ro: 'exemplu' },
+        pillar: 'architecture-design',
+        illustrative: true,
+      });
+      expect(summary).toMatchObject({ illustrative: true, year: null, status: null, sector: null });
+    });
+
+    it('a real summary is unchanged — Status and Sector still required', () => {
+      const base = { _id: 'r-1', title: { ro: 'Real' }, slug: { ro: 'real' }, pillar: 'architecture-design' };
+      expect(() => normalizeWorkEntrySummary({ ...base, sector: 'rezidential' })).toThrow(/metadata.status/);
+      expect(() => normalizeWorkEntrySummary({ ...base, status: 'finalizat' })).toThrow(/'sector'/);
+      expect(
+        normalizeWorkEntrySummary({ ...base, sector: 'rezidential', status: 'finalizat', year: 2020 }),
+      ).toMatchObject({ illustrative: false, year: 2020 });
+    });
+  });
+
+  describe('never proof — excluded from Service.demonstratedBy', () => {
+    const summaryOf = (id: string, illustrative?: boolean) => ({
+      _id: id,
+      title: { ro: `Lucrare ${id}` },
+      slug: { ro: `lucrare-${id}` },
+      pillar: 'architecture-design',
+      sector: 'rezidential',
+      status: 'finalizat',
+      year: 2024,
+      ...(illustrative === undefined ? {} : { illustrative }),
+    });
+
+    it('normalizeService drops an illustrative summary even if the query let one through', async () => {
+      const [rawService] = await FIXTURE_RAW_DOCUMENTS.services();
+      const service = normalizeService({
+        ...rawService,
+        demonstratedBy: [summaryOf('real-a'), summaryOf('real-b', false), summaryOf('example', true)],
+      });
+      expect(service.demonstratedBy.map((work) => work._id)).toEqual(['real-a', 'real-b']);
+    });
+
+    it('the ContentSource never surfaces one either', async () => {
+      const [rawService] = await FIXTURE_RAW_DOCUMENTS.services();
+      const documents: RawDocuments = {
+        ...FIXTURE_RAW_DOCUMENTS,
+        services: async () => [{ ...rawService, demonstratedBy: [summaryOf('example', true)] }],
+      };
+      const [service] = await createContentSource(documents).services('ro');
+      expect(service?.demonstratedBy).toEqual([]);
+    });
+
+    it('the fixture reversal mirrors the query clause', async () => {
+      for (const service of await FIXTURE_RAW_DOCUMENTS.services()) {
+        for (const work of service.demonstratedBy ?? []) {
+          // The nested projection omits the flag (`DEMONSTRATING_WORK_FIELDS`); the filter is the guarantee.
+          expect(work, work._id as string).not.toHaveProperty('illustrative');
+        }
+      }
+    });
+  });
+
+  /* Synchronous helpers for the throw assertions above. */
+  let FIXTURE_ILLUSTRATIVE_PLACEHOLDER: RawWorkEntry;
+  function normalizeWorkEntryFrom(overrides: Partial<RawWorkEntry>) {
+    return normalizeWorkEntry({ ...FIXTURE_ILLUSTRATIVE_PLACEHOLDER, ...overrides });
+  }
+  beforeAll(async () => {
+    FIXTURE_ILLUSTRATIVE_PLACEHOLDER = await illustrativeRaw();
   });
 });

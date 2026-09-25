@@ -47,8 +47,9 @@ export function itemFacets(item: WorkArchiveItem, locale: Locale): ArchiveItemFa
     pillars: [item.pillar],
     labels: [...item.labels],
     /* One authored Sector per project since Stage 6 — a single-element list, kept as a list so
-       every facet in this shape is matched the same way. */
-    sectors: [item.sector],
+       every facet in this shape is matched the same way. An illustrative project may carry no
+       Sector: it then contributes no value (and matches no Sector filter), never a `null` token. */
+    sectors: item.sector ? [item.sector] : [],
     /*
      * Matched by the **immutable `ServiceKey`** (v3.1 §14.3), never by a slug or a name.
      *

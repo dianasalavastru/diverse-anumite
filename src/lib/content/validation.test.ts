@@ -10,6 +10,9 @@ import { describe, expect, it } from 'vitest';
 import { RESERVED_SLUGS } from '../i18n/routes.js';
 import {
   errorsOf,
+  isIllustrative,
+  validateIllustrativeFields,
+  validateWorkFieldContract,
   toSanityResult,
   validateCaptureGate,
   validateEnAvailability,
@@ -24,8 +27,9 @@ import {
   warningsOf,
   VOCABULARIES,
 } from './validation.js';
-import type { FieldPresence, ReferencedService } from './validation.js';
+import type { FieldPresence, ReferencedService, WorkFieldPresence } from './validation.js';
 import { PILLARS, PROJECT_LABELS, SERVICE_KEYS, STATUSES } from './types.js';
+import { PROJECT_FIELDS, WORK_FIELDS, serviceKeysForPillar } from './requirements.js';
 
 describe('Slug format (IA §2.2)', () => {
   it.each(['casa-in-panta', 'releveu-3d', 'a1'])('accepts %s', (slug) => {
@@ -553,5 +557,128 @@ describe('Sanity result mapping', () => {
     const result = toSanityResult(validateWorkEntrySlug('concursuri', 'ro', 'slug.ro'));
     expect(typeof result).toBe('string');
     expect(result).toContain('reserved');
+  });
+});
+
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * Illustrative Work — one shared entry point, two tables
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+describe('validateWorkFieldContract(false, …) IS the real contract, unchanged', () => {
+  /* Every Pillar × every subset of its Services × a set of presence maps covering all-present,
+     none-present and each single field missing. For every one, the shared entry point in real
+     mode must return exactly what `validateFieldRequirements` returns — same issues, same
+     paths, same messages, same order. */
+  const presences: FieldPresence[] = [
+    allPresent(),
+    {},
+    ...PROJECT_FIELDS.map((field) => allPresent({ [field]: false })),
+  ];
+
+  it('is identical to validateFieldRequirements for every Pillar, Service subset and presence', () => {
+    let cases = 0;
+    for (const pillar of PILLARS) {
+      const keys = serviceKeysForPillar(pillar);
+      for (let mask = 0; mask < 1 << keys.length; mask += 1) {
+        const subset = keys.filter((_, index) => (mask & (1 << index)) !== 0);
+        for (const presence of presences) {
+          expect(validateWorkFieldContract(false, pillar, subset, presence)).toEqual(
+            validateFieldRequirements(pillar, subset, presence),
+          );
+          cases += 1;
+        }
+      }
+    }
+    expect(cases).toBe(20 * presences.length);
+  });
+
+  it('ignores the illustrative-only presence keys in real mode', () => {
+    const extras: WorkFieldPresence = { ...allPresent(), deliverables: true, labels: true, capture: true };
+    expect(validateWorkFieldContract(false, 'reality-capture', ['scanare-laser-3d'], extras)).toEqual(
+      validateFieldRequirements('reality-capture', ['scanare-laser-3d'], allPresent()),
+    );
+  });
+
+  it('a real project still cannot drop its Year', () => {
+    const issues = validateWorkFieldContract(false, 'architecture-design', ['vizualizare-3d'], allPresent({ year: false }));
+    expect(errorsOf(issues).map((issue) => issue.path)).toEqual(['year']);
+  });
+});
+
+describe('Illustrative Work — its own rule table', () => {
+  /** The minimum an illustrative project needs: title, Services, cover, gallery. Nothing else. */
+  const minimal = (overrides: WorkFieldPresence = {}): WorkFieldPresence => ({
+    title: true,
+    services: true,
+    cover: true,
+    gallery: true,
+    ...overrides,
+  });
+
+  it('accepts an example carrying only title, Services, cover and gallery', () => {
+    for (const pillar of PILLARS) {
+      for (const key of serviceKeysForPillar(pillar)) {
+        expect(validateWorkFieldContract(true, pillar, [key], minimal()), `${pillar} ${key}`).toEqual([]);
+      }
+    }
+  });
+
+  it('does NOT require any fabricated fact — no Year, Status, Client, or Service-activated field', () => {
+    // Scanare laser 3D would make Equipment, Location and Area mandatory on a real project.
+    expect(validateWorkFieldContract(true, 'reality-capture', ['scanare-laser-3d', 'scan-to-bim'], minimal())).toEqual([]);
+    expect(validateWorkFieldContract(true, 'architecture-design', ['proiectare-arhitectura', 'design-mobilier'], minimal())).toEqual([]);
+  });
+
+  it('Sector and Description are optional — present or absent, never reported', () => {
+    for (const sector of [true, false]) {
+      for (const description of [true, false]) {
+        expect(validateIllustrativeFields(minimal({ sector, description }))).toEqual([]);
+      }
+    }
+  });
+
+  it.each(['title', 'services', 'cover', 'gallery'] as const)('still requires %s', (field) => {
+    const issues = validateIllustrativeFields(minimal({ [field]: false }));
+    expect(errorsOf(issues).map((issue) => issue.path)).toEqual([field]);
+  });
+
+  it.each([
+    'year', 'status', 'client', 'location', 'area', 'awards', 'equipment', 'collaborators', 'team',
+    'implementationCompany', 'deliverables', 'labels', 'capture',
+  ] as const)('FORBIDS %s — an error when present, never a silent drop', (field) => {
+    const issues = validateWorkFieldContract(true, 'architecture-design', ['vizualizare-3d'], minimal({ [field]: true }));
+    expect(issues).toHaveLength(1);
+    expect(issues[0]?.level).toBe('error');
+    expect(issues[0]?.path).toBe(field);
+    expect(issues[0]?.message).toContain('must be empty on an illustrative project');
+  });
+
+  it('reports every violation at once — missing and forbidden alike', () => {
+    const issues = validateIllustrativeFields({ title: true, services: true, year: true, client: true });
+    expect(errorsOf(issues).map((issue) => issue.path)).toEqual(['year', 'client', 'cover', 'gallery'].sort(
+      (a, b) => WORK_FIELDS.indexOf(a as never) - WORK_FIELDS.indexOf(b as never),
+    ));
+  });
+
+  it('a real project fully filled in fails the illustrative table — the flag changes the contract', () => {
+    const issues = validateWorkFieldContract(true, 'architecture-design', ['proiectare-arhitectura'], allPresent());
+    expect(errorsOf(issues).length).toBeGreaterThan(0);
+    expect(errorsOf(issues).map((issue) => issue.path)).toContain('year');
+  });
+});
+
+describe('isIllustrative — only a literal `true` switches the table', () => {
+  it.each([
+    [{ illustrative: true }, true],
+    [{ illustrative: false }, false],
+    [{ illustrative: null }, false],
+    [{ illustrative: 'true' }, false],
+    [{ illustrative: 1 }, false],
+    [{}, false],
+    [undefined, false],
+    [null, false],
+  ])('%j → %s', (document, expected) => {
+    expect(isIllustrative(document)).toBe(expected);
   });
 });

@@ -68,10 +68,11 @@ import {
 } from './types.js';
 import {
   errorsOf,
-  validateFieldRequirements,
+  isIllustrative,
   validateServicePillarConsistency,
   validateServicesPresent,
-  type FieldPresence,
+  validateWorkFieldContract,
+  type WorkFieldPresence,
 } from './validation.js';
 
 export class ContentShapeError extends Error {
@@ -234,6 +235,14 @@ function normalizeSector(raw: string | null | undefined, docId: string): Sector 
 }
 
 /**
+ * Sector under the ILLUSTRATIVE table — optional, never required, never forbidden. Absent is
+ * `null`; a present value is still vocabulary-checked exactly like a real project's.
+ */
+function normalizeIllustrativeSector(raw: string | null | undefined, docId: string): Sector | null {
+  return raw ? normalizeSector(raw, docId) : null;
+}
+
+/**
  * Project Labels (v3.1 §10) — 0..N, optional, closed vocabulary.
  *
  * Absent is the common case and normalizes to `[]`, never to a default value: a Label is an
@@ -266,7 +275,9 @@ function normalizeLabels(
 function normalizeMetadata(
   raw: RawWorkEntryMetadata | null | undefined,
   docId: string,
+  illustrative = false,
 ): WorkEntryMetadata {
+  if (illustrative) return normalizeIllustrativeMetadata(raw, docId);
   if (raw?.year === null || raw?.year === undefined) {
     throw new ContentShapeError(`${docId}: 'metadata.year' is required (it sorts the archive — IA Step 5).`);
   }
@@ -283,6 +294,52 @@ function normalizeMetadata(
     equipment: raw.equipment ?? [],
     implementationCompany: raw.implementationCompany ?? null,
   };
+}
+
+/**
+ * Metadata of an ILLUSTRATIVE project. The whole object may be absent — an example has no
+ * facts — so nothing here is required and nothing is defaulted to a value: an empty field is
+ * `null` or `[]`, exactly as an absent optional field is on real Work.
+ *
+ * Whatever IS present is carried through untouched (Status still vocabulary-checked), so that
+ * `assertFieldContract` sees it and refuses the document. Dropping a forbidden value here would
+ * turn "error if present" into a silent repair.
+ */
+function normalizeIllustrativeMetadata(
+  raw: RawWorkEntryMetadata | null | undefined,
+  docId: string,
+): WorkEntryMetadata {
+  return {
+    year: raw?.year ?? null,
+    location: localized(raw?.location),
+    client: raw?.client ?? null,
+    collaborators: raw?.collaborators ?? [],
+    status: raw?.status ? (oneOf(raw.status, STATUSES, 'metadata.status', docId) as Status) : null,
+    awards: localized(raw?.awards),
+    area: raw?.area ?? null,
+    team: raw?.team ?? [],
+    deliverables: localized(raw?.deliverables),
+    equipment: raw?.equipment ?? [],
+    implementationCompany: raw?.implementationCompany ?? null,
+  };
+}
+
+/**
+ * Whether a raw document declares ANY capture claim — read from the raw shape, before the §19.4
+ * gate drops an uncleared derivative, and across both locales. Only the illustrative table asks
+ * this (it forbids capture outright); real Work's capture rules are unchanged.
+ */
+function declaresCapture(raw: RawCaptureMetadata | null | undefined, cleared: boolean): boolean {
+  if (cleared) return true;
+  if (!raw) return false;
+  return (
+    !isEmpty(raw.accuracy?.ro) ||
+    !isEmpty(raw.accuracy?.en) ||
+    (raw.software ?? []).length > 0 ||
+    (raw.pointCount !== null && raw.pointCount !== undefined) ||
+    Boolean(raw.derivative?.assetUrl) ||
+    Boolean(raw.derivative?.poster?.assetId)
+  );
 }
 
 /**
@@ -330,6 +387,7 @@ function normalizeCapture(
 
 export function normalizeWorkEntrySummary(raw: RawWorkEntrySummary): WorkEntrySummary {
   const _id = requireId(raw, 'Work Entry summary');
+  if (isIllustrative(raw)) return normalizeIllustrativeSummary(raw, _id);
   return {
     _id,
     title: requiredLocalized(raw.title, 'title', _id),
@@ -343,6 +401,29 @@ export function normalizeWorkEntrySummary(raw: RawWorkEntrySummary): WorkEntrySu
     status: oneOf(raw.status, STATUSES, 'metadata.status', _id) as Status,
     cover: normalizeImage(raw.cover),
     curation: normalizeCuration(raw.curation, _id),
+    illustrative: false,
+  };
+}
+
+/**
+ * The summary of an ILLUSTRATIVE project. Year, Status and Sector are not required: absent
+ * stays `null` — never `0`, never a placeholder — and every surface that renders them renders
+ * nothing for `null`.
+ */
+function normalizeIllustrativeSummary(raw: RawWorkEntrySummary, _id: string): WorkEntrySummary {
+  return {
+    _id,
+    title: requiredLocalized(raw.title, 'title', _id),
+    slug: requiredLocalized(raw.slug, 'slug', _id),
+    enPublished: raw.enPublished ?? false,
+    pillar: oneOf(raw.pillar, PILLARS, 'pillar', _id) as Pillar,
+    labels: normalizeLabels(raw.labels, _id),
+    sector: normalizeIllustrativeSector(raw.sector, _id),
+    year: raw.year ?? null,
+    status: raw.status ? (oneOf(raw.status, STATUSES, 'metadata.status', _id) as Status) : null,
+    cover: normalizeImage(raw.cover),
+    curation: normalizeCuration(raw.curation, _id),
+    illustrative: true,
   };
 }
 
@@ -414,8 +495,9 @@ export function normalizeServiceSummary(raw: RawServiceSummary): ServiceSummary 
 export function normalizeWorkEntry(raw: RawWorkEntry): WorkEntry {
   const _id = requireId(raw, 'Work Entry');
   const capturePublicationCleared = raw.capturePublicationCleared ?? false;
+  const illustrative = isIllustrative(raw);
 
-  const metadata = normalizeMetadata(raw.metadata, _id);
+  const metadata = normalizeMetadata(raw.metadata, _id, illustrative);
 
   const entry: WorkEntry = {
     _id,
@@ -426,7 +508,8 @@ export function normalizeWorkEntry(raw: RawWorkEntry): WorkEntry {
 
     pillar: oneOf(raw.pillar, PILLARS, 'pillar', _id) as Pillar,
     labels: normalizeLabels(raw.labels, _id),
-    sector: normalizeSector(raw.sector, _id),
+    sector: illustrative ? normalizeIllustrativeSector(raw.sector, _id) : normalizeSector(raw.sector, _id),
+    illustrative,
 
     services: (raw.services ?? []).map(normalizeServiceSummary),
     relatedWork: (raw.relatedWork ?? []).map(normalizeWorkEntrySummary),
@@ -442,7 +525,7 @@ export function normalizeWorkEntry(raw: RawWorkEntry): WorkEntry {
     seo: normalizeSeo(raw.seo),
   };
 
-  assertFieldContract(entry);
+  assertFieldContract(entry, declaresCapture(raw.capture, capturePublicationCleared));
   return entry;
 }
 
@@ -457,7 +540,7 @@ export function normalizeWorkEntry(raw: RawWorkEntry): WorkEntry {
  * Every issue is collected before throwing, so one build reports every missing field rather
  * than one per run.
  */
-function assertFieldContract(entry: WorkEntry): void {
+function assertFieldContract(entry: WorkEntry, capture: boolean): void {
   const services = entry.services;
   const issues = [
     ...validateServicesPresent(services.length),
@@ -465,10 +548,14 @@ function assertFieldContract(entry: WorkEntry): void {
       entry.pillar,
       services.map((service) => ({ key: service.key, pillar: service.pillar, name: service.name.ro })),
     ),
-    ...validateFieldRequirements(
+    /* The one shared entry point: real Work goes straight through to the unchanged
+       `validateFieldRequirements`; illustrative Work is checked against its own table. The
+       Studio calls the same function (`studio/schemaTypes/workEntry.ts`). */
+    ...validateWorkFieldContract(
+      entry.illustrative,
       entry.pillar,
       services.map((service) => service.key),
-      fieldPresence(entry),
+      { ...fieldPresence(entry), ...illustrativeExtraPresence(entry, capture) },
     ),
   ];
 
@@ -481,7 +568,7 @@ function assertFieldContract(entry: WorkEntry): void {
 }
 
 /** What the project actually carries, as the requirement rule expects it. */
-function fieldPresence(entry: WorkEntry): FieldPresence {
+function fieldPresence(entry: WorkEntry): WorkFieldPresence {
   const metadata = entry.metadata;
   return {
     services: entry.services.length > 0,
@@ -500,6 +587,15 @@ function fieldPresence(entry: WorkEntry): FieldPresence {
     collaborators: metadata.collaborators.length > 0,
     team: metadata.team.length > 0,
     implementationCompany: Boolean(metadata.implementationCompany?.trim()),
+  };
+}
+
+/** The three non-canonical factual fields — read only by the illustrative table. */
+function illustrativeExtraPresence(entry: WorkEntry, capture: boolean): WorkFieldPresence {
+  return {
+    deliverables: (entry.metadata.deliverables?.ro?.length ?? 0) > 0,
+    labels: entry.labels.length > 0,
+    capture,
   };
 }
 
@@ -522,7 +618,12 @@ export function normalizeService(raw: RawService): Service {
     sectors: normalizeServiceSectors(raw.sectors, _id),
     hero: normalizeImage(raw.hero),
     // Zero demonstrating entries is a valid published state (IA Step 6, F5) — never an error.
-    demonstratedBy: (raw.demonstratedBy ?? []).map(normalizeWorkEntrySummary),
+    /* Illustrative Work is never proof. The query already excludes it (`SERVICE_FIELDS`); this
+       is the build's independent refusal, so an example cannot reach S-4 even from a raw set
+       that bypassed the query. */
+    demonstratedBy: (raw.demonstratedBy ?? [])
+      .map(normalizeWorkEntrySummary)
+      .filter((summary) => !summary.illustrative),
     curation: normalizeCuration(raw.curation, _id),
     seo: normalizeSeo(raw.seo),
   };

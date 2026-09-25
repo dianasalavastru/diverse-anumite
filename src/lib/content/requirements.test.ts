@@ -16,8 +16,12 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  ILLUSTRATIVE_EXTRA_FIELDS,
+  ILLUSTRATIVE_FIELD_RULES,
   PILLAR_BASE_REQUIREMENTS,
   PROJECT_FIELDS,
+  WORK_FIELDS,
+  illustrativeForbiddenFields,
   REQUIREMENT_ORDER,
   SERVICE_ACTIVATABLE_FIELDS,
   SERVICE_FIELD_REQUIREMENTS,
@@ -685,5 +689,146 @@ describe('helpers', () => {
     expect(isApplicable(resolved.location)).toBe(true);
     expect(isApplicable(resolved.implementationCompany)).toBe(false);
     expect(isApplicable(resolved.equipment)).toBe(false);
+  });
+});
+
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * Illustrative Work — the real tables are untouched, the illustrative one is separate
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+describe('the REAL requirement tables are byte-for-byte what they were before illustrative Work', () => {
+  /*
+   * Literal copies of the tables as they stood before the illustrative mode was added. They are
+   * written out here — not derived from the module — so that any edit to the real contract made
+   * while touching the illustrative one fails this suite.
+   */
+  it('REQUIREMENT_ORDER is still the three-state lattice — no `forbidden` state was added to it', () => {
+    expect([...REQUIREMENT_ORDER]).toEqual(['not-applicable', 'optional', 'mandatory']);
+  });
+
+  it('PROJECT_FIELDS is unchanged', () => {
+    expect([...PROJECT_FIELDS]).toEqual([
+      'services', 'sector', 'title', 'year', 'status', 'client', 'description', 'cover', 'gallery',
+      'location', 'area', 'awards', 'equipment', 'collaborators', 'team', 'implementationCompany',
+    ]);
+  });
+
+  it('SERVICE_ACTIVATABLE_FIELDS is unchanged', () => {
+    expect([...SERVICE_ACTIVATABLE_FIELDS]).toEqual([
+      'location', 'area', 'awards', 'equipment', 'collaborators', 'team', 'implementationCompany',
+    ]);
+  });
+
+  it('PILLAR_BASE_REQUIREMENTS is unchanged', () => {
+    expect(PILLAR_BASE_REQUIREMENTS).toEqual({
+      'architecture-design': {
+        services: 'mandatory', sector: 'mandatory', title: 'mandatory', year: 'mandatory',
+        status: 'mandatory', client: 'mandatory', description: 'mandatory', cover: 'mandatory',
+        gallery: 'mandatory', collaborators: 'optional', team: 'optional',
+        location: 'not-applicable', area: 'not-applicable', awards: 'not-applicable',
+        equipment: 'not-applicable', implementationCompany: 'not-applicable',
+      },
+      'reality-capture': {
+        services: 'mandatory', sector: 'mandatory', title: 'mandatory', year: 'mandatory',
+        status: 'mandatory', client: 'mandatory', description: 'optional', cover: 'mandatory',
+        gallery: 'mandatory', collaborators: 'not-applicable', team: 'not-applicable',
+        location: 'not-applicable', area: 'not-applicable', awards: 'not-applicable',
+        equipment: 'not-applicable', implementationCompany: 'not-applicable',
+      },
+    });
+  });
+
+  it('SERVICE_FIELD_REQUIREMENTS is unchanged', () => {
+    expect(SERVICE_FIELD_REQUIREMENTS).toEqual({
+      'proiectare-arhitectura': { location: 'mandatory', area: 'mandatory', awards: 'optional' },
+      'design-interior': { location: 'mandatory', area: 'mandatory', awards: 'optional' },
+      'vizualizare-3d': { location: 'optional' },
+      'design-mobilier': { implementationCompany: 'mandatory' },
+      'scanare-laser-3d': { equipment: 'mandatory', location: 'mandatory', area: 'mandatory' },
+      'scan-to-bim': { location: 'mandatory', area: 'mandatory', collaborators: 'optional', team: 'optional' },
+    });
+  });
+
+  it('mandatoryFields resolves exactly as before, for EVERY Pillar and EVERY subset of its Services', () => {
+    /* An independent, literal statement of the pre-illustrative contract: the base mandatory
+       set per Pillar, plus what each Service makes mandatory. Nothing below reads the module's
+       own tables. */
+    const BASE: Record<string, readonly ProjectField[]> = {
+      'architecture-design': ['services', 'sector', 'title', 'year', 'status', 'client', 'description', 'cover', 'gallery'],
+      'reality-capture': ['services', 'sector', 'title', 'year', 'status', 'client', 'cover', 'gallery'],
+    };
+    const ADDS: Record<ServiceKey, readonly ProjectField[]> = {
+      'proiectare-arhitectura': ['location', 'area'],
+      'design-interior': ['location', 'area'],
+      'vizualizare-3d': [],
+      'design-mobilier': ['implementationCompany'],
+      'scanare-laser-3d': ['equipment', 'location', 'area'],
+      'scan-to-bim': ['location', 'area'],
+    };
+
+    let cases = 0;
+    for (const pillar of PILLARS) {
+      const keys = serviceKeysForPillar(pillar);
+      for (let mask = 0; mask < 1 << keys.length; mask += 1) {
+        const subset = keys.filter((_, index) => (mask & (1 << index)) !== 0);
+        const expected = new Set<ProjectField>([...(BASE[pillar] ?? []), ...subset.flatMap((key) => ADDS[key])]);
+        expect([...mandatoryFields(pillar, subset)], `${pillar} ${subset.join('+')}`).toEqual(
+          PROJECT_FIELDS.filter((field) => expected.has(field)),
+        );
+        cases += 1;
+      }
+    }
+    // 2^4 A&D subsets + 2^2 RC subsets.
+    expect(cases).toBe(20);
+  });
+});
+
+describe('ILLUSTRATIVE_FIELD_RULES — the separate table for illustrative Work', () => {
+  it('is stated literally', () => {
+    expect(ILLUSTRATIVE_FIELD_RULES).toEqual({
+      services: 'mandatory',
+      title: 'mandatory',
+      cover: 'mandatory',
+      gallery: 'mandatory',
+      sector: 'optional',
+      description: 'optional',
+      year: 'forbidden',
+      status: 'forbidden',
+      client: 'forbidden',
+      location: 'forbidden',
+      area: 'forbidden',
+      awards: 'forbidden',
+      equipment: 'forbidden',
+      collaborators: 'forbidden',
+      team: 'forbidden',
+      implementationCompany: 'forbidden',
+      deliverables: 'forbidden',
+      labels: 'forbidden',
+      capture: 'forbidden',
+    });
+  });
+
+  it('covers every canonical project field and the three extra factual fields, and nothing else', () => {
+    expect([...ILLUSTRATIVE_EXTRA_FIELDS]).toEqual(['deliverables', 'labels', 'capture']);
+    expect([...WORK_FIELDS]).toEqual([...PROJECT_FIELDS, ...ILLUSTRATIVE_EXTRA_FIELDS]);
+    expect(Object.keys(ILLUSTRATIVE_FIELD_RULES).sort()).toEqual([...WORK_FIELDS].sort());
+  });
+
+  it('forbids every field a Service could activate — an example has no Service-driven facts', () => {
+    for (const field of SERVICE_ACTIVATABLE_FIELDS) {
+      expect(ILLUSTRATIVE_FIELD_RULES[field], field).toBe('forbidden');
+    }
+  });
+
+  it('never makes Year or any other factual field optional — forbidden, not "fill it if you like"', () => {
+    expect(illustrativeForbiddenFields()).toEqual([
+      'year', 'status', 'client', 'location', 'area', 'awards', 'equipment', 'collaborators',
+      'team', 'implementationCompany', 'deliverables', 'labels', 'capture',
+    ]);
+  });
+
+  it('Sector is allowed-optional: neither required nor forbidden', () => {
+    expect(ILLUSTRATIVE_FIELD_RULES.sector).toBe('optional');
   });
 });

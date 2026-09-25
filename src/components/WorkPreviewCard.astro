@@ -192,7 +192,13 @@ const pillar = pillarLabel(entry.pillar, locale);
    already carries (`WorkEntrySummary.sector`) through the closed vocabulary's own label.
    Rendered by the archive variant only. Single-valued and mandatory since Stage 6, so it is
    always present — no empty branch. */
-const sector = sectorLabel(entry.sector, locale);
+const sector = entry.sector ? sectorLabel(entry.sector, locale) : null;
+/* Year is always present on real Work; an illustrative project has none, and then the card
+   renders no year reading at all — no empty span, no stray separator. */
+const year = entry.year;
+/* The default variant's second line. Real Work always has a year, so this is never empty there
+   and renders exactly as `year` or `year · labels` did; empty only on an illustrative project. */
+const yearAndLabels = [year, labels].filter((reading) => reading !== null).join(' · ');
 
 /* DEVELOPMENT ONLY — see `lib/dev/visual-media.ts`. Keyed on the entry rather than on the
    variant, so the same project shows the same picture on the homepage, its hub and the archive;
@@ -268,11 +274,13 @@ const devPool = poolForPillar(entry.pillar, devKey);
       <span class="cap">
         <span class="t">{title}</span>
         {place && <span class="pc">{place}</span>}
-        <span class="d">
-          {labels && <span>{labels}</span>}
-          <span>{entry.year}</span>
-          <span class="sc">{sector}</span>
-        </span>
+        {(labels || year !== null || sector) && (
+          <span class="d">
+            {labels && <span>{labels}</span>}
+            {year !== null && <span>{year}</span>}
+            {sector && <span class="sc">{sector}</span>}
+          </span>
+        )}
         {/* ── THE PROJECT PREVIEW — a glimpse inside, not a gallery ───────────
             Two to three of the entry's own gallery images, set small beneath its
             metadata. The archive is a signposting surface
@@ -343,9 +351,7 @@ const devPool = poolForPillar(entry.pillar, devKey);
         {/* STAGE 4: Year + Labels replaces Year + Entry Type. Entry Type was mandatory so the
             separator was always earned; Labels are optional, so an unlabelled project shows the
             year alone rather than a trailing bullet. */}
-        <span class="d">
-          {labels ? `${entry.year} · ${labels}` : entry.year}
-        </span>
+        {yearAndLabels && <span class="d">{yearAndLabels}</span>}
       </span>
     </a>
   )

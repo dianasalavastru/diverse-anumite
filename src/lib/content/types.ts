@@ -414,11 +414,16 @@ export interface Curation {
  * B-side schema reading, revisitable at I-4 against real content.
  */
 export interface WorkEntryMetadata {
-  readonly year: number;
+  /**
+   * Required for real Work — the build throws without it (it sorts the archive, IA Step 5).
+   * `null` ONLY on an illustrative project, where it is forbidden: an example has no year.
+   */
+  readonly year: number | null;
   readonly location: Localized<string> | null;
   readonly client: string | null;
   readonly collaborators: readonly string[];
-  readonly status: Status;
+  /** Required for real Work. `null` only on an illustrative project, where it is forbidden. */
+  readonly status: Status | null;
   readonly awards: Localized<readonly string[]> | null;
   /** Square metres. */
   readonly area: number | null;
@@ -477,8 +482,11 @@ export interface WorkEntry {
    * `relatedWork`. There is no `pillars`, no primary, no secondary and no fallback derivation.
    */
   readonly pillar: Pillar;
-  /** Exactly one, mandatory (v3.1 §11.1). Single-valued since Stage 6. */
-  readonly sector: Sector;
+  /**
+   * Exactly one, mandatory (v3.1 §11.1). Single-valued since Stage 6. `null` only on an
+   * illustrative project, where Sector is optional.
+   */
+  readonly sector: Sector | null;
   /**
    * Optional editorial flags (v3.1 §10). **0..N and not mutually exclusive** — a project may
    * carry none, `competition`, `diploma-project`, or both. Labels never change which fields a
@@ -489,6 +497,17 @@ export interface WorkEntry {
    * canonical source for "is this a competition".
    */
   readonly labels: readonly ProjectLabel[];
+
+  /**
+   * An ILLUSTRATIVE project — an example, not a record of real work. `false` when the document
+   * does not carry the flag, so every existing document is real Work.
+   *
+   * Illustrative Work is validated against its own rule table (`ILLUSTRATIVE_FIELD_RULES`): the
+   * factual fields — year, status, client, location, area, awards, equipment, implementation
+   * company, collaborators, team, deliverables, labels and capture — must be EMPTY, never
+   * invented. It is never counted as proof: it is excluded from `Service.demonstratedBy`.
+   */
+  readonly illustrative: boolean;
 
   // ── Relationships ──
   /**
@@ -532,12 +551,16 @@ export interface WorkEntrySummary {
   readonly enPublished: boolean;
   /** Authored, exactly one (v3.1 §2). */
   readonly pillar: Pillar;
-  /** Exactly one, mandatory (v3.1 §11.1). */
-  readonly sector: Sector;
+  /** Exactly one, mandatory (v3.1 §11.1). `null` only on an illustrative project. */
+  readonly sector: Sector | null;
   /** Optional editorial flags, 0..N (v3.1 §10). Carried so a card can mark a competition. */
   readonly labels: readonly ProjectLabel[];
-  readonly year: number;
-  readonly status: Status;
+  /** `null` only on an illustrative project — real Work always carries a year. */
+  readonly year: number | null;
+  /** `null` only on an illustrative project — real Work always carries a status. */
+  readonly status: Status | null;
+  /** See `WorkEntry.illustrative`. `false` when absent. */
+  readonly illustrative: boolean;
   readonly cover: ImageAsset | null;
   readonly curation: Curation;
 }

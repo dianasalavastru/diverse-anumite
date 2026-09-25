@@ -73,12 +73,14 @@ push(
   labels.labels,
   entry.labels.map((label) => projectLabelLabel(label, locale)).join(' · '),
 );
-push(labels.sector, sectorLabel(entry.sector, locale));
+/* Sector, Year and Status are always present on real Work. An illustrative project may carry
+   no Sector and never carries a Year or Status; `push` then renders no row. */
+push(labels.sector, entry.sector ? sectorLabel(entry.sector, locale) : null);
 
 /* Metadata axis — CONTENT_MODEL.md:54. */
-push(labels.year, String(entry.metadata.year), true);
+push(labels.year, entry.metadata.year !== null ? String(entry.metadata.year) : null, true);
 push(labels.location, localize(entry.metadata.location, locale), true);
-push(labels.status, statusLabel(entry.metadata.status, locale));
+push(labels.status, entry.metadata.status ? statusLabel(entry.metadata.status, locale) : null);
 push(
   labels.area,
   entry.metadata.area != null ? `${entry.metadata.area} ${labels.areaUnit}` : null,

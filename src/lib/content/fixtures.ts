@@ -503,6 +503,8 @@ function toRawSummary(entry: FixtureWorkEntry): RawWorkEntrySummary {
     status: doc.metadata?.status,
     cover: doc.cover,
     curation: doc.curation,
+    // Mirrors `coalesce(illustrative, false)`.
+    illustrative: doc.illustrative ?? false,
   };
 }
 
@@ -545,6 +547,8 @@ function toRawServiceSummary(service: FixtureService): RawServiceSummary {
 function toRawWorkEntry(entry: FixtureWorkEntry): RawWorkEntry {
   return {
     ...entry.doc,
+    // Mirrors `coalesce(illustrative, false)`.
+    illustrative: entry.doc.illustrative ?? false,
     services: entry.serviceIds
       .map((id) => SERVICES.find((service) => service._id === id))
       .filter((service): service is FixtureService => service !== undefined)
@@ -564,9 +568,13 @@ function toRawWorkEntry(entry: FixtureWorkEntry): RawWorkEntry {
 function toRawService(service: FixtureService): RawService {
   return {
     ...service,
-    demonstratedBy: WORK_ENTRIES.filter((entry) =>
-      entry.serviceIds.includes(service._id as string),
-    ).map(toRawSummary),
+    /* Mirrors the projection's `&& illustrative != true` (an example is never proof) and its
+       `DEMONSTRATING_WORK_FIELDS`, which omit the flag every member would carry as `false`. */
+    demonstratedBy: WORK_ENTRIES.filter(
+      (entry) => entry.serviceIds.includes(service._id as string) && entry.doc.illustrative !== true,
+    )
+      .map(toRawSummary)
+      .map(({ illustrative: _alwaysFalse, ...summary }) => summary),
   };
 }
 

@@ -250,3 +250,40 @@ describe('C5 — canonical Service order (SERVICE_KEYS), never curation', () => 
     expect(CANONICAL.map(serviceSheetCode)).toEqual(['01', '02', '03', '04', '05', '06']);
   });
 });
+
+describe('An undated (illustrative) item sorts deterministically — after every dated one', () => {
+  /* Only an illustrative project can have `year: null`; real Work always carries one, so every
+     case above is unaffected. Built inline — `item()` defaults the year, so it is overridden. */
+  const undated = (id: string, overrides: Partial<ItemSpec> = {}): Orderable => ({
+    ...item({ id, primary: AD, ...overrides }),
+    year: null,
+  });
+
+  it('newest: dated first, newest to oldest, then undated by id', () => {
+    const items = [undated('u2'), item({ id: 'd-old', primary: AD, year: 2019 }), undated('u1'), item({ id: 'd-new', primary: AD, year: 2025 })];
+    expect(ids(sortArchive(items, 'newest', AD))).toEqual(['d-new', 'd-old', 'u1', 'u2']);
+  });
+
+  it('oldest: dated first, oldest to newest, then undated by id — never at the head', () => {
+    const items = [undated('u2'), item({ id: 'd-new', primary: AD, year: 2025 }), undated('u1'), item({ id: 'd-old', primary: AD, year: 2019 })];
+    expect(ids(sortArchive(items, 'oldest', AD))).toEqual(['d-old', 'd-new', 'u1', 'u2']);
+  });
+
+  it('curated: curation still decides first; at equal curation the undated item follows the dated one', () => {
+    const items = [
+      undated('u-high', { priority: 9 }),
+      item({ id: 'd-low', primary: AD, priority: 1, year: 2024 }),
+      undated('u-low', { priority: 1 }),
+    ];
+    expect(ids(discoveryOrder(items, AD))).toEqual(['u-high', 'd-low', 'u-low']);
+  });
+
+  it('is independent of input order, in every sort', () => {
+    const items = [undated('b'), undated('a'), item({ id: 'd', primary: AD, year: 2020 })];
+    for (const sort of ['curated', 'newest', 'oldest'] as const) {
+      expect(ids(sortArchive([...items].reverse(), sort, AD)), sort).toEqual(ids(sortArchive(items, sort, AD)));
+    }
+    expect(ids([...items].sort(compareYearDescending))).toEqual(['d', 'a', 'b']);
+    expect(ids([...items].sort(compareYearAscending))).toEqual(['d', 'a', 'b']);
+  });
+});

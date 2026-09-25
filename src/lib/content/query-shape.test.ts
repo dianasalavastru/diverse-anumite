@@ -15,6 +15,8 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  DEMONSTRATING_WORK_FIELDS,
+  DEMONSTRATING_WORK_PROJECTION,
   CAPTURE_FIELDS,
   CURATION_FIELDS,
   IMAGE_FIELDS,
@@ -87,6 +89,7 @@ const PROJECTIONS: readonly (readonly [string, ProjectionMap, string])[] = [
   ['workArchiveItem', WORK_ARCHIVE_ITEM_FIELDS, WORK_ARCHIVE_ITEM_PROJECTION],
   ['workEntry', WORK_ENTRY_FIELDS, WORK_ENTRY_PROJECTION],
   ['service', SERVICE_FIELDS, projection(SERVICE_FIELDS)],
+  ['demonstratingWork', DEMONSTRATING_WORK_FIELDS, DEMONSTRATING_WORK_PROJECTION],
 ];
 
 const ALL_QUERIES: readonly (readonly [string, string])[] = [
@@ -201,5 +204,44 @@ describe('Fixtures exercise the real query shape (§23.4)', () => {
     expect(Object.keys((withRelations?.relatedWork ?? [])[0] ?? {}).sort()).toEqual(
       Object.keys(WORK_ENTRY_SUMMARY_FIELDS).sort(),
     );
+  });
+});
+
+
+describe('Illustrative Work in the query layer', () => {
+  it('every Work Entry projection carries the flag, defaulted to false when absent', () => {
+    for (const [name, map] of [
+      ['workEntry', WORK_ENTRY_FIELDS],
+      ['workEntrySummary', WORK_ENTRY_SUMMARY_FIELDS],
+      ['workArchiveItem', WORK_ARCHIVE_ITEM_FIELDS],
+    ] as const) {
+      expect(map.illustrative, name).toBe('coalesce(illustrative, false)');
+    }
+    for (const groq of [WORK_ENTRY_PROJECTION, WORK_ENTRY_SUMMARY_PROJECTION, WORK_ARCHIVE_ITEM_PROJECTION]) {
+      expect(topLevelKeys(groq)).toContain('illustrative');
+    }
+  });
+
+  it('demonstratedBy excludes illustrative Work — an example is never proof', () => {
+    expect(SERVICE_FIELDS.demonstratedBy).toContain('&& illustrative != true]');
+    const reverse = QUERY_ALL_SERVICES.slice(QUERY_ALL_SERVICES.indexOf('demonstratedBy'));
+    expect(reverse).toContain('illustrative != true');
+    for (const query of [QUERY_SERVICE_BY_SLUG.ro, QUERY_SERVICE_BY_SLUG.en]) {
+      expect(query).toContain('references(^._id) && illustrative != true');
+    }
+  });
+
+  it('the demonstrating-work projection is the summary minus the flag, and nothing else', () => {
+    const { illustrative: _flag, ...rest } = WORK_ENTRY_SUMMARY_FIELDS;
+    expect(DEMONSTRATING_WORK_FIELDS).toEqual(rest);
+    expect(SERVICE_FIELDS.demonstratedBy.endsWith(DEMONSTRATING_WORK_PROJECTION)).toBe(true);
+  });
+
+  it('fixture archive items and summaries carry the flag as false', async () => {
+    for (const item of await FIXTURE_RAW_DOCUMENTS.workArchive()) expect(item.illustrative, item._id as string).toBe(false);
+    for (const entry of await FIXTURE_RAW_DOCUMENTS.workEntries()) {
+      expect(entry.illustrative, entry._id as string).toBe(false);
+      for (const related of entry.relatedWork ?? []) expect(related.illustrative).toBe(false);
+    }
   });
 });

@@ -121,6 +121,8 @@ export interface RawWorkEntrySummary {
   readonly status?: string | null;
   readonly cover?: RawImage | null;
   readonly curation?: RawCuration | null;
+  /** Illustrative (example) Work. Coalesced to `false` in the query. */
+  readonly illustrative?: boolean | null;
 }
 
 /** The archive/curated-view projection (§23.5, IA §5.1). Adds the facets those surfaces filter and group by. */
@@ -141,6 +143,7 @@ export interface RawWorkEntry {
   readonly pillar?: string | null;
   readonly labels?: readonly string[] | null;
   readonly sector?: string | null;
+  readonly illustrative?: boolean | null;
   readonly services?: readonly RawServiceSummary[] | null;
   readonly relatedWork?: readonly RawWorkEntrySummary[] | null;
   readonly description?: RawLocalizedRichText | null;
@@ -292,9 +295,25 @@ export const WORK_ENTRY_SUMMARY_FIELDS = {
   status: 'metadata.status',
   cover: `cover${IMAGE}`,
   curation: `curation${CURATION}`,
+  illustrative: 'coalesce(illustrative, false)',
 } as const satisfies Record<keyof RawWorkEntrySummary, string>;
 
 export const WORK_ENTRY_SUMMARY_PROJECTION = projection(WORK_ENTRY_SUMMARY_FIELDS);
+
+/**
+ * The summary shape of `Service.demonstratedBy` — `WORK_ENTRY_SUMMARY_FIELDS` minus
+ * `illustrative`, and nothing else.
+ *
+ * The flag is omitted because the join's own filter (`illustrative != true`, below) already
+ * guarantees every member is real Work: carrying a column that can only ever read `false` would
+ * add nothing. It also keeps the demonstrating-work key set pinned by the live raw-shape guard
+ * (`live.test.ts`, "never returns a nested projection with unexpected keys") exactly as it was.
+ * `normalizeWorkEntrySummary` reads an absent flag as real Work.
+ */
+export const DEMONSTRATING_WORK_FIELDS = (({ illustrative: _alwaysFalse, ...fields }) => fields)(
+  WORK_ENTRY_SUMMARY_FIELDS,
+);
+export const DEMONSTRATING_WORK_PROJECTION = projection(DEMONSTRATING_WORK_FIELDS);
 
 export const WORK_ARCHIVE_ITEM_FIELDS = {
   _id: '_id',
@@ -308,6 +327,7 @@ export const WORK_ARCHIVE_ITEM_FIELDS = {
   status: 'metadata.status',
   cover: `cover${IMAGE}`,
   curation: `curation${CURATION}`,
+  illustrative: 'coalesce(illustrative, false)',
   /* STAGE 8: the archive's Service refs carry `key` and `pillar` too — runtime validation
      resolves field requirements from the key, and pillar scoping reads the pillar. The
      localized slug stays because it is what the `?service=` filter matches on. */
@@ -351,6 +371,7 @@ export const WORK_ENTRY_FIELDS = {
   pillar: 'pillar',
   labels: 'coalesce(labels, [])',
   sector: 'sector',
+  illustrative: 'coalesce(illustrative, false)',
   services: `services[]->${SERVICE_SUMMARY_PROJECTION}`,
   relatedWork: `relatedWork[]->${WORK_ENTRY_SUMMARY_PROJECTION}`,
   description: `description${LOCALIZED}`,
@@ -369,6 +390,11 @@ export const WORK_ENTRY_PROJECTION = projection(WORK_ENTRY_FIELDS);
  * `demonstratedBy` is resolved by **reversing** `WorkEntry.services` — the entry stores the
  * reference (IA Step 6, `DECISIONS_LOG.md` #38). The Service never stores its own copy of the
  * relationship, so the two directions cannot disagree.
+ *
+ * **Illustrative Work is never proof.** `illustrative != true` keeps an example out of every
+ * Service's demonstrating set (S-4) — a document without the flag compares as not-`true`, so
+ * all real Work is unaffected. `normalizeService` drops an illustrative summary again at build
+ * time, so the exclusion does not rest on this one clause.
  */
 export const SERVICE_FIELDS = {
   _id: '_id',
@@ -386,7 +412,7 @@ export const SERVICE_FIELDS = {
   equipment: `equipment${LOCALIZED}`,
   sectors: 'sectors',
   hero: `hero${IMAGE}`,
-  demonstratedBy: `*[_type == "workEntry" && !(_id in path("drafts.**")) && references(^._id)]${WORK_ENTRY_SUMMARY_PROJECTION}`,
+  demonstratedBy: `*[_type == "workEntry" && !(_id in path("drafts.**")) && references(^._id) && illustrative != true]${DEMONSTRATING_WORK_PROJECTION}`,
   curation: `curation${CURATION}`,
   seo: `seo${SEO}`,
 } as const satisfies Record<keyof RawService, string>;

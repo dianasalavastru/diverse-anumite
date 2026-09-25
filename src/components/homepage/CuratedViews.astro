@@ -60,7 +60,8 @@ interface Row {
   href: string;
   title: string;
   sub: string | null;
-  year: number;
+  /** Always present on real Work; `null` only on an illustrative project, which renders none. */
+  year: number | null;
 }
 
 const rows: Row[] = competitions.flatMap((item) => {
@@ -102,7 +103,7 @@ const rows: Row[] = competitions.flatMap((item) => {
                     {row.title}
                     {row.sub && <span class="sub">{row.sub}</span>}
                   </span>
-                  <span class="y">{row.year}</span>
+                  {row.year !== null && <span class="y">{row.year}</span>}
                 </a>
               </li>
             ))}

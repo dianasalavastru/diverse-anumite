@@ -41,6 +41,7 @@ function item(id: string, overrides: Partial<WorkArchiveItem> = {}): WorkArchive
     pillar: 'architecture-design',
     sector: 'rezidential',
     labels: [],
+    illustrative: false,
     year: 2024,
     status: 'finalizat',
     cover: null,
@@ -258,5 +259,18 @@ describe('serviceOptions — every Pillar, keyed and labelled', () => {
       'proiectare-arhitectura',
       'scanare-laser-3d',
     ]);
+  });
+});
+
+describe('an illustrative project with no Sector', () => {
+  const example = item('ex', { illustrative: true, sector: null, year: null, status: null });
+
+  it('contributes no Sector value — never a `null` token', () => {
+    expect(itemFacets(example, 'ro').sectors).toEqual([]);
+  });
+
+  it('adds nothing to the Sector option list, and leaves real projects\' values intact', () => {
+    expect(collectFacetValues([example], 'ro').sectors).toEqual([]);
+    expect(collectFacetValues([example, item('a', { sector: 'rezidential' })], 'ro').sectors).toEqual(['rezidential']);
   });
 });

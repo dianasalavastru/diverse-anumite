@@ -18,11 +18,14 @@
 
 import { isReservedSlug, RESERVED_SLUGS, type Locale } from '../i18n/routes.js';
 import {
+  ILLUSTRATIVE_FIELD_RULES,
   PILLAR_BASE_REQUIREMENTS,
   PROJECT_FIELDS,
   SERVICE_FIELD_REQUIREMENTS,
+  WORK_FIELDS,
   resolveRequirements,
   type ProjectField,
+  type WorkField,
 } from './requirements.js';
 import {
   PROJECT_LABELS,
@@ -250,6 +253,75 @@ export function validateFieldRequirements(
       `'${field}' is required for this project: ${describeRequirement(field, pillar, serviceKeys)}. (CONTENT_MODEL.md v3.1 §4–§8)`,
     ),
   );
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * Illustrative Work — one entry point, two rule tables
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * Presence for the whole Work field contract: the canonical `FieldPresence`, plus the three
+ * non-canonical factual fields only the illustrative table reasons about. A real project's
+ * caller may pass the extra keys too — the real table never reads them.
+ */
+export type WorkFieldPresence = FieldPresence & Readonly<Partial<Record<WorkField, boolean>>>;
+
+/**
+ * Whether a document (a Studio draft, a raw query result or a normalized entry) is flagged as
+ * illustrative. Only a literal `true` counts: absent, `null` and `false` are all real Work, so
+ * every document authored before the flag existed keeps the real contract.
+ */
+export function isIllustrative(document: unknown): boolean {
+  return (document as { illustrative?: unknown } | null | undefined)?.illustrative === true;
+}
+
+/**
+ * The Work field contract, for BOTH modes — **the one function the Studio and the build call.**
+ *
+ * `illustrative === false` is a pass-through to `validateFieldRequirements`, unchanged: same
+ * resolver, same tables, same issues, same messages. The real contract is not re-expressed
+ * here, so it cannot drift from itself.
+ *
+ * `illustrative === true` swaps in `ILLUSTRATIVE_FIELD_RULES` and ignores Service activation:
+ * a mandatory field with no value is reported, and so is a forbidden field WITH one. Every
+ * issue is collected, as for real Work.
+ *
+ * The Services-present and Service↔Pillar rules are not part of either table; both callers
+ * apply them separately and identically in both modes.
+ */
+export function validateWorkFieldContract(
+  illustrative: boolean,
+  pillar: Pillar,
+  serviceKeys: readonly ServiceKey[],
+  presence: WorkFieldPresence,
+): ValidationIssue[] {
+  if (!illustrative) return validateFieldRequirements(pillar, serviceKeys, presence);
+  return validateIllustrativeFields(presence);
+}
+
+/** The illustrative table alone — exported for tests and for callers that already know the mode. */
+export function validateIllustrativeFields(presence: WorkFieldPresence): ValidationIssue[] {
+  return WORK_FIELDS.flatMap((field): ValidationIssue[] => {
+    const rule = ILLUSTRATIVE_FIELD_RULES[field];
+    const present = presence[field] === true;
+    if (rule === 'mandatory' && !present) {
+      return [
+        error(
+          field,
+          `'${field}' is required, even for an illustrative project: an example still needs a title, its Services, a cover and a gallery.`,
+        ),
+      ];
+    }
+    if (rule === 'forbidden' && present) {
+      return [
+        error(
+          field,
+          `'${field}' must be empty on an illustrative project — it would state a fact about a real project that this example does not have. Clear it, or untick "Proiect ilustrativ" if this is real work.`,
+        ),
+      ];
+    }
+    return [];
+  });
 }
 
 /** Why a field is mandatory — the Pillar's base, a selected Service, or both. */

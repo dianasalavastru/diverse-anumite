@@ -12,7 +12,7 @@
 import { defineArrayMember, defineField, defineType } from 'sanity'
 
 import { PROMINENCE_OPTIONS, HIGHLIGHT_SLOT_OPTIONS, PILLAR_OPTIONS, STATUS_OPTIONS } from './fields'
-import { validateVocabulary, toSanityResult } from '../../src/lib/content/validation'
+import { isIllustrative, validateVocabulary, toSanityResult } from '../../src/lib/content/validation'
 import {
   isApplicable,
   resolveRequirements,
@@ -318,6 +318,21 @@ function conditional<T extends { name: string }>(field: T): T {
  * Work Entry metadata — CONTENT_MODEL.md:54
  * ──────────────────────────────────────────────────────────────────────────── */
 
+/**
+ * `Rule.required()`, lifted for an illustrative project.
+ *
+ * Year, Status and Client are required for every real project, exactly as before. On an
+ * illustrative one they are FORBIDDEN, not merely optional — but that half is the document-level
+ * rule's (`validateWorkFieldContract` in `workEntry.ts`), which reports a filled-in value by
+ * name. This callback only stops the field-level `required` from demanding a value the
+ * illustrative table refuses.
+ */
+const requiredUnlessIllustrative = (value: unknown, context: { document?: unknown }): true | string => {
+  const empty = value === undefined || value === null || (typeof value === 'string' && value.trim() === '')
+  if (!empty || isIllustrative(context.document)) return true
+  return 'Required'
+}
+
 export const workEntryMetadata = defineType({
   name: 'workEntryMetadata',
   title: 'Project facts',
@@ -328,7 +343,7 @@ export const workEntryMetadata = defineType({
       title: 'Year',
       type: 'number',
       description: 'Sorts the archive. Required.',
-      validation: (Rule) => Rule.required().integer().min(1980).max(2100),
+      validation: (Rule) => Rule.integer().min(1980).max(2100).custom(requiredUnlessIllustrative),
     }),
     defineField({
       name: 'status',
@@ -338,9 +353,10 @@ export const workEntryMetadata = defineType({
       description:
         'Where the project stands. The same four values for every project, whichever capability it belongs to. Never shown as a visitor filter.',
       validation: (Rule) =>
-        Rule.required().custom((value: string | undefined) =>
-          toSanityResult(validateVocabulary(value, 'status', 'metadata.status')),
-        ),
+        Rule.custom((value: string | undefined, context: { document?: unknown }) => {
+          if (!value) return requiredUnlessIllustrative(value, context)
+          return toSanityResult(validateVocabulary(value, 'status', 'metadata.status'))
+        }),
     }),
     conditional(defineField({ name: 'location', title: 'Location', type: 'localizedString' })),
     /* STAGE 8: Client is a base-mandatory field in BOTH Pillars (v3.1 §4, §6). The old
@@ -350,7 +366,7 @@ export const workEntryMetadata = defineType({
       title: 'Client',
       type: 'string',
       description: 'Who the project was for. Required.',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.custom(requiredUnlessIllustrative),
     }),
     conditional(defineField({
       name: 'collaborators',

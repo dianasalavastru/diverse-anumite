@@ -77,6 +77,8 @@ export function toWorkEntrySummary(entry: WorkEntry): WorkEntrySummary {
     status: entry.metadata.status,
     cover: entry.cover,
     curation: entry.curation,
+    // Carried so every signposting surface — and the S-4 exclusion — can tell an example from proof.
+    illustrative: entry.illustrative,
   };
 }
 

@@ -262,6 +262,91 @@ export const SERVICE_FIELD_REQUIREMENTS: Readonly<Record<ServiceKey, ServiceFiel
 };
 
 /* ────────────────────────────────────────────────────────────────────────────
+ * Illustrative Work — a separate rule table, selected by `WorkEntry.illustrative`
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * The three states an ILLUSTRATIVE project's fields can be in.
+ *
+ * Deliberately NOT an extension of `REQUIREMENT_ORDER`. That array is the §8 merge lattice for
+ * real Work, and adding a fourth state to it would change the join every real project resolves
+ * through. An illustrative project does not merge anything: it ignores Service activation
+ * entirely, so its rules are one flat table, and the real tables above stay byte-for-byte what
+ * they were.
+ *
+ * `forbidden` is the reason the table exists. An illustrative project is an example, not a
+ * record of work that happened, so every field that would state a fact about a real project —
+ * when it was made, where, for whom, how big, what it won, what it was measured with — must be
+ * EMPTY. Not filled with an invented value, not defaulted: empty, and the Studio and the build
+ * both refuse the document if one is filled.
+ */
+export type IllustrativeRule = 'mandatory' | 'optional' | 'forbidden';
+
+/**
+ * Factual fields the illustrative table forbids that are NOT canonical `PROJECT_FIELDS`.
+ *
+ * `PROJECT_FIELDS` only lists the concepts the Pillar/Service lattice reasons about. Three more
+ * things on a Work Entry would still read as a claim about a real project, so the illustrative
+ * table names them too:
+ *
+ *   - `deliverables` — `metadata.deliverables`, what was handed over to a client.
+ *   - `labels`       — `competition` / `diploma-project` state that the work was entered in a
+ *                      competition or submitted as a diploma. They also drive the Competitions
+ *                      curated view, which would otherwise present an example as a real entry.
+ *   - `capture`      — survey metadata (accuracy, software, point count), the point-cloud
+ *                      derivative, and the publication clearance that goes with it. §10.4 calls
+ *                      these real technical claims made to institutional clients.
+ */
+export const ILLUSTRATIVE_EXTRA_FIELDS = ['deliverables', 'labels', 'capture'] as const;
+
+export type IllustrativeExtraField = (typeof ILLUSTRATIVE_EXTRA_FIELDS)[number];
+
+/** Every field the illustrative table states a rule for. */
+export type WorkField = ProjectField | IllustrativeExtraField;
+
+/**
+ * The illustrative rule table. `Record<WorkField, …>` so a new canonical field fails
+ * compilation until someone decides, explicitly, whether an example may carry it.
+ *
+ *   mandatory   title · services · cover · gallery — an example still has to be a complete,
+ *               classifiable page: Services are 1..N and Pillar-constrained exactly as for real
+ *               Work (those two rules are applied separately, unchanged, in both modes).
+ *   optional    sector · description — Sector is a closed classification shown as a kicker,
+ *               not a fact about a client or a site, so an example MAY carry one; it is not
+ *               required because nothing real anchors it. Description is prose.
+ *   forbidden   everything that would read as a real project fact.
+ */
+export const ILLUSTRATIVE_FIELD_RULES: Readonly<Record<WorkField, IllustrativeRule>> = {
+  services: 'mandatory',
+  title: 'mandatory',
+  cover: 'mandatory',
+  gallery: 'mandatory',
+  sector: 'optional',
+  description: 'optional',
+  year: 'forbidden',
+  status: 'forbidden',
+  client: 'forbidden',
+  location: 'forbidden',
+  area: 'forbidden',
+  awards: 'forbidden',
+  equipment: 'forbidden',
+  collaborators: 'forbidden',
+  team: 'forbidden',
+  implementationCompany: 'forbidden',
+  deliverables: 'forbidden',
+  labels: 'forbidden',
+  capture: 'forbidden',
+};
+
+/** Every field the illustrative table covers, in a stable order (canonical fields first). */
+export const WORK_FIELDS: readonly WorkField[] = [...PROJECT_FIELDS, ...ILLUSTRATIVE_EXTRA_FIELDS];
+
+/** The fields an illustrative project must leave empty. */
+export function illustrativeForbiddenFields(): readonly WorkField[] {
+  return WORK_FIELDS.filter((field) => ILLUSTRATIVE_FIELD_RULES[field] === 'forbidden');
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
  * Resolution — v3.1 §8
  * ──────────────────────────────────────────────────────────────────────────── */
 

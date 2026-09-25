@@ -25,16 +25,17 @@ import {
 import { SANITY_API_VERSION } from '../../src/lib/content/config'
 import type { Pillar, ServiceKey } from '../../src/lib/content/types'
 import {
+  isIllustrative,
   toSanityResult,
   toSanityWarning,
   validateCaptureGate,
   validateEnAvailability,
   validateNotRawCaptureSource,
   validateVocabulary,
-  validateFieldRequirements,
   validateServicePillarConsistency,
   validateServicesPresent,
   validateWorkEntrySlug,
+  validateWorkFieldContract,
 } from '../../src/lib/content/validation'
 
 /** Shape of the document as the Studio hands it to a validator. */
@@ -43,10 +44,13 @@ interface WorkEntryDraft {
   readonly title?: { ro?: string; en?: string }
   readonly slug?: { ro?: { current?: string }; en?: { current?: string } }
   readonly enPublished?: boolean
+  readonly illustrative?: boolean
   readonly pillar?: string
   readonly labels?: string[]
   readonly description?: { ro?: unknown[]; en?: unknown[] }
   readonly capture?: {
+    accuracy?: { ro?: string; en?: string }
+    software?: string[]
     pointCount?: number
     derivative?: { asset?: { asset?: { _ref?: string } }; poster?: { asset?: { _ref?: string } } }
   }
@@ -66,7 +70,25 @@ interface WorkEntryDraft {
     collaborators?: string[]
     team?: string[]
     implementationCompany?: string
+    deliverables?: { ro?: string[] }
   }
+}
+
+/**
+ * Whether the draft declares ANY capture claim — the same reading `normalize.ts` makes of the
+ * raw document (`declaresCapture`): a value in either locale, a software list, a point count,
+ * an attached derivative or poster, or the publication clearance switched on.
+ */
+const declaresCapture = (document: WorkEntryDraft | undefined): boolean => {
+  const capture = document?.capture
+  return (
+    document?.capturePublicationCleared === true ||
+    Boolean(capture?.accuracy?.ro?.trim() || capture?.accuracy?.en?.trim()) ||
+    (capture?.software ?? []).length > 0 ||
+    typeof capture?.pointCount === 'number' ||
+    Boolean(capture?.derivative?.asset?.asset?._ref) ||
+    Boolean(capture?.derivative?.poster?.asset?._ref)
+  )
 }
 
 /** The Survey group is Reality Capture's, and Pillar is now authored rather than derived. */
@@ -136,7 +158,11 @@ async function validateServiceContract(
   if (consistency.length > 0 || !pillar) return consistency
 
   const metadata = document?.metadata
-  return validateFieldRequirements(
+  /* The one shared entry point (`validation.ts`): real Work passes straight through to the
+     unchanged `validateFieldRequirements`; illustrative Work is checked against
+     `ILLUSTRATIVE_FIELD_RULES`. `normalize.ts` calls the same function at build time. */
+  return validateWorkFieldContract(
+    isIllustrative(document),
     pillar,
     services.map((service) => service.key),
     {
@@ -156,6 +182,10 @@ async function validateServiceContract(
       collaborators: (metadata?.collaborators ?? []).length > 0,
       team: (metadata?.team ?? []).length > 0,
       implementationCompany: Boolean(metadata?.implementationCompany?.trim()),
+      // Read only by the illustrative table.
+      deliverables: (metadata?.deliverables?.ro ?? []).length > 0,
+      labels: (document?.labels ?? []).length > 0,
+      capture: declaresCapture(document),
     },
   )
 }
@@ -187,6 +217,24 @@ export const workEntry = defineType({
         Rule.custom((value: { ro?: string } | undefined) =>
           value?.ro?.trim() ? true : 'A Romanian title is required.',
         ),
+    }),
+
+    /**
+     * Illustrative Work — an example, not a record of real work.
+     *
+     * Switches the document onto its own rule table (`ILLUSTRATIVE_FIELD_RULES` in
+     * `src/lib/content/requirements.ts`), enforced identically here and by the build. The
+     * factual fields are not hidden when it is on: an editor who ticks it on a filled-in project
+     * must still be able to see and clear what the rule now refuses.
+     */
+    defineField({
+      name: 'illustrative',
+      title: 'Proiect ilustrativ (nu este un proiect real)',
+      type: 'boolean',
+      group: 'identity',
+      initialValue: false,
+      description:
+        'Bifează doar pentru un exemplu care nu descrie o lucrare reală. Un proiect ilustrativ are nevoie de titlu, servicii, imagine de copertă și galerie; sectorul și descrierea sunt opționale. Tot ce ar afirma un fapt real trebuie lăsat gol — anul, stadiul, clientul, localizarea, suprafața, premiile, echipamentele, firma de execuție, colaboratorii, echipa, livrabilele, etichetele și datele de releveu (inclusiv norul de puncte) — altfel proiectul nu poate fi publicat. Un proiect ilustrativ nu apare niciodată ca dovadă pe pagina unui serviciu.',
     }),
 
     {
@@ -309,10 +357,14 @@ export const workEntry = defineType({
       options: { list: [...SECTOR_OPTIONS], layout: 'radio' },
       description:
         'The kind of place or programme this project is. Exactly one — a project that genuinely mixes uses is Mixed-use & dezvoltări.',
+      /* Real Work: required, exactly as before. Illustrative Work: optional — an absent Sector
+         passes, a present one is still vocabulary-checked (`ILLUSTRATIVE_FIELD_RULES`). */
       validation: (Rule) =>
-        Rule.required().custom((value: string | undefined) =>
-          toSanityResult(validateVocabulary(value, 'sector', 'sector')),
-        ),
+        Rule.custom((value: string | undefined, context: { document?: unknown }) => {
+          if (!value && isIllustrative(context.document)) return true
+          if (!value) return 'Required'
+          return toSanityResult(validateVocabulary(value, 'sector', 'sector'))
+        }),
     }),
 
     /*
@@ -430,7 +482,11 @@ export const workEntry = defineType({
       title: 'Facts',
       type: 'workEntryMetadata',
       group: 'facts',
-      validation: (Rule) => Rule.required(),
+      /* Real Work: required, as before. An illustrative project may have no facts at all. */
+      validation: (Rule) =>
+        Rule.custom((value: unknown, context: { document?: unknown }) =>
+          value !== undefined && value !== null ? true : isIllustrative(context.document) ? true : 'Required',
+        ),
     }),
     defineField({ name: 'curation', title: 'Emphasis & order', type: 'curation', group: 'curation' }),
     defineField({ name: 'seo', title: 'Search engine listing', type: 'seo', group: 'seo' }),

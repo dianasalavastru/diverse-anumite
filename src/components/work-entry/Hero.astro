@@ -66,8 +66,10 @@ const devPool = poolForPillar(entry.pillar, devKey);
  * separator behind.
  */
 const kicker = [
-  sectorLabel(entry.sector, locale),
-  String(entry.metadata.year),
+  /* Sector and Year are always present on real Work; an illustrative project may carry neither,
+     and an absent one renders nothing — never "null", never a placeholder. */
+  entry.sector ? sectorLabel(entry.sector, locale) : null,
+  entry.metadata.year !== null ? String(entry.metadata.year) : null,
   location,
 ].filter((segment): segment is string => Boolean(segment));
 

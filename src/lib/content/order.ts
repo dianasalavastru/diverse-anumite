@@ -27,7 +27,24 @@ export interface Orderable {
   /** Authored, exactly one (v3.1 §2, Stage 5). */
   readonly pillar: Pillar;
   readonly curation: Curation;
-  readonly year: number;
+  /**
+   * `null` only on an illustrative project, which has no year. Every comparator below places an
+   * undated item AFTER every dated one, in either direction, then breaks the tie on `_id` — so
+   * an undated item never interleaves with dated ones by accident and the build stays
+   * reproducible. Real Work always carries a year, so its order is unchanged.
+   */
+  readonly year: number | null;
+}
+
+/**
+ * Year order with undated items last. `direction` is `-1` for newest-first, `1` for oldest-first.
+ * With two dated years this is exactly the subtraction the comparators always used.
+ */
+function compareYears(a: number | null, b: number | null, direction: 1 | -1): number {
+  if (a === b) return 0;
+  if (a === null) return 1;
+  if (b === null) return -1;
+  return direction * (a - b);
 }
 
 /** `all` is the archive default and the homepage's cross-pillar scope (IA Step 5). */
@@ -46,18 +63,18 @@ export function compareCurated(a: Orderable, b: Orderable): number {
   if (a.curation.editorialPriority !== b.curation.editorialPriority) {
     return b.curation.editorialPriority - a.curation.editorialPriority;
   }
-  if (a.year !== b.year) return b.year - a.year;
+  if (a.year !== b.year) return compareYears(a.year, b.year, -1);
   return a._id < b._id ? -1 : a._id > b._id ? 1 : 0;
 }
 
 /** §23.5's alternate archive sorts. Year is a sort, never a filter (IA Step 5). */
 export function compareYearDescending(a: Orderable, b: Orderable): number {
-  if (a.year !== b.year) return b.year - a.year;
+  if (a.year !== b.year) return compareYears(a.year, b.year, -1);
   return a._id < b._id ? -1 : a._id > b._id ? 1 : 0;
 }
 
 export function compareYearAscending(a: Orderable, b: Orderable): number {
-  if (a.year !== b.year) return a.year - b.year;
+  if (a.year !== b.year) return compareYears(a.year, b.year, 1);
   return a._id < b._id ? -1 : a._id > b._id ? 1 : 0;
 }
 
