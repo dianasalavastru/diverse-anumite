@@ -1,0 +1,96 @@
+---
+/**
+ * `/404` — the production not-found page.
+ *
+ * Emitted as a top-level `dist/404.html`. Cloudflare Pages serves that file,
+ * with HTTP status 404, for every request that matches no asset — and because
+ * a top-level `404.html` exists, Pages does NOT fall back to its SPA behaviour
+ * (serving `/index.html` with 200 for unknown paths). `/en/*` is covered too:
+ * EN is withheld (`lib/i18n/publication.ts`), no `dist/en/` is emitted, so every
+ * EN path is an unmatched path.
+ *
+ * RO only, one heading, one sentence, one link to `/` — the approved launch
+ * copy in `lib/i18n/not-found.ts` and nothing else.
+ *
+ * ── routeKey ──────────────────────────────────────────────────────────────
+ * BaseLayout requires one; a 404 has no route. `home` is the least-wrong key:
+ * it is not a header nav item, so nothing is marked current, and while EN is
+ * withheld the layout emits no hreflang and no language toggle for any key.
+ * If EN is ever published this page would inherit `home`'s EN counterpart —
+ * making `routeKey` optional in BaseLayout is the real fix and is out of scope
+ * here.
+ *
+ * `noindex` goes through BaseLayout's `head` slot.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { routePath } from '../lib/i18n/routes';
+import { notFoundMessages } from '../lib/i18n/not-found';
+
+const copy = notFoundMessages();
+---
+
+<BaseLayout locale="ro" rhythm="service" routeKey="home" title={copy.title}>
+  <meta slot="head" name="robots" content="noindex" />
+
+  <section class="nf" aria-labelledby="nf-heading">
+    <h1 class="nf-title rv" data-rv="head" id="nf-heading">{copy.heading}</h1>
+    <p class="nf-body rv" data-rv="meta">{copy.body}</p>
+    <p class="nf-onward rv" data-rv="meta">
+      <a href={routePath('home', 'ro')}>
+        {copy.home}
+        <span class="ar" aria-hidden="true">→</span>
+      </a>
+    </p>
+  </section>
+</BaseLayout>
+
+<style>
+  /* Tokens only, and every rule transcribed from an existing page: the masthead
+     opening of `.c-intro`, the H1 of `.c-title`, the running text of
+     `.c-statement` and the quiet onward link of `.c-confirm-onward`
+     (styles/pages/contact.css). No new value, no new visual language. */
+  .nf {
+    padding-block: calc(var(--header-h) + clamp(20px, 3vh, 34px)) var(--pad-loud);
+  }
+
+  .nf-title {
+    font-family: var(--read);
+    font-weight: 600;
+    font-size: clamp(38px, 6vw, 76px);
+    letter-spacing: -0.03em;
+    line-height: 0.98;
+  }
+
+  .nf-body {
+    max-width: 46ch;
+    margin-block-start: clamp(16px, 2.4vh, 24px);
+    color: var(--ink-60);
+    font-size: clamp(15px, 1.15vw, 17px);
+  }
+
+  .nf-onward {
+    margin-block-start: clamp(28px, 4vh, 40px);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .nf-onward .ar {
+    color: var(--blue);
+    margin-inline-start: 8px;
+    display: inline-block;
+    transition: transform var(--t-state) var(--slow);
+  }
+
+  .nf-onward a:hover .ar,
+  .nf-onward a:focus-visible .ar {
+    transform: translateX(6px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-onward .ar {
+      transition: none;
+    }
+  }
+</style>

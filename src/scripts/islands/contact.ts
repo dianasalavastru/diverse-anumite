@@ -290,28 +290,33 @@ function start(root: HTMLElement, form: HTMLFormElement): void {
   }
 
   /**
-   * The pre-Phase-7 state.
+   * The text for a submission that did not reach anyone.
    *
-   * `status.unavailable` is PENDING copy and is empty until Workstream C writes
-   * it, so nothing is invented for production. What stands in until then is a
-   * developer-facing console warning plus a visible, unmistakably non-production
-   * line — it must be impossible to read as "your message was sent", and equally
-   * impossible to mistake for authored copy.
+   * `status.unavailable` is PENDING copy and is empty. When it is, the visitor
+   * is given the authored `status.failed` line instead ("the message could not
+   * be sent") — true in both cases, never readable as "sent", and authored.
+   * Until 2026-09 this fell back to a hard-coded development-only English line; it
+   * shipped in the client bundle even with the form switched off (Astro builds
+   * every script in a page's import graph, rendered or not), so it is gone.
+   *
+   * The developer-facing diagnostics are kept, but only under
+   * `import.meta.env.DEV`, which the production build replaces with `false` and
+   * removes as dead code.
    */
   function statusText(kind: 'failed' | 'unavailable'): string {
     const authored = status?.dataset[kind] ?? '';
     if (authored) return authored;
 
-    if (kind === 'unavailable') {
+    if (import.meta.env.DEV) {
       console.warn(
-        `[contact] POST ${form.dataset.endpoint} did not answer. The Pages Function is not ` +
-          `wired yet (TECHNICAL_ARCHITECTURE.md §4, §19.3, Phase 7). The message was NOT sent.`,
+        kind === 'unavailable'
+          ? `[contact] POST ${form.dataset.endpoint} did not answer. The Pages Function is not ` +
+              `wired yet (TECHNICAL_ARCHITECTURE.md §4, §19.3, Phase 7). The message was NOT sent.`
+          : `[contact] POST ${form.dataset.endpoint} refused the submission.`,
       );
-      return '[dev] The submission endpoint is not connected yet — nothing was sent.';
     }
 
-    console.warn(`[contact] POST ${form.dataset.endpoint} refused the submission.`);
-    return '[dev] The submission was refused by the endpoint — nothing was sent.';
+    return kind === 'unavailable' ? (status?.dataset.failed ?? '') : '';
   }
 
   function announce(message: string): void {

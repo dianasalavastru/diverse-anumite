@@ -82,6 +82,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ConfirmationState from './ConfirmationState.astro';
 import ContactMethods from './ContactMethods.astro';
+import ContactIsland from './ContactIsland.astro';
 import ContactOrientation from './ContactOrientation.astro';
 import ContactTopics from './ContactTopics.astro';
 import ContextSummary from './ContextSummary.astro';
@@ -93,6 +94,7 @@ import { localize, type Locale } from '../../lib/content';
 import { contactChannels, contactMessages } from '../../lib/i18n/contact';
 import { pillarLabel } from '../../lib/i18n/vocabulary';
 import type { PrefillService } from './prefill';
+import { ENQUIRY_FORM_ENABLED } from './availability';
 
 /* ── I-3 — the one content read on this page ───────────────────────────────── */
 import { contentSource } from '../../lib/content/build-source';
@@ -161,6 +163,16 @@ const prefillCatalogue = JSON.stringify({
  */
 const hasTopics = catalogue.length > 0;
 const hasSecondary = hasTopics || channels.length > 0 || copy.expectation !== '';
+
+/**
+ * The enquiry form is OFF for the initial launch — see `availability.ts`. With it
+ * off, only the modules that stand without a submission remain: C-1 (breadcrumb,
+ * eyebrow, heading, statement) and, once they carry confirmed values, C-4 and C-5.
+ * C-2, the topic index, C-3, C-6 and the island all exist to frame, prefill,
+ * post or acknowledge an enquiry, so none of them is rendered.
+ */
+const formEnabled = ENQUIRY_FORM_ENABLED;
+const hasDirect = channels.length > 0 || copy.expectation !== '';
 ---
 
 <BaseLayout
@@ -172,37 +184,64 @@ const hasSecondary = hasTopics || channels.length > 0 || copy.expectation !== ''
 >
   <ViewTransition />
 
-  <div class="c-page" data-contact data-prefill={prefillCatalogue}>
-    <ContactOrientation locale={locale} copy={copy.orientation} />
+  {
+    formEnabled ? (
+      <div class="c-page" data-contact data-prefill={prefillCatalogue}>
+        <ContactOrientation locale={locale} copy={copy.orientation} />
 
-    <div class:list={['c-body', hasSecondary && 'c-body--support']}>
-      {/* C-1's statement and the signature moment (C-2), in that order and
-          both still BEFORE the form in the DOM — "a calm, reassuring
-          acknowledgement placed **before** the form". On a wide viewport the
-          grid seats this block in the second column, level with the form's
-          first field. */}
-      <div class="c-lead">
-        <p class="c-statement rv" data-rv="meta">{copy.orientation.statement}</p>
-        <ContextSummary copy={copy.context} />
+        <div class:list={['c-body', hasSecondary && 'c-body--support']}>
+          {/* C-1's statement and the signature moment (C-2), in that order and
+              both still BEFORE the form in the DOM — "a calm, reassuring
+              acknowledgement placed **before** the form". On a wide viewport the
+              grid seats this block in the second column, level with the form's
+              first field. */}
+          <div class="c-lead">
+            <p class="c-statement rv" data-rv="meta">{copy.orientation.statement}</p>
+            <ContextSummary copy={copy.context} />
+          </div>
+
+          <EnquiryForm locale={locale} copy={copy} />
+
+          {hasSecondary && (
+            <aside class="c-support">
+              <ContactTopics locale={locale} services={catalogue} />
+              <ContactMethods channels={channels} />
+              <ResponseExpectation copy={copy.expectation} />
+            </aside>
+          )}
+        </div>
+
+        <ConfirmationState locale={locale} copy={copy.confirmation} />
+        <ContactIsland />
       </div>
+    ) : (
+      <div class="c-page">
+        <ContactOrientation locale={locale} copy={copy.orientation} />
 
-      <EnquiryForm locale={locale} copy={copy} />
-
-      {
-        hasSecondary && (
-          <aside class="c-support">
-            <ContactTopics locale={locale} services={catalogue} />
-            <ContactMethods channels={channels} />
-            <ResponseExpectation copy={copy.expectation} />
-          </aside>
-        )
-      }
-    </div>
-
-    <ConfirmationState locale={locale} copy={copy.confirmation} />
-  </div>
-
-  <script>
-    import '../../scripts/islands/contact';
-  </script>
+        {/* One column, no grid: `.c-body`'s desktop grid seats the lead in the
+            SECOND track beside the form, and with no form that would leave the
+            first track empty. The block below keeps `.c-body`'s own vertical
+            pacing (see the scoped style) and nothing else. */}
+        <div class="c-closed">
+          <p class="c-statement rv" data-rv="meta">{copy.orientation.statement}</p>
+          {hasDirect && (
+            <>
+              <ContactMethods channels={channels} />
+              <ResponseExpectation copy={copy.expectation} />
+            </>
+          )}
+        </div>
+      </div>
+    )
+  }
 </BaseLayout>
+
+<style>
+  /* The form-less page's body: `.c-body`'s vertical pacing (contact.css), with
+     no grid and no columns. Tokens only; no new value. */
+  .c-closed {
+    display: grid;
+    gap: clamp(32px, 4.5vh, 52px);
+    padding-block: clamp(24px, 3vh, 40px) var(--pad-loud);
+  }
+</style>

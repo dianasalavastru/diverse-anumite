@@ -1,0 +1,21 @@
+---
+/**
+ * The Contact island's script, and nothing else.
+ *
+ * It lives in its own component so `ContactPage.astro` can decide whether to
+ * render it: a `<script>` written inside a conditional expression is not
+ * processed by Astro, but a component rendered conditionally is. When the
+ * enquiry form is off (`availability.ts`), this component is not rendered and
+ * the page emits no `<script>` for the island.
+ *
+ * Note that Astro still BUILDS the chunk for any component in a page's import
+ * graph (`core/build/plugins/plugin-analyzer.js` adds every `.astro` module's
+ * scripts to `discoveredScripts`), so an unreferenced `_astro/ContactIsland*.js`
+ * may still exist in `dist/`. That is why the island itself carries no
+ * development-only user-facing text (see `statusText` in `islands/contact.ts`).
+ */
+---
+
+<script>
+  import '../../scripts/islands/contact';
+</script>
