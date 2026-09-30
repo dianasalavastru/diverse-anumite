@@ -26,6 +26,15 @@
   display: none;
 }
 
+/* The focused card grows to 1.06 about its centre, and the track has no leading
+   padding (its first card aligns with the text above it). About the centre,
+   the first card grew ~3% of its width past the track's start edge, where the
+   scroll container clips it — "TEST" read as "'EST". Growing it from its
+   leading edge keeps the alignment and the whole card. */
+.traverse > .proj:first-child {
+  transform-origin: 0 50%;
+}
+
 /* Traverse B — documentation — a different cadence: portrait frames, tighter,
    "so the section doesn't repeat itself" (HiFi §IV comment). */
 .traverse.docs .proj {

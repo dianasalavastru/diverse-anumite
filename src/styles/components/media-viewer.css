@@ -292,3 +292,8 @@ html:has(dialog[data-media-viewer][open]) {
     transition: none !important;
   }
 }
+
+/* A one-image set hides previous/next (see the island). */
+.lb-nav[hidden] {
+  display: none;
+}

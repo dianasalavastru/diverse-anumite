@@ -79,6 +79,12 @@ if (dialog && items.length > 0 && typeof dialog.showModal === 'function') {
   const statusEl = dialog.querySelector<HTMLElement>('[data-lb-status]');
   const inspectButton = dialog.querySelector<HTMLButtonElement>('[data-lb-inspect]');
 
+  /* A one-image set has nowhere to step to: previous/next would be controls with
+     nothing to control. The arrow keys simply re-show the same image. */
+  if (items.length === 1) {
+    for (const step of dialog.querySelectorAll<HTMLElement>('[data-lb-step]')) step.hidden = true;
+  }
+
   const positionLabel = dialog.dataset.labelPosition ?? '';
   const zoomLabel = dialog.dataset.labelZoom ?? '';
 
