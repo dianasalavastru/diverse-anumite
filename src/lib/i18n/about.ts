@@ -107,8 +107,8 @@ const ro: AboutMessages = {
     no: '01',
     label: 'Cum lucrăm',
     body: [
-      'Proiectele de arhitectură se dezvoltă în colaborare cu specialiști externi — ingineri de structură și de instalații, consultant nZEB și, după caz, expert tehnic și consultant ISU.',
-      'În cazul intervențiilor pe clădiri existente, releveul de arhitectură se realizează prin scanare laser 3D, pentru interior, și prin inspecție aeriană cu dronă, pentru anvelopa clădirii — acoperiș și fațade.',
+      'Proiectele de arhitectură se dezvoltă în colaborare cu specialiști externi - ingineri de structură și de instalații, consultant nZEB și, după caz, expert tehnic și consultant ISU.',
+      'În cazul intervențiilor pe clădiri existente, releveul de arhitectură se realizează prin scanare laser 3D, pentru interior, și prin inspecție aeriană cu dronă, pentru anvelopa clădirii - acoperiș și fațade.',
     ],
   },
 
@@ -146,8 +146,8 @@ const en: AboutMessages = {
     no: '01',
     label: 'How we work',
     body: [
-      'Architectural projects are developed in collaboration with external specialists — structural and building services engineers, an nZEB consultant and, where required, a technical expert and a fire safety (ISU) consultant.',
-      'For work on existing buildings, the measured survey is carried out by 3D laser scanning for the interior and by aerial drone inspection for the building envelope — roof and façades.',
+      'Architectural projects are developed in collaboration with external specialists - structural and building services engineers, an nZEB consultant and, where required, a technical expert and a fire safety (ISU) consultant.',
+      'For work on existing buildings, the measured survey is carried out by 3D laser scanning for the interior and by aerial drone inspection for the building envelope - roof and façades.',
     ],
   },
 

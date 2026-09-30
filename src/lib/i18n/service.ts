@@ -161,7 +161,7 @@ const ro: ServiceMessages = {
   capabilities: { listLabel: 'Echipament și specificații' },
 
   proof: {
-    seeMore: 'Toate proiectele — {pillar}',
+    seeMore: 'Toate proiectele - {pillar}',
     listLabel: 'Proiecte care demonstrează acest serviciu',
     cloud: {
       label: 'nor de puncte · releveu din {work}',
@@ -211,7 +211,7 @@ const en: ServiceMessages = {
   capabilities: { listLabel: 'Equipment and specifications' },
 
   proof: {
-    seeMore: 'All projects — {pillar}',
+    seeMore: 'All projects - {pillar}',
     listLabel: 'Projects demonstrating this service',
     cloud: {
       label: 'point cloud · survey from {work}',

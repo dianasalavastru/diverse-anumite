@@ -161,7 +161,7 @@ const ro: WorkArchiveMessages = {
   orientation: {
     eyebrow: 'Arhiva · toate proiectele',
     heading: 'Proiecte',
-    statement: 'Tot ce a trecut prin atelier — arhitectură și realitate măsurată, la un loc.',
+    statement: 'Tot ce a trecut prin atelier - arhitectură și realitate măsurată, la un loc.',
     total: 'în arhivă',
   },
 
@@ -239,7 +239,7 @@ const en: WorkArchiveMessages = {
   orientation: {
     eyebrow: 'Archive · all projects',
     heading: 'Projects',
-    statement: 'Everything that has passed through the studio — architecture and measured reality, in one place.',
+    statement: 'Everything that has passed through the studio - architecture and measured reality, in one place.',
     total: 'in the archive',
   },
 

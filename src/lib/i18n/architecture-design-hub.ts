@@ -102,14 +102,14 @@ const ro: ArchitectureDesignHubMessages = {
   meta: {
     title: 'Arhitectură & Design · diverse anumite',
     description:
-      'Proiectare de arhitectură, design interior, vizualizare 3D și design mobilier — serviciile de Arhitectură & Design ale atelierului diverse anumite.',
+      'Proiectare de arhitectură, design interior, vizualizare 3D și design mobilier - serviciile de Arhitectură & Design ale atelierului diverse anumite.',
   },
 
   orientation: {
     eyebrow: 'pilon · capabilitate',
     heading: { lead: 'Arhitectură', tail: '& Design' },
     lead: 'Proiectare de arhitectură, design interior, vizualizare 3D și design mobilier.',
-    heroIndex: 'AD—001',
+    heroIndex: 'AD-001',
     aboutLink: 'Despre atelier',
   },
 
@@ -121,12 +121,12 @@ const ro: ArchitectureDesignHubMessages = {
       tail: '.',
     },
     primary: [
-      'Panta, lumina, vecinătățile, programul, felul în care se ajunge la intrare — toate se citesc înainte de prima linie. Pentru clădirile existente, proiectul pornește de la releveu.',
-      'De la o locuință la un concurs public, întrebările rămân aceleași. Desenăm puțin și tăiem mult — un gest clar în locul a zece decorative.',
+      'Panta, lumina, vecinătățile, programul, felul în care se ajunge la intrare - toate se citesc înainte de prima linie. Pentru clădirile existente, proiectul pornește de la releveu.',
+      'De la o locuință la un concurs public, întrebările rămân aceleași. Desenăm puțin și tăiem mult - un gest clar în locul a zece decorative.',
     ],
     secondary: [
       'Materialele nu imită: betonul rămâne beton, lemnul rămâne lemn, piatra rămâne piatră. Le alegem puține și le lăsăm să îmbătrânească frumos.',
-      'Detaliul este locul unde se câștigă sau se pierde un proiect — o locuință, un interior sau un spațiu public deopotrivă. Petrecem la fel de mult timp pe o muchie de tâmplărie cât pe volumetria de ansamblu.',
+      'Detaliul este locul unde se câștigă sau se pierde un proiect - o locuință, un interior sau un spațiu public deopotrivă. Petrecem la fel de mult timp pe o muchie de tâmplărie cât pe volumetria de ansamblu.',
     ],
     useCases: {
       label: 'Unde se aplică',
@@ -145,11 +145,11 @@ const ro: ArchitectureDesignHubMessages = {
       coordinate: 'selecție curatoriată · nu arhiva',
     },
     intro:
-      'Fiecare proiect intră pe rând în focus. Trageți lateral sau folosiți săgețile. Selecția este curatoriată — arhiva completă este mai jos.',
-    cta: 'Toate proiectele — Arhitectură & Design',
+      'Fiecare proiect intră pe rând în focus. Trageți lateral sau folosiți săgețile. Selecția este curatoriată - arhiva completă este mai jos.',
+    cta: 'Toate proiectele - Arhitectură & Design',
     carousel: {
       roleDescription: 'carusel de proiecte',
-      label: 'Proiecte — folosiți săgețile pentru a naviga',
+      label: 'Proiecte - folosiți săgețile pentru a naviga',
       previous: 'Proiectul anterior',
       next: 'Proiectul următor',
       position: 'Proiectul în focus',
@@ -195,14 +195,14 @@ const en: ArchitectureDesignHubMessages = {
   meta: {
     title: 'Architecture & Design · diverse anumite',
     description:
-      'Architectural design, interior design, 3D visualisation and furniture design — the Architecture & Design services of the diverse anumite studio.',
+      'Architectural design, interior design, 3D visualisation and furniture design - the Architecture & Design services of the diverse anumite studio.',
   },
 
   orientation: {
     eyebrow: 'pillar · capability',
     heading: { lead: 'Architecture', tail: '& Design' },
     lead: 'Architectural design, interior design, 3D visualisation and furniture design.',
-    heroIndex: 'AD—001',
+    heroIndex: 'AD-001',
     aboutLink: 'About the studio',
   },
 
@@ -214,12 +214,12 @@ const en: ArchitectureDesignHubMessages = {
       tail: '.',
     },
     primary: [
-      'The slope, the light, the neighbours, the brief, the way you arrive at the entrance — all of it is read before the first line. For existing buildings, the project starts from the measured survey.',
-      'From a house to a public competition, the questions stay the same. We draw little and cut a lot — one clear gesture instead of ten decorative ones.',
+      'The slope, the light, the neighbours, the brief, the way you arrive at the entrance - all of it is read before the first line. For existing buildings, the project starts from the measured survey.',
+      'From a house to a public competition, the questions stay the same. We draw little and cut a lot - one clear gesture instead of ten decorative ones.',
     ],
     secondary: [
       'Materials do not imitate: concrete stays concrete, timber stays timber, stone stays stone. We choose few and let them age well.',
-      'The detail is where a project is won or lost — a house, an interior or a public space alike. We spend as long on a joinery edge as on the overall massing.',
+      'The detail is where a project is won or lost - a house, an interior or a public space alike. We spend as long on a joinery edge as on the overall massing.',
     ],
     useCases: {
       label: 'Where it applies',
@@ -238,11 +238,11 @@ const en: ArchitectureDesignHubMessages = {
       coordinate: 'curated selection · not the archive',
     },
     intro:
-      'Each project comes into focus in turn. Drag sideways or use the arrows. The selection is curated — the full archive is below.',
-    cta: 'All projects — Architecture & Design',
+      'Each project comes into focus in turn. Drag sideways or use the arrows. The selection is curated - the full archive is below.',
+    cta: 'All projects - Architecture & Design',
     carousel: {
       roleDescription: 'project carousel',
-      label: 'Projects — use the arrow keys to navigate',
+      label: 'Projects - use the arrow keys to navigate',
       previous: 'Previous project',
       next: 'Next project',
       position: 'Project in focus',

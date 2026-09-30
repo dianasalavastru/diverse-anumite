@@ -77,7 +77,7 @@ const cards = related
   .filter((card): card is NonNullable<typeof card> => card !== null);
 
 const seeMoreHref = `${routePath('workArchive', locale)}?pillar=${pillarArchiveParam(pillar)}`;
-const seeMoreLabel = `${copy.related.seeMore} — ${pillarLabel(pillar, locale)}`;
+const seeMoreLabel = `${copy.related.seeMore} - ${pillarLabel(pillar, locale)}`;
 ---
 
 <div class="we-related">

@@ -158,7 +158,7 @@ export interface HomepageMessages {
 
 const ro: HomepageMessages = {
   meta: {
-    title: 'diverse anumite — atelier multidisciplinar din Cluj-Napoca',
+    title: 'diverse anumite - atelier multidisciplinar din Cluj-Napoca',
     description:
       'Atelier multidisciplinar din Cluj-Napoca: proiectare de arhitectură, design interior, vizualizare 3D, design mobilier, scanare laser 3D și Scan-to-BIM.',
   },
@@ -170,7 +170,7 @@ const ro: HomepageMessages = {
       'Explorăm potențialul fiecărui proiect, folosind tehnologii contemporane și respectând realitățile profesiei, peisajul cultural și nevoile celor implicați.',
     cue: '06 stații',
     heroFallbackAlt: '',
-    heroIndex: 'PT—001',
+    heroIndex: 'PT-001',
     heroCoordinates: '',
     heroDimension: '',
     aboutLink: 'Despre atelier',
@@ -206,7 +206,7 @@ const ro: HomepageMessages = {
       tail: ' și adaptabil.',
     },
     statement:
-      'Proiectele de arhitectură se dezvoltă în colaborare cu specialiști externi — ingineri de structură și de instalații, consultant nZEB și, după caz, expert tehnic și consultant ISU.',
+      'Proiectele de arhitectură se dezvoltă în colaborare cu specialiști externi - ingineri de structură și de instalații, consultant nZEB și, după caz, expert tehnic și consultant ISU.',
     figureCaption: '',
     readouts: [],
     aboutLink: 'Despre atelier',
@@ -216,24 +216,24 @@ const ro: HomepageMessages = {
     marker: {
       no: '04',
       label: 'Lucrări, în focus',
-      coordinate: 'a · arhitectură & design — c · reality capture',
+      coordinate: 'a · arhitectură & design - c · reality capture',
     },
     architectureDesign: {
       index: '04·a',
       title: 'Arhitectură & Design',
       intro:
-        'Fiecare proiect intră pe rând în focus — restul rămân aproape, pentru context. Culoarea revine doar acolo unde privirea se oprește.',
-      cta: 'Toate proiectele — Arhitectură & Design',
+        'Fiecare proiect intră pe rând în focus - restul rămân aproape, pentru context. Culoarea revine doar acolo unde privirea se oprește.',
+      cta: 'Toate proiectele - Arhitectură & Design',
     },
     realityCapture: {
       index: '04·c',
       title: 'Reality Capture',
       intro: 'Proiecte de scanare laser 3D și Scan-to-BIM.',
-      cta: 'Toate proiectele — Reality Capture',
+      cta: 'Toate proiectele - Reality Capture',
     },
     carousel: {
       roleDescription: 'carusel de proiecte',
-      label: 'Proiecte — folosiți săgețile pentru a naviga',
+      label: 'Proiecte - folosiți săgețile pentru a naviga',
       previous: 'Proiectul anterior',
       next: 'Proiectul următor',
       position: 'Proiectul în focus',
@@ -263,7 +263,7 @@ const ro: HomepageMessages = {
 
 const en: HomepageMessages = {
   meta: {
-    title: 'diverse anumite — multidisciplinary studio in Cluj-Napoca',
+    title: 'diverse anumite - multidisciplinary studio in Cluj-Napoca',
     description:
       'Multidisciplinary studio in Cluj-Napoca: architectural design, interior design, 3D visualisation, furniture design, 3D laser scanning and Scan-to-BIM.',
   },
@@ -275,7 +275,7 @@ const en: HomepageMessages = {
       'We explore the potential of every project, using contemporary technologies while respecting the realities of the profession, the cultural landscape and the needs of those involved.',
     cue: '06 stations',
     heroFallbackAlt: '',
-    heroIndex: 'PT—001',
+    heroIndex: 'PT-001',
     heroCoordinates: '',
     heroDimension: '',
     aboutLink: 'About the studio',
@@ -302,7 +302,7 @@ const en: HomepageMessages = {
       tail: ' and adaptable.',
     },
     statement:
-      'Architectural projects are developed in collaboration with external specialists — structural and building services engineers, an nZEB consultant and, where required, a technical expert and a fire safety (ISU) consultant.',
+      'Architectural projects are developed in collaboration with external specialists - structural and building services engineers, an nZEB consultant and, where required, a technical expert and a fire safety (ISU) consultant.',
     figureCaption: '',
     readouts: [],
     aboutLink: 'About the studio',
@@ -312,24 +312,24 @@ const en: HomepageMessages = {
     marker: {
       no: '04',
       label: 'Work, in focus',
-      coordinate: 'a · architecture & design — c · reality capture',
+      coordinate: 'a · architecture & design - c · reality capture',
     },
     architectureDesign: {
       index: '04·a',
       title: 'Architecture & Design',
       intro:
-        'Each project comes into focus in turn — the rest stay close, for context. Colour returns only where the eye comes to rest.',
-      cta: 'All projects — Architecture & Design',
+        'Each project comes into focus in turn - the rest stay close, for context. Colour returns only where the eye comes to rest.',
+      cta: 'All projects - Architecture & Design',
     },
     realityCapture: {
       index: '04·c',
       title: 'Reality Capture',
       intro: '3D laser scanning and Scan-to-BIM projects.',
-      cta: 'All projects — Reality Capture',
+      cta: 'All projects - Reality Capture',
     },
     carousel: {
       roleDescription: 'project carousel',
-      label: 'Projects — use the arrow keys to navigate',
+      label: 'Projects - use the arrow keys to navigate',
       previous: 'Previous project',
       next: 'Next project',
       position: 'Project in focus',

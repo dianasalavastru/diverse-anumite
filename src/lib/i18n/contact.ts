@@ -171,14 +171,14 @@ export interface ContactMessages {
 const ro: ContactMessages = {
   meta: {
     title: 'Contact · diverse anumite',
-    description: 'Începeți o conversație cu atelierul — un formular scurt, fără pași în plus.',
+    description: 'Începeți o conversație cu atelierul - un formular scurt, fără pași în plus.',
   },
 
   orientation: {
     eyebrow: 'Contact · începem o conversație',
     heading: 'Contact',
     statement:
-      'Aici începe conversația. Câteva rânduri sunt de ajuns — detaliile le lămurim împreună, după primul mesaj.',
+      'Aici începe conversația. Câteva rânduri sunt de ajuns - detaliile le lămurim împreună, după primul mesaj.',
     breadcrumbLabel: 'Firul paginii',
     home: 'Acasă',
     here: 'Contact',
@@ -193,7 +193,7 @@ const ro: ContactMessages = {
 
   context: {
     label: 'Ne scrieți despre',
-    neutral: 'încă nu știți exact — e în regulă, începem de la mesajul dumneavoastră',
+    neutral: 'încă nu știți exact - e în regulă, începem de la mesajul dumneavoastră',
     topicOnly: '{topic}',
     withService: '{service} · {topic}',
   },
@@ -263,14 +263,14 @@ const ro: ContactMessages = {
 const en: ContactMessages = {
   meta: {
     title: 'Contact · diverse anumite',
-    description: 'Start a conversation with the studio — a short form, no extra steps.',
+    description: 'Start a conversation with the studio - a short form, no extra steps.',
   },
 
   orientation: {
     eyebrow: 'Contact · starting a conversation',
     heading: 'Contact',
     statement:
-      'This is where the conversation starts. A few lines are enough — we will work out the details together after the first message.',
+      'This is where the conversation starts. A few lines are enough - we will work out the details together after the first message.',
     breadcrumbLabel: 'Breadcrumb',
     home: 'Home',
     here: 'Contact',
@@ -284,7 +284,7 @@ const en: ContactMessages = {
 
   context: {
     label: 'You are writing about',
-    neutral: 'you are not sure yet — that is fine, we will start from your message',
+    neutral: 'you are not sure yet - that is fine, we will start from your message',
     topicOnly: '{topic}',
     withService: '{service} · {topic}',
   },

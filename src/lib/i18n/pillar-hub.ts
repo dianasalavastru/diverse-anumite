@@ -220,14 +220,14 @@ const ro: PillarHubMessages = {
   meta: {
     title: 'Reality Capture · diverse anumite',
     description:
-      'Scanare laser 3D și Scan-to-BIM — serviciile de Reality Capture ale atelierului diverse anumite.',
+      'Scanare laser 3D și Scan-to-BIM - serviciile de Reality Capture ale atelierului diverse anumite.',
   },
 
   orientation: {
     eyebrow: 'pilon · capabilitate',
     heading: { lead: 'Reality', tail: 'Capture' },
     lead: 'Scanare laser 3D și Scan-to-BIM: nor de puncte, model BIM, planuri, secțiuni și fațade.',
-    heroIndex: 'RC—001',
+    heroIndex: 'RC-001',
     aboutLink: 'Despre atelier',
   },
 
@@ -259,11 +259,11 @@ const ro: PillarHubMessages = {
       coordinate: 'selecție curatoriată · nu arhiva',
     },
     intro:
-      'Fiecare proiect intră pe rând în focus. Trageți lateral sau folosiți săgețile. Selecția este curatoriată — arhiva completă este mai jos.',
-    cta: 'Toate proiectele — Reality Capture',
+      'Fiecare proiect intră pe rând în focus. Trageți lateral sau folosiți săgețile. Selecția este curatoriată - arhiva completă este mai jos.',
+    cta: 'Toate proiectele - Reality Capture',
     carousel: {
       roleDescription: 'carusel de proiecte',
-      label: 'Proiecte — folosiți săgețile pentru a naviga',
+      label: 'Proiecte - folosiți săgețile pentru a naviga',
       previous: 'Proiectul anterior',
       next: 'Proiectul următor',
       position: 'Proiectul în focus',
@@ -309,14 +309,14 @@ const en: PillarHubMessages = {
   meta: {
     title: 'Reality Capture · diverse anumite',
     description:
-      '3D laser scanning and Scan-to-BIM — the Reality Capture services of the diverse anumite studio.',
+      '3D laser scanning and Scan-to-BIM - the Reality Capture services of the diverse anumite studio.',
   },
 
   orientation: {
     eyebrow: 'pillar · capability',
     heading: { lead: 'Reality', tail: 'Capture' },
     lead: '3D laser scanning and Scan-to-BIM: point cloud, BIM model, plans, sections and elevations.',
-    heroIndex: 'RC—001',
+    heroIndex: 'RC-001',
     aboutLink: 'About the studio',
   },
 
@@ -348,11 +348,11 @@ const en: PillarHubMessages = {
       coordinate: 'curated selection · not the archive',
     },
     intro:
-      'Each project comes into focus in turn. Drag sideways or use the arrows. The selection is curated — the full archive is below.',
-    cta: 'All projects — Reality Capture',
+      'Each project comes into focus in turn. Drag sideways or use the arrows. The selection is curated - the full archive is below.',
+    cta: 'All projects - Reality Capture',
     carousel: {
       roleDescription: 'project carousel',
-      label: 'Projects — use the arrow keys to navigate',
+      label: 'Projects - use the arrow keys to navigate',
       previous: 'Previous project',
       next: 'Next project',
       position: 'Project in focus',

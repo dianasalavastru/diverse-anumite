@@ -59,7 +59,7 @@ exports[`Reality Capture hub copy — editorial lock > EN copy is frozen (transl
     ],
   },
   "meta": {
-    "description": "3D laser scanning and Scan-to-BIM — the Reality Capture services of the diverse anumite studio.",
+    "description": "3D laser scanning and Scan-to-BIM - the Reality Capture services of the diverse anumite studio.",
     "title": "Reality Capture · diverse anumite",
   },
   "orientation": {
@@ -69,7 +69,7 @@ exports[`Reality Capture hub copy — editorial lock > EN copy is frozen (transl
       "lead": "Reality",
       "tail": "Capture",
     },
-    "heroIndex": "RC—001",
+    "heroIndex": "RC-001",
     "lead": "3D laser scanning and Scan-to-BIM: point cloud, BIM model, plans, sections and elevations.",
   },
   "services": {
@@ -83,14 +83,14 @@ exports[`Reality Capture hub copy — editorial lock > EN copy is frozen (transl
   },
   "work": {
     "carousel": {
-      "label": "Projects — use the arrow keys to navigate",
+      "label": "Projects - use the arrow keys to navigate",
       "next": "Next project",
       "position": "Project in focus",
       "previous": "Previous project",
       "roleDescription": "project carousel",
     },
-    "cta": "All projects — Reality Capture",
-    "intro": "Each project comes into focus in turn. Drag sideways or use the arrows. The selection is curated — the full archive is below.",
+    "cta": "All projects - Reality Capture",
+    "intro": "Each project comes into focus in turn. Drag sideways or use the arrows. The selection is curated - the full archive is below.",
     "marker": {
       "coordinate": "curated selection · not the archive",
       "label": "Projects in focus",

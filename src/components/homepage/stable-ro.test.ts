@@ -21,7 +21,7 @@ import { homepageMessages } from '../../lib/i18n/homepage';
 import { SERVICE_KEYS } from '../../lib/content/types';
 
 const COLLABORATION =
-  'Proiectele de arhitectură se dezvoltă în colaborare cu specialiști externi — ingineri de structură și de instalații, consultant nZEB și, după caz, expert tehnic și consultant ISU.';
+  'Proiectele de arhitectură se dezvoltă în colaborare cu specialiști externi - ingineri de structură și de instalații, consultant nZEB și, după caz, expert tehnic și consultant ISU.';
 
 /** The production leak patterns, verbatim from `scripts/verify-no-placeholder-content.mjs`. */
 const FORBIDDEN = [
@@ -38,7 +38,7 @@ describe('Homepage RO — locked Stable RO strings', () => {
   const ro = homepageMessages('ro');
 
   it('carries the locked meta, arrival and marker copy', () => {
-    expect(ro.meta.title).toBe('diverse anumite — atelier multidisciplinar din Cluj-Napoca');
+    expect(ro.meta.title).toBe('diverse anumite - atelier multidisciplinar din Cluj-Napoca');
     expect(ro.meta.description).toBe(
       'Atelier multidisciplinar din Cluj-Napoca: proiectare de arhitectură, design interior, vizualizare 3D, design mobilier, scanare laser 3D și Scan-to-BIM.',
     );
@@ -47,7 +47,7 @@ describe('Homepage RO — locked Stable RO strings', () => {
       'Explorăm potențialul fiecărui proiect, folosind tehnologii contemporane și respectând realitățile profesiei, peisajul cultural și nevoile celor implicați.',
     );
     expect(ro.arrival.cue).toBe('06 stații');
-    expect(ro.arrival.heroIndex).toBe('PT—001');
+    expect(ro.arrival.heroIndex).toBe('PT-001');
     expect(ro.arrival.aboutLink).toBe('Despre atelier');
     expect(ro.capabilities.marker.label).toBe('Capabilități');
     expect(ro.capabilities.marker.coordinate).toBe('două direcții');
@@ -116,7 +116,7 @@ describe('Homepage RO — absent slots render nothing', () => {
     });
     expect(html).not.toContain('hero-dim');
     expect(html).not.toMatch(/class="measure"[^>]*>\s*<\/span>/);
-    expect(html).toContain('PT—001');
+    expect(html).toContain('PT-001');
     for (const pattern of FORBIDDEN) expect(html).not.toMatch(pattern);
   });
 

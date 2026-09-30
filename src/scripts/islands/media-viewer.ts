@@ -163,7 +163,7 @@ if (dialog && items.length > 0 && typeof dialog.showModal === 'function') {
       if (positionEl) positionEl.textContent = position;
 
       render();
-      announce(caption ? `${position} — ${caption}` : position);
+      announce(caption ? `${position} - ${caption}` : position);
     }
 
     /* -- open / close ------------------------------------------------------ */

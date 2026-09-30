@@ -36,8 +36,8 @@ describe('About RO — locked Stable RO strings', () => {
   it('carries the working method as the two locked prose paragraphs', () => {
     expect(ro.how.label).toBe('Cum lucrăm');
     expect(ro.how.body).toEqual([
-      'Proiectele de arhitectură se dezvoltă în colaborare cu specialiști externi — ingineri de structură și de instalații, consultant nZEB și, după caz, expert tehnic și consultant ISU.',
-      'În cazul intervențiilor pe clădiri existente, releveul de arhitectură se realizează prin scanare laser 3D, pentru interior, și prin inspecție aeriană cu dronă, pentru anvelopa clădirii — acoperiș și fațade.',
+      'Proiectele de arhitectură se dezvoltă în colaborare cu specialiști externi - ingineri de structură și de instalații, consultant nZEB și, după caz, expert tehnic și consultant ISU.',
+      'În cazul intervențiilor pe clădiri existente, releveul de arhitectură se realizează prin scanare laser 3D, pentru interior, și prin inspecție aeriană cu dronă, pentru anvelopa clădirii - acoperiș și fațade.',
     ]);
   });
 

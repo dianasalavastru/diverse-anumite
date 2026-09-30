@@ -40,9 +40,9 @@ const HOMEPAGE_RC_RO = {
     index: '04·c',
     title: 'Reality Capture',
     intro: 'Proiecte de scanare laser 3D și Scan-to-BIM.',
-    cta: 'Toate proiectele — Reality Capture',
+    cta: 'Toate proiectele - Reality Capture',
   },
-  workMarkerCoordinate: 'a · arhitectură & design — c · reality capture',
+  workMarkerCoordinate: 'a · arhitectură & design - c · reality capture',
 } as const;
 
 /** The whole Reality Capture Hub message set, RO — the approved lock. */
@@ -50,13 +50,13 @@ const RC_HUB_RO = {
   meta: {
     title: 'Reality Capture · diverse anumite',
     description:
-      'Scanare laser 3D și Scan-to-BIM — serviciile de Reality Capture ale atelierului diverse anumite.',
+      'Scanare laser 3D și Scan-to-BIM - serviciile de Reality Capture ale atelierului diverse anumite.',
   },
   orientation: {
     eyebrow: 'pilon · capabilitate',
     heading: { lead: 'Reality', tail: 'Capture' },
     lead: 'Scanare laser 3D și Scan-to-BIM: nor de puncte, model BIM, planuri, secțiuni și fațade.',
-    heroIndex: 'RC—001',
+    heroIndex: 'RC-001',
     aboutLink: 'Despre atelier',
   },
   framing: {
@@ -75,11 +75,11 @@ const RC_HUB_RO = {
   work: {
     marker: { no: '03', label: 'Proiecte în focus', coordinate: 'selecție curatoriată · nu arhiva' },
     intro:
-      'Fiecare proiect intră pe rând în focus. Trageți lateral sau folosiți săgețile. Selecția este curatoriată — arhiva completă este mai jos.',
-    cta: 'Toate proiectele — Reality Capture',
+      'Fiecare proiect intră pe rând în focus. Trageți lateral sau folosiți săgețile. Selecția este curatoriată - arhiva completă este mai jos.',
+    cta: 'Toate proiectele - Reality Capture',
     carousel: {
       roleDescription: 'carusel de proiecte',
-      label: 'Proiecte — folosiți săgețile pentru a naviga',
+      label: 'Proiecte - folosiți săgețile pentru a naviga',
       previous: 'Proiectul anterior',
       next: 'Proiectul următor',
       position: 'Proiectul în focus',

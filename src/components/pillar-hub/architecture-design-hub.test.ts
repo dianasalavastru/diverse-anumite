@@ -226,7 +226,7 @@ describe('the message set', () => {
     const ro = architectureDesignHubMessages('ro');
     expect(ro.meta.title).toBe('Arhitectură & Design · diverse anumite');
     expect(ro.meta.description).toBe(
-      'Proiectare de arhitectură, design interior, vizualizare 3D și design mobilier — serviciile de Arhitectură & Design ale atelierului diverse anumite.',
+      'Proiectare de arhitectură, design interior, vizualizare 3D și design mobilier - serviciile de Arhitectură & Design ale atelierului diverse anumite.',
     );
     expect(ro.orientation.lead).toBe(
       'Proiectare de arhitectură, design interior, vizualizare 3D și design mobilier.',
@@ -234,7 +234,7 @@ describe('the message set', () => {
     expect(ro.services.intro).toBe(
       'Fiecare serviciu are pagina lui, cu livrabilele sale. Alegeți serviciul care vi se potrivește.',
     );
-    expect(ro.work.cta).toBe('Toate proiectele — Arhitectură & Design');
+    expect(ro.work.cta).toBe('Toate proiectele - Arhitectură & Design');
     expect(ro.conversation.note).toBe(
       'Mesajul pornește cu subiectul deja setat pe Arhitectură & Design.',
     );
