@@ -5,9 +5,11 @@
 
    VISUAL_DIRECTION_v2.0 §9 governs the composition: "**One image is in focus;
    the rest recede** — by scale, contrast, placement, crop, sequence… **Never a
-   uniform equal grid by default.**" So the set keeps the HiFi's irregular span
-   rhythm — one leading wide frame, then portrait frames — cycled across a set of
-   any length rather than collapsing to equal cells.
+   uniform equal grid by default.**" The irregular rhythm now comes from the
+   images themselves rather than a span pattern cycled by position: landscapes
+   take the full measure, portraits and squares pair or stand narrower and
+   offset, very tall images are held to the viewport — each frame at its own
+   ratio, uncropped (see `media/gallery-layout.ts`).
 
    §9 again: the greyscale-at-rest → colour-on-inspection grade is the "hover-to-
    blue reveal… as a slow *inspection* gesture" of §6. It resolves on
@@ -15,35 +17,104 @@
    ========================================================================== */
 
 .gallery {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: clamp(12px, 1.4vw, 22px);
+  /* Column gap inside a paired row; row rhythm between rows. */
+  --gap: clamp(12px, 1.4vw, 22px);
+  --row: clamp(28px, 4vw, 64px);
+  /* The tallest a portrait-side frame may stand, so no single image outgrows
+     the viewport. Landscapes keep the full measure unless they are nearly
+     square, so their cap is only a guard against a 1.1:1 frame filling two
+     screens. */
+  --cap: min(86svh, 920px);
+  --cap-wide: 108svh;
+  /* A single frame's share of the measure, by orientation (5, 7 and 4 of 12). */
+  --span-portrait: 42%;
+  --span-square: 58%;
+  --span-tall: 33%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  column-gap: var(--gap);
   list-style: none;
 }
 
-.gitem.lead {
-  grid-column: span 4;
+/* Row rhythm lives on the items, not in `row-gap`, so the zero-height row
+   break after a pair adds no second gap. Both halves of a pair carry the same
+   margin and therefore still share one line. */
+.gallery > .gitem:not(:first-child) {
+  margin-top: var(--row);
 }
 
-.gitem.half {
-  grid-column: span 2;
+.gallery > .gitem.pair:first-child + .gitem.pair {
+  margin-top: 0;
 }
 
-/* The figure box. `position: relative` is what the Plate fills, and the ratio is
-   authorship, not fit-to-slot (§9: "Cropping is authorship"). */
+.gitem {
+  flex: 0 0 auto;
+}
+
+.gitem.full,
+.gitem.single-start,
+.gitem.single-end {
+  width: 100%;
+}
+
+.gbreak {
+  flex-basis: 100%;
+  height: 0;
+}
+
+/* The figure box. Its ratio is the IMAGE's own (`--r`, from the asset's
+   dimensions), so a detail page never crops: VISUAL_DIRECTION_v2.0 §9 makes
+   cropping authorship, and the authored choice here is to show the whole
+   drawing, board or photograph. `position: relative` is what the Plate fills. */
 .fig {
   display: block;
   position: relative;
   overflow: hidden;
   background: #cbc6bc;
+  aspect-ratio: var(--r, 1.6);
 }
 
-.gitem.lead .fig {
-  aspect-ratio: 16 / 10;
+.gitem.full .fig {
+  width: min(100%, calc(var(--r) * var(--cap-wide)));
 }
 
-.gitem.half .fig {
-  aspect-ratio: 4 / 5;
+.gitem.single-start .fig,
+.gitem.single-end .fig {
+  width: min(var(--span), calc(var(--r) * var(--cap)));
+}
+
+.gitem.single-end .fig {
+  margin-inline-start: auto;
+}
+
+.gitem.square {
+  --span: var(--span-square);
+}
+
+.gitem.portrait {
+  --span: var(--span-portrait);
+}
+
+.gitem.tall {
+  --span: var(--span-tall);
+}
+
+/* A pair shares the measure in proportion to the two ratios, which gives both
+   frames the same height at any container width. When that height would pass
+   the cap, both are held at the cap together — still equal, still whole. */
+.gitem.pair {
+  width: min(calc(var(--share) * (100% - var(--gap) - 1px)), calc(var(--r) * var(--cap)));
+}
+
+.gitem.pair .fig {
+  width: 100%;
+}
+
+/* The frame already has the image's ratio; `contain` only guarantees that no
+   rounding in the box can ever turn into a crop. */
+.gallery .plate-img {
+  object-fit: contain;
 }
 
 .fig .figbox {
@@ -112,17 +183,40 @@ a.fig {
   cursor: zoom-in;
 }
 
-@media (max-width: 820px) {
+@media (max-width: 1024px) {
   .gallery {
-    grid-template-columns: repeat(2, 1fr);
+    --span-portrait: 62%;
+    --span-square: 75%;
+    --span-tall: 46%;
+  }
+}
+
+/* Phone: one column at the full measure, which is where portraits already read
+   best. Pairs dissolve into the sequence; only a very tall image is held to the
+   viewport height (and centred, narrower) so it never becomes a scroll of its own. */
+@media (max-width: 599px) {
+  .gallery {
+    --row: 28px;
   }
 
-  .gitem.lead {
-    grid-column: span 2;
+  .gallery > .gitem:not(:first-child),
+  .gallery > .gitem.pair:first-child + .gitem.pair {
+    margin-top: var(--row);
   }
 
-  .gitem.half {
-    grid-column: span 1;
+  .gitem.pair {
+    width: 100%;
+  }
+
+  .gitem.single-start .fig,
+  .gitem.single-end .fig {
+    width: 100%;
+    margin-inline-start: 0;
+  }
+
+  .gitem.tall .fig {
+    width: min(100%, calc(var(--r) * 85svh));
+    margin-inline: auto;
   }
 }
 
