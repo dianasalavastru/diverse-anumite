@@ -251,7 +251,7 @@
 }
 
 /* Value proposition: two-column so the right side carries weight too. */
-.lead {
+.arrival .lead {
   margin-top: clamp(30px, 5vh, 54px);
   display: grid;
   grid-template-columns: 1.35fr 0.95fr;
@@ -266,7 +266,7 @@
    wrapper) cut the overflow off mid-word: "Proiecta…" with the rest gone.
    Measured where it is meant, the heading sets 22 characters of ITS type and
    the eyebrow above it keeps its own natural single line. */
-.lead h1 {
+.arrival .lead h1 {
   max-width: 22ch;
   font-family: var(--read);
   font-weight: 600;
@@ -276,30 +276,30 @@
   margin: 12px 0 0;
 }
 
-.lead h1 .b {
+.arrival .lead h1 .b {
   color: var(--blue);
 }
 
-.lead .side {
+.arrival .lead .side {
   border-left: 1px solid var(--hair);
   padding-left: clamp(18px, 2vw, 26px);
   align-self: end;
 }
 
-.lead .side p {
+.arrival .lead .side p {
   color: var(--ink-60);
   max-width: 40ch;
   font-size: 15.5px;
 }
 
-.lead .cue {
+.arrival .lead .cue {
   margin-top: 26px;
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.lead .cue .ln {
+.arrival .lead .cue .ln {
   width: 1px;
   height: 44px;
   background: var(--blue);
@@ -358,24 +358,24 @@
   align-items: start;
 }
 
-.cap {
+.caps .cap {
   position: relative;
   z-index: 1;
 }
 
-.cap.ad {
+.caps .cap.ad {
   grid-column: 1;
   grid-row: 1 / span 2;
 }
 
-.cap.rc {
+.caps .cap.rc {
   grid-column: 2;
   grid-row: 2;
   justify-self: end;
   width: min(100%, 470px);
 }
 
-.cap .cimg {
+.caps .cap .cimg {
   position: relative;
   overflow: hidden;
   background: #c9c4ba;
@@ -386,21 +386,21 @@
   transform-origin: center;
 }
 
-.cap.ad .cimg {
+.caps .cap.ad .cimg {
   aspect-ratio: 16 / 11;
 }
 
-.cap.rc .cimg {
+.caps .cap.rc .cimg {
   aspect-ratio: 4 / 5;
 }
 
-.cap:hover .cimg,
-.cap:has(a:focus-visible) .cimg {
+.caps .cap:hover .cimg,
+.caps .cap:has(a:focus-visible) .cimg {
   filter: grayscale(0) contrast(1.05);
   transform: scale(1.015);
 }
 
-.cap .cmark {
+.caps .cap .cmark {
   position: absolute;
   left: 14px;
   top: 14px;
@@ -411,12 +411,12 @@
   z-index: 2;
 }
 
-.cap:hover .cmark,
-.cap:has(a:focus-visible) .cmark {
+.caps .cap:hover .cmark,
+.caps .cap:has(a:focus-visible) .cmark {
   width: 38px;
 }
 
-.cap .cnum {
+.caps .cap .cnum {
   position: absolute;
   right: 12px;
   bottom: 12px;
@@ -430,7 +430,7 @@
 
 /* Name-as-doorway: the pillar name is the link, and it stretches over the whole
    plate so pointer users get the composition and assistive tech gets the name. */
-.cap .cname {
+.caps .cap .cname {
   font-family: var(--pixel);
   font-weight: 400;
   font-size: clamp(26px, 3.6vw, 44px);
@@ -438,12 +438,12 @@
   line-height: 1;
 }
 
-.cap .cname a {
+.caps .cap .cname a {
   display: inline-block;
   position: relative;
 }
 
-.cap .cname a::after {
+.caps .cap .cname a::after {
   content: "";
   position: absolute;
   left: 0;
@@ -454,31 +454,31 @@
   transition: right 0.4s var(--ease);
 }
 
-.cap:hover .cname a::after,
-.cap .cname a:focus-visible::after {
+.caps .cap:hover .cname a::after,
+.caps .cap .cname a:focus-visible::after {
   right: 0;
 }
 
 /* The stretched hit area. `inset` is computed from the card, not the heading. */
-.cap .cname a::before {
+.caps .cap .cname a::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 3;
 }
 
-.cap .csub {
+.caps .cap .csub {
   margin-top: 10px;
 }
 
-.cap .cctx {
+.caps .cap .cctx {
   margin-top: 10px;
   color: var(--ink-60);
   max-width: 34ch;
   font-size: 15px;
 }
 
-.cap .mvar {
+.caps .cap .mvar {
   position: absolute;
   right: -6px;
   top: -30px;
@@ -489,8 +489,8 @@
   z-index: 2;
 }
 
-.cap:hover .mvar,
-.cap:has(a:focus-visible) .mvar {
+.caps .cap:hover .mvar,
+.caps .cap:has(a:focus-visible) .mvar {
   opacity: 1;
   transform: none;
 }
@@ -1028,11 +1028,11 @@ html.anim-ready .hero-scan {
 }
 
 /* Supporting copy arrives after the hero has resolved. */
-.lead > .rv:nth-child(1) {
+.arrival .lead > .rv:nth-child(1) {
   transition-delay: 0.5s;
 }
 
-.lead > .rv:nth-child(2) {
+.arrival .lead > .rv:nth-child(2) {
   transition-delay: 0.62s;
 }
 
@@ -1065,12 +1065,12 @@ html.anim-ready .hero-scan {
     white-space: normal;
   }
 
-  .lead {
+  .arrival .lead {
     grid-template-columns: 1fr;
     gap: 22px;
   }
 
-  .lead .side {
+  .arrival .lead .side {
     border-left: 0;
     padding-left: 0;
     border-top: 1px solid var(--hair);
@@ -1085,9 +1085,9 @@ html.anim-ready .hero-scan {
     display: block;
   }
 
-  .cap,
-  .cap.ad,
-  .cap.rc {
+  .caps .cap,
+  .caps .cap.ad,
+  .caps .cap.rc {
     width: 100%;
     margin: 0 0 40px;
   }
@@ -1165,9 +1165,9 @@ html.anim-ready .hero-scan {
     transition: none !important;
   }
 
-  .cap .cimg,
-  .cap .cmark,
-  .cap .mvar,
+  .caps .cap .cimg,
+  .caps .cap .cmark,
+  .caps .cap .mvar,
   .prof .pimg,
   .idx .row,
   .quiet-link::after,
@@ -1176,7 +1176,7 @@ html.anim-ready .hero-scan {
   .invite .act .ar,
   .comp h3 a::after,
   .prof h3 a::after,
-  .cap .cname a::after {
+  .caps .cap .cname a::after {
     transition: none !important;
   }
 
