@@ -925,6 +925,36 @@
     aspect-ratio: 3 / 2;
   }
 
+  /* ---- Portrait covers ---------------------------------------------------
+     The one exception to the constant box. Inside 3:2 a 2:3 cover is contained
+     as a strip about a third of the box wide, with plate-tone bands either side —
+     the weakest image on the page, and precisely the portrait the project chose
+     to lead with. So a portrait cover's box takes the cover's own ratio
+     (`--cover-r`, from its dimensions), held to one height: the image is whole,
+     uncropped and unbanded, and the information column takes the width it gives
+     back. The row stands a little taller than a landscape row; the facing, the
+     rule, the column and the cue are all unchanged. */
+  .wa-grid--register .wa-item[data-cover="portrait"] {
+    --cover-h: min(680px, 76svh);
+  }
+
+  .wa-grid--register .wa-item[data-cover="portrait"] .pl {
+    grid-template-columns: auto minmax(340px, 1fr);
+  }
+
+  .wa-grid--register .wa-item[data-cover="portrait"][data-row="b"] .pl {
+    grid-template-columns: minmax(340px, 1fr) auto;
+  }
+
+  .wa-grid--register .wa-item[data-cover="portrait"] .im {
+    width: calc(var(--cover-r, 0.75) * var(--cover-h));
+    aspect-ratio: var(--cover-r, 0.75);
+  }
+
+  .wa-grid--register .wa-item[data-cover="portrait"] .im .plate-img {
+    object-fit: cover;
+  }
+
   /* ---- The information column -------------------------------------------
      A column, not a caption: it starts at the identity rule and ends level with
      the foot of the photograph. `.d` carries the flexible interval, so title and

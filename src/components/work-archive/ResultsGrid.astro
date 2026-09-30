@@ -226,6 +226,16 @@ const cells = items.flatMap((item, index) => {
        */
       cover: item.cover && item.cover.height > item.cover.width ? 'portrait' : 'landscape',
       /**
+       * A portrait cover's own ratio, for the DESKTOP register only: there a 3:2 box would
+       * contain a 2:3 cover as a narrow strip between plate-tone bands, so the box takes the
+       * cover's shape instead (A-5a, "Portrait covers") and shows it whole. Landscape covers
+       * keep the shared 3:2 box; below 1024px nothing reads this.
+       */
+      coverRatio:
+        register && item.cover && item.cover.height > item.cover.width && item.cover.width > 0
+          ? Math.round((item.cover.width / item.cover.height) * 10000) / 10000
+          : null,
+      /**
        * Whether the cover may fill its box or must be contained on the plate tone — see
        * `preview.ts`'s `mediaFit` for the whole argument. The dev overlay's stand-in is measured
        * exactly like a real asset, so a QA pass reviews the real fitting behaviour.
@@ -291,6 +301,7 @@ const scopeRank = (rank: ArchiveRanks | undefined, scope: ArchiveScope): string 
         data-row={register ? (index % 2 === 0 ? 'a' : 'b') : undefined}
         data-cover={cell.cover}
         data-cover-fit={register ? cell.coverFit : undefined}
+        style={cell.coverRatio === null ? undefined : `--cover-r:${cell.coverRatio}`}
         data-facet-pillars={cell.facets.pillars.join(' ')}
         data-facet-labels={cell.facets.labels.join(' ')}
         data-facet-sectors={cell.facets.sectors.join(' ')}
