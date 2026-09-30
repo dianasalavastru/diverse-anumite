@@ -246,7 +246,7 @@ const ro: WorkEntryMessages = {
 };
 
 /* -------------------------------------------------------------------------- */
-/* EN — PENDING (C); no upstream document authors EN interface wording          */
+/* EN — faithful translation of the RO above; routes still WITHHELD           */
 /* -------------------------------------------------------------------------- */
 
 const en: WorkEntryMessages = {
@@ -255,11 +255,11 @@ const en: WorkEntryMessages = {
   markers: {
     facts: { no: '02', label: 'Technical sheet', coordinate: 'measured data' },
     evidence: { no: '03', label: 'The work', coordinate: 'description · images' },
-    credits: { no: '04', label: 'Credits', coordinate: 'colaboratori' },
+    credits: { no: '04', label: 'Credits', coordinate: 'honest attribution' },
     competition: { no: '05', label: 'Competition', coordinate: 'outcome · team' },
     capture: { no: '06', label: 'Reality capture', coordinate: "this project's survey" },
     services: { no: '07', label: 'Services demonstrated', coordinate: 'on this project' },
-    related: { no: '08', label: 'Related work', coordinate: 'context' },
+    related: { no: '08', label: 'Related projects', coordinate: 'context' },
     onward: { no: '09', label: 'Onward', coordinate: 'capability · contact' },
   },
 
@@ -285,14 +285,14 @@ const en: WorkEntryMessages = {
 
   evidence: {
     galleryLabel: 'Project images',
-    heroFallbackAlt: 'Placeholder image — project photography pending',
+    heroFallbackAlt: '',
   },
 
   capture: {
-    label: "point cloud · this project's survey",
+    label: "point cloud · the project's survey",
     hint: 'drag to inspect →',
-    posterAlt: 'Placeholder image — point cloud pending',
-    unavailable: 'point cloud — asset in preparation',
+    posterAlt: '',
+    unavailable: '',
     equipment: 'Equipment',
     software: 'Software',
     deliverables: 'Deliverables',
@@ -303,15 +303,15 @@ const en: WorkEntryMessages = {
   related: {
     seeMore: 'All projects',
     carousel: {
-      roleDescription: 'related work strip',
-      label: 'Related work — use the arrow keys to navigate',
+      roleDescription: 'related projects strip',
+      label: 'Related projects — use the arrow keys to navigate',
       previous: 'Previous project',
       next: 'Next project',
       position: 'Project in focus',
     },
   },
 
-  onward: { hub: 'See {pillar}', contact: 'Get in touch' },
+  onward: { hub: 'See {pillar}', contact: 'Write to us' },
 
   viewer: {
     label: 'Image viewer',

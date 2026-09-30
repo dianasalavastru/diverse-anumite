@@ -257,7 +257,7 @@ const ro: ContactMessages = {
 };
 
 /* -------------------------------------------------------------------------- */
-/* EN — placeholder translation of the above, PENDING (C)                      */
+/* EN — faithful translation of the RO above; routes still WITHHELD           */
 /* -------------------------------------------------------------------------- */
 
 const en: ContactMessages = {
@@ -270,23 +270,21 @@ const en: ContactMessages = {
     eyebrow: 'Contact · starting a conversation',
     heading: 'Contact',
     statement:
-      'This is where the conversation starts. A few lines are enough — the details we work out together, after the first message.',
+      'This is where the conversation starts. A few lines are enough — we will work out the details together after the first message.',
     breadcrumbLabel: 'Breadcrumb',
     home: 'Home',
     here: 'Contact',
   },
 
-  /* EN is WITHHELD at launch — no translation authored. Empty until C supplies it;
-     never rendered while `/en/` is withheld. */
   closed: {
-    description: '',
-    eyebrow: '',
-    statement: '',
+    description: 'Contact · diverse anumite',
+    eyebrow: 'Contact',
+    statement: 'The studio’s contact details will be available here.',
   },
 
   context: {
     label: 'You are writing about',
-    neutral: 'not sure yet — that is fine, we start from your message',
+    neutral: 'you are not sure yet — that is fine, we will start from your message',
     topicOnly: '{topic}',
     withService: '{service} · {topic}',
   },

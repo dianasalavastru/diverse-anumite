@@ -28,9 +28,8 @@
  *     DECISIONS_LOG #45 assign the EU-funded expansion narrative to this page,
  *     gated on the EU programme publicity rules. Rendered only when non-empty.
  *
- * EN is WITHHELD for the initial launch. It is not a translation of the RO copy;
- * it keeps its previous strings where the shape still has a slot for them, and
- * mirrors RO's absences where the shape changed.
+ * EN is a faithful translation of the locked RO (2026-09-30) and mirrors every RO absence.
+ * EN routes remain WITHHELD (`publication.ts`); translation and publication are separate decisions.
  */
 
 import type { Locale } from './routes';
@@ -123,24 +122,33 @@ const ro: AboutMessages = {
 };
 
 /* -------------------------------------------------------------------------- */
-/* EN — WITHHELD at launch; not a translation                                  */
+/* EN — faithful translation of the locked RO above; routes still WITHHELD      */
+/* (`publication.ts`). Mirrors every RO absence: '' and [] stay absent.         */
 /* -------------------------------------------------------------------------- */
 
 const en: AboutMessages = {
-  meta: { title: 'About · diverse anumite', description: '' },
+  meta: {
+    title: 'About · diverse anumite',
+    description:
+      'About diverse anumite, a multidisciplinary studio in Cluj-Napoca for which the creative process is dynamic and adaptable.',
+  },
 
   eyebrow: 'The studio',
   heading: 'About',
   intro: [
-    'Diverse Anumite is a studio working on two planes at once: it draws new space and it measures space that already exists.',
-    'The two are not separate services. A drawing needs a correctly measured base, and a measurement becomes useful only once someone knows what will be built on top of it.',
+    'At diverse anumite, a multidisciplinary studio in Cluj-Napoca, the creative process is dynamic and adaptable.',
+    'The studio explores the potential of every project, using contemporary technologies while respecting the realities of the profession, the cultural landscape and the needs of those involved.',
+    'The studio’s services fall into two areas: Architecture & Design (architectural design, interior design, 3D visualisation, furniture design) and Reality Capture (3D laser scanning, Scan-to-BIM).',
   ],
   heroAlt: '',
 
   how: {
     no: '01',
     label: 'How we work',
-    body: [],
+    body: [
+      'Architectural projects are developed in collaboration with external specialists — structural and building services engineers, an nZEB consultant and, where required, a technical expert and a fire safety (ISU) consultant.',
+      'For work on existing buildings, the measured survey is carried out by 3D laser scanning for the interior and by aerial drone inspection for the building envelope — roof and façades.',
+    ],
   },
 
   closing: {
@@ -148,7 +156,7 @@ const en: AboutMessages = {
     funding: '',
     work: 'See the projects',
     services: 'Services',
-    contact: 'Let us talk about a project',
+    contact: 'Let’s talk about a project',
   },
 };
 

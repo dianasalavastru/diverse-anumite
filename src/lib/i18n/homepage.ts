@@ -22,8 +22,8 @@
  * figure caption and readouts, the competitions intro, and the Email and reply-time contact
  * rows (the Email row returns when the client supplies the address).
  *
- * EN is WITHHELD for the initial launch. It is not a translation of the RO copy, still
- * carries the superseded HiFi transcription, and must not be published as it stands.
+ * EN is a faithful translation of the locked RO (2026-09-30) and mirrors every RO absence.
+ * EN routes remain WITHHELD (`publication.ts`); translation and publication are separate decisions.
  */
 
 import type { Locale } from './routes';
@@ -257,80 +257,75 @@ const ro: HomepageMessages = {
 };
 
 /* -------------------------------------------------------------------------- */
-/* EN — WITHHELD at launch; superseded transcription, NOT publishable as is    */
+/* EN — faithful translation of the locked RO above; routes still WITHHELD      */
+/* (`publication.ts`). Mirrors every RO absence: '' and [] stay absent.         */
 /* -------------------------------------------------------------------------- */
 
 const en: HomepageMessages = {
   meta: {
-    title: 'diverse anumite — architecture and reality capture',
+    title: 'diverse anumite — multidisciplinary studio in Cluj-Napoca',
     description:
-      'One studio that composes architecture and documents the built world with precision.',
+      'Multidisciplinary studio in Cluj-Napoca: architectural design, interior design, 3D visualisation, furniture design, 3D laser scanning and Scan-to-BIM.',
   },
 
   arrival: {
-    eyebrow: 'studio · architecture + reality capture',
+    eyebrow: 'multidisciplinary studio · Cluj-Napoca',
     heading: { lead: 'We design space.', accent: 'We measure', tail: 'reality.' },
     statement:
-      'One studio that composes architecture and documents the built world with precision — from the first sketch to the last scanned millimetre.',
-    cue: 'scroll — 06 stations',
-    heroFallbackAlt: 'Placeholder image — studio photography pending',
+      'We explore the potential of every project, using contemporary technologies while respecting the realities of the profession, the cultural landscape and the needs of those involved.',
+    cue: '06 stations',
+    heroFallbackAlt: '',
     heroIndex: 'PT—001',
-    heroCoordinates: '46.77°N 23.59°E',
-    heroDimension: 'h — 18.4 m',
+    heroCoordinates: '',
+    heroDimension: '',
     aboutLink: 'About the studio',
   },
 
   capabilities: {
-    marker: { no: '02', label: 'Capabilities', coordinate: 'two disciplines · one studio' },
+    marker: { no: '02', label: 'Capabilities', coordinate: 'two areas' },
     architectureDesign: {
-      facets: 'housing · interiors · competitions',
-      context:
-        'Architecture that starts from place and light — houses, interiors and competition entries, drawn by hand and taken through to detail.',
+      facets: 'architecture · interiors · visualisation · furniture',
+      context: 'We design from the place and take the work through to the detail.',
     },
     realityCapture: {
-      facets: '3d scanning · photogrammetry · heritage',
+      facets: '3D laser scanning · Scan-to-BIM',
       context:
-        'The built world, measured on site — surveys, 3D scanning and photogrammetry for heritage and terrain.',
+        'We scan buildings, interiors, façades and terrain, and turn the point cloud into a BIM model.',
     },
   },
 
   credibility: {
-    marker: { no: '03', label: 'The practice, measured', coordinate: 'years of practice · placeholder' },
+    marker: { no: '03', label: 'The studio', coordinate: 'Cluj-Napoca' },
     heading: {
-      lead: 'Precision needs',
-      accent: 'hands',
-      tail: ', not only instruments.',
+      lead: 'A creative process that is',
+      accent: 'dynamic',
+      tail: ' and adaptable.',
     },
     statement:
-      'We are a small studio with a steady hand. We draw spaces that last and document what is built with instruments we know — every millimetre counts, from the sketch to the point cloud.',
-    figureCaption: 'survey · hand + instrument',
-    readouts: [
-      { value: '12', unit: 'yrs', label: 'continuous practice in architecture and survey (placeholder)' },
-      { value: '2', unit: 'mm', label: 'on-site scanning accuracy (placeholder)' },
-      { value: 'EU', unit: null, label: 'equipment co-financed by European funds (placeholder)' },
-    ],
-    aboutLink: 'About the practice',
+      'Architectural projects are developed in collaboration with external specialists — structural and building services engineers, an nZEB consultant and, where required, a technical expert and a fire safety (ISU) consultant.',
+    figureCaption: '',
+    readouts: [],
+    aboutLink: 'About the studio',
   },
 
   work: {
     marker: {
       no: '04',
       label: 'Work, in focus',
-      coordinate: 'a · architecture — c · documentation',
+      coordinate: 'a · architecture & design — c · reality capture',
     },
     architectureDesign: {
       index: '04·a',
       title: 'Architecture & Design',
       intro:
-        'Each project comes into focus in turn — the rest stay close, for context. Colour returns only where the eye stops.',
-      cta: 'All work — Architecture & Design',
+        'Each project comes into focus in turn — the rest stay close, for context. Colour returns only where the eye comes to rest.',
+      cta: 'All projects — Architecture & Design',
     },
     realityCapture: {
       index: '04·c',
-      title: 'Documentation',
-      intro:
-        'Real buildings, measured on site: surveys, drone flights and 3D scanning — frames from the documentation archive.',
-      cta: 'All work — Reality Capture',
+      title: 'Reality Capture',
+      intro: '3D laser scanning and Scan-to-BIM projects.',
+      cta: 'All projects — Reality Capture',
     },
     carousel: {
       roleDescription: 'project carousel',
@@ -345,8 +340,7 @@ const en: HomepageMessages = {
     marker: { no: '05', label: 'Selection', coordinate: 'competitions' },
     competitions: {
       title: 'Competitions',
-      intro:
-        'Competition entries, ordered in time — public and cultural spaces proposed by the studio.',
+      intro: '',
     },
   },
 
@@ -354,11 +348,7 @@ const en: HomepageMessages = {
     marker: { no: '06', label: 'Invitation', coordinate: 'one studio · one message' },
     question: 'Is a project taking shape?',
     action: 'Start a conversation',
-    contact: [
-      { label: 'Email', value: 'salut@diverseanumite.ro (placeholder)' },
-      { label: 'Studio', value: 'Cluj-Napoca · 46.77°N 23.59°E (placeholder)' },
-      { label: 'Reply', value: 'within 48h (placeholder)' },
-    ],
+    contact: [{ label: 'Studio', value: 'Cluj-Napoca' }],
   },
 };
 

@@ -95,9 +95,13 @@ const ro: ServicesIndexMessages = {
 };
 
 const en: ServicesIndexMessages = {
-  meta: { title: 'Services · diverse anumite', description: '' },
-  eyebrow: 'Services',
-  heading: 'What you can commission',
+  meta: {
+    title: 'Services · diverse anumite',
+    description:
+      'The services of the diverse anumite studio, grouped into two areas: Architecture & Design and Reality Capture.',
+  },
+  eyebrow: '',
+  heading: 'Services',
   intro: '',
   groupCoordinate: '',
   cta: 'See the service',

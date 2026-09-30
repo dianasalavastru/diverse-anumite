@@ -2,8 +2,8 @@
  * Work Archive editorial copy.
  *
  * Stable RO: `meta`, `orientation.statement` and `empty.body` (absent) are LOCKED client copy
- * (Batch 2A). Every other RO value is frame copy transcribed from the HiFi. EN is withheld for
- * launch and unchanged.
+ * (Batch 2A). Every other RO value is frame copy transcribed from the HiFi. EN is a faithful
+ * translation of the RO (2026-09-30) with the same absences; EN routes remain WITHHELD.
  *
  * OWNERSHIP: Workstream A commits the STRUCTURE; Workstream C authors the
  * STRINGS (TECHNICAL_ARCHITECTURE.md §23.3, "i18n message files | A (RO/EN
@@ -226,21 +226,20 @@ const ro: WorkArchiveMessages = {
 };
 
 /* -------------------------------------------------------------------------- */
-/* EN                                                                          */
+/* EN — faithful translation of the RO above; routes still WITHHELD           */
 /* -------------------------------------------------------------------------- */
 
 const en: WorkArchiveMessages = {
   meta: {
-    title: 'Projects — archive · diverse anumite',
+    title: 'Projects · diverse anumite',
     description:
-      'The complete archive of work — architecture, design and reality capture in one place.',
+      'The complete project archive of the diverse anumite studio, across Architecture & Design and Reality Capture.',
   },
 
   orientation: {
     eyebrow: 'Archive · all projects',
     heading: 'Projects',
-    statement:
-      'Everything that has passed through the studio — architecture and measured reality, together. Pick a pillar, a service or a sector; or simply scroll.',
+    statement: 'Everything that has passed through the studio — architecture and measured reality, in one place.',
     total: 'in the archive',
   },
 
@@ -283,7 +282,7 @@ const en: WorkArchiveMessages = {
 
   empty: {
     heading: 'No project matches these filters.',
-    body: 'The search narrowed too far. Return to everything in the archive, or start from a pillar.',
+    body: '',
     suggestLabel: 'Try',
     reset: 'Clear filters',
   },
@@ -296,10 +295,10 @@ const en: WorkArchiveMessages = {
 
   curated: {
     competitions: {
-      eyebrow: 'Archive · editorial slice',
+      eyebrow: 'Archive · editorial selection',
       heading: 'Competitions',
-      statement: 'The competition entries in the archive, in curated order.',
-      empty: 'No competition entries are published yet. The full archive stays open.',
+      statement: 'The competition entries in the archive, in the order of the editorial selection.',
+      empty: 'No competition projects have been published yet. The full archive remains open.',
     },
   },
 

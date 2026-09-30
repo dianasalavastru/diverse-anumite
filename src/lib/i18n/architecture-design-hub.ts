@@ -4,9 +4,8 @@
  * STATUS (Wave 3): the RO strings are the locked Stable RO copy, with correct diacritics
  * (DECISIONS_LOG.md #103). The two RO lines that carry Reality Capture positioning —
  * `framing.primary[0]` and the `continue.crossPillar` door — are locked by the Reality Capture
- * editorial LOCK (approved 2026-09-25, DECISIONS_LOG.md #106). EN is WITHHELD for the
- * initial launch; it is not a translation of the RO copy and is
- * kept only so the locale shape stays whole (its absences mirror RO's, for shape parity).
+ * editorial LOCK (approved 2026-09-25, DECISIONS_LOG.md #106). EN is a faithful translation
+ * of that RO (2026-09-30) with the same shape and absences; EN routes remain WITHHELD.
  *
  * OWNERSHIP: Workstream A commits the STRUCTURE; Workstream C authors the
  * STRINGS (TECHNICAL_ARCHITECTURE.md §23.3, "i18n message files | A (RO/EN
@@ -188,21 +187,21 @@ const ro: ArchitectureDesignHubMessages = {
 };
 
 /* -------------------------------------------------------------------------- */
-/* EN — WITHHELD at launch; not a translation. Absences mirror RO (parity).     */
+/* EN — faithful translation of the locked RO above; routes still WITHHELD      */
+/* (`publication.ts`). Mirrors every RO absence: '' and [] stay absent.         */
 /* -------------------------------------------------------------------------- */
 
 const en: ArchitectureDesignHubMessages = {
   meta: {
-    title: 'Architecture & Design — capability · diverse anumite',
+    title: 'Architecture & Design · diverse anumite',
     description:
-      'Houses, interiors, competitions and public space — architecture that starts from the place and is taken through to the last edge.',
+      'Architectural design, interior design, 3D visualisation and furniture design — the Architecture & Design services of the diverse anumite studio.',
   },
 
   orientation: {
-    eyebrow: 'capability · one of two',
+    eyebrow: 'pillar · capability',
     heading: { lead: 'Architecture', tail: '& Design' },
-    lead:
-      'Architecture, interiors and built space — houses, interior fit-outs, competitions, public projects and conceptual work. We work by hand and by instrument, from the first contour line to the last concrete edge. One way of thinking, whatever the scale.',
+    lead: 'Architectural design, interior design, 3D visualisation and furniture design.',
     heroIndex: 'AD—001',
     aboutLink: 'About the studio',
   },
@@ -215,7 +214,7 @@ const en: ArchitectureDesignHubMessages = {
       tail: '.',
     },
     primary: [
-      'The slope, the light, the neighbours, the brief, the way you arrive at the door — all of it is read before the first line. We measure the place, sometimes to the millimetre, because a good project starts from an honest reading of it, not from an image.',
+      'The slope, the light, the neighbours, the brief, the way you arrive at the entrance — all of it is read before the first line. For existing buildings, the project starts from the measured survey.',
       'From a house to a public competition, the questions stay the same. We draw little and cut a lot — one clear gesture instead of ten decorative ones.',
     ],
     secondary: [
@@ -224,11 +223,11 @@ const en: ArchitectureDesignHubMessages = {
     ],
     useCases: {
       label: 'Where it applies',
-      note: 'sectors declared on this capability’s services',
+      note: 'sectors declared on this pillar’s services',
     },
     instruments: {
       label: 'What we work with',
-      note: 'equipment declared on this capability’s services',
+      note: 'equipment declared on this pillar’s services',
     },
   },
 
@@ -236,7 +235,7 @@ const en: ArchitectureDesignHubMessages = {
     marker: {
       no: '03',
       label: 'Projects in focus',
-      coordinate: 'a curated selection · not the archive',
+      coordinate: 'curated selection · not the archive',
     },
     intro:
       'Each project comes into focus in turn. Drag sideways or use the arrows. The selection is curated — the full archive is below.',
@@ -254,10 +253,9 @@ const en: ArchitectureDesignHubMessages = {
     marker: {
       no: '04',
       label: 'What you can commission',
-      coordinate: 'services · architecture & design',
+      coordinate: 'services · architecture & design pillar',
     },
-    intro:
-      'Each service has its own page, with deliverables, process and stages. Here you only recognise which one fits.',
+    intro: 'Each service has its own page, with its deliverables. Choose the service that suits you.',
     cta: 'See the service',
   },
 
@@ -268,9 +266,9 @@ const en: ArchitectureDesignHubMessages = {
       title: 'See all projects',
     },
     crossPillar: {
-      kind: 'Reality Capture',
-      title: 'How we measure',
-      body: 'The way measuring reality feeds the architectural project.',
+      kind: 'The other area',
+      title: 'Reality Capture',
+      body: '3D laser scanning and Scan-to-BIM.',
     },
   },
 

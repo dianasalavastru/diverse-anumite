@@ -3,9 +3,8 @@
  *
  * STATUS: the RO strings are the Reality Capture editorial LOCK (approved 2026-09-25,
  * DECISIONS_LOG.md #106), with correct diacritics (#103). `rc-copy-firewall.test.ts` pins every
- * RO value literally. EN is WITHHELD for the initial launch: it is not a translation of the RO
- * copy, its surviving strings are frozen byte-identical, and it carries only the structural
- * omissions that mirror RO (so the two locales keep one shape).
+ * RO value literally. EN is a faithful translation of that lock (2026-09-30) with the same
+ * shape and absences; EN routes remain WITHHELD (`publication.ts`).
  *
  * OWNERSHIP: Workstream A commits the STRUCTURE; Workstream C authors the
  * STRINGS (TECHNICAL_ARCHITECTURE.md §23.3, "i18n message files | A (RO/EN
@@ -302,61 +301,61 @@ const ro: PillarHubMessages = {
 };
 
 /* -------------------------------------------------------------------------- */
-/* EN — WITHHELD at launch; not a translation. Absences mirror RO (parity).     */
+/* EN — faithful translation of the locked RO above; routes still WITHHELD      */
+/* (`publication.ts`). Mirrors every RO absence: '' and [] stay absent.         */
 /* -------------------------------------------------------------------------- */
 
 const en: PillarHubMessages = {
   meta: {
-    title: 'Reality Capture — capability · diverse anumite',
+    title: 'Reality Capture · diverse anumite',
     description:
-      '3D scanning, photogrammetry and measured surveys — the built world measured on site and delivered as a point cloud or drawing.',
+      '3D laser scanning and Scan-to-BIM — the Reality Capture services of the diverse anumite studio.',
   },
 
   orientation: {
-    eyebrow: 'capability · one of two',
+    eyebrow: 'pillar · capability',
     heading: { lead: 'Reality', tail: 'Capture' },
-    lead:
-      '3D scanning, photogrammetry and measured surveys. We turn real buildings, sites and landscapes into precise measurements — point clouds and drawings you can make a decision on. Not an interpretation of the place, but the place itself, at 1:1.',
+    lead: '3D laser scanning and Scan-to-BIM: point cloud, BIM model, plans, sections and elevations.',
     heroIndex: 'RC—001',
     aboutLink: 'About the studio',
   },
 
   framing: {
-    marker: { no: '02', label: 'The question', coordinate: 'observation · measurement' },
+    marker: { no: '02', label: 'The question', coordinate: 'common uses' },
     question: {
-      lead: 'What does measuring reality let us understand that an ordinary survey',
-      accent: 'cannot',
-      tail: '?',
+      lead: 'What is the',
+      accent: 'result',
+      tail: ' most often used for?',
     },
     primary: [
-      'A conventional survey records what someone decided to measure. A scan records everything — every settled wall, every plane that is not straight, every centimetre the eye would round off. Reality does not round off.',
-      'Better decisions start there: where you can intervene, how much material is missing, whether a structure has moved, what something looked like before it disappeared.',
+      'We scan homes, commercial and industrial buildings, heritage buildings, interiors, façades, exteriors and terrain, as well as industrial parks.',
+      '3D laser scanning is most often used for measured surveys, documentation of existing conditions, renovation / work on existing buildings, a basis for design, heritage, BIM / Scan-to-BIM and As-Built.',
     ],
     secondary: [
-      'Measurement is not the goal. It is the first layer of the project — the one architecture can lean on without guessing.',
-      'Reality capture does not replace a professional eye. It arms it with a reality nobody can dispute: coordinates, not impressions.',
+      'Scan-to-BIM can start from a scan carried out by us or from a point cloud supplied by the client.',
+      'The Scan-to-BIM result is most often used for design on existing buildings, renovation / rehabilitation, documentation, heritage and facility management.',
     ],
     instruments: {
       label: 'What we measure with',
-      note: 'equipment declared on this capability’s services',
+      note: 'equipment declared on this pillar’s services',
     },
   },
 
   work: {
     marker: {
       no: '03',
-      label: 'Documentation in focus',
-      coordinate: 'a curated selection · not the archive',
+      label: 'Projects in focus',
+      coordinate: 'curated selection · not the archive',
     },
     intro:
-      'Each documentation comes into focus in turn. Drag sideways or use the arrows. The selection is curated — the full archive is below.',
+      'Each project comes into focus in turn. Drag sideways or use the arrows. The selection is curated — the full archive is below.',
     cta: 'All projects — Reality Capture',
     carousel: {
-      roleDescription: 'documentation carousel',
-      label: 'Documentation — use the arrow keys to navigate',
-      previous: 'Previous documentation',
-      next: 'Next documentation',
-      position: 'Documentation in focus',
+      roleDescription: 'project carousel',
+      label: 'Projects — use the arrow keys to navigate',
+      previous: 'Previous project',
+      next: 'Next project',
+      position: 'Project in focus',
     },
   },
 
@@ -364,28 +363,27 @@ const en: PillarHubMessages = {
     marker: {
       no: '04',
       label: 'What you can commission',
-      coordinate: 'services · reality capture',
+      coordinate: 'services · reality capture pillar',
     },
-    intro:
-      'Each service has its own page, with deliverables, process and equipment. Here you only recognise which one fits.',
+    intro: 'Each service has its own page, with its deliverables. Choose the service that suits you.',
     cta: 'See the service',
   },
 
   continue: {
-    marker: { no: '05', label: 'Continue', coordinate: 'from measurement to decision' },
+    marker: { no: '05', label: 'Continue', coordinate: 'archive · the other area' },
     archive: {
-      kind: 'Documentation',
+      kind: 'Projects',
       title: 'See all projects',
     },
     crossPillar: {
-      kind: 'Architecture & Design',
-      title: 'How it connects',
-      body: 'The way measurement feeds the architectural project.',
+      kind: 'The other area',
+      title: 'Architecture & Design',
+      body: 'Architectural design, interior design, 3D visualisation and furniture design.',
     },
   },
 
   conversation: {
-    marker: { no: '06', label: 'Conversation', coordinate: 'one site · one message' },
+    marker: { no: '06', label: 'Conversation', coordinate: 'one project · one message' },
     action: 'Start a conversation',
     note: 'The message starts with the topic already set to Reality Capture.',
   },

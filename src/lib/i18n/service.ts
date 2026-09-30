@@ -180,7 +180,7 @@ const ro: ServiceMessages = {
 };
 
 /* -------------------------------------------------------------------------- */
-/* EN — PENDING (C); no upstream document authors EN interface wording          */
+/* EN — faithful translation of the RO above; routes still WITHHELD           */
 /* -------------------------------------------------------------------------- */
 
 const en: ServiceMessages = {
@@ -194,13 +194,13 @@ const en: ServiceMessages = {
     process: { label: 'How we work', coordinate: 'the method, step by step' },
     capabilities: {
       label: 'Capabilities and equipment',
-      coordinate: 'real figures, nothing computed',
+      coordinate: 'real figures, nothing calculated',
     },
     proof: {
       label: 'Projects where we used this service',
       coordinate: 'examples, not the archive',
     },
-    conversion: { label: 'Onward', coordinate: 'from question to conversation' },
+    conversion: { label: 'Continue', coordinate: 'from question to conversation' },
   },
 
   identity: { solves: 'What it solves', useCases: 'Suited to' },
@@ -221,7 +221,7 @@ const en: ServiceMessages = {
   },
 
   conversion: {
-    invitation: 'Do you have a project this service would fit?',
+    invitation: '',
     contact: 'Start a conversation',
     hub: 'See {pillar}',
   },

@@ -1,26 +1,26 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Homepage Reality Capture keys — editorial lock > EN RC capability copy is frozen (EN withheld — not translated) 1`] = `
+exports[`Homepage Reality Capture keys — editorial lock > EN RC capability copy is frozen (translation of the RO lock) 1`] = `
 {
-  "context": "The built world, measured on site — surveys, 3D scanning and photogrammetry for heritage and terrain.",
-  "facets": "3d scanning · photogrammetry · heritage",
+  "context": "We scan buildings, interiors, façades and terrain, and turn the point cloud into a BIM model.",
+  "facets": "3D laser scanning · Scan-to-BIM",
 }
 `;
 
-exports[`Reality Capture hub copy — editorial lock > EN copy is frozen (EN withheld — not translated) 1`] = `
+exports[`Reality Capture hub copy — editorial lock > EN copy is frozen (translation of the RO lock) 1`] = `
 {
   "continue": {
     "archive": {
-      "kind": "Documentation",
+      "kind": "Projects",
       "title": "See all projects",
     },
     "crossPillar": {
-      "body": "The way measurement feeds the architectural project.",
-      "kind": "Architecture & Design",
-      "title": "How it connects",
+      "body": "Architectural design, interior design, 3D visualisation and furniture design.",
+      "kind": "The other area",
+      "title": "Architecture & Design",
     },
     "marker": {
-      "coordinate": "from measurement to decision",
+      "coordinate": "archive · the other area",
       "label": "Continue",
       "no": "05",
     },
@@ -28,7 +28,7 @@ exports[`Reality Capture hub copy — editorial lock > EN copy is frozen (EN wit
   "conversation": {
     "action": "Start a conversation",
     "marker": {
-      "coordinate": "one site · one message",
+      "coordinate": "one project · one message",
       "label": "Conversation",
       "no": "06",
     },
@@ -37,63 +37,63 @@ exports[`Reality Capture hub copy — editorial lock > EN copy is frozen (EN wit
   "framing": {
     "instruments": {
       "label": "What we measure with",
-      "note": "equipment declared on this capability’s services",
+      "note": "equipment declared on this pillar’s services",
     },
     "marker": {
-      "coordinate": "observation · measurement",
+      "coordinate": "common uses",
       "label": "The question",
       "no": "02",
     },
     "primary": [
-      "A conventional survey records what someone decided to measure. A scan records everything — every settled wall, every plane that is not straight, every centimetre the eye would round off. Reality does not round off.",
-      "Better decisions start there: where you can intervene, how much material is missing, whether a structure has moved, what something looked like before it disappeared.",
+      "We scan homes, commercial and industrial buildings, heritage buildings, interiors, façades, exteriors and terrain, as well as industrial parks.",
+      "3D laser scanning is most often used for measured surveys, documentation of existing conditions, renovation / work on existing buildings, a basis for design, heritage, BIM / Scan-to-BIM and As-Built.",
     ],
     "question": {
-      "accent": "cannot",
-      "lead": "What does measuring reality let us understand that an ordinary survey",
-      "tail": "?",
+      "accent": "result",
+      "lead": "What is the",
+      "tail": " most often used for?",
     },
     "secondary": [
-      "Measurement is not the goal. It is the first layer of the project — the one architecture can lean on without guessing.",
-      "Reality capture does not replace a professional eye. It arms it with a reality nobody can dispute: coordinates, not impressions.",
+      "Scan-to-BIM can start from a scan carried out by us or from a point cloud supplied by the client.",
+      "The Scan-to-BIM result is most often used for design on existing buildings, renovation / rehabilitation, documentation, heritage and facility management.",
     ],
   },
   "meta": {
-    "description": "3D scanning, photogrammetry and measured surveys — the built world measured on site and delivered as a point cloud or drawing.",
-    "title": "Reality Capture — capability · diverse anumite",
+    "description": "3D laser scanning and Scan-to-BIM — the Reality Capture services of the diverse anumite studio.",
+    "title": "Reality Capture · diverse anumite",
   },
   "orientation": {
     "aboutLink": "About the studio",
-    "eyebrow": "capability · one of two",
+    "eyebrow": "pillar · capability",
     "heading": {
       "lead": "Reality",
       "tail": "Capture",
     },
     "heroIndex": "RC—001",
-    "lead": "3D scanning, photogrammetry and measured surveys. We turn real buildings, sites and landscapes into precise measurements — point clouds and drawings you can make a decision on. Not an interpretation of the place, but the place itself, at 1:1.",
+    "lead": "3D laser scanning and Scan-to-BIM: point cloud, BIM model, plans, sections and elevations.",
   },
   "services": {
     "cta": "See the service",
-    "intro": "Each service has its own page, with deliverables, process and equipment. Here you only recognise which one fits.",
+    "intro": "Each service has its own page, with its deliverables. Choose the service that suits you.",
     "marker": {
-      "coordinate": "services · reality capture",
+      "coordinate": "services · reality capture pillar",
       "label": "What you can commission",
       "no": "04",
     },
   },
   "work": {
     "carousel": {
-      "label": "Documentation — use the arrow keys to navigate",
-      "next": "Next documentation",
-      "position": "Documentation in focus",
-      "previous": "Previous documentation",
-      "roleDescription": "documentation carousel",
+      "label": "Projects — use the arrow keys to navigate",
+      "next": "Next project",
+      "position": "Project in focus",
+      "previous": "Previous project",
+      "roleDescription": "project carousel",
     },
     "cta": "All projects — Reality Capture",
-    "intro": "Each documentation comes into focus in turn. Drag sideways or use the arrows. The selection is curated — the full archive is below.",
+    "intro": "Each project comes into focus in turn. Drag sideways or use the arrows. The selection is curated — the full archive is below.",
     "marker": {
-      "coordinate": "a curated selection · not the archive",
-      "label": "Documentation in focus",
+      "coordinate": "curated selection · not the archive",
+      "label": "Projects in focus",
       "no": "03",
     },
   },

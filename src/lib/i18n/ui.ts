@@ -110,8 +110,8 @@ const ro: UiMessages = {
 
 /**
  * EN labels mirror the locked RO task labels and the approved EN route segments
- * (§11.1: about · services · projects · contact). PENDING (C) confirmation —
- * no upstream document authors EN nav wording.
+ * (§11.1: about · services · projects · contact). Translated from the locked RO
+ * (2026-09-30); EN routes remain WITHHELD (`publication.ts`).
  */
 const en: UiMessages = {
   nav: {
@@ -123,7 +123,7 @@ const en: UiMessages = {
   footer: {
     navGroup: 'Studio',
     socialGroup: 'Follow',
-    statement: '',
+    statement: 'Multidisciplinary studio in Cluj-Napoca.',
     euFunding: '',
     colophon: '',
   },

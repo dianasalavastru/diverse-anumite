@@ -11,9 +11,9 @@
  *      `work.marker.coordinate`). A reword fails here by name. Changing one of these values is
  *      an editorial decision and must be logged before this file is edited to match it.
  *
- * EN:  WITHHELD for the initial launch and NOT translated. It is frozen as snapshots so that no
- *      edit changes it by accident. The EN hub carries only the structural omissions that mirror
- *      RO; every surviving EN string is byte-identical to what it was before the lock.
+ * EN:  the faithful translation of the RO lock (2026-09-30), frozen as snapshots so that no
+ *      edit changes it by accident. EN routes remain WITHHELD (`publication.ts`); the EN hub
+ *      keeps the same shape and absences as RO.
  *
  * Alongside the locks, three guards: no precision, placeholder or capture-claim vocabulary on
  * the RO RC surfaces; the retired archive noun (`Documentări`) never reaches a stable RO
@@ -141,7 +141,7 @@ describe('Homepage Reality Capture keys — editorial lock', () => {
     }).toEqual(HOMEPAGE_RC_RO);
   });
 
-  it('EN RC capability copy is frozen (EN withheld — not translated)', () => {
+  it('EN RC capability copy is frozen (translation of the RO lock)', () => {
     expect(homepageMessages('en').capabilities.realityCapture).toMatchSnapshot();
   });
 
@@ -164,7 +164,7 @@ describe('Reality Capture hub copy — editorial lock', () => {
     expect(realityCaptureHubMessages('ro')).toEqual(RC_HUB_RO);
   });
 
-  it('EN copy is frozen (EN withheld — not translated)', () => {
+  it('EN copy is frozen (translation of the RO lock)', () => {
     expect(realityCaptureHubMessages('en')).toMatchSnapshot();
   });
 
