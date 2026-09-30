@@ -143,6 +143,8 @@ const basePath = routePath('workArchive', locale);
           quiet disclosure, so the band is one line tall until someone asks for more. */}
       <div class="frow wa-primary">
         <PillarToggle locale={locale} copy={copy.pillar} counts={counts} />
+        {/* With no entries there is nothing to refine: no disclosure, no panel. */}
+        {items.length > 0 && (
         <button
           type="button"
           class="wa-ftoggle"
@@ -154,16 +156,19 @@ const basePath = routePath('workArchive', locale);
           <span class="n" data-filter-count hidden></span>
           <span class="ar" aria-hidden="true">▾</span>
         </button>
+        )}
       </div>
 
-      <div class="wa-fpanel" id="wa-filter-panel" data-filter-panel hidden>
-        <ArchiveFilters
-          locale={locale}
-          copy={copy.filters}
-          values={values}
-          services={serviceChoices}
-        />
-      </div>
+      {items.length > 0 && (
+        <div class="wa-fpanel" id="wa-filter-panel" data-filter-panel hidden>
+          <ArchiveFilters
+            locale={locale}
+            copy={copy.filters}
+            values={values}
+            services={serviceChoices}
+          />
+        </div>
+      )}
 
       <ActiveContext
         locale={locale}
