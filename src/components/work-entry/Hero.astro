@@ -35,6 +35,7 @@ import type { Locale, WorkEntry } from '../../lib/content';
 import type { WorkEntryMessages } from '../../lib/i18n/work-entry';
 import { routePath } from '../../lib/i18n/routes';
 import { poolForPillar } from '../../lib/dev/visual-media';
+import { heroDevKey, heroMediaFor, type HeroMedia } from './hero-layout';
 import {
   projectLabelLabel,
   pillarLabel,
@@ -47,9 +48,17 @@ interface Props {
   locale: Locale;
   copy: WorkEntryMessages;
   station: number;
+  /**
+   * Resolved once by the page (`heroMediaFor`), because the header's variant depends on it
+   * too: a landscape cover stays full-bleed; any other cover takes the split composition on
+   * tablet and desktop so the whole image is shown and the metadata sits on paper.
+   * Resolved here when a caller does not pass it.
+   */
+  media?: HeroMedia;
 }
 
 const { entry, locale, copy, station } = Astro.props;
+const media = Astro.props.media ?? heroMediaFor(entry);
 
 const title = localize(entry.title, locale) ?? '';
 const location = localize(entry.metadata.location, locale);
@@ -57,7 +66,7 @@ const location = localize(entry.metadata.location, locale);
 /* DEVELOPMENT ONLY — see `lib/dev/visual-media.ts`. A distinct key from the entry's card, so the
    full-bleed hero and the small card are not forced to be the same photograph: the point of the
    QA pass is to see how one composition reads large and another reads small. */
-const devKey = `${entry._id}:entry-hero`;
+const devKey = heroDevKey(entry._id);
 const devPool = poolForPillar(entry.pillar, devKey);
 
 /**
@@ -88,7 +97,11 @@ const primaryPillar = entry.pillar;
 ---
 
 <section class="we-hero-section" data-station={station} aria-labelledby="we-title">
-  <div class="we-hero">
+  <div
+    class="we-hero"
+    data-layout={media.layout}
+    style={media.ratio === null ? undefined : `--hero-r:${Math.round(media.ratio * 10000) / 10000}`}
+  >
     <div class="we-hero-media">
       <Plate
         image={entry.cover}
@@ -99,9 +112,10 @@ const primaryPillar = entry.pillar;
         devKey={devKey}
         devPool={devPool}
       />
+      {/* Inside the media box so the measurement pass crosses the IMAGE in either layout. */}
+      <div class="we-hero-scan" aria-hidden="true"></div>
     </div>
     <div class="we-hero-grad" aria-hidden="true"></div>
-    <div class="we-hero-scan" aria-hidden="true"></div>
 
     <nav class="we-hero-top" aria-label={copy.breadcrumb.label}>
       <ol class="we-crumbs">

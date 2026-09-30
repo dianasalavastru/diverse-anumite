@@ -76,6 +76,7 @@ import { localize } from '../../lib/content';
 import type { Locale, WorkEntry } from '../../lib/content';
 import { workEntryMessages } from '../../lib/i18n/work-entry';
 import { workEntryComposition } from './modules';
+import { heroMediaFor } from './hero-layout';
 
 interface Props {
   entry: WorkEntry;
@@ -89,6 +90,10 @@ const composition = workEntryComposition(entry, locale);
 const stations = composition.stations;
 
 const title = localize(entry.title, locale) ?? '';
+
+/* A split hero opens on paper at tablet/desktop widths, so the header is inverted
+   only where the hero is still full-bleed (the phone). */
+const heroMedia = heroMediaFor(entry);
 
 /**
  * §11.2 rule 4 and the hreflang emitter: the counterpart pair is emitted only
@@ -119,7 +124,7 @@ const seoDescription = localize(entry.seo.description, locale) ?? undefined;
   slugs={slugs}
   title={seoTitle}
   description={seoDescription}
-  headerVariant="on-hero"
+  headerVariant={heroMedia.layout === 'split' ? 'on-hero-compact' : 'on-hero'}
   footerStation={composition.footerStation}
 >
   {/* §14.0 progressive enhancement: the hero's staged elements are gated on a
@@ -142,7 +147,7 @@ const seoDescription = localize(entry.seo.description, locale) ?? undefined;
 
   <CoordinateRail slot="rail" stations={composition.footerStation} />
 
-  <Hero entry={entry} locale={locale} copy={copy} station={stations.hero ?? 1} />
+  <Hero entry={entry} locale={locale} copy={copy} station={stations.hero ?? 1} media={heroMedia} />
 
   <section class="we-section we-facts" data-station={stations.facts} aria-labelledby="we-facts-h">
     <SectionMarker copy={copy.markers.facts} heading id="we-facts-h" />

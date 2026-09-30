@@ -211,6 +211,125 @@ html.anim-ready .we-hero-top {
   }
 }
 
+/* ---- I · HERO, SPLIT — a cover that is not landscape ----------------------
+   Full-bleed at a ~1.6:1 viewport shows a 2:3 cover at about 40% of its height,
+   upscaled, with the breadcrumb and metadata over whatever survived. From 768px
+   such a cover takes this composition instead: the page opens on paper, the
+   title and metadata in ink, and the WHOLE image at its own ratio (`--hero-r`),
+   held to the viewport height. Below 768px nothing here applies — the phone
+   keeps the full-bleed hero, where a portrait cover already fills the screen.
+
+   ≥1024px: side by side, like the pillar hubs' arrival. 768–1023px: stacked —
+   beside a portrait, a tablet leaves the title a column too narrow to read. */
+@media (min-width: 768px) {
+  .we-hero[data-layout='split'] {
+    --hero-h: min(calc(100svh - var(--header-h) - clamp(40px, 9vh, 96px)), 1040px);
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+    background: none;
+    margin-inline: 0;
+    display: grid;
+    grid-template-areas:
+      'top'
+      'btm'
+      'media';
+    row-gap: clamp(22px, 4vh, 40px);
+    padding-block: calc(var(--header-h) + clamp(18px, 4vh, 44px)) 0;
+  }
+
+  .we-hero[data-layout='split'] .we-hero-grad {
+    display: none;
+  }
+
+  .we-hero[data-layout='split'] .we-hero-media {
+    grid-area: media;
+    position: relative;
+    inset: auto;
+    justify-self: center;
+    width: min(100%, calc(var(--hero-r, 0.75) * var(--hero-h) * 0.86));
+    aspect-ratio: var(--hero-r, 0.75);
+    overflow: hidden;
+    background: #cbc6bc;
+    transform: none;
+  }
+
+  /* The box already has the image's ratio; `contain` only guarantees rounding
+     can never become a crop. */
+  .we-hero[data-layout='split'] .we-hero-media .plate-img {
+    object-fit: contain;
+  }
+
+  .we-hero[data-layout='split'] .we-hero-top,
+  .we-hero[data-layout='split'] .we-hero-btm {
+    position: static;
+    color: var(--ink);
+  }
+
+  .we-hero[data-layout='split'] .we-hero-top {
+    grid-area: top;
+  }
+
+  .we-hero[data-layout='split'] .we-hero-btm {
+    grid-area: btm;
+  }
+
+  .we-hero[data-layout='split'] .we-crumbs {
+    color: var(--ink-60);
+  }
+
+  .we-hero[data-layout='split'] .we-crumbs li + li::before {
+    color: var(--ink-40);
+  }
+
+  .we-hero[data-layout='split'] .we-crumbs a {
+    text-decoration-color: var(--hair);
+  }
+
+  .we-hero[data-layout='split'] .we-crumbs a:hover,
+  .we-hero[data-layout='split'] .we-crumbs a:focus-visible {
+    text-decoration-color: var(--ink);
+  }
+
+  .we-hero[data-layout='split'] .we-crumbs [aria-current='page'] {
+    color: var(--ink-60);
+  }
+
+  .we-hero[data-layout='split'] .we-hero-btm .kick,
+  .we-hero[data-layout='split'] .we-hero-btm .we-hero-measure {
+    color: var(--ink-60);
+  }
+
+  .we-hero[data-layout='split'] .we-hero-btm h1 {
+    font-size: clamp(38px, 6.4vw, 72px);
+  }
+}
+
+@media (min-width: 1024px) {
+  .we-hero[data-layout='split'] {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      'top media'
+      'btm media';
+    column-gap: clamp(32px, 5vw, 88px);
+    row-gap: 0;
+  }
+
+  .we-hero[data-layout='split'] .we-hero-media {
+    justify-self: end;
+    width: min(52vw, calc(var(--hero-r, 0.75) * var(--hero-h)));
+  }
+
+  .we-hero[data-layout='split'] .we-hero-btm {
+    align-self: end;
+  }
+
+  .we-hero[data-layout='split'] .we-hero-btm h1 {
+    font-size: clamp(44px, 5.4vw, 104px);
+  }
+}
+
 /* ---- Section frame -------------------------------------------------------
    The DENSE ↔ SILENT cadence of VISUAL_DIRECTION_v2.0 §8, using the page's own
    rhythm set (tokens.css `[data-rhythm="work-entry"]`, transcribed from this

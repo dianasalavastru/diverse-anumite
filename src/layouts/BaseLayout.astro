@@ -44,8 +44,11 @@ interface Props {
    * pair. Omit entirely for static routes.
    */
   slugs?: Partial<Record<Locale, string>>;
-  /** `on-hero` for pages that open on a full-bleed dark hero. */
-  headerVariant?: 'default' | 'on-hero';
+  /**
+   * `on-hero` for pages that open on a full-bleed dark hero; `on-hero-compact` when that hero
+   * is full-bleed only on small viewports (a split Work Entry hero).
+   */
+  headerVariant?: 'default' | 'on-hero' | 'on-hero-compact';
   /** The footer's rail station, on pages that use the coordinate rail. */
   footerStation?: number;
 }

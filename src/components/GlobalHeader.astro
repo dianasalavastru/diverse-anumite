@@ -49,8 +49,12 @@ interface Props {
   locale: Locale;
   /** The route currently rendered — marks the matching nav item as current. */
   current?: RouteKey;
-  /** `on-hero` = the page opens on a full-bleed dark hero (Work Entry, Service). */
-  variant?: 'default' | 'on-hero';
+  /**
+   * `on-hero` = the page opens on a full-bleed dark hero (Work Entry, Service).
+   * `on-hero-compact` = the hero is full-bleed below 768px only (a split Work Entry hero);
+   * from 768px the header keeps its default ink, since the page opens on paper.
+   */
+  variant?: 'default' | 'on-hero' | 'on-hero-compact';
   /**
    * Path of this page in the other locale, or `null` when the entity has no
    * counterpart. §11.2 rule 5: the switcher is DISABLED with an accessible
@@ -116,7 +120,13 @@ function isCurrent(key: RouteKey): boolean {
 }
 ---
 
-<header class:list={['site-header', variant === 'on-hero' && 'on-hero']}>
+<header
+  class:list={[
+    'site-header',
+    variant !== 'default' && 'on-hero',
+    variant === 'on-hero-compact' && 'hero-compact',
+  ]}
+>
   <a class="wm" href={routePath('home', locale)}>diverse anumite</a>
 
   <nav aria-label={t.primaryNavigation}>

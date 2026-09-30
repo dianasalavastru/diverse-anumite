@@ -208,6 +208,32 @@
   color: var(--ink-60);
 }
 
+/* ---- Variant: on-hero only while the hero is full-bleed (split WE hero) ----
+   A Work Entry whose cover is not landscape opens on PAPER from 768px (the
+   split composition, work-entry.css), and on a full-bleed image only below it.
+   `.hero-compact` therefore undoes the inversion from 768px exactly as
+   `.on-hero.solid` does once the header settles — same declarations, same
+   reasons (see above). */
+@media (min-width: 768px) {
+  .site-header.on-hero.hero-compact .wm,
+  .site-header.on-hero.hero-compact nav a,
+  .site-header.on-hero.hero-compact .menu {
+    color: var(--ink);
+  }
+
+  .site-header.on-hero.hero-compact nav a.here {
+    color: var(--blue);
+  }
+
+  .site-header.on-hero.hero-compact nav a.here::after {
+    background: var(--blue);
+  }
+
+  .site-header.on-hero.hero-compact nav a.en {
+    color: var(--ink-60);
+  }
+}
+
 /* ---- The small-viewport panel ------------------------------------------- */
 
 /* Closed, and absent above the breakpoint. `display: none` here is what makes
