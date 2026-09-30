@@ -46,7 +46,6 @@ import ViewTransition from '../ViewTransition.astro';
 
 import { PILLARS, type Locale } from '../../lib/content';
 import { routePath } from '../../lib/i18n/routes';
-import { pillarLabel } from '../../lib/i18n/vocabulary';
 import { workArchiveMessages } from '../../lib/i18n/work-archive';
 import { collectFacetValues, itemFacets, serviceOptions } from './facets';
 
@@ -87,10 +86,13 @@ const serviceChoices = serviceOptions(services, values.services, locale);
  * IA §3.2 forbids structural primacy between the pillars, so they are read from
  * the frozen `PILLARS` order and rendered identically.
  */
-const breakdown = PILLARS.map((pillar) => ({
-  label: pillarLabel(pillar, locale),
-  count: items.filter((item) => itemFacets(item, locale).pillars.includes(pillar)).length,
-}));
+/* Per-scope totals for the pillar tabs — the same membership rule the island filters by
+   (`itemFacets(...).pillars`, primary + secondary), so a tab's number is exactly what
+   selecting it shows. */
+const counts: Record<string, number> = { all: items.length };
+for (const pillar of PILLARS) {
+  counts[pillar] = items.filter((item) => itemFacets(item, locale).pillars.includes(pillar)).length;
+}
 
 const basePath = routePath('workArchive', locale);
 ---
@@ -131,23 +133,37 @@ const basePath = routePath('workArchive', locale);
       statement={copy.orientation.statement}
       total={items.length}
       totalLabel={copy.orientation.total}
-      breakdown={breakdown}
-      breakdownLabel={copy.pillar.legend}
+      showTotal={false}
     />
 
     {/* The control region: quiet, consistent, and never louder than the work
         (WORK_ARCHIVE_WIREFRAME, "Visual emphasis hierarchy"). */}
     <div class="wa-controls bleed">
-      <div class="frow">
-        <PillarToggle locale={locale} copy={copy.pillar} />
+      {/* Primary: the pillar tabs, always visible. Secondary: every refinement, behind one
+          quiet disclosure, so the band is one line tall until someone asks for more. */}
+      <div class="frow wa-primary">
+        <PillarToggle locale={locale} copy={copy.pillar} counts={counts} />
+        <button
+          type="button"
+          class="wa-ftoggle"
+          aria-expanded="false"
+          aria-controls="wa-filter-panel"
+          data-filter-toggle
+        >
+          {copy.filters.legend}
+          <span class="n" data-filter-count hidden></span>
+          <span class="ar" aria-hidden="true">▾</span>
+        </button>
       </div>
 
-      <ArchiveFilters
-        locale={locale}
-        copy={copy.filters}
-        values={values}
-        services={serviceChoices}
-      />
+      <div class="wa-fpanel" id="wa-filter-panel" data-filter-panel hidden>
+        <ArchiveFilters
+          locale={locale}
+          copy={copy.filters}
+          values={values}
+          services={serviceChoices}
+        />
+      </div>
 
       <ActiveContext
         locale={locale}

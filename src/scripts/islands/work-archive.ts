@@ -80,6 +80,10 @@ function start(root: HTMLElement, grid: HTMLElement): void {
   const status = root.querySelector<HTMLElement>('[data-archive-status]');
   const summary = root.querySelector<HTMLElement>('[data-active-summary]');
   const clearButton = root.querySelector<HTMLElement>('[data-archive-clear]');
+  const context = root.querySelector<HTMLElement>('[data-active-context]');
+  const filterToggle = root.querySelector<HTMLButtonElement>('[data-filter-toggle]');
+  const filterPanel = root.querySelector<HTMLElement>('[data-filter-panel]');
+  const filterCount = root.querySelector<HTMLElement>('[data-filter-count]');
   const groups = [...root.querySelectorAll<HTMLElement>('[role="radiogroup"][data-facet]')];
   const selects = [...root.querySelectorAll<HTMLSelectElement>('select[data-facet]')];
 
@@ -236,7 +240,9 @@ function start(root: HTMLElement, grid: HTMLElement): void {
   function groupLabel(facet: string): string {
     const group = groupFor(facet);
     const radio = group?.querySelector<HTMLElement>('[aria-checked="true"]');
-    return radio?.textContent?.trim() ?? '';
+    /* A pillar tab carries its total after the name; the readout wants the name only. */
+    const label = radio?.querySelector<HTMLElement>('[data-pill-label]') ?? radio;
+    return label?.textContent?.trim() ?? '';
   }
 
   function selectFor(facet: string): HTMLSelectElement | undefined {
@@ -374,6 +380,20 @@ function start(root: HTMLElement, grid: HTMLElement): void {
 
     if (clearButton) clearButton.hidden = !hasActiveFilters(state);
 
+    /* The context line speaks only when there is something to say: the hub back-path under a
+       pillar scope, and the refinement summary with THE result count once a refinement is
+       active. Unrefined, the pillar tab already states how many entries are shown. */
+    if (context) {
+      context.toggleAttribute('data-refined', hasActiveFilters(state));
+      context.toggleAttribute('data-scoped', state.pillar !== 'all');
+    }
+
+    if (filterCount) {
+      const active = [state.label, state.sector, state.service].filter(Boolean).length;
+      filterCount.textContent = active > 0 ? String(active) : '';
+      filterCount.hidden = active === 0;
+    }
+
     /* F1 back-path: offered only while a pillar scope is active (A-3). */
     for (const hub of root.querySelectorAll<HTMLElement>('[data-hub-link]')) {
       hub.hidden = hub.dataset.hubLink !== state.pillar;
@@ -477,6 +497,17 @@ function start(root: HTMLElement, grid: HTMLElement): void {
     });
   }
 
+  /* The secondary filters' disclosure. Closed by default; opening it moves nothing else. */
+  function setPanel(open: boolean): void {
+    if (!filterToggle || !filterPanel) return;
+    filterToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    filterPanel.hidden = !open;
+  }
+
+  filterToggle?.addEventListener('click', () => {
+    setPanel(filterToggle.getAttribute('aria-expanded') !== 'true');
+  });
+
   addEventListener('popstate', () => {
     apply(parseArchiveState(location.search, available), { history: 'none' });
   });
@@ -506,6 +537,8 @@ function start(root: HTMLElement, grid: HTMLElement): void {
     announce: false,
     resolveReveals: false,
   });
+  /* A shared link that carries refinements opens on them: the visitor sees what is applied. */
+  setPanel(hasActiveFilters(restored));
 
   addEventListener('load', layout);
   if (document.fonts) void document.fonts.ready.then(layout);

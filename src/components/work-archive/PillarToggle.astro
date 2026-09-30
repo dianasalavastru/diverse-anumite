@@ -32,9 +32,16 @@ import type { WorkArchiveMessages } from '../../lib/i18n/work-archive';
 interface Props {
   locale: Locale;
   copy: WorkArchiveMessages['pillar'];
+  /**
+   * OPTIONAL per-scope totals (`all` and each pillar), set quietly after the label. They are
+   * what the masthead's count and breakdown used to state, moved onto the control they
+   * describe. The island reads a mode's name from `[data-pill-label]`, never the whole button,
+   * so a number here never leaks into the active-context summary.
+   */
+  counts?: Readonly<Record<string, number>>;
 }
 
-const { locale, copy } = Astro.props;
+const { locale, copy, counts } = Astro.props;
 
 /** `all` first — it is the default scope, not a third pillar (IA Step 5). */
 const options = [
@@ -54,7 +61,10 @@ const options = [
         tabindex={index === 0 ? 0 : -1}
         data-value={option.value}
       >
-        {option.label}
+        <span data-pill-label>{option.label}</span>
+        {counts && counts[option.value] !== undefined && (
+          <span class="pill-n">{counts[option.value]}</span>
+        )}
       </button>
     ))
   }

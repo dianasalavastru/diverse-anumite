@@ -59,6 +59,13 @@ interface Props {
   breakdown?: readonly OrientationBreakdownEntry[];
   /** The label above the breakdown — an existing authored string, never a new one. */
   breakdownLabel?: string;
+  /**
+   * `false` drops the metadata column (count + breakdown) and sets the masthead as one compact
+   * row. The full archive does this: its pillar tabs carry the per-pillar counts and the active
+   * context carries the result count, so a third statement of the same numbers only pushed the
+   * work down. The curated views keep the column — they have no pillar tabs to carry it.
+   */
+  showTotal?: boolean;
 }
 
 const {
@@ -70,6 +77,7 @@ const {
   totalLabel,
   breakdown = [],
   breakdownLabel = '',
+  showTotal = true,
 } = Astro.props;
 ---
 
@@ -84,13 +92,14 @@ const {
    * and nothing invented.
    */
 }
-<section class="wa-intro" aria-labelledby="wa-heading">
+<section class:list={['wa-intro', !showTotal && 'wa-intro--compact']} aria-labelledby="wa-heading">
   <div class="wa-intro-lead">
     <p class="kick rv" data-rv="meta">{eyebrow}</p>
     <h1 class="rv" id="wa-heading" data-rv="head">{heading}</h1>
     <p class="sub rv" data-rv="meta">{statement}</p>
   </div>
 
+  {showTotal && (
   <div class="wa-intro-meta">
     <p class="count rv" data-rv="meta">
       <b>{total}</b>
@@ -113,4 +122,5 @@ const {
       )
     }
   </div>
+  )}
 </section>
