@@ -25,9 +25,10 @@
  * (`WORK_ARCHIVE_PAGE_IA.md` A-4), so no suggestion points at Competitions or
  * Professional Experience. Those are offered as what they are, in A-7.
  *
- * `hidden` at render: the prerendered archive is never empty (an empty archive
- * is a content state, not a filter state — and IA §2.1 makes `/proiecte` the
- * canonical index either way, so the module is present and simply not shown).
+ * `hidden` at render, and rendered only when the archive holds entries: this is
+ * the FILTER state. An archive with no published Project is a content state,
+ * rendered by WorkArchive.astro in the served HTML (`empty.archive`), with no
+ * controls and no grid.
  */
 import { PILLARS, type Locale } from '../../lib/content';
 import { pillarLabel } from '../../lib/i18n/vocabulary';

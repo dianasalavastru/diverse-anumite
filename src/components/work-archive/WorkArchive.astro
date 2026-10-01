@@ -150,8 +150,10 @@ const basePath = routePath('workArchive', locale);
         above it, so its two children become the board's own grid items. `.wa-side`
         holds the panel and the active context together, so the rail carries both and
         the narrow layout keeps the context visible while the panel is closed.
-        With no entries there is nothing to refine: no disclosure, no panel, no rail. */}
+        With no entries there is nothing to refine or switch between: no tabs, no
+        disclosure, no panel, no rail — the server-rendered empty archive below. */}
     <div class:list={['wa-board', items.length > 0 && 'wa-board--refinable']}>
+      {items.length > 0 && (
       <div class="wa-controls bleed">
         {/* Primary: the pillar tabs, always visible. Secondary: every refinement — behind
             one quiet disclosure on narrow screens, always shown from 1024px. */}
@@ -192,7 +194,9 @@ const basePath = routePath('workArchive', locale);
           />
         </div>
       </div>
+      )}
 
+      {items.length > 0 ? (
       <section class="wa-results" aria-labelledby="wa-results-heading" tabindex="-1" data-archive-region>
         <h2 class="wa-sr" id="wa-results-heading">{copy.results.label}</h2>
 
@@ -211,6 +215,18 @@ const basePath = routePath('workArchive', locale);
           basePath={basePath}
         />
       </section>
+      ) : (
+      /* ── NO PUBLISHED PROJECT YET ─────────────────────────────────────────
+         A content state, not a filter state, so it is rendered here and needs no
+         script: no tabs, no filters, no grid — nothing to choose between yet —
+         and one plain sentence in the empty state's own type. With no grid the
+         island does not start. */
+      <section class="wa-results wa-results--none" aria-labelledby="wa-none">
+        <div class="wa-empty">
+          <h2 id="wa-none">{copy.empty.archive}</h2>
+        </div>
+      </section>
+      )}
     </div>
 
     <ArchiveContinue

@@ -118,6 +118,12 @@ export interface WorkArchiveMessages {
 
   /** A-6 · Empty state (Stage D, no matches). Never a bare grid. */
   readonly empty: {
+    /**
+     * The CONTENT state: the archive holds no published Project yet. Server-rendered in place of
+     * the controls and the grid (WorkArchive.astro), so it does not depend on the island. Phrased
+     * after the Competitions view's approved `curated.competitions.empty`.
+     */
+    readonly archive: string;
     readonly heading: string;
     readonly body: string;
     readonly suggestLabel: string;
@@ -213,6 +219,7 @@ const ro: WorkArchiveMessages = {
   },
 
   empty: {
+    archive: 'Nu există încă proiecte publicate.',
     heading: 'Niciun proiect nu corespunde acestor filtre.',
     /*
      * ABSENT (locked, Stable RO). The heading already states the outcome, and the suggestion
@@ -304,6 +311,7 @@ const en: WorkArchiveMessages = {
   },
 
   empty: {
+    archive: 'No projects have been published yet.',
     heading: 'No project matches these filters.',
     body: '',
     suggestLabel: 'Try',
