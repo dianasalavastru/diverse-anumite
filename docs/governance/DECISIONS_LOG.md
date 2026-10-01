@@ -280,6 +280,16 @@ The client supplied a factual service description (`Descriere servicii.odt`, 202
     - **Mobile.** Below 1024px the same hierarchy reads linearly — identity, cover (portrait 4:5, landscape 4:3–3:2), title block, supports two across (an odd first one full width), cue — and replaces the previous mobile archive card.
     - **Unchanged:** Project detail media (never cropped), the hero rules, `kind` semantics (unset means `photo`), the archive masthead, tabs and *Filtre*, archive and Project URLs, filter semantics and URL state.
 
+## Batch 29 — Short-page viewport fit (amendment: **owner decision**) — 2026-10-01
+
+118. **Short pages close one laptop screen.** Owner approval, 2026-10-01, after a viewport-fit audit and before/after renders at 1366×768, 1280×800 and 1440×900.
+    - **Scope.** `fit="viewport"` on BaseLayout, set only on About (`/despre`), the Services index, Contact and 404. Laptop/desktop only (≥1024px): the body is a column at least one viewport tall and `<main>` takes the remainder, so the footer ends on the viewport's bottom edge by flow alone. Below 1024px nothing is forced into one screen. Never set on the Work Archive, Project, Service or hub pages.
+    - **Footer.** One footer everywhere. On `fit` pages it takes a compact treatment — same element, content, voices and order, set on one row with height-aware padding (≈125–142px instead of 253–292px). Spacing and layout only.
+    - **About.** On laptop/desktop the masthead text, plate, the prose band and the closing are one two-column spread (text and onward paths left; plate and *Cum lucrăm* right) that fits at every laptop size. DOM and reading order are unchanged; the plate moves beside the masthead `<section>` rather than inside it. The lone `01` numeral is retired at every width (one section counts nothing; it returns with a second authored section). The plate is 3:1 while it holds no photograph.
+    - **Services index — "B-responsive".** Four levels: page title, pillar title (≈0.60 × H1, one line), a full-column shallow plate directly under the pillar title, then the Service rows (≈0.49 × pillar title). Values are `calc(k·vh − c)` clamps that land on the approved balanced proportions at 768px height and ease toward the editorial ones by ~900px, with no layout switch. Target is **almost one screen**: every row and both hub links in view with ≥20px to spare at 1366×768, 1280×800 and 1440×900; the footer may begin below the fold. The plate is a content slot: the current Architecture & Design board is kept for QA only, and the format expects a photograph or render with the visual mass of the Reality Capture image.
+    - **Contact and 404.** Smaller opening beat and an H1 of `clamp(38px, min(4.6vw, 8.2vh), 68px)` on laptop/desktop; nothing else changes.
+    - **Unchanged:** type families and roles, palette, every locked string, mobile and tablet layouts (except About's retired numeral), and every page without `fit`.
+
 ### Open (non-blocking, carried into design/build)
 - Multi-select within a facet. ~~Inline vs expander rendering~~ — **closed by #116** (secondary filters behind an expander).
 - Confirm EU programme publicity rules.
