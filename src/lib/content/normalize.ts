@@ -27,6 +27,7 @@
 import type {
   RawCaptureMetadata,
   RawCuration,
+  RawGalleryImage,
   RawImage,
   RawLocalized,
   RawService,
@@ -49,6 +50,7 @@ import {
   type Curation,
   type ProjectLabel,
   type HighlightPlacement,
+  type GalleryImage,
   type ImageAsset,
   type Localized,
   type Pillar,
@@ -74,6 +76,7 @@ import {
   validateWorkFieldContract,
   type WorkFieldPresence,
 } from './validation.js';
+import { mediaKindOf } from './media-kind.js';
 
 export class ContentShapeError extends Error {
   override readonly name = 'ContentShapeError';
@@ -168,6 +171,14 @@ function normalizeImages(raw: readonly RawImage[] | null | undefined): readonly 
   return (raw ?? [])
     .map((image) => normalizeImage(image))
     .filter((image): image is ImageAsset => image !== null);
+}
+
+/** The Work Entry gallery: the same images, each with its layout hint (unset → `photo`). */
+function normalizeGallery(raw: readonly RawGalleryImage[] | null | undefined): readonly GalleryImage[] {
+  return (raw ?? []).flatMap((item) => {
+    const image = normalizeImage(item);
+    return image ? [{ ...image, kind: mediaKindOf(item.kind) }] : [];
+  });
 }
 
 function normalizePlacement(
@@ -516,7 +527,7 @@ export function normalizeWorkEntry(raw: RawWorkEntry): WorkEntry {
 
     description: localized<readonly PortableTextBlock[]>(raw.description),
     cover: normalizeImage(raw.cover),
-    gallery: normalizeImages(raw.gallery),
+    gallery: normalizeGallery(raw.gallery),
     capture: normalizeCapture(raw.capture, capturePublicationCleared, _id),
     capturePublicationCleared,
 

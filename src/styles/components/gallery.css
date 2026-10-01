@@ -137,6 +137,22 @@ a.fig:focus-visible .plate-img {
   filter: grayscale(0) contrast(1.04);
 }
 
+/* A DRAWING (the editor's `kind`: plan, section, board) is shown as drawn: on a
+   neutral ground with a hairline edge instead of the warm plate, without the
+   grey grade photographs rest at, and without the hover zoom — which, inside a
+   clipped frame, would trim its edges and legend. */
+.gitem.drawing .fig {
+  background: #fff;
+  box-shadow: inset 0 0 0 1px var(--hair);
+}
+
+.gitem.drawing .fig .plate-img,
+.gitem.drawing a.fig:hover .plate-img,
+.gitem.drawing a.fig:focus-visible .plate-img {
+  filter: none;
+  transform: none;
+}
+
 /* The zoom affordance. It appears on hover AND on keyboard focus — a
    pointer-only affordance on an inspection surface is exactly what §14.1 calls
    out in the HiFis. `aria-hidden`, because the link's own accessible name

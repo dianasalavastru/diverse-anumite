@@ -12,7 +12,7 @@
  * The threshold is the gallery's landscape boundary, so "landscape" means one thing on the page.
  */
 
-import type { ImageAsset } from '../../lib/content';
+import type { ImageAsset, MediaKind } from '../../lib/content';
 import { isRenderableAsset } from '../media/asset';
 import { orientationOf, ratioOf } from '../media/gallery-layout';
 import { devVisualImage, poolForPillar } from '../../lib/dev/visual-media';
@@ -27,6 +27,13 @@ export const heroLayoutForRatio = (ratio: number | null): HeroLayout =>
 
 export interface HeroMedia {
   readonly layout: HeroLayout;
+  /**
+   * The cover is a drawing: the same asset appears in the gallery marked `drawing`. The hint is
+   * authored on gallery items only (Studio offers it nowhere else), so a drawing cover is
+   * recognised through its gallery twin. A drawing always takes the split hero — a board under
+   * the title is a board with its title block covered — and a neutral ground.
+   */
+  readonly drawing: boolean;
   /** width / height of the rendered image, or `null` when the hero shows the authored plate. */
   readonly ratio: number | null;
 }
@@ -40,6 +47,7 @@ export function heroMediaFor(entry: {
   readonly _id: string;
   readonly pillar: string;
   readonly cover: ImageAsset | null;
+  readonly gallery?: readonly { readonly assetId: string; readonly kind?: MediaKind }[];
 }): HeroMedia {
   let ratio: number | null = null;
   if (isRenderableAsset(entry.cover)) {
@@ -49,5 +57,9 @@ export function heroMediaFor(entry: {
     const dev = devVisualImage(poolForPillar(entry.pillar, key), key);
     ratio = dev ? ratioOf(dev.width, dev.height) : null;
   }
-  return { layout: heroLayoutForRatio(ratio), ratio };
+  const cover = isRenderableAsset(entry.cover) ? entry.cover : null;
+  const drawing =
+    cover !== null &&
+    (entry.gallery ?? []).some((item) => item.assetId === cover.assetId && item.kind === 'drawing');
+  return { layout: drawing ? 'split' : heroLayoutForRatio(ratio), ratio, drawing };
 }

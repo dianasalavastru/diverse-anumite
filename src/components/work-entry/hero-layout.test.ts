@@ -28,4 +28,23 @@ describe('Work Entry hero layout', () => {
     expect(heroLayoutForRatio(null)).toBe('bleed');
     expect(heroMediaFor({ _id: 'a', pillar: 'architecture-design', cover: null }).layout).toBe('bleed');
   });
+
+  it('splits a drawing cover whatever its ratio, recognised through its gallery twin', () => {
+    const board = cover(2400, 1700);
+    const asDrawing = heroMediaFor({
+      _id: 'a',
+      pillar: 'architecture-design',
+      cover: board,
+      gallery: [{ assetId: board.assetId, kind: 'drawing' }],
+    });
+    expect(asDrawing).toMatchObject({ layout: 'split', drawing: true });
+
+    const asPhoto = heroMediaFor({
+      _id: 'a',
+      pillar: 'architecture-design',
+      cover: board,
+      gallery: [{ assetId: board.assetId, kind: 'photo' }, { assetId: 'other', kind: 'drawing' }],
+    });
+    expect(asPhoto).toMatchObject({ layout: 'bleed', drawing: false });
+  });
 });

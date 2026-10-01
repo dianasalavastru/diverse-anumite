@@ -47,6 +47,11 @@ export interface RawImage {
   readonly crop?: { top: number; bottom: number; left: number; right: number } | null;
 }
 
+/** A Project gallery item: the shared image plus its optional layout hint (`media-kind.ts`). */
+export interface RawGalleryImage extends RawImage {
+  readonly kind?: string | null;
+}
+
 /*
  * STAGE 5: `RawAssignment<T>` is deleted. It shaped the two primary+secondary axes, Discipline
  * and Entry Type, and both are retired. Nothing in v3.1 has that shape.
@@ -148,7 +153,7 @@ export interface RawWorkEntry {
   readonly relatedWork?: readonly RawWorkEntrySummary[] | null;
   readonly description?: RawLocalizedRichText | null;
   readonly cover?: RawImage | null;
-  readonly gallery?: readonly RawImage[] | null;
+  readonly gallery?: readonly RawGalleryImage[] | null;
   readonly capture?: RawCaptureMetadata | null;
   readonly capturePublicationCleared?: boolean | null;
   readonly metadata?: RawWorkEntryMetadata | null;
@@ -205,6 +210,14 @@ export const IMAGE_FIELDS = {
 } as const satisfies Record<keyof RawImage, string>;
 
 const IMAGE = projection(IMAGE_FIELDS);
+
+/** Only the Work Entry's own gallery reads `kind`; every other image keeps the shared shape. */
+export const GALLERY_IMAGE_FIELDS = {
+  ...IMAGE_FIELDS,
+  kind: 'kind',
+} as const satisfies Record<keyof RawGalleryImage, string>;
+
+const GALLERY_IMAGE = projection(GALLERY_IMAGE_FIELDS);
 
 export const CURATION_FIELDS = {
   featured: 'featured',
@@ -376,7 +389,7 @@ export const WORK_ENTRY_FIELDS = {
   relatedWork: `relatedWork[]->${WORK_ENTRY_SUMMARY_PROJECTION}`,
   description: `description${LOCALIZED}`,
   cover: `cover${IMAGE}`,
-  gallery: `gallery[]${IMAGE}`,
+  gallery: `gallery[]${GALLERY_IMAGE}`,
   capture: `capture${CAPTURE}`,
   capturePublicationCleared: 'capturePublicationCleared',
   metadata: `metadata${METADATA}`,

@@ -61,7 +61,7 @@ const real: WorkEntry = {
   relatedWork: [],
   description: null,
   cover: image('real'),
-  gallery: [image('real-a')],
+  gallery: [{ ...image('real-a'), kind: 'photo' }],
   capture: null,
   capturePublicationCleared: false,
   metadata: {

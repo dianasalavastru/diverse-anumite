@@ -41,10 +41,11 @@ import Plate from './Plate.astro';
 import { isRenderableAsset } from './asset';
 import { layoutGallery } from './gallery-layout';
 import { localize } from '../../lib/content';
-import type { ImageAsset, Locale } from '../../lib/content';
+import type { ImageAsset, Locale, MediaKind } from '../../lib/content';
 
 interface Props {
-  images: readonly ImageAsset[];
+  /** `kind` is the Project gallery's layout hint; absent or `photo` renders as a photograph. */
+  images: readonly (ImageAsset & { readonly kind?: MediaKind })[];
   locale: Locale;
   /** Accessible name of the list. */
   label: string;
@@ -93,7 +94,10 @@ const fmt = (value: number): string => String(Math.round(value * 10000) / 10000)
         .join(';');
 
       return [
-        <li class:list={['gitem', cell.placement, cell.orientation]} style={vars}>
+        <li
+          class:list={['gitem', cell.placement, cell.orientation, image.kind === 'drawing' && 'drawing']}
+          style={vars}
+        >
           {renderable ? (
             <a
               class="fig"

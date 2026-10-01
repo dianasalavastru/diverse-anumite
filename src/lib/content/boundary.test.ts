@@ -242,10 +242,14 @@ describe('client bundles cannot reach the query layer (§8, §18)', () => {
      * edge toward the query layer, which is what the first assertion above proves independently
      * of this list. A future addition that cannot make the same claim belongs behind
      * `server.ts`, not here.
+     *
+     * `media-kind.ts` (2026-10-01) makes the same claim: two constants and two predicates, no
+     * imports at all.
      */
     expect([...chains.keys()].map(rel).sort()).toEqual([
       'src/lib/content/derive.ts',
       'src/lib/content/index.ts',
+      'src/lib/content/media-kind.ts',
       'src/lib/content/order.ts',
       'src/lib/content/requirements.ts',
       'src/lib/content/types.ts',

@@ -39,6 +39,8 @@
  *
  * The values and the route contract are unchanged; only the declaration site moved.
  */
+import type { MediaKind } from './media-kind.js';
+
 export { LOCALES, DEFAULT_LOCALE, type Locale } from '../i18n/routes.js';
 
 /**
@@ -330,6 +332,11 @@ export interface ImageAsset {
   readonly crop: ImageCrop | null;
 }
 
+/** A Project gallery item: an image plus its layout hint (`media-kind.ts`), `photo` by default. */
+export interface GalleryImage extends ImageAsset {
+  readonly kind: MediaKind;
+}
+
 /**
  * A bounded web derivative of a real scan (§10.2). Raw E57/LAS/LAZ never enters the CMS
  * (§19.4). Publication is gated by `WorkEntry.capturePublicationCleared`.
@@ -527,7 +534,7 @@ export interface WorkEntry {
   // ── Evidence ──
   readonly description: Localized<RichText> | null;
   readonly cover: ImageAsset | null;
-  readonly gallery: readonly ImageAsset[];
+  readonly gallery: readonly GalleryImage[];
   readonly capture: CaptureMetadata | null;
   /** Gates point-cloud asset publication (§19.4). Policy is OD-6. */
   readonly capturePublicationCleared: boolean;

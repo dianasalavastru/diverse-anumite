@@ -12,6 +12,7 @@
 import { defineArrayMember, defineField, defineType } from 'sanity'
 
 import { PROMINENCE_OPTIONS, HIGHLIGHT_SLOT_OPTIONS, PILLAR_OPTIONS, STATUS_OPTIONS } from './fields'
+import { isProjectGalleryImage } from '../../src/lib/content/media-kind'
 import { isIllustrative, validateVocabulary, toSanityResult } from '../../src/lib/content/validation'
 import {
   isApplicable,
@@ -147,6 +148,25 @@ export const imageWithAlt = defineType({
         Rule.custom((value: { ro?: string } | undefined) =>
           value?.ro?.trim() ? true : 'Romanian alternative text is required.',
         ),
+    }),
+    /* Owner decision 2026-10-01: a layout hint for Project gallery images only. The type is
+       shared (Project cover, capture still, Service hero), so the field is hidden everywhere
+       else. Optional; unset reads as a photograph, so no existing document changes. */
+    defineField({
+      name: 'kind',
+      title: 'Kind',
+      type: 'string',
+      options: {
+        list: [
+          { title: 'Photograph / render', value: 'photo' },
+          { title: 'Drawing / board', value: 'drawing' },
+        ],
+        layout: 'radio',
+        direction: 'horizontal',
+      },
+      description:
+        'Choose "Drawing / board" for plans, sections, elevations and presentation boards: they are shown whole on a neutral ground, never cropped or toned. Leave unset for photographs and renders.',
+      hidden: ({ document, path }) => !isProjectGalleryImage(document?._type, path),
     }),
   ],
 })
