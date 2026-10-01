@@ -52,6 +52,8 @@ function item(
     services: [],
     location: { ro: 'Oras', en: 'City' },
     galleryPreview: [],
+    coverKind: 'photo',
+    imageCount: 0,
   };
 }
 

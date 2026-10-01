@@ -136,7 +136,11 @@ export interface RawWorkArchiveItem extends RawWorkEntrySummary {
   /** Display metadata (I-3). See `WorkArchiveItem.location`. */
   readonly location?: RawLocalizedString | null;
   /** A BOUNDED head of `gallery`. See `WorkArchiveItem.galleryPreview`. */
-  readonly galleryPreview?: readonly RawImage[] | null;
+  readonly galleryPreview?: readonly RawGalleryImage[] | null;
+  /** The cover's gallery twin's `kind`. See `WorkArchiveItem.coverKind`. */
+  readonly coverKind?: string | null;
+  /** See `WorkArchiveItem.imageCount`. */
+  readonly imageCount?: number | null;
 }
 
 export interface RawWorkEntry {
@@ -370,7 +374,15 @@ export const WORK_ARCHIVE_ITEM_FIELDS = {
    * Named apart from `gallery` on purpose: this is a bounded projection, and a consumer must
    * never mistake it for the entry's media set. `WorkEntry.gallery` is untouched.
    */
-  galleryPreview: `gallery[0...4]${IMAGE}`,
+  galleryPreview: `gallery[0...4]${GALLERY_IMAGE}`,
+  /**
+   * The cover's `kind`, from the gallery item that holds the cover's own asset — the rule
+   * `coverKindOf` states, evaluated in the query so the bound above cannot hide the twin.
+   */
+  coverKind: 'gallery[asset._ref == ^.cover.asset._ref][0].kind',
+  /** Gallery size, plus the cover when it is not itself a gallery item. */
+  imageCount:
+    'coalesce(count(gallery), 0) + select(defined(cover.asset) && coalesce(count(gallery[asset._ref == ^.cover.asset._ref]), 0) == 0 => 1, 0)',
 } as const satisfies Record<keyof RawWorkArchiveItem, string>;
 
 export const WORK_ARCHIVE_ITEM_PROJECTION = projection(WORK_ARCHIVE_ITEM_FIELDS);

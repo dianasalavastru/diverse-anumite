@@ -49,6 +49,8 @@ function item(id: string, overrides: Partial<WorkArchiveItem> = {}): WorkArchive
     services: [],
     location: null,
     galleryPreview: [],
+    coverKind: 'photo',
+    imageCount: 0,
     ...overrides,
   };
 }

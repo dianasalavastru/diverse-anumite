@@ -12,7 +12,7 @@
  * The threshold is the gallery's landscape boundary, so "landscape" means one thing on the page.
  */
 
-import type { ImageAsset, MediaKind } from '../../lib/content';
+import { coverKindOf, type ImageAsset, type MediaKind } from '../../lib/content';
 import { isRenderableAsset } from '../media/asset';
 import { orientationOf, ratioOf } from '../media/gallery-layout';
 import { devVisualImage, poolForPillar } from '../../lib/dev/visual-media';
@@ -58,8 +58,6 @@ export function heroMediaFor(entry: {
     ratio = dev ? ratioOf(dev.width, dev.height) : null;
   }
   const cover = isRenderableAsset(entry.cover) ? entry.cover : null;
-  const drawing =
-    cover !== null &&
-    (entry.gallery ?? []).some((item) => item.assetId === cover.assetId && item.kind === 'drawing');
+  const drawing = coverKindOf(cover?.assetId, entry.gallery ?? []) === 'drawing';
   return { layout: drawing ? 'split' : heroLayoutForRatio(ratio), ratio, drawing };
 }

@@ -43,6 +43,7 @@
 import { createContentSource, type ContentSource, type RawDocuments } from './source.js';
 import { normalizeService, normalizeServiceSummary, normalizeWorkEntry } from './normalize.js';
 import { toServiceSummary, toWorkEntrySummary } from './derive.js';
+import { coverKindOf } from './media-kind.js';
 import type {
   RawCaptureMetadata,
   RawCuration,
@@ -526,6 +527,15 @@ function toRawArchiveItem(entry: FixtureWorkEntry): RawWorkArchiveItem {
        the whole array would let a component pass here and overflow against Sanity. The
        cover-duplicate filter and the final slice to three are `normalize`'s, on both paths. */
     galleryPreview: (entry.doc.gallery ?? []).slice(0, 4),
+    // Mirrors the projection's `coverKind` match against the whole gallery.
+    coverKind: coverKindOf(entry.doc.cover?.assetId, entry.doc.gallery ?? []),
+    // Mirrors the projection's `imageCount`.
+    imageCount:
+      (entry.doc.gallery ?? []).length +
+      (entry.doc.cover?.assetId &&
+      !(entry.doc.gallery ?? []).some((image) => image.assetId === entry.doc.cover?.assetId)
+        ? 1
+        : 0),
   };
 }
 

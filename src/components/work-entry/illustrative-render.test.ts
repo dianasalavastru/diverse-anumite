@@ -109,6 +109,8 @@ const archiveItem = (entry: WorkEntry): WorkArchiveItem => ({
   services: [],
   location: entry.metadata.location,
   galleryPreview: [],
+  coverKind: 'photo',
+  imageCount: 0,
 });
 
 /** A Project Metadata row key, whatever scoped attributes Astro adds to the `<dt>`. */

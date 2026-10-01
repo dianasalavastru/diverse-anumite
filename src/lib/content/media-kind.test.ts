@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isProjectGalleryImage, mediaKindOf } from './media-kind.js';
+import { coverKindOf, isProjectGalleryImage, mediaKindOf } from './media-kind.js';
 
 describe('Media kind', () => {
   it('reads an explicit drawing and treats everything else as a photo', () => {
@@ -9,6 +9,20 @@ describe('Media kind', () => {
     expect(mediaKindOf(undefined)).toBe('photo');
     expect(mediaKindOf(null)).toBe('photo');
     expect(mediaKindOf('render')).toBe('photo');
+  });
+
+  it('reads a cover as a drawing only through its own gallery twin', () => {
+    const gallery = [
+      { assetId: 'image-a', kind: 'drawing' },
+      { assetId: 'image-b', kind: null },
+    ];
+    expect(coverKindOf('image-a', gallery)).toBe('drawing');
+    // The twin is present but unmarked: unset means photo.
+    expect(coverKindOf('image-b', gallery)).toBe('photo');
+    // A drawing elsewhere in the gallery says nothing about the cover.
+    expect(coverKindOf('image-c', gallery)).toBe('photo');
+    expect(coverKindOf(null, gallery)).toBe('photo');
+    expect(coverKindOf('image-a', [])).toBe('photo');
   });
 
   it('is offered only on Project gallery items', () => {

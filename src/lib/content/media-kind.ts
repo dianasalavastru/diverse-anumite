@@ -20,6 +20,22 @@ export type MediaKind = (typeof MEDIA_KINDS)[number];
 export const mediaKindOf = (value: unknown): MediaKind => (value === 'drawing' ? 'drawing' : 'photo');
 
 /**
+ * The kind of a Project's COVER. The hint is authored on gallery items only (Studio offers it
+ * nowhere else), so a cover is a drawing exactly when its own asset appears in the gallery marked
+ * `drawing`. One rule for every surface that asks: the Project hero reads it against the full
+ * gallery, the archive's GROQ projection computes the same match as `coverKind`, and the
+ * fixtures mirror that projection through this function.
+ */
+export const coverKindOf = (
+  coverAssetId: string | null | undefined,
+  gallery: readonly { readonly assetId?: string | null; readonly kind?: unknown }[],
+): MediaKind =>
+  coverAssetId != null &&
+  gallery.some((item) => item.assetId === coverAssetId && mediaKindOf(item.kind) === 'drawing')
+    ? 'drawing'
+    : 'photo';
+
+/**
  * Whether a field inside the shared `imageWithAlt` type belongs to a Project GALLERY item. The
  * type is shared with the Project cover, the capture still and the Service hero; the `kind`
  * field is offered only here. `path` is the field's own path, e.g. `['gallery', {_key}, 'kind']`.

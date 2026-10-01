@@ -167,12 +167,6 @@ function normalizeImage(raw: RawImage | null | undefined): ImageAsset | null {
   };
 }
 
-function normalizeImages(raw: readonly RawImage[] | null | undefined): readonly ImageAsset[] {
-  return (raw ?? [])
-    .map((image) => normalizeImage(image))
-    .filter((image): image is ImageAsset => image !== null);
-}
-
 /** The Work Entry gallery: the same images, each with its layout hint (unset → `photo`). */
 function normalizeGallery(raw: readonly RawGalleryImage[] | null | undefined): readonly GalleryImage[] {
   return (raw ?? []).flatMap((item) => {
@@ -471,7 +465,7 @@ export function normalizeWorkArchiveItem(raw: RawWorkArchiveItem): WorkArchiveIt
        of the gallery the projection already bounded (see `WORK_ARCHIVE_ITEM_FIELDS`).
 
        Two filters, in this order, and no third:
-         · an unrenderable or malformed asset is dropped by `normalizeImages` rather than
+         · an unrenderable or malformed asset is dropped by `normalizeGallery` rather than
            counted, so the length a component reads is the number of frames it can actually show;
          · a frame carrying the COVER'S own asset id is dropped, because the sheet sits beside
            the cover and repeating it there is a frame spent saying nothing. Compared by
@@ -480,9 +474,11 @@ export function normalizeWorkArchiveItem(raw: RawWorkArchiveItem): WorkArchiveIt
 
        Then the first three. Nothing is substituted for what is missing: an entry whose gallery
        cannot supply three renders the sheet it can, and an entry with no gallery renders none. */
-    galleryPreview: normalizeImages(raw.galleryPreview)
+    galleryPreview: normalizeGallery(raw.galleryPreview)
       .filter((image) => image.assetId !== summary.cover?.assetId)
       .slice(0, 3),
+    coverKind: mediaKindOf(raw.coverKind),
+    imageCount: Math.max(0, Math.round(raw.imageCount ?? 0)),
   };
 }
 

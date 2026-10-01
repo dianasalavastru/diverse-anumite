@@ -243,7 +243,7 @@ describe('client bundles cannot reach the query layer (§8, §18)', () => {
      * of this list. A future addition that cannot make the same claim belongs behind
      * `server.ts`, not here.
      *
-     * `media-kind.ts` (2026-10-01) makes the same claim: two constants and two predicates, no
+     * `media-kind.ts` (2026-10-01) makes the same claim: two constants and three predicates, no
      * imports at all.
      */
     expect([...chains.keys()].map(rel).sort()).toEqual([

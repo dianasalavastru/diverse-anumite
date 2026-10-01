@@ -621,8 +621,23 @@ export interface WorkArchiveItem extends WorkEntrySummary {
    * Bounded at the query (see `WORK_ARCHIVE_ITEM_FIELDS.galleryPreview`), so an entry with forty
    * gallery images costs the archive three. Empty is a real and common state — an entry with no
    * gallery renders cover and information only, and nothing is substituted for the absence.
+   *
+   * Each frame carries its `kind` (`media-kind.ts`): the archive field contains a drawing on
+   * white and never crops it, exactly as the Work Entry gallery does.
    */
-  readonly galleryPreview: readonly ImageAsset[];
+  readonly galleryPreview: readonly GalleryImage[];
+  /**
+   * The cover's kind, read through its gallery twin (`coverKindOf`). Projected separately because
+   * `galleryPreview` is bounded and has the twin removed, and the archive field chooses its
+   * Drawing-led family from this one value. Unset means `photo`.
+   */
+  readonly coverKind: MediaKind;
+  /**
+   * How many distinct images the Project holds: its gallery, plus the cover when the cover is not
+   * itself a gallery item. Counted in the query because `galleryPreview` is bounded; the archive
+   * field states it beside its continuation cue.
+   */
+  readonly imageCount: number;
 }
 
 /**
