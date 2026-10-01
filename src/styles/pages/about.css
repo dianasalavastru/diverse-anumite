@@ -31,18 +31,11 @@
    ========================================================================== */
 
 /* ---- Section furniture ---------------------------------------------------
-   Every band opens the same way: a blue mono coordinate over the section's
-   `<h2>`. Identical pairing to `.si-num` over `.si-pillar` on the Services
-   index, and to `.cap .cnum` over `.cap .cname` on the Homepage — the numeral is
-   the technical marker, the name is the hierarchy. */
-
-.ab-num {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  color: var(--blue);
-  margin-block-end: 6px;
-}
+   The reference opens every band with a blue mono coordinate over the
+   section's `<h2>` (the `.si-num` / `.si-pillar` pairing). With its other
+   sections absent the page has one band, and a lone `01` counts nothing, so the
+   numeral is not rendered (DECISIONS_LOG #118). A second authored section brings
+   the pairing back, copied from `.si-num`. */
 
 /* The reading voice, not the pixel display voice. The pixel face is reserved
    for identity and coordinate markers (§12 principle 13), and on this page it
@@ -58,28 +51,38 @@
   margin-block-end: clamp(20px, 2.6vh, 32px);
 }
 
-/* ============================ MASTHEAD ====================================
-   Text left, photograph right, opening together under the fixed header.
+/* ============================ THE SPREAD ==================================
+   One grid holds masthead text, plate, prose band and closing, in DOM order.
+   Text left, photograph right, opening together under the fixed header —
    ~42/58, which is the reference's own split and the reason the large page name
-   does not stand alone against empty canvas. */
+   does not stand alone against empty canvas. Below them, the prose band and the
+   closing run the full width, as they always have; on laptop/desktop the spread
+   folds them into the two columns (see the block at the foot of this file). */
 
-.ab-masthead {
+.ab-spread {
   display: grid;
   grid-template-columns: minmax(0, 0.72fr) minmax(0, 1fr);
-  gap: clamp(28px, 3.4vw, 56px);
+  grid-template-areas:
+    "text  plate"
+    "how   how"
+    "close close";
+  column-gap: clamp(28px, 3.4vw, 56px);
   align-items: start;
   /* Clears the fixed header and adds one small beat, nothing more — the
      `.si-masthead` correction, for the same reason: an opening that earns its
      air from content rather than inheriting a hero page's pacing.
 
      ── TIGHTENED AT THE VIEWPORT-FIT PASS ────────────────────────────────
-     Opened on `clamp(20px, 3vh, 34px)` / closed on `clamp(28px, 4vh, 52px)`.
-     The opening is ONE BEAT of an editorial spread, not a screen of its own,
-     and the acceptance test is that the 01/02 band is already reading when the
-     page lands. Both beats are reduced, neither is removed: the masthead still
-     stands clear of the fixed header and still closes on a real interval before
-     the first band's rule. */
-  padding-block: calc(var(--header-h) + clamp(14px, 2.2vh, 26px)) clamp(18px, 2.6vh, 34px);
+     Opened on `clamp(20px, 3vh, 34px)`. The opening is ONE BEAT of an
+     editorial spread, not a screen of its own. */
+  padding-block-start: calc(var(--header-h) + clamp(14px, 2.2vh, 26px));
+}
+
+/* The masthead's closing interval, before the first band's rule. Carried by
+   both columns, so the band starts clear of whichever of the two is taller. */
+.ab-masthead {
+  grid-area: text;
+  padding-block-end: clamp(18px, 2.6vh, 34px);
 }
 
 .ab-eyebrow {
@@ -151,6 +154,8 @@
    floor holds the box at ~2.5:1 at the widest desktop measure and lets the band
    below simply start lower, which is the honest outcome on a window that short. */
 .ab-masthead-plate {
+  grid-area: plate;
+  margin-block-end: clamp(18px, 2.6vh, 34px);
   position: relative;
   /* Explicit, and load-bearing. A grid item whose size comes from an
      `aspect-ratio` plus a definite block size stops being stretched by
@@ -182,6 +187,7 @@
    panel-and-fill idiom, and `.si-group` records the same choice. */
 
 .ab-band {
+  grid-area: how;
   display: grid;
   grid-template-columns: 0.85fr 1.15fr;
   border-block-start: 1px solid var(--hair);
@@ -422,6 +428,7 @@
    button CTAs, which a boxed call to action would fail first. */
 
 .ab-close {
+  grid-area: close;
   border-block-start: 1px solid var(--hair);
 }
 
@@ -567,9 +574,18 @@
 }
 
 @media (max-width: 760px) {
+  .ab-spread {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "text"
+      "plate"
+      "how"
+      "close";
+  }
+
+  /* Text to plate: the single-column interval the masthead always had. */
   .ab-masthead {
-    grid-template-columns: 1fr;
-    gap: clamp(22px, 3vh, 32px);
+    padding-block-end: clamp(22px, 3vh, 32px);
   }
 
   /* Wider than 2:1 would leave a letterbox slot on a phone; 3:2 is the ratio the
@@ -629,6 +645,93 @@
   .ab-fact + .ab-fact {
     border-inline-start: 0;
     border-block-start: 1px solid var(--hair);
+  }
+}
+
+/* ============================ SHORT-PAGE SPREAD ==========================
+   Laptop/desktop (DECISIONS_LOG #118). The page holds a name, three paragraphs,
+   one prose section and two onward paths, and stacked as bands it ran 380–460px
+   past a laptop screen — most of it the band structure, not the copy. Here the
+   same four parts become one spread that ends on the first screen with the
+   footer (`fit="viewport"`, layout.css):
+
+       text   | plate
+       text   | how
+       close  | how
+
+   The prose band moves under the plate, where the masthead used to leave the
+   column empty below a short image, and the onward paths close the text column.
+   Only placement and spacing change: no element, voice or token is new, and the
+   DOM order — the reading and focus order — is unchanged.
+
+   Vertical values take `vh` terms, so a short laptop gets the tighter rhythm
+   and a tall desktop keeps more air. The H1 follows the shorter of width and
+   height within a restrained range: 74px at 1366×768, 81px at 1440×900,
+   against 89–92px stacked. */
+@media (min-width: 1024px) {
+  .ab-spread {
+    grid-template-areas:
+      "text  plate"
+      "text  how"
+      "close how";
+    grid-template-rows: auto auto 1fr;
+    padding-block: calc(var(--header-h) + clamp(10px, 2vh, 24px)) clamp(24px, 4vh, 48px);
+  }
+
+  .ab-masthead {
+    padding-block-end: 0;
+  }
+
+  .ab-eyebrow {
+    margin-block-end: 8px;
+  }
+
+  .ab-title {
+    font-size: clamp(40px, min(5.6vw, 9.6vh), 84px);
+  }
+
+  .ab-rule {
+    margin-block: clamp(12px, 1.8vh, 20px);
+  }
+
+  /* 3:1 while the plate holds no photograph (`image` is `null`): a tone block
+     that keeps the masthead's balance without spending the prose band's
+     height. A photograph may earn back depth when one is authored. */
+  .ab-masthead-plate {
+    aspect-ratio: 3 / 1;
+    max-block-size: none;
+    margin-block-end: 0;
+  }
+
+  /* The bands stop bleeding: inside a column their edge-to-edge rules would
+     cut across the neighbouring column. */
+  .ab-band.bleed,
+  .ab-close.bleed {
+    margin-inline: 0;
+    border-block-start: 0;
+  }
+
+  .ab-band {
+    display: block;
+  }
+
+  .ab-band > .ab-cell:only-child {
+    padding: clamp(18px, 3vh, 32px) 0 0;
+  }
+
+  .ab-section-h {
+    margin-block-end: clamp(10px, 1.6vh, 18px);
+  }
+
+  /* The prose now has the plate's full column; 62ch fills it without running
+     past a comfortable measure. */
+  .ab-how-text p {
+    max-width: 62ch;
+  }
+
+  .ab-close-inner {
+    grid-template-columns: minmax(0, 1fr);
+    padding: clamp(18px, 3vh, 32px) 0 0;
   }
 }
 

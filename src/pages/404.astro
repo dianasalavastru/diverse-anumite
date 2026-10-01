@@ -29,7 +29,7 @@ import { notFoundMessages } from '../lib/i18n/not-found';
 const copy = notFoundMessages();
 ---
 
-<BaseLayout locale="ro" rhythm="service" routeKey="home" title={copy.title}>
+<BaseLayout locale="ro" rhythm="service" routeKey="home" fit="viewport" title={copy.title}>
   <meta slot="head" name="robots" content="noindex" />
 
   <section class="nf" aria-labelledby="nf-heading">
@@ -86,6 +86,19 @@ const copy = notFoundMessages();
   .nf-onward a:hover .ar,
   .nf-onward a:focus-visible .ar {
     transform: translateX(6px);
+  }
+
+  /* Short-page treatment (DECISIONS_LOG #118), the same values as Contact's: a
+     smaller opening beat and an H1 that follows the shorter of width and height,
+     so the page and its compact footer close one laptop screen together. */
+  @media (min-width: 1024px) {
+    .nf {
+      padding-block: calc(var(--header-h) + clamp(12px, 2.4vh, 30px)) clamp(24px, 4vh, 48px);
+    }
+
+    .nf-title {
+      font-size: clamp(38px, min(4.6vw, 8.2vh), 68px);
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

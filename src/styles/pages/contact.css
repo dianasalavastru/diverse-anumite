@@ -1064,6 +1064,27 @@ a.c-method-value:focus-visible {
 }
 
 /* =============================================================================
+   Short-page treatment — DECISIONS_LOG #118 (`fit="viewport"`)
+
+   Laptop/desktop. Contact already sat inside one screen; what it lacked was a
+   composed end. With the footer now closing the screen (layout.css), the
+   opening steps down with it: a smaller beat under the fixed header, and an H1
+   that follows the shorter of width and height within a restrained range —
+   63px at 1366×768, 66px at 1440×900, against a flat 76px. The type role and
+   voice are unchanged. `404.astro` takes the same two values.
+   ========================================================================== */
+
+@media (min-width: 1024px) {
+  .c-intro {
+    padding-block: calc(var(--header-h) + clamp(12px, 2.4vh, 30px)) clamp(14px, 2vh, 24px);
+  }
+
+  .c-title {
+    font-size: clamp(38px, min(4.6vw, 8.2vh), 68px);
+  }
+}
+
+/* =============================================================================
    Reduced motion — MOTION_NOTES.md:62 / §13: layout parity, not merely disabled
    transitions. Nothing on this page moves except the arrow travel, and it
    resolves to its resting state.

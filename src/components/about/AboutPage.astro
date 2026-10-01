@@ -36,9 +36,14 @@
  *   masthead   eyebrow · the locked page name · rule · positioning statement,
  *              beside the plate (its authored tone; no photograph exists, so it
  *              is decorative). ~42/58 text-to-image, one band.
- *   01         how the practice works, as prose — one band, one cell.
+ *   how        how the practice works, as prose — one band, one cell,
+ *              unnumbered while it is the only section.
  *   closing    the three onward paths IA Step 7 names; a statement only if one
  *              is authored.
+ *
+ * On laptop/desktop the four are one spread that fits the first screen
+ * (DECISIONS_LOG #118): masthead text and closing on the left, plate and prose
+ * on the right. Below 1024px they stack as above.
  *
  * The reference's §01 who / §03 experience / §04 tools cells are absent, so the
  * one remaining band holds a single cell; `about.css` lets a lone cell span the
@@ -121,24 +126,34 @@ const hasClosingSay = Boolean(copy.closing.statement || copy.closing.funding);
   locale={locale}
   rhythm="homepage"
   routeKey="about"
+  fit="viewport"
   title={copy.meta.title}
   description={copy.meta.description || undefined}
 >
   <ViewTransition />
 
-  {/* ── MASTHEAD ─────────────────────────────────────────────────────────
-      Text left, plate right, both starting on the same line under the fixed
-      header. The plate is `priority` — a photograph placed there becomes this
-      page's LCP candidate. With none, it is the authored tone, decorative. */}
-  <section class="ab-masthead" aria-labelledby="ab-title">
-    <div class="ab-masthead-text">
+  {/* ── THE SPREAD ───────────────────────────────────────────────────────
+      One grid holds the whole page: masthead text, plate, the prose band and
+      the closing. Below 1024px it is the stacked sequence the page always had;
+      on laptop/desktop it becomes one two-column spread that ends on the first
+      screen (DECISIONS_LOG #118, about.css). The DOM order — and with it the
+      reading and focus order — is the same at every width: name and
+      statement, plate, how the practice works, onward paths. */}
+  <div class="ab-spread">
+    {/* ── MASTHEAD ─────────────────────────────────────────────────────
+        Text left, plate right, both starting on the same line under the fixed
+        header. The plate is `priority` — a photograph placed there becomes
+        this page's LCP candidate. With none, it is the authored tone,
+        decorative. It sits beside the section rather than inside it so the
+        spread can seat it over the prose band. */}
+    <section class="ab-masthead" aria-labelledby="ab-title">
       <p class="ab-eyebrow eyebrow rv" data-rv="meta">{copy.eyebrow}</p>
       <h1 id="ab-title" class="ab-title rv" data-rv="head">{copy.heading}</h1>
       <div class="ab-rule rv" data-rv="meta" aria-hidden="true"></div>
       <div class="ab-intro rv" data-rv="meta">
         {copy.intro.map((paragraph) => <p>{paragraph}</p>)}
       </div>
-    </div>
+    </section>
 
     <div class="ab-masthead-plate rv" data-rv="img">
       <Plate
@@ -151,65 +166,67 @@ const hasClosingSay = Boolean(copy.closing.statement || copy.closing.funding);
         devPool="general"
       />
     </div>
-  </section>
 
-  {/* ── 01 · CUM LUCRĂM ────────────────────────────────────────────────
-      Prose, one cell. Rendered only when authored — no heading over nothing. */}
-  {
-    copy.how.body.length > 0 && (
-      <div class="ab-band bleed">
-        <section class="ab-cell ab-how" aria-labelledby="ab-how-h">
-          <p class="ab-num" aria-hidden="true">{copy.how.no}</p>
-          <h2 class="ab-section-h rv" data-rv="head" id="ab-how-h">{copy.how.label}</h2>
-          <div class="ab-how-text rv" data-rv="meta">
-            {copy.how.body.map((paragraph) => <p>{paragraph}</p>)}
-          </div>
-        </section>
-      </div>
-    )
-  }
+    {/* ── CUM LUCRĂM ───────────────────────────────────────────────────
+        Prose, one cell. Rendered only when authored — no heading over
+        nothing. Unnumbered: with the reference's other sections absent it is
+        the page's only section, and a lone `01` counts nothing
+        (`copy.how.no` is kept for when a second section is authored). */}
+    {
+      copy.how.body.length > 0 && (
+        <div class="ab-band bleed">
+          <section class="ab-cell ab-how" aria-labelledby="ab-how-h">
+            <h2 class="ab-section-h rv" data-rv="head" id="ab-how-h">{copy.how.label}</h2>
+            <div class="ab-how-text rv" data-rv="meta">
+              {copy.how.body.map((paragraph) => <p>{paragraph}</p>)}
+            </div>
+          </section>
+        </div>
+      )
+    }
 
-  {/* ── CLOSING ─────────────────────────────────────────────────────────── */}
-  <section class="ab-close bleed">
-    <div class="ab-close-inner">
-      {
-        /* Each slot renders only when authored, and the wrapper only when either is —
-           an empty wrapper would still take the grid's first track. */
-        hasClosingSay && (
-          <div class="ab-close-say">
-            {copy.closing.statement && (
-              <p class="ab-close-state rv" data-rv="meta">
-                {copy.closing.statement}
-              </p>
-            )}
-            {/* PENDING (C + governance). An empty slot renders no element. */}
-            {copy.closing.funding && (
-              <p class="ab-funding rv" data-rv="meta">
-                {copy.closing.funding}
-              </p>
-            )}
-          </div>
-        )
-      }
-
-      {/* A content list, not a `<nav>` landmark: the page already has one named
-          navigation landmark in the header, and a second unnamed one would be
-          indistinguishable from it to a screen-reader user. The Work Entry's W-7
-          and the Service page's S-5 render their onward paths the same way. */}
-      <ul class="ab-onward rv" data-rv="meta">
+    {/* ── CLOSING ─────────────────────────────────────────────────────────── */}
+    <section class="ab-close bleed">
+      <div class="ab-close-inner">
         {
-          onward.map((path) => (
-            <li>
-              <a href={path.href}>
-                {path.label}
-                <span class="ar" aria-hidden="true">
-                  →
-                </span>
-              </a>
-            </li>
-          ))
+          /* Each slot renders only when authored, and the wrapper only when either is —
+             an empty wrapper would still take the grid's first track. */
+          hasClosingSay && (
+            <div class="ab-close-say">
+              {copy.closing.statement && (
+                <p class="ab-close-state rv" data-rv="meta">
+                  {copy.closing.statement}
+                </p>
+              )}
+              {/* PENDING (C + governance). An empty slot renders no element. */}
+              {copy.closing.funding && (
+                <p class="ab-funding rv" data-rv="meta">
+                  {copy.closing.funding}
+                </p>
+              )}
+            </div>
+          )
         }
-      </ul>
-    </div>
-  </section>
+
+        {/* A content list, not a `<nav>` landmark: the page already has one named
+            navigation landmark in the header, and a second unnamed one would be
+            indistinguishable from it to a screen-reader user. The Work Entry's W-7
+            and the Service page's S-5 render their onward paths the same way. */}
+        <ul class="ab-onward rv" data-rv="meta">
+          {
+            onward.map((path) => (
+              <li>
+                <a href={path.href}>
+                  {path.label}
+                  <span class="ar" aria-hidden="true">
+                    →
+                  </span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </section>
+  </div>
 </BaseLayout>
