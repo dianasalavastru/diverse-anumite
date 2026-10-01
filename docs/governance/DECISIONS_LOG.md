@@ -290,6 +290,17 @@ The client supplied a factual service description (`Descriere servicii.odt`, 202
     - **Contact and 404.** Smaller opening beat and an H1 of `clamp(38px, min(4.6vw, 8.2vh), 68px)` on laptop/desktop; nothing else changes.
     - **Unchanged:** type families and roles, palette, every locked string, mobile and tablet layouts (except About's retired numeral), and every page without `fit`.
 
+## Batch 30 — Projects archive filter shell (amendment: **owner decision**) — 2026-10-01
+
+119. **The archive's filters are visible on desktop: a sticky left rail from 1248px, a technical sheet from 1024px.** Owner approval, 2026-10-01, after rendered rounds of horizontal options (A/B/C, C-Compact) and a sticky left rail (D) swept from 1024 to 1920px. Amends #116's "secondary filters behind one *Filtre* expander" for laptop/desktop only.
+    - **Three regimes, one set of controls.** `< 1024px` keeps the existing control band and *Filtre* disclosure. `1024–1247px`: the **technical sheet** — the tab row (sticky) over a ruled key/value sheet, Etichete on one row, Sector · Ordonare · Serviciu as cells on the next, both on the Project field's own centred frame. `≥ 1248px` (with entries): the **rail** — the tab row across the board and a ~132px filter rail beside the results, sticky while the Projects scroll and ending before the footer; masthead, tabs, rail and field are one composition centred inside the header margins (outer margin 7.5% of width from 1366px, never inside the header gutter). The markup is identical in every regime; layout is CSS only. One filter state, one URL contract (unchanged), one set of controls.
+    - **1248px is measured, not conventional:** below it, with the board inside the header gutters, the field drops under ~950px at a 768px laptop height and long titles reach the title block's three-line clamp.
+    - **Service is a select** in every regime (it was a chip row), scoped per option to the active Pillar by removing and restoring options. Etichete stays text options; Sector, Ordonare and Serviciu use the compact select, sized to the chosen option (`field-sizing: content`, with a mirrored-label fallback where unsupported).
+    - **The C-refined field is unchanged** (#117): rows from the viewport height, cells 1–1.25× wider than tall and ≤84px. In the rail regime the field is offered what the board leaves after the rail instead of 90% of the content box; once at its cap, extra width becomes margin. The caps are not raised. From 1024 to 1151px only, the 3 × 3-module title cell's title type steps down slightly (≈16.4 → 15px) and its metadata values hold to one line, so long titles are not cut by the fixed slot.
+    - **Masthead (archive only):** H1 `clamp(42px, 2vw + 22.5px, 62px)`, breadcrumb 6px above it, a slightly tighter opening.
+    - **Sticky now works site-wide:** `overflow-x: hidden` → `clip` on `<html>`/`<body>` (`base.css`). `hidden` made `<body>` a scroll container that never scrolls, so no sticky element could stick. Horizontal overflow stays prevented. The archive's control band is the only other sticky element in the codebase; below 1024px it now sticks as its CSS always specified (641–1023px; static at ≤640px).
+    - **Unchanged:** archive and Project URLs, filter semantics and URL state, the mobile field, Project detail, and every other page.
+
 ### Open (non-blocking, carried into design/build)
 - Multi-select within a facet. ~~Inline vs expander rendering~~ — **closed by #116** (secondary filters behind an expander).
 - Confirm EU programme publicity rules.
