@@ -260,8 +260,18 @@ The client supplied a factual service description (`Descriere servicii.odt`, 202
 
 115. **Both datasets are now private; #113's factual premise no longer holds.** Factual record, 2026-09-30 — no policy change. The owner moved the project to the Sanity Growth plan (2026-09-29) and set `production` and `development` to **private** (2026-09-30). Verified the same day: an unauthenticated query returns no documents from either dataset, and the build's read-only Viewer token still reads both. #113's statements that the plan "does not allow private datasets" and that `production` is public are therefore no longer true, and §18.1's private-dataset posture is in effect as designed. No code or configuration changed — the build already authenticates every query (`src/lib/content/client.ts`). **#113's content scope is not reopened here:** whether a private `production` now admits Work Entries, client records, publication-clearance data or contact/personal data is an owner decision not taken by this entry, and until it is taken `production` holds Service content only. Sanity asset URLs (`cdn.sanity.io`) remain reachable by anyone holding the exact URL even in a private dataset (asset access control is Enterprise-only), so publication rights still gate every upload.
 
+## Batch 27 — Projects UX system (amendment: **owner decision**) — 2026-10-01
+
+116. **Projects UX system.** Owner approval, 2026-09-30 / 2026-10-01, after a visual audit of populated development Projects (no development content enters `production`).
+    - **Archive.** The populated archive opens on a compact intro (eyebrow, title, statement); the separate total and per-pillar breakdown are retired. The pillar tabs stay the always-visible primary control and carry the per-pillar counts. Labels, sector, selection and Service sit behind one secondary *Filtre* expander; the result count is shown once, while a refinement is active. Portrait covers keep their own shape on desktop.
+    - **Project detail media is never cropped.** The gallery is composed by each image's orientation, not by its position: landscape at full measure, consecutive portraits/squares paired at equal height, single portraits and very tall images narrower and held to the viewport.
+    - **Hero.** Landscape covers stay full-bleed; portrait, square, very tall and drawing covers take a split hero (image whole, metadata on paper) on larger breakpoints.
+    - **`kind: photo | drawing`** is an optional editorial hint on Project gallery images only — not a media taxonomy. Unset means `photo`. A `drawing` is shown on a neutral ground, ungraded and uncropped; a cover that is a gallery drawing takes the split hero.
+    - **Intentionally preserved:** the mobile Project cards and the mobile portrait hero.
+    - **Unchanged:** archive and Project URLs, filter semantics and URL state.
+
 ### Open (non-blocking, carried into design/build)
-- Multi-select within a facet; inline vs expander rendering (design-step).
+- Multi-select within a facet. ~~Inline vs expander rendering~~ — **closed by #116** (secondary filters behind an expander).
 - Confirm EU programme publicity rules.
 - Missing-translation counterpart UX; capture-asset publication-rights and contact-data retention policy; ~~whether composite entries may override derived Primary Pillar~~ — **OD-7 closed as moot by #86**. *(OD-3, OD-6 remain, tracked in `TECHNICAL_ARCHITECTURE.md` §22.)*
 - Point-cloud fidelity; credibility copy authoring.
