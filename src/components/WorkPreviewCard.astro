@@ -23,11 +23,9 @@
  * The archive's five-size vocabulary is NOT a set of card variants — sizing is
  * the grid cell's business, and it lives in the Results Grid.
  *
- * The archive variant serves both presentations of that grid: the curated views'
- * masonry catalogue and the Work Archive's project register, where the same
- * elements are composed as a full-width editorial unit (see work-archive.css
- * A-5a). The card does not know which — it renders identity, plate, caption and,
- * where the caller supplies one, a small preview of the entry's own gallery.
+ * The archive variant is the curated views' masonry card. The Work Archive's own
+ * register composes each Project as an Archive Field instead
+ * (`work-archive/ArchiveField.astro`, #117).
  *
  * REBUILT, NOT COPIED (§5.3). Markup and data attributes come from the Content
  * Model, never from HiFi markup: the metadata line renders Year + **Labels**
@@ -64,31 +62,9 @@
  */
 import Plate from './media/Plate.astro';
 import { localize } from '../lib/content';
-import type { ImageAsset, Locale, WorkEntrySummary } from '../lib/content';
+import type { Locale, WorkEntrySummary } from '../lib/content';
 import { pillarLabel, projectLabelLabel, sectorLabel } from '../lib/i18n/vocabulary';
 import { poolForPillar } from '../lib/dev/visual-media';
-
-/**
- * One frame of the archive's project preview — see the `preview` prop.
- *
- * `image` is the entry's own gallery asset. `devKey` is non-null ONLY under the visual-QA
- * overlay, and only for a frame that stands in for a gallery the CMS does not hold; in a normal
- * build every frame carries a real image and a null key. The two are never both set.
- */
-export interface PreviewFrame {
-  readonly image: ImageAsset | null;
-  readonly devKey: string | null;
-  /**
-   * Whether this frame's asset may fill its slot or must be contained on the plate tone.
-   *
-   * Decided by the caller, from the asset's own proportions against the slot the composition
-   * gives it (`work-archive/preview.ts`). It reaches the card as an answer rather than as an
-   * input because the card cannot know which slot a frame landed in — that is the sheet's
-   * composition, and the sheet is a set. Absent means the caller expressed no preference, and
-   * the stylesheet's default applies.
-   */
-  readonly fit?: 'cover' | 'contain';
-}
 
 interface Props {
   entry: WorkEntrySummary;
@@ -131,32 +107,6 @@ interface Props {
   place?: string | null;
   /** `archive` variant only — the hover/focus continuation cue. */
   openLabel?: string;
-  /**
-   * `archive` variant only — a small contact sheet of THIS entry's own gallery, composed by the
-   * caller from `WorkArchiveItem.galleryPreview` (at most three, in the editor's order).
-   *
-   * WHY THE CALLER COMPOSES IT. The same reason `coordinate` and `place` are passed in: this
-   * component's frozen input is a `WorkEntrySummary` (`COMPONENT_INVENTORY.md` "Work Preview
-   * Card" — "Work Entry preview (title, key facets, media)"), and the summary carries no
-   * gallery. Widening the summary would hand a gallery to the Related Work Strip, the hub and
-   * the Service proof, none of which show one. The archive projection has the assets; the
-   * archive's Results Grid selects from them; the card renders what it is given.
-   *
-   * Empty is the normal state and needs no fallback: an entry with no gallery is a complete
-   * project unit made of its cover and its information. Nothing is substituted for an absence
-   * (§10.4), the cover is never repeated to fill a frame, and no frame ever holds an image from
-   * a neighbouring entry — every frame here came from this `entry`.
-   */
-  preview?: readonly PreviewFrame[];
-  /**
-   * `archive` variant only — the sheet's orientation signature (`ppp`, `pll`, `lll`, …),
-   * published to the stylesheet as `data-preview-layout`.
-   *
-   * The card does not derive it, for the same reason it does not compose the sheet: it is a
-   * property of a SET of images, and the Results Grid owns sets. See `work-archive/preview.ts`
-   * for the rule and `work-archive.css` A-5a for what each token draws.
-   */
-  previewLayout?: string;
 }
 
 const {
@@ -170,13 +120,7 @@ const {
   variant = 'focus',
   place = null,
   openLabel = '',
-  preview = [],
-  previewLayout,
 } = Astro.props;
-
-/* Belt and braces against the projection's own bound: the composition below authors exactly
-   four states (0 · 1 · 2 · 3) and a fourth frame would fall into none of them. */
-const previewFrames = preview.slice(0, 3);
 
 const label = coordinate ?? `pt·${String(index).padStart(2, '0')}`;
 const title = localize(entry.title, locale);
@@ -281,44 +225,6 @@ const devPool = poolForPillar(entry.pillar, devKey);
             {sector && <span class="sc">{sector}</span>}
           </span>
         )}
-        {/* ── THE PROJECT PREVIEW — a glimpse inside, not a gallery ───────────
-            Two to three of the entry's own gallery images, set small beneath its
-            metadata. The archive is a signposting surface
-            (`COMPONENT_INVENTORY.md`: "signposting previews… never in-depth
-            projects"), so this is deliberately a contact sheet and not the W-2
-            Gallery: no zoom, no Media Viewer, no captions, no coordinates. It
-            says "there is more of this project" and routes to the project to
-            show it.
-
-            `aria-hidden`, and that is the accessible choice rather than a
-            shortcut. The card is ONE link, already named by its title and
-            metadata; every image inside it contributes to that one name, so
-            three authored alt texts would append three sentences to the name of
-            a link whose job is to say which project it opens. The same images
-            are reachable, individually named and individually inspectable on the
-            Work Entry the link leads to, which is where an alt text is a
-            reading rather than noise. Nothing here is information a visitor can
-            get only from this element. */}
-        {previewFrames.length > 0 && (
-          <span
-            class:list={['gs', `gs-${previewFrames.length}`]}
-            data-preview-layout={previewLayout}
-            aria-hidden="true"
-          >
-            {previewFrames.map((frame) => (
-              <span class="gf" data-fit={frame.fit}>
-                <Plate
-                  image={frame.image}
-                  locale={locale}
-                  tone={tone}
-                  devKey={frame.devKey}
-                  devPool={devPool}
-                />
-              </span>
-            ))}
-          </span>
-        )}
-
         {/* The link is already named by its title and metadata; the cue would
             only repeat it into the accessible name. It is a visual affordance,
             and never the only signal of interactivity (MOTION_NOTES.md:54) —

@@ -103,6 +103,17 @@ export interface WorkArchiveMessages {
     readonly label: string;
     /** The per-card continuation cue. */
     readonly open: string;
+    /**
+     * The archive field's title block (C-refined, #117): the labels over its data cells and the
+     * counted noun of its image count. The values are the Project's own; these are only the
+     * labels, matching the Work Entry's fact sheet (`work-entry.ts` `metadata`).
+     */
+    readonly field: {
+      readonly location: string;
+      readonly year: string;
+      readonly sector: string;
+      readonly images: { readonly one: string; readonly few: string; readonly many: string };
+    };
   };
 
   /** A-6 · Empty state (Stage D, no matches). Never a bare grid. */
@@ -193,6 +204,12 @@ const ro: WorkArchiveMessages = {
   results: {
     label: 'Rezultate',
     open: 'deschide proiectul',
+    field: {
+      location: 'Locație',
+      year: 'An',
+      sector: 'Sector',
+      images: { one: 'imagine', few: 'imagini', many: 'de imagini' },
+    },
   },
 
   empty: {
@@ -278,6 +295,12 @@ const en: WorkArchiveMessages = {
   results: {
     label: 'Results',
     open: 'open the project',
+    field: {
+      location: 'Location',
+      year: 'Year',
+      sector: 'Sector',
+      images: { one: 'image', few: 'images', many: 'images' },
+    },
   },
 
   empty: {

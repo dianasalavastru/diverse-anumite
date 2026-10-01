@@ -1,0 +1,234 @@
+---
+/**
+ * Archive Field — one Project in the Work Archive, as a designed field (C-refined v3, #117).
+ *
+ * The REGISTER's project unit. `field.ts` decides the composition from the media set; this file
+ * renders it, and `work-archive.css` A-5a sizes it. The whole field is ONE link, named by the
+ * Project's title and data, exactly as the archive card it replaces (`WorkPreviewCard`, which the
+ * curated views still use) — a field is a preview that opens a Project, never a gallery.
+ *
+ * ── TWO READINGS OF ONE MARKUP ─────────────────────────────────────────────
+ * From 1024px every slot is placed on the logical 12-column grid (`--af-ca` facing `a`, `--af-cb`
+ * facing `b`, `--af-rr` its rows). Below 1024px the same slots become a linear sequence — cover,
+ * title block, supports, cue — framed by the planner's mobile ratios (`--af-mr`). The identity
+ * row and the closing cue exist in both readings' places and the inactive copy is
+ * `display: none`, so neither the accessible name nor the reading order repeats anything.
+ *
+ * ── WHICH WAY IT FACES ─────────────────────────────────────────────────────
+ * Not decided here. The article around this field carries `data-row`, written from the VISIBLE
+ * position by the Results Grid and re-marked by the archive island after every filter or sort;
+ * the stylesheet picks `--af-ca` or `--af-cb` from it. Both placements are emitted for that reason.
+ */
+import Plate from '../media/Plate.astro';
+import { isRenderableAsset } from '../media/asset';
+import { localize, type ImageAsset, type Locale, type MediaKind, type WorkArchiveItem } from '../../lib/content';
+import { countForm, workArchiveMessages } from '../../lib/i18n/work-archive';
+import { pillarLabel, projectLabelLabel, sectorLabel } from '../../lib/i18n/vocabulary';
+import { devPreviewSlots, devVisualImage, poolForPillar } from '../../lib/dev/visual-media';
+import { mirrorBox, planField, type FieldBox, type FieldMedia } from './field';
+import { effectiveSize, fieldImageUrl, fieldSrcset, hotspotPosition } from './field-media';
+
+interface Props {
+  item: WorkArchiveItem;
+  locale: Locale;
+  href: string;
+  /** The entry's identity within its pillar (`A·001`), composed by the Results Grid. */
+  coordinate: string;
+  /** Already localized by the caller. */
+  place: string | null;
+  /** Authored plate tone behind a photograph that cannot be rendered. */
+  tone: string;
+  /** The continuation cue. */
+  openLabel: string;
+  /** The first field on the page loads its images eagerly. */
+  priority?: boolean;
+}
+
+const { item, locale, href, coordinate, place, tone, openLabel, priority = false } = Astro.props;
+
+const copy = workArchiveMessages(locale).results.field;
+
+/** One image the field can place: a CMS asset, or (development only) a visual-QA stand-in. */
+interface FieldItem {
+  readonly asset: ImageAsset | null;
+  readonly devKey: string | null;
+  readonly kind: MediaKind;
+  readonly media: FieldMedia | null;
+}
+
+const devPool = poolForPillar(item.pillar, `${item._id}:card`);
+
+/* The cover. A missing cover is still a slot — the authored plate tone, or the development
+   overlay's stand-in through `Plate` — so the composition never depends on the asset arriving. */
+const coverAsset = isRenderableAsset(item.cover) ? item.cover : null;
+const coverDev = coverAsset ? null : devVisualImage(devPool, `${item._id}:card`);
+const cover: FieldItem = {
+  asset: coverAsset,
+  devKey: coverAsset ? null : `${item._id}:card`,
+  kind: item.coverKind,
+  media: coverAsset
+    ? { ...effectiveSize(coverAsset), drawing: item.coverKind === 'drawing' }
+    : coverDev
+      ? { width: coverDev.width, height: coverDev.height, drawing: false }
+      : null,
+};
+
+/* The supports: the bounded gallery head, authored order, cover twin already removed. The
+   stand-in branch is the visual-QA overlay and returns no slots in any build that did not opt in. */
+const realSupports: readonly FieldItem[] = item.galleryPreview
+  .filter((image) => isRenderableAsset(image))
+  .map((image) => ({
+    asset: image,
+    devKey: null,
+    kind: image.kind,
+    media: { ...effectiveSize(image), drawing: image.kind === 'drawing' },
+  }));
+const supports: readonly FieldItem[] =
+  realSupports.length > 0
+    ? realSupports
+    : Array.from({ length: devPreviewSlots(`${item._id}:card`) }, (_unused, slot) => {
+        const key = `${item._id}:archive-preview-${slot}`;
+        const dev = devVisualImage(devPool, key);
+        return {
+          asset: null,
+          devKey: key,
+          kind: 'photo' as const,
+          media: dev ? { width: dev.width, height: dev.height, drawing: false } : null,
+        };
+      });
+
+const plan = planField(cover, supports, (frame) => frame.media);
+
+/* ---- placement ------------------------------------------------------------ */
+const span = (range: readonly [number, number]) => `${range[0]} / ${range[1]}`;
+const placement = (box: FieldBox) =>
+  `--af-ca:${span(box.columns)};--af-cb:${span(mirrorBox(box).columns)};--af-rr:${span(box.rows)};`;
+
+/* `sizes`: a desktop slot is at most its column count × the capped column pitch; on a phone the
+   cover and a wide support take the measure, a paired support half of it. */
+const COLUMN_PITCH = 106;
+const sizesFor = (box: FieldBox, mobileShare: number) =>
+  `(min-width: 1024px) ${(box.columns[1] - box.columns[0]) * COLUMN_PITCH}px, ${Math.round(mobileShare * 100)}vw`;
+
+const mobileSupports = plan.mobile.supports;
+const slots = plan.slots.map((slot, index) => {
+  const mobile = index === 0 ? plan.mobile.cover : mobileSupports[index - 1];
+  return {
+    ...slot,
+    style: `${placement(slot.box)}--af-mr:${mobile?.ratio.toFixed(4) ?? '1.5'};`,
+    mobileFit: mobile?.fit ?? 'contain',
+    wide: mobile?.wide ?? true,
+    sizes: sizesFor(slot.box, mobile?.wide === false ? 0.5 : 1),
+  };
+});
+
+/* ---- the title block ------------------------------------------------------ */
+const title = localize(item.title, locale);
+const pillar = pillarLabel(item.pillar, locale);
+const labels = item.labels.map((label) => projectLabelLabel(label, locale)).join(' · ') || null;
+const sector = item.sector ? sectorLabel(item.sector, locale) : null;
+const year = item.year;
+/* The Project's own count, never less than what the field shows (the visual-QA overlay can show
+   stand-ins for a gallery the CMS does not hold). */
+const imageCount = Math.max(item.imageCount, plan.slots.length);
+const imagesLabel = `${imageCount} ${copy.images[countForm(imageCount, locale)]}`;
+---
+
+<a
+  class="af"
+  href={href}
+  data-work-id={item._id}
+  data-family={plan.family}
+  data-variant={plan.variant}
+  style={`--af-rows:${plan.rows};`}
+>
+  <span class="af-id">
+    <span class="no" aria-hidden="true">{coordinate}</span>
+    <span class="pl-tag">{pillar}{labels && <span class="lb"> · {labels}</span>}</span>
+  </span>
+
+  <span class="af-field">
+    {
+      slots.map((slot) => (
+        <span
+          class="af-s"
+          data-ref={slot.ref}
+          data-kind={slot.item.kind}
+          data-fit={slot.fit}
+          data-mfit={slot.mobileFit}
+          data-wide={slot.wide ? '' : undefined}
+          style={slot.style}
+          aria-hidden={slot.ref === 'cover' ? undefined : 'true'}
+        >
+          {slot.item.asset ? (
+            <img
+              class="af-img"
+              src={fieldImageUrl(slot.item.asset, 960)}
+              srcset={fieldSrcset(slot.item.asset)}
+              sizes={slot.sizes}
+              width={slot.item.media?.width}
+              height={slot.item.media?.height}
+              alt={slot.ref === 'cover' ? (localize(slot.item.asset.alt, locale) ?? '') : ''}
+              loading={priority && slot.ref === 'cover' ? 'eager' : 'lazy'}
+              fetchpriority={priority && slot.ref === 'cover' ? 'high' : undefined}
+              decoding="async"
+              style={slot.item.kind === 'drawing' ? undefined : `object-position:${hotspotPosition(slot.item.asset)}`}
+            />
+          ) : (
+            <Plate image={null} locale={locale} tone={tone} devKey={slot.item.devKey} devPool={devPool} />
+          )}
+        </span>
+      ))
+    }
+
+    <span
+      class:list={['af-tb', `af-tb--${plan.title.shape}`, plan.title.low && 'af-tb--low']}
+      style={placement(plan.title.box)}
+    >
+      <span class="h">
+        <span class="no" aria-hidden="true">{coordinate}</span>
+        <span class="pl-tag">{pillar}{labels && <span class="lb"> · {labels}</span>}</span>
+      </span>
+      <span class="t">{title}</span>
+      {
+        (place || year !== null || sector) && (
+          <span class="kv">
+            {place && (
+              <span>
+                <em>{copy.location}</em>
+                {place}
+              </span>
+            )}
+            {year !== null && (
+              <span>
+                <em>{copy.year}</em>
+                {year}
+              </span>
+            )}
+            {sector && (
+              <span>
+                <em>{copy.sector}</em>
+                {sector}
+              </span>
+            )}
+          </span>
+        )
+      }
+      <span class="go" aria-hidden="true">
+        <span>
+          {openLabel}
+          <span class="ar">→</span>
+        </span>
+        <span class="x">{imagesLabel}</span>
+      </span>
+    </span>
+  </span>
+
+  <span class="af-go" aria-hidden="true">
+    <span>
+      {openLabel}
+      <span class="ar">→</span>
+    </span>
+    <span class="x">{imagesLabel}</span>
+  </span>
+</a>
