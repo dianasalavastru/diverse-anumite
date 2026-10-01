@@ -257,18 +257,17 @@
 }
 
 /* =============================================================================
-   A-2/A-3/A-4 · THE CONTROL REGION — "sticky, calm, editorial"
+   A-2/A-3/A-4 · THE CONTROL REGION — "calm, editorial"
 
    WORK_ARCHIVE_WIREFRAME: "a quiet, persistent control region framing a results
    region… The controls must never out-emphasize the work."
    ========================================================================== */
 
+/* Below 1024px the band scrolls away with the page (DECISIONS_LOG #119): on a
+   tablet or phone, the work, not the controls, keeps the screen. The only
+   sticky filter surface is the ≥1248px rail; the 1024–1247px sheet keeps its
+   tab row (see THE ARCHIVE SHELL). */
 .wa-controls {
-  position: sticky;
-  top: var(--header-h);
-  z-index: 30;
-  background: rgb(255 255 255 / 92%);
-  backdrop-filter: blur(8px);
   border-top: 1px solid var(--hair);
   border-bottom: 1px solid var(--hair);
   /* `.bleed` supplies the negative margins; this restores the inner alignment,
@@ -612,20 +611,6 @@
   .wa-fsels {
     margin-left: 0;
     width: 100%;
-  }
-
-  /* The control region stops being sticky in one column.
-     Wrapped onto four or five rows it stands ~370px tall, and pinned under the
-     header that is close to half a phone viewport — a frame louder than the work
-     it frames, against WORK_ARCHIVE_WIREFRAME's "the controls must never
-     out-emphasize the work" and its A-4 responsive intent ("may collapse into a
-     compact control on narrow screens"). Static, it is complete and legible at
-     the top of the browse and then yields the screen to the results. IA:167's
-     inline-vs-expander question is answered (owner, 2026-09-30): every
-     refinement sits behind the "Filtre" disclosure; only the pillar tabs stay
-     inline. */
-  .wa-controls {
-    position: static;
   }
 }
 
