@@ -117,3 +117,48 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* -----------------------------------------------------------------------------
+   COMPACT TREATMENT — short pages only (`fit="viewport"`, DECISIONS_LOG #118)
+
+   The same footer — same element, same content, same voices, same order — set
+   on one row instead of a stacked column. With only the wordmark, its line and
+   the four Atelier links, the stacked footer measured 253–292px on a laptop:
+   a third of a 768px screen. On a page whose whole content is one screen that
+   is no longer a closing, it is a second page. Spacing and layout only:
+   nothing is added, removed or restyled.
+
+   The top padding leaves `--pad-loud` for the page's own height-aware beat
+   (24–44px), and the wordmark steps down from 34px within that same range, so
+   a tall desktop keeps more air than a short laptop. Laptop/desktop only;
+   below 1024px every page keeps the stacked footer.
+   -------------------------------------------------------------------------- */
+@media (min-width: 1024px) {
+  :root[data-fit="viewport"] .site-footer {
+    padding-block: clamp(24px, 3.8vh, 44px) clamp(20px, 3.2vh, 36px);
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 24px 40px;
+  }
+
+  :root[data-fit="viewport"] .site-footer .big .wm {
+    font-size: clamp(24px, 3.4vh, 30px);
+    margin-bottom: 6px;
+  }
+
+  /* The heading stays first and the links keep their order and target size;
+     only the axis changes. */
+  :root[data-fit="viewport"] .site-footer .col {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 22px;
+  }
+
+  :root[data-fit="viewport"] .site-footer .col h4 {
+    margin: 0 6px 0 0;
+  }
+
+  :root[data-fit="viewport"] .site-footer .col a {
+    padding-block: 4px;
+  }
+}

@@ -108,3 +108,31 @@ main {
     display: none;
   }
 }
+
+/* -----------------------------------------------------------------------------
+   Short-page frame — `fit="viewport"` on BaseLayout (DECISIONS_LOG #118)
+
+   A page with one screen of content should end on that screen: header, content
+   and footer read as one composition, and the footer is the bottom edge of it
+   rather than a band floating at mid-height over an empty strip. The body
+   becomes a column at least one viewport tall and <main> takes the remainder,
+   so the footer sits on the viewport's bottom edge by flow alone — no fixed or
+   absolute positioning, and a page that does outgrow the screen simply scrolls.
+
+   Laptop/desktop only. Below 1024px a phone or tablet reads the page as a
+   normal scrolling column; forcing it into one screen is not the goal there.
+   `svh`, with `vh` first as the fallback, so mobile browser chrome can never
+   make the column taller than the visible viewport.
+   -------------------------------------------------------------------------- */
+@media (min-width: 1024px) {
+  :root[data-fit="viewport"] body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100svh;
+  }
+
+  :root[data-fit="viewport"] main {
+    flex: 1 0 auto;
+  }
+}

@@ -51,6 +51,13 @@ interface Props {
   headerVariant?: 'default' | 'on-hero' | 'on-hero-compact';
   /** The footer's rail station, on pages that use the coordinate rail. */
   footerStation?: number;
+  /**
+   * `viewport` for a genuinely short page (About, Services index, Contact, 404 —
+   * DECISIONS_LOG #118). On laptop/desktop it lets the footer close the first
+   * screen and gives it its compact spacing (layout.css, global-footer.css).
+   * Never set on a page whose content runs past one screen by design.
+   */
+  fit?: 'viewport';
 }
 
 const {
@@ -62,6 +69,7 @@ const {
   slugs,
   headerVariant = 'default',
   footerStation,
+  fit,
 } = Astro.props;
 
 const t = ui(locale);
@@ -86,7 +94,7 @@ const absolute = (path: string) => (Astro.site ? new URL(path, Astro.site).href 
   equivalent and CSP-clean. Reduced motion needs no JS at all here: motion.css
   resolves every staged element to its final state.
 -->
-<html lang={locale} class="anim-load" data-rhythm={rhythm}>
+<html lang={locale} class="anim-load" data-rhythm={rhythm} data-fit={fit}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
