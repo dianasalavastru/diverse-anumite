@@ -176,6 +176,8 @@ REALITY CAPTURE — BASE
 >
 > **Locație / Location is NOT a Reality Capture base field** either. Its requirement is decided by the selected Services (§7).
 
+> **Editor note — gallery image kind (both Pillars).** Mark every board, plan, section, elevation or other drawing in a Project's Gallery as **`kind = drawing`** ("Drawing / board" in Studio). Leave photographs and renders unset: **unset remains `photo`**. A drawing is always shown whole, on white and untoned, in the archive and on the Project page; a Cover counts as a drawing when the same image appears in the Gallery marked `drawing` (`DECISIONS_LOG.md` #116, #117).
+
 ---
 
 ## 7. Reality Capture — fields activated by Service
