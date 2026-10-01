@@ -427,13 +427,49 @@
   border-top: 1px solid var(--hair-2);
 }
 
-.wa-fpanel[hidden] {
+/* The disclosure is a narrow-screen affordance: the panel is closed until it is
+   opened (`data-open`, set by the island) only below 1024px. From 1024px it is
+   always shown (A-2/A-4 · THE ARCHIVE SHELL, below). Closed in CSS rather than
+   by `hidden`, so a phone never shows it open before the island runs. */
+@media (max-width: 1023px) {
+  .wa-fpanel:not([data-open]) {
+    display: none;
+  }
+
+  /* A select is as wide as its longest option; a long Service name must end in
+     an ellipsis inside the panel, not run past the gutter. */
+  .wa-filters .wa-f,
+  .wa-fv {
+    display: block;
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
+/* ---- The filter set (A-4) ------------------------------------------------
+   One set of controls at every width (ArchiveFilters.astro). In the panel the
+   chips lead and the quiet selects follow; a wrapped row sits under its own
+   line, not a column-gap away. Each facet's key (`.wa-fk`) is hidden here,
+   where the selects' own values name their axis — the sheet and the rail show
+   it. */
+.wa-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px clamp(16px, 3vw, 40px);
+}
+
+.wa-filters .wa-f[hidden] {
   display: none;
 }
 
-/* Inside the panel a wrapped row sits under its own label, not a column-gap away. */
-.wa-fpanel .frow {
-  row-gap: 10px;
+.wa-fk {
+  display: none;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-60);
 }
 
 /* ---- Chips (A-4: Entry Type, and the contextual refinement) -------------- */
@@ -475,42 +511,39 @@
   color: var(--blue);
 }
 
-/* The contextual row's own label — mono label voice, like every other. */
-.wa-contextual .clab {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-60);
-}
-
-.wa-contextual[hidden] {
-  display: none;
-}
-
-/* ---- Quiet selects (A-4: Sector, and Year-as-sort) -----------------------
+/* ---- Quiet selects (A-4: Sector, Year-as-sort and Service) ---------------
 
    The strip's quietest register, and deliberately so: the pillar tabs are the
    dominant control, the chips are secondary, and these two are the ones a
    visitor reaches for last. They are moved from the chips' lowercase voice into
-   the system's uppercase mono LABEL voice — the same one `.clab`, the active
-   context and the continue row use — which reads as annotation rather than as a
-   third row of pressable things. No control was removed, resized or restyled
-   into a new component; only its typographic register changed. */
+   the system's uppercase mono LABEL voice — the same one the active context and
+   the continue row use — which reads as annotation rather than as a third row
+   of pressable things. Service joined them in #119 (a chip per Service ran to
+   three lines). */
 
-.sels {
+.wa-fsels {
   display: flex;
   gap: clamp(16px, 2vw, 28px);
   align-items: center;
   margin-left: auto;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .sel {
   position: relative;
+  display: inline-block;
+  max-width: 100%;
+}
+
+/* The chosen option's words, repeated for the sheet's sizing fallback only. */
+.sel-v {
+  display: none;
 }
 
 .sel select {
+  max-width: 100%;
+  text-overflow: ellipsis;
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 0.12em;
@@ -573,16 +606,10 @@
   .wa-primary .pills {
     mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
   }
-
-  /* A long Service name wraps inside its chip rather than leaving the viewport. */
-  .wa-fpanel .chip {
-    white-space: normal;
-    text-align: left;
-  }
 }
 
 @media (max-width: 640px) {
-  .sels {
+  .wa-fsels {
     margin-left: 0;
     width: 100%;
   }
@@ -1067,7 +1094,12 @@
 }
 
 @media (min-width: 1024px) {
-  .wa-grid.wa-grid--register {
+  /* The field's height inputs, declared once for the grid and for the archive
+     shell around it, so the filter sheet and the rail board measure the very row
+     the field is built from (A-2/A-4 · THE ARCHIVE SHELL). */
+  .wa-grid.wa-grid--register,
+  .wa-board,
+  .wa--board {
     --af-breath: clamp(12px, 1.8svh, 24px);
     --af-hint: 56px;
     --af-rh: clamp(
@@ -1075,12 +1107,19 @@
       calc((100svh - var(--header-h) - var(--af-breath) - var(--af-hint)) / 11.56),
       72px
     );
+  }
+
+  .wa-grid.wa-grid--register {
     row-gap: calc(var(--af-rh) * 0.8);
     /* The strip above frames the work; the field starts a breath below it. */
     padding-top: calc(var(--af-breath) * 0.5);
   }
 
-  .af {
+  /* `.wa-framed` — the tab row and the filter sheet take the field's own frame:
+     the same width, measured by the same rule against the same width (the
+     shell is the size container, and it is exactly as wide as the grid). */
+  .af,
+  .wa-framed {
     --af-gy: calc(var(--af-rh) * 0.22);
     --af-gx: calc(var(--af-gy) * 1.25);
     --af-cfull: calc((100cqi - 11 * var(--af-gx)) / 12);
@@ -1195,11 +1234,506 @@
     .wa-intro--compact {
       padding-bottom: clamp(12px, 1.8vh, 24px);
     }
+  }
+}
 
-    .wa-controls {
-      padding-top: clamp(8px, 1.1vh, 13px);
-      padding-bottom: clamp(8px, 1.1vh, 13px);
+/* =============================================================================
+   A-2/A-4 · THE ARCHIVE SHELL — laptop and desktop (DECISIONS_LOG #119)
+
+   One set of controls, one filter state, one URL contract; three placements,
+   all CSS:
+     < 1024px      the control band and its "Filtre" disclosure (above)
+     1024–1247px   THE TECHNICAL SHEET — the tab row, sticky, over a ruled
+                   key/value sheet: Etichete on one row, Sector · Ordonare ·
+                   Serviciu as cells on the next. Both sit on the Project
+                   field's own centred frame (`.wa-framed`).
+     ≥ 1248px      THE RAIL — the tab row across the board, a 132px filter rail
+                   beside the results, sticky while the Projects scroll. Rail,
+                   gap and field are one composition, centred inside the
+                   header's margins. Only with entries (`.wa--board`); an empty
+                   archive keeps the sheet's header.
+   1248px is measured, not conventional: below it, with the board inside the
+   header gutters, the field drops under ~950px at a 768px laptop height and
+   long titles meet the title block's three-line clamp.
+
+   `.wa-controls` dissolves here (`display: contents`): its tab row and its side
+   become the shell's own items, which is what lets the side sit beside the
+   results in the rail and lets the tab row stick in the sheet. The disclosure
+   is not rendered: every refinement is visible.
+
+   Nothing in the field changes. Its rows still come from the viewport height
+   and its cells stay 1–1.25× wider than tall and ≤84px (#117). The rail only
+   changes the WIDTH the field is offered — what the board leaves after the rail
+   instead of 90% of the content box — and a field at its approved cap leaves
+   the rest as margin rather than growing into it.
+   ========================================================================== */
+
+@media (min-width: 1024px) {
+  .wa-board {
+    container-type: inline-size;
+  }
+
+  .wa-controls {
+    display: contents;
+  }
+
+  .wa-ftoggle {
+    display: none;
+  }
+
+  /* ---- The masthead: a smaller name, so the first field fits the screen.
+     Still unmistakably the page's H1; the breadcrumb sits a beat closer. */
+  [data-archive] .wa-intro {
+    padding-top: clamp(62px, 8vh, 100px);
+  }
+
+  [data-archive] .wa-intro--compact {
+    padding-bottom: clamp(14px, 2vh, 26px);
+  }
+
+  [data-archive] .wa-intro h1 {
+    font-size: clamp(42px, calc(2vw + 22.5px), 62px);
+  }
+
+  [data-archive] .wa-intro .kick {
+    margin-bottom: 6px;
+  }
+
+  /* ---- The sheet ------------------------------------------------------- */
+
+  /* The old band's hairline, still edge to edge, now over the sheet. */
+  .wa-board::before {
+    content: "";
+    display: block;
+    height: 1px;
+    background: var(--hair);
+    margin-inline: calc(-1 * var(--gutter-start)) calc(-1 * var(--gutter-end));
+  }
+
+  /* The top register: the only part of the sheet that stays. The paper is
+     carried edge to edge by a spread shadow, clipped to the row's own height. */
+  .wa-primary {
+    position: sticky;
+    top: var(--header-h);
+    z-index: 30;
+    background: var(--paper);
+    box-shadow: 0 0 0 100vmax var(--paper);
+    clip-path: inset(0 -100vmax);
+    padding: 12px 0 7px;
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .wa-side {
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .wa-fpanel {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .wa-filters {
+    display: block;
+  }
+
+  .wa-filters .wa-f--label {
+    display: grid;
+    grid-template-columns: 9.5rem minmax(0, 1fr);
+    border-bottom: 1px solid var(--hair);
+  }
+
+  .wa-fk,
+  .wa-fv {
+    display: flex;
+    align-items: center;
+    min-height: 30px;
+    min-width: 0;
+  }
+
+  .wa-fk {
+    padding-inline-end: 12px;
+    border-inline-end: 1px solid var(--hair);
+  }
+
+  .wa-fv {
+    flex-wrap: wrap;
+    gap: 2px 20px;
+    padding-inline: 14px;
+  }
+
+  /* Row two: three key/value cells on one rule. The first key keeps the label
+     column; the next two are divided by hairlines, the title block's own kv
+     register. */
+  .wa-fsels {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0;
+    margin: 0;
+  }
+
+  .wa-filters .wa-fsels > .wa-f {
+    display: flex;
+    min-width: 0;
+  }
+
+  .wa-f--sector {
+    flex: 1 1 0;
+  }
+
+  .wa-f--sort {
+    flex: 0.8 1 0;
+  }
+
+  .wa-f--service {
+    flex: 1.5 1 0;
+  }
+
+  .wa-f--sector .wa-fk {
+    flex: 0 0 9.5rem;
+    box-sizing: border-box;
+  }
+
+  .wa-f--sort .wa-fk,
+  .wa-f--service .wa-fk {
+    flex: none;
+    padding-inline: 14px 12px;
+    border-inline-start: 1px solid var(--hair);
+    border-inline-end: 0;
+  }
+
+  /* Options as text: no box, the active one in ink over a blue underline. */
+  .wa-filters .chips {
+    gap: 2px 20px;
+  }
+
+  .wa-filters .chip {
+    position: relative;
+    border: 0;
+    padding: 3px 0;
+  }
+
+  .wa-filters .chip::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 100%;
+    bottom: 0;
+    height: 1.5px;
+    background: var(--blue);
+    transition: right var(--t-state) var(--slow);
+  }
+
+  .wa-filters .chip.on {
+    color: var(--ink);
+  }
+
+  .wa-filters .chip.on::after,
+  .wa-filters .chip:hover::after,
+  .wa-filters .chip:focus-visible::after {
+    right: 0;
+  }
+
+  .wa-filters .chip:not(.on):hover::after,
+  .wa-filters .chip:not(.on):focus-visible::after {
+    background: var(--ink-40);
+  }
+
+  /* The selects in the key/value voice: lowercase, ink, no underline of their
+     own (the rule is the row's), sized to the chosen option. */
+  .wa-filters .sel select,
+  .wa-filters .sel-v {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: none;
+    padding: 3px 18px 3px 0;
+  }
+
+  .wa-filters .sel select {
+    color: var(--ink);
+    border-bottom: 0;
+    field-sizing: content;
+  }
+
+  /* Safari and Firefox: no `field-sizing`, so a select would keep the width of
+     its longest option and strand its caret. The mirror sizes the cell, and the
+     select — its own intrinsic width contained away — lies over it and fills it. */
+  @supports not (field-sizing: content) {
+    .wa-filters .sel {
+      display: inline-grid;
+      grid-template-columns: minmax(0, auto);
     }
+
+    .wa-filters .sel > select,
+    .wa-filters .sel > .sel-v {
+      grid-area: 1 / 1;
+    }
+
+    /* Zero width contributes nothing to the track; the minimum then fills it. */
+    .wa-filters .sel > select {
+      width: 0;
+      min-width: 100%;
+    }
+
+    .wa-filters .sel > .sel-v {
+      display: block;
+      min-width: 0;
+      overflow: hidden;
+      visibility: hidden;
+      white-space: nowrap;
+    }
+  }
+
+  /* The active state: one mono line inside the sheet, keyed in its label column. */
+  .wa-side .wa-context {
+    margin: 0;
+    min-height: 28px;
+    align-items: center;
+    gap: 0 20px;
+    border-top: 1px solid var(--hair);
+  }
+
+  .wa-side .wa-summary {
+    display: flex;
+    align-items: center;
+    align-self: stretch;
+  }
+
+  .wa-side .wa-summary .lab {
+    display: flex;
+    align-items: center;
+    align-self: stretch;
+    box-sizing: border-box;
+    width: 9.5rem;
+    margin: 0 14px 0 0;
+    padding-inline-end: 12px;
+    border-inline-end: 1px solid var(--hair);
+    font-size: 10px;
+  }
+}
+
+/* ---- Long titles on the narrowest desktop field ---------------------------
+   From 1024 to 1151px the field's smallest title block — the 3 × 3-module cell —
+   is ~265–290px wide and its height is fixed by the slot. Two things then took
+   the title's room: a long title needing a fourth line met the three-line
+   clamp, and a metadata value wrapping to a second line (a long location)
+   squeezed the title row until it was cut mid-line. The title keeps the room:
+   its type steps down a little (≈16.4 → 15px) and each metadata value holds to
+   one line, ending in an ellipsis if it must — the full value is on the Project
+   page. Families, slots and every other size are unchanged; above 1151px this
+   block does nothing. */
+@media (min-width: 1024px) and (max-width: 1151px) {
+  .af-tb--cell .t {
+    font-size: clamp(15px, calc(var(--af-r) * 0.27), 24px);
+  }
+
+  .af-tb--cell .kv > span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* ---- The rail ----------------------------------------------------------- */
+@media (min-width: 1248px) {
+  /* The board spans the window inside the header's own margins and is the one
+     size container: masthead, tab row, rail, gap and field all measure it. */
+  .wa--board {
+    container-type: inline-size;
+    margin-inline: calc(-1 * var(--gutter-start)) calc(-1 * var(--gutter-end));
+    /* Outer margin: 7.5% from 1366px, never inside the header gutter. */
+    --wa-m: min(160px, max(clamp(20px, 5cqi, 64px), min(7.5cqi, calc(50cqi - 581px))));
+    --wa-rail: clamp(132px, 9cqi, 164px);
+    --wa-gap: clamp(28px, 3cqi, 56px);
+    /* The widest field its cells allow at this height (#117 caps), and the room
+       the board leaves: the field takes the smaller. */
+    --wa-fmax: calc(12 * min(var(--af-rh) * 1.25, 84px) + 11 * var(--af-rh) * 0.275);
+    --wa-f: min(
+      calc(100cqi - 2 * var(--wa-m) - var(--wa-rail) - var(--wa-gap)),
+      var(--wa-fmax)
+    );
+    --wa-s: calc(var(--wa-rail) + var(--wa-gap) + var(--wa-f));
+  }
+
+  .wa--board > * {
+    box-sizing: border-box;
+    width: var(--wa-s);
+    margin-inline: auto;
+  }
+
+  .wa--board > .wa-board {
+    container-type: normal;
+    display: grid;
+    grid-template-columns: var(--wa-rail) var(--wa-f);
+    grid-template-areas:
+      "tabs tabs"
+      "side results";
+    column-gap: var(--wa-gap);
+    align-items: start;
+  }
+
+  .wa--board .wa-board::before {
+    display: none;
+  }
+
+  .wa--board .wa-results {
+    grid-area: results;
+    min-width: 0;
+  }
+
+  /* The field is offered the board's column; its own rule does the rest. */
+  .wa--board .wa-grid.wa-grid--register {
+    container-type: normal;
+  }
+
+  .wa--board .af {
+    --af-cfull: calc((var(--wa-f) - 11 * var(--af-gx)) / 12);
+    --af-c: var(--af-cfull);
+    margin-inline: 0;
+  }
+
+  /* The tab row: across the board, not sticky. */
+  .wa--board .wa-primary {
+    grid-area: tabs;
+    position: static;
+    width: auto;
+    margin: 0;
+    padding: 8px 0;
+    box-shadow: none;
+    clip-path: none;
+    border-top: 1px solid var(--hair);
+  }
+
+  /* The rail: sticky beside the Projects, and it ends with the results, before
+     the footer. Tall content scrolls inside it rather than off the screen. */
+  .wa--board .wa-side {
+    grid-area: side;
+    width: auto;
+    margin: 0;
+    position: sticky;
+    top: calc(var(--header-h) + 20px);
+    max-height: calc(100svh - var(--header-h) - 40px);
+    overflow-y: auto;
+    scrollbar-width: none;
+    padding-top: calc(var(--af-breath) * 0.5);
+    border-bottom: 0;
+    display: grid;
+    row-gap: clamp(12px, 1.8vh, 18px);
+    align-content: start;
+  }
+
+  .wa--board .wa-filters {
+    display: grid;
+    row-gap: clamp(12px, 1.8vh, 18px);
+  }
+
+  .wa--board .wa-fsels {
+    display: contents;
+  }
+
+  .wa--board .wa-filters .wa-f,
+  .wa--board .wa-filters .wa-fsels > .wa-f,
+  .wa--board .wa-filters .wa-f--label {
+    display: grid;
+    row-gap: 5px;
+    padding-top: 7px;
+    border-top: 1px solid var(--hair);
+    border-bottom: 0;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .wa--board .wa-filters .wa-f--label {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .wa--board .wa-filters .wa-f[hidden] {
+    display: none;
+  }
+
+  .wa--board .wa-fk,
+  .wa--board .wa-fv {
+    display: block;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .wa--board .wa-f--sector .wa-fk,
+  .wa--board .wa-f--sort .wa-fk,
+  .wa--board .wa-f--service .wa-fk {
+    padding: 0;
+    border: 0;
+  }
+
+  .wa--board .wa-filters .chips {
+    display: grid;
+    justify-items: start;
+    gap: 2px;
+  }
+
+  .wa--board .wa-filters .chip {
+    padding: 2px 0;
+    letter-spacing: 0.03em;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .wa--board .wa-filters .chip.on {
+    color: var(--blue);
+  }
+
+  /* Full-width selects need no mirror: the rail column sizes them in every
+     browser. These reset the sheet's sizing fallback. */
+  .wa--board .wa-filters .sel {
+    display: block;
+  }
+
+  .wa--board .wa-filters .sel select {
+    width: 100%;
+    min-width: 0;
+    padding-right: 16px;
+    letter-spacing: 0.03em;
+    border-bottom: 1px solid var(--hair);
+  }
+
+  .wa--board .wa-filters .sel > .sel-v {
+    display: none;
+  }
+
+  /* The active state closes the rail. */
+  .wa--board .wa-side .wa-context {
+    display: grid;
+    justify-items: start;
+    row-gap: 4px;
+    min-height: 0;
+    padding-top: 8px;
+    border-top: 1px solid var(--ink);
+  }
+
+  .wa--board .wa-side .wa-context:not([data-refined]):not([data-scoped]) {
+    display: none;
+  }
+
+  .wa--board .wa-side .wa-summary {
+    display: block;
+  }
+
+  .wa--board .wa-side .wa-summary .lab {
+    display: block;
+    width: auto;
+    margin: 0 0 2px;
+    padding: 0;
+    border: 0;
+  }
+
+  .wa--board .wa-side .wa-hub {
+    margin-left: 0;
+  }
+
+  .wa--board .wa-side .wa-clear {
+    text-align: left;
   }
 }
 

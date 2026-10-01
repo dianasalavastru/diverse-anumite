@@ -88,6 +88,14 @@ function start(root: HTMLElement, grid: HTMLElement): void {
   const selects = [...root.querySelectorAll<HTMLSelectElement>('select[data-facet]')];
 
   /**
+   * The Service select's full option list, in authored order, captured before anything is
+   * narrowed. A mode offers a subset of it; the subset is applied by removing and restoring
+   * options rather than by `hidden`, which Safari ignores on an <option>.
+   */
+  const serviceSelect = selects.find((select) => select.dataset.facet === 'service');
+  const serviceOptions = serviceSelect ? [...serviceSelect.options] : [];
+
+  /**
    * The three noun forms, authored in `work-archive.ts` and carried on the
    * readout. Only the RULE is imported (`countForm`) — Romanian needs three
    * forms and English two — so no message table reaches the client bundle.
@@ -126,10 +134,9 @@ function start(root: HTMLElement, grid: HTMLElement): void {
    * So the rule is: **a value is restorable exactly when a control can express it.** Anything
    * else is ignored, per §23.1's "an unrecognised value is ignored rather than echoed".
    *
-   * This deliberately queries every radio rather than going through `radiosOf`, which filters
-   * hidden ones: `available.services` must be the WHOLE demonstrated set across both Pillars,
-   * because `parseArchiveState` narrows it per mode through `servicesInScope`. It also runs
-   * once, before the first `apply()`, so no chip has been hidden yet either way.
+   * `available.services` must be the WHOLE demonstrated set across both Pillars, because
+   * `parseArchiveState` narrows it per mode through `servicesInScope`. This runs once, before
+   * the first `apply()`, so the Service select still holds every option.
    */
   const optionValues = (facet: string): string[] => {
     const group = groups.find((candidate) => candidate.dataset.facet === facet);
@@ -207,11 +214,10 @@ function start(root: HTMLElement, grid: HTMLElement): void {
   /**
    * The radios a mode currently offers.
    *
-   * Hidden chips are excluded, not merely un-clickable: this is the list the roving tabindex,
-   * the Arrow/Home/End handler and the restorable-value probe all read, so a Service chip
-   * belonging to the other Pillar must not be Tab-reachable, must not be landed on by an arrow
-   * key, and must not make a URL value restorable. One filter here is what keeps all three
-   * behaviours consistent.
+   * Hidden radios are excluded, not merely un-clickable: this is the list the roving tabindex
+   * and the Arrow/Home/End handler read, so a radio a mode does not offer must not be
+   * Tab-reachable or landed on by an arrow key. (Service, the facet whose options narrow per
+   * mode, is a select now and narrows by its option list instead.)
    */
   function radiosOf(group: HTMLElement): HTMLElement[] {
     return [...group.querySelectorAll<HTMLElement>('[role="radio"]')].filter(
@@ -280,21 +286,19 @@ function start(root: HTMLElement, grid: HTMLElement): void {
   ): void {
     state = next;
 
-    /* -- the contextual refinement, scoped per chip ---------------------
-       Every mode offers a Service refinement now, so this is no longer a row that appears and
-       disappears — it is one row whose options narrow. A chip is offered when it carries no
-       pillar (the "any service" option) or when its Service's Pillar is the active mode.
-       Ordered BEFORE the controls are reflected, because `setGroupValue` and `radiosOf` both
-       read the visibility this establishes. */
-    const serviceGroup = groupFor('service');
-    let offered = 0;
-    for (const radio of serviceGroup?.querySelectorAll<HTMLElement>('[role="radio"]') ?? []) {
-      const pillar = radio.dataset.pillar;
-      radio.hidden = Boolean(pillar) && state.pillar !== 'all' && pillar !== state.pillar;
-      if (!radio.hidden && radio.dataset.value) offered += 1;
-    }
-    /* A Pillar whose Services nothing demonstrates yet would otherwise show a row containing
-       only "any service", which is a control that cannot do anything. */
+    /* -- the contextual refinement, scoped per option -------------------
+       Every mode offers a Service refinement, so this is one control whose options narrow.
+       An option is offered when it carries no pillar (the "any service" option) or when its
+       Service's Pillar is the active mode. Ordered BEFORE the controls are reflected, so the
+       value written below is always one the select can show. */
+    const offeredServices = serviceOptions.filter((option) => {
+      const pillar = option.dataset.pillar;
+      return !pillar || state.pillar === 'all' || pillar === state.pillar;
+    });
+    if (serviceSelect) serviceSelect.replaceChildren(...offeredServices);
+    const offered = offeredServices.filter((option) => option.value.length > 0).length;
+    /* A Pillar whose Services nothing demonstrates yet would otherwise show a control
+       containing only "any service", which cannot do anything. */
     for (const row of root.querySelectorAll<HTMLElement>('[data-contextual="service"]')) {
       row.hidden = offered === 0;
     }
@@ -302,14 +306,21 @@ function start(root: HTMLElement, grid: HTMLElement): void {
     /* -- controls ------------------------------------------------------- */
     setGroupValue('pillar', state.pillar);
     setGroupValue('label', state.label ?? '');
-    /* `setGroupValue` falls back to '' for a value no visible radio carries, so a Service the
-       new mode does not offer un-checks itself here as well as being dropped from the state. */
-    setGroupValue('service', state.service ?? '');
 
     const sector = selectFor('sector');
     if (sector) sector.value = state.sector ?? '';
     const sort = selectFor('sort');
     if (sort) sort.value = state.sort;
+    /* `parseArchiveState` / `withPillar` already drop a Service the mode does not offer, so the
+       value is always one of the options just restored. */
+    if (serviceSelect) serviceSelect.value = state.service ?? '';
+
+    /* The select mirrors: the chosen option's words, for the layouts that size a select from
+       them where `field-sizing` is unsupported (ArchiveFilters.astro). */
+    for (const select of selects) {
+      const mirror = select.parentElement?.querySelector<HTMLElement>('[data-sel-mirror]');
+      if (mirror) mirror.textContent = select.selectedOptions[0]?.textContent?.trim() ?? '';
+    }
 
     /* -- results -------------------------------------------------------- */
     const rankAttribute =
@@ -373,7 +384,7 @@ function start(root: HTMLElement, grid: HTMLElement): void {
         state.pillar !== 'all' ? groupLabel('pillar') : '',
         state.label ? groupLabel('label') : '',
         state.sector ? selectLabel('sector') : '',
-        state.service ? groupLabel('service') : '',
+        state.service ? selectLabel('service') : '',
       ].filter((part) => part.length > 0);
       summary.textContent = parts.length > 0 ? parts.join(' · ') : (summary.dataset.none ?? '');
     }
@@ -497,11 +508,14 @@ function start(root: HTMLElement, grid: HTMLElement): void {
     });
   }
 
-  /* The secondary filters' disclosure. Closed by default; opening it moves nothing else. */
+  /* The secondary filters' disclosure — a narrow-screen affordance. Closed by default;
+     opening it moves nothing else. It is a STATE attribute, not `hidden`: from 1024px the
+     panel is always shown and the disclosure is not rendered (work-archive.css), so the
+     panel's visibility there must not depend on what this button last did. */
   function setPanel(open: boolean): void {
     if (!filterToggle || !filterPanel) return;
     filterToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    filterPanel.hidden = !open;
+    filterPanel.toggleAttribute('data-open', open);
   }
 
   filterToggle?.addEventListener('click', () => {

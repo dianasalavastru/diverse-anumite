@@ -125,7 +125,7 @@ const basePath = routePath('workArchive', locale);
 
   <ViewTransition />
 
-  <div class="wa" data-archive data-archive-base={basePath}>
+  <div class:list={['wa', items.length > 0 && 'wa--board']} data-archive data-archive-base={basePath}>
     <ArchiveOrientation
       locale={locale}
       eyebrow={copy.orientation.eyebrow}
@@ -138,64 +138,80 @@ const basePath = routePath('workArchive', locale);
 
     {/* The control region: quiet, consistent, and never louder than the work
         (WORK_ARCHIVE_WIREFRAME, "Visual emphasis hierarchy"). */}
-    <div class="wa-controls bleed">
-      {/* Primary: the pillar tabs, always visible. Secondary: every refinement, behind one
-          quiet disclosure, so the band is one line tall until someone asks for more. */}
-      <div class="frow wa-primary">
-        <PillarToggle locale={locale} copy={copy.pillar} counts={counts} />
-        {/* With no entries there is nothing to refine: no disclosure, no panel. */}
-        {items.length > 0 && (
-        <button
-          type="button"
-          class="wa-ftoggle"
-          aria-expanded="false"
-          aria-controls="wa-filter-panel"
-          data-filter-toggle
-        >
-          {copy.filters.legend}
-          <span class="n" data-filter-count hidden></span>
-          <span class="ar" aria-hidden="true">▾</span>
-        </button>
-        )}
-      </div>
+    {/* ── THE BOARD (DECISIONS_LOG #119) ────────────────────────────────────
+        One set of controls and one results region, placed by CSS in three regimes:
+          < 1024px      the control band as before — tabs, the "Filtre" disclosure,
+                        the panel it opens, the active context — above the results
+          1024–1247px   the tab row (sticky) over the technical sheet, both on the
+                        Project field's own centred frame, above the results
+          ≥ 1248px      the tab row across the board, the sticky filter rail beside
+                        the results; rail + field are one centred composition
+        `.wa-controls` keeps its band below 1024px and dissolves (`display: contents`)
+        above it, so its two children become the board's own grid items. `.wa-side`
+        holds the panel and the active context together, so the rail carries both and
+        the narrow layout keeps the context visible while the panel is closed.
+        With no entries there is nothing to refine: no disclosure, no panel, no rail. */}
+    <div class:list={['wa-board', items.length > 0 && 'wa-board--refinable']}>
+      <div class="wa-controls bleed">
+        {/* Primary: the pillar tabs, always visible. Secondary: every refinement — behind
+            one quiet disclosure on narrow screens, always shown from 1024px. */}
+        <div class="frow wa-primary wa-framed">
+          <PillarToggle locale={locale} copy={copy.pillar} counts={counts} />
+          {items.length > 0 && (
+          <button
+            type="button"
+            class="wa-ftoggle"
+            aria-expanded="false"
+            aria-controls="wa-filter-panel"
+            data-filter-toggle
+          >
+            {copy.filters.legend}
+            <span class="n" data-filter-count hidden></span>
+            <span class="ar" aria-hidden="true">▾</span>
+          </button>
+          )}
+        </div>
 
-      {items.length > 0 && (
-        <div class="wa-fpanel" id="wa-filter-panel" data-filter-panel hidden>
-          <ArchiveFilters
+        <div class="wa-side wa-framed">
+          {items.length > 0 && (
+            <div class="wa-fpanel" id="wa-filter-panel" data-filter-panel>
+              <ArchiveFilters
+                locale={locale}
+                copy={copy.filters}
+                values={values}
+                services={serviceChoices}
+              />
+            </div>
+          )}
+
+          <ActiveContext
             locale={locale}
-            copy={copy.filters}
-            values={values}
-            services={serviceChoices}
+            copy={copy.activeContext}
+            count={copy.count}
+            total={items.length}
           />
         </div>
-      )}
+      </div>
 
-      <ActiveContext
-        locale={locale}
-        copy={copy.activeContext}
-        count={copy.count}
-        total={items.length}
-      />
+      <section class="wa-results" aria-labelledby="wa-results-heading" tabindex="-1" data-archive-region>
+        <h2 class="wa-sr" id="wa-results-heading">{copy.results.label}</h2>
+
+        <ResultsGrid
+          locale={locale}
+          items={items}
+          openLabel={copy.results.open}
+          filterable
+          register
+        />
+
+        <ArchiveEmptyState
+          locale={locale}
+          copy={copy.empty}
+          wholeArchiveLabel={copy.continue.fullArchive}
+          basePath={basePath}
+        />
+      </section>
     </div>
-
-    <section class="wa-results" aria-labelledby="wa-results-heading" tabindex="-1" data-archive-region>
-      <h2 class="wa-sr" id="wa-results-heading">{copy.results.label}</h2>
-
-      <ResultsGrid
-        locale={locale}
-        items={items}
-        openLabel={copy.results.open}
-        filterable
-        register
-      />
-
-      <ArchiveEmptyState
-        locale={locale}
-        copy={copy.empty}
-        wholeArchiveLabel={copy.continue.fullArchive}
-        basePath={basePath}
-      />
-    </section>
 
     <ArchiveContinue
       locale={locale}
